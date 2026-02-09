@@ -1,0 +1,545 @@
+﻿@page "/shop/reports/sales"
+@using System.Globalization
+@using App.Core.Constants
+@using App.Core.DTOs.Customer
+@using App.Core.DTOs.Reports
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces
+@using App.Core.Options
+@using System.Timers
+@using App.Web.Components.Shared.Dialogs
+@using Microsoft.Extensions.Options
+
+@inject ISalesReportService ReportService
+@inject ICustomerService CustomerService
+@inject IStringLocalizer<SalesReportPage> L
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ILogger<SalesReportPage> Logger
+@inject IOptions<ExportOptions> ExportOptions
+
+<PageTitle>@L["Sales Report"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudPaper Elevation="0" Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex justify-space-between align-center flex-wrap gap-4">
+                <MudText Typo="Typo.h4">@L["Sales Report"]</MudText>
+                <div class="d-flex gap-2">
+                    <MudButton Variant="Variant.Outlined" OnClick="ExportToExcel"
+                        StartIcon="@Icons.Material.Filled.FileDownload" Disabled="@_exporting"
+                        Class="da-button-rounded">
+                        <div class="d-flex flex-column">
+                            <MudText>@L["Export Excel"]</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @L["Max. {0:N0} records", ExportOptions.Value.MaxExportRecords]
+                            </MudText>
+                        </div>
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" OnClick="ExportToPdf"
+                        StartIcon="@Icons.Material.Filled.PictureAsPdf" Disabled="@_exporting"
+                        Class="da-button-rounded">
+                        <div class="d-flex flex-column">
+                            <MudText>@L["Export PDF"]</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @L["Max. {0:N0} records", ExportOptions.Value.MaxPdfRecords]
+                            </MudText>
+                        </div>
+                    </MudButton>
+                </div>
+            </MudItem>
+
+            <!-- Filters -->
+            <MudItem xs="12" md="3">
+                <MudDateRangePicker @bind-DateRange="DateRange" Label="@L["Date Range"]" AdornmentColor="Color.Primary"
+                    PickerVariant="PickerVariant.Dialog" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect T="SaleType?" @bind-Value="SelectedType" Label="@L["Sale Type"]"
+                    AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem T="SaleType?" Value="@null">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="SaleType?" Value="@SaleType.Public">@L["Public"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect T="string" @bind-Value="SelectedStatus" Label="@L["Status"]"
+                    AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem T="string" Value="@null">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Created")">@L["Created"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Completed")">@L["Completed"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Cancelled")">@L["Cancelled"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudAutocomplete T="CustomerDto" Label="@L["Customer"]" SearchFunc="@SearchCustomers"
+                    @bind-Value="SelectedCustomer" ToStringFunc="@(c => c == null ? null : c.Name)"
+                    AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary"
+                    ResetValueOnEmptyText="true" CoerceText="false" CoerceValue="false" />
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudPaper Class="pa-8 d-flex justify-center">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        </MudPaper>
+    }
+    else if (_summary == null)
+    {
+        <MudAlert Severity="Severity.Warning">@L["No data available"]</MudAlert>
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Sales"]</MudText>
+                    <MudText Typo="Typo.h4">@_summary.TotalSales</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Revenue"]</MudText>
+                    <MudText Typo="Typo.h4">@_summary.TotalRevenue.ToString("C")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Tax"]</MudText>
+                    <MudText Typo="Typo.h4">@_summary.TotalTax.ToString("C")</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Discount"]</MudText>
+                    <MudText Typo="Typo.h4">@_summary.TotalDiscount.ToString("C")</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Class="mt-4">
+            <!-- Sales by Type -->
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.h6">@L["Sales by Type"]</MudText>
+                    @if (_summary.SalesByType.Any())
+                    {
+                        <MudChart ChartType="ChartType.Pie" Width="100%" Height="300px"
+                            InputData="@_summary.SalesByType.Values.Select(x => (double)x).ToArray()"
+                            InputLabels="@_summary.SalesByType.Keys.Select(k => L[k].Value).ToArray()" />
+                    }
+                    else
+                    {
+                        <MudText Class="mt-4">@L["No data available"]</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <!-- Sales by Status -->
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.h6">@L["Sales by Status"]</MudText>
+                    @if (_summary.SalesByStatus.Any())
+                    {
+                        <MudChart ChartType="ChartType.Pie" Width="100%" Height="300px"
+                            InputData="@_summary.SalesByStatus.Values.Select(x => (double)x).ToArray()"
+                            InputLabels="@_summary.SalesByStatus.Keys.Select(k => L[k].Value).ToArray()" />
+                    }
+                    else
+                    {
+                        <MudText Class="mt-4">@L["No data available"]</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <!-- Sales by Payment Method -->
+            <MudItem xs="12" sm="6" md="4">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <MudText Typo="Typo.h6">@L["Sales by Payment Method"]</MudText>
+                    @if (_summary.SalesByPaymentMethod.Any())
+                    {
+                        <MudChart ChartType="ChartType.Pie" Width="100%" Height="300px"
+                            InputData="@_summary.SalesByPaymentMethod.Values.Select(x => (double)x).ToArray()"
+                            InputLabels="@_summary.SalesByPaymentMethod.Keys.Select(k => L[k].Value).ToArray()" />
+                    }
+                    else
+                    {
+                        <MudText Class="mt-4">@L["No data available"]</MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Sales Trend Chart -->
+        @if (_summary.SalesByDate.Any())
+        {
+            <MudPaper Elevation="2" Class="pa-4 mt-4">
+                <MudText Typo="Typo.h6">@L["Sales Trend"]</MudText>
+
+                <MudGrid>
+                    <MudItem xs="12">
+                        <!-- Using MudBlazor Line Chart for sales trend -->
+                        <MudChart ChartType="ChartType.Line" ChartSeries="@_trendSeries" XAxisLabels="@_trendLabels"
+                            Width="100%" Height="350px">
+                        </MudChart>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <!-- Using MudBlazor Bar Chart for revenue -->
+                        <MudChart ChartType="ChartType.Bar" ChartSeries="@_revenueSeries" XAxisLabels="@_trendLabels"
+                            Width="100%" Height="250px">
+                        </MudChart>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+
+        <!-- Sales Table -->
+        <MudPaper Elevation="2" Class="pa-4 mt-4">
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Sales List"]</MudText>
+            <MudTable Items="@_sales" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading">
+                <HeaderContent>
+                    <MudTh>@L["ID"]</MudTh>
+                    <MudTh>@L["Date"]</MudTh>
+                    <MudTh>@L["Customer"]</MudTh>
+                    <MudTh>@L["Type"]</MudTh>
+                    <MudTh>@L["Status"]</MudTh>
+                    <MudTh>@L["Payment"]</MudTh>
+                    <MudTh>@L["Subtotal"]</MudTh>
+                    <MudTh>@L["Tax"]</MudTh>
+                    <MudTh>@L["Discount"]</MudTh>
+                    <MudTh>@L["Total"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@L["ID"]">@context.Id</MudTd>
+                    <MudTd DataLabel="@L["Date"]">@context.SaleDate.ToLocalTime().ToString("g")</MudTd>
+                    <MudTd DataLabel="@L["Customer"]">@context.CustomerName</MudTd>
+                    <MudTd DataLabel="@L["Type"]">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary">
+                            @L["Public"]
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@L["Status"]">
+                        <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
+                            @context.Status.ToString()
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@L["Payment"]">@context.PaymentMethod</MudTd>
+                    <MudTd DataLabel="@L["Subtotal"]">@context.Subtotal.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Tax"]">@context.TaxAmount.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Discount"]">@context.DiscountAmount.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Total"]">
+                        <MudText Color="Color.Primary"><strong>@context.Total.ToString("C")</strong></MudText>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>@L["No sales found for the selected criteria"]</MudText>
+                </NoRecordsContent>
+                <PagerContent>
+                    <MudTablePager HideRowsPerPage="true" />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private bool _loading = true;
+    private bool _exporting = false;
+    private DateRange _dateRange = new(DateTime.Now.AddMonths(-1), DateTime.Now);
+    private Timer? _debounceTimer;
+
+    private SaleType? _selectedType = null;
+    private string? _selectedStatus = null;
+    private CustomerDto? _selectedCustomer = null;
+
+    private SalesSummaryDto? _summary;
+    private IList<SaleDto> _sales = new List<SaleDto>();
+
+    // Chart data for MudBlazor charts
+    private List<ChartSeries> _trendSeries = new();
+    private List<ChartSeries> _revenueSeries = new();
+    private string[] _trendLabels = Array.Empty<string>();
+
+    // Properties with change detection
+    private DateRange DateRange
+    {
+        get => _dateRange;
+        set
+        {
+            if (_dateRange?.Start != value?.Start || _dateRange?.End != value?.End)
+            {
+                _dateRange = value ?? new DateRange(DateTime.Now.AddMonths(-1), DateTime.Now);
+                TriggerDebounceRefresh();
+            }
+        }
+    }
+
+    private SaleType? SelectedType
+    {
+        get => _selectedType;
+        set
+        {
+            if (_selectedType != value)
+            {
+                _selectedType = value;
+                TriggerDebounceRefresh();
+            }
+        }
+    }
+
+    private string? SelectedStatus
+    {
+        get => _selectedStatus;
+        set
+        {
+            if (_selectedStatus != value)
+            {
+                _selectedStatus = value;
+                TriggerDebounceRefresh();
+            }
+        }
+    }
+
+    private CustomerDto? SelectedCustomer
+    {
+        get => _selectedCustomer;
+        set
+        {
+            if (_selectedCustomer?.Id != value?.Id)
+            {
+                _selectedCustomer = value;
+                TriggerDebounceRefresh();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _debounceTimer = new Timer(500);
+        _debounceTimer.Elapsed += async (_, _) => await DebouncedRefresh();
+        _debounceTimer.AutoReset = false;
+
+        await RefreshReport();
+    }
+
+    private void UpdateChartData()
+    {
+        if (_summary == null || !_summary.SalesByDate.Any()) return;
+
+        // Prepare data for trend charts
+        _trendLabels = _summary.SalesByDate
+            .OrderBy(x => x.Date)
+            .Select(x => x.Date.ToString("dd/MM"))
+            .ToArray();
+
+        // Series for line chart (sales count)
+        _trendSeries = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = L["Sales Count"],
+                Data = _summary.SalesByDate
+                    .OrderBy(x => x.Date)
+                    .Select(x => (double)x.Count)
+                    .ToArray()
+            }
+        };
+
+        // Series for bar chart (revenue)
+        _revenueSeries = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = L["Revenue"],
+                Data = _summary.SalesByDate
+                    .OrderBy(x => x.Date)
+                    .Select(x => (double)x.Total)
+                    .ToArray()
+            }
+        };
+    }
+
+    private void TriggerDebounceRefresh()
+    {
+        _debounceTimer?.Stop();
+        _debounceTimer?.Start();
+    }
+
+    private async Task DebouncedRefresh()
+    {
+        await InvokeAsync(async () => await RefreshReport());
+    }
+
+    private async Task<IEnumerable<CustomerDto>> SearchCustomers(string searchText, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return new List<CustomerDto>();
+
+        try
+        {
+            var (_, customers) = await CustomerService.GetCustomersAsync(
+                searchString: searchText,
+                page: 1,
+                pageSize: 10);
+            return customers;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching customers");
+            return new List<CustomerDto>();
+        }
+    }
+
+    private async Task RefreshReport()
+    {
+        try
+        {
+            _loading = true;
+            await InvokeAsync(StateHasChanged);
+
+            var request = new SalesReportRequestDto
+            {
+                StartDate = _dateRange?.Start,
+                EndDate = _dateRange?.End,
+                SaleType = _selectedType,
+                Status = _selectedStatus,
+                CustomerId = _selectedCustomer?.Id,
+                PageSize = 50
+            };
+
+            _summary = await ReportService.GetSalesSummaryAsync(request);
+            var (_, sales) = await ReportService.GetSalesReportAsync(request);
+            _sales = sales;
+
+            UpdateChartData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading sales report");
+            Snackbar.Add(L["Error loading sales report"], Severity.Error);
+            _summary = null;
+            _sales = new List<SaleDto>();
+        }
+        finally
+        {
+            _loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        _exporting = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                var request = new SalesReportRequestDto
+                {
+                    StartDate = _dateRange?.Start,
+                    EndDate = _dateRange?.End,
+                    SaleType = _selectedType,
+                    Status = _selectedStatus,
+                    CustomerId = _selectedCustomer?.Id,
+                    IncludeDetails = true,
+                    PageSize = ExportOptions.Value.MaxExportRecords
+                };
+
+                var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                queryParams["startDate"] = _dateRange?.Start?.ToString("o");
+                queryParams["endDate"] = _dateRange?.End?.ToString("o");
+
+                if (_selectedType.HasValue)
+                    queryParams["saleType"] = ((int)_selectedType.Value).ToString();
+
+                if (!string.IsNullOrEmpty(_selectedStatus))
+                    queryParams["status"] = _selectedStatus;
+
+                if (_selectedCustomer != null)
+                    queryParams["customerId"] = _selectedCustomer.Id.ToString();
+
+                queryParams["pageSize"] = ExportOptions.Value.MaxExportRecords.ToString();
+                queryParams["includeDetails"] = "true";
+
+                var url = $"/api/SalesReport/excel?{queryParams}";
+
+                NavigationManager.NavigateTo(url, true);
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting sales report to Excel");
+            Snackbar.Add(L["Error exporting report"], Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportToPdf()
+    {
+        _exporting = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                queryParams["startDate"] = _dateRange?.Start?.ToString("o");
+                queryParams["endDate"] = _dateRange?.End?.ToString("o");
+
+                if (_selectedType.HasValue)
+                    queryParams["saleType"] = ((int)_selectedType.Value).ToString();
+
+                if (!string.IsNullOrEmpty(_selectedStatus))
+                    queryParams["status"] = _selectedStatus;
+
+                if (_selectedCustomer != null)
+                    queryParams["customerId"] = _selectedCustomer.Id.ToString();
+
+                queryParams["pageSize"] = ExportOptions.Value.MaxPdfRecords.ToString();
+                queryParams["includeDetails"] = "true";
+
+                var url = $"/api/SalesReport/pdf?{queryParams}";
+
+                NavigationManager.NavigateTo(url, true);
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting sales report to PDF");
+            Snackbar.Add(L["Error exporting report"], Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private Color GetStatusColor(App.Core.Enums.Shop.SaleStatus status)
+    {
+        return status switch
+        {
+            App.Core.Enums.Shop.SaleStatus.Created => Color.Info,
+            App.Core.Enums.Shop.SaleStatus.Cancelled => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    public void Dispose()
+    {
+        _debounceTimer?.Dispose();
+    }
+}

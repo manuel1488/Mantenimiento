@@ -1,0 +1,84 @@
+﻿@page "/Error"
+@layout ErrorLayout
+@using App.Web.Components.Layout
+@using Microsoft.Extensions.Logging
+@inject ILogger<Error> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>Error</PageTitle>
+
+<div class="error-container">
+    <MudPaper Elevation="0" Class="error-content pa-6">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudIcon Icon="@Icons.Material.Filled.Error" 
+                    Color="Color.Error" 
+                    Size="Size.Large" 
+                    Style="font-size: 64px;" />
+            
+            <MudText Typo="Typo.h4" Align="Align.Center">
+                An error has occurred
+            </MudText>
+            
+            <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+                We're sorry for the inconvenience. Please try again later.
+            </MudText>
+            
+            <MudButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      Href="/"
+                      Class="da-button-rounded px-6">
+                Go to Home
+            </MudButton>
+            
+            <MudButton Variant="Variant.Text"
+                      Color="Color.Secondary"
+                      OnClick="@GoBack"
+                      StartIcon="@Icons.Material.Filled.ArrowBack"
+                      Class="mt-2">
+                Go Back
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</div>
+
+<style>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 150px);
+        padding: 24px;
+    }
+    
+    .error-content {
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        border-radius: 8px;
+        background-color: var(--mud-palette-background);
+    }
+</style>
+
+@code {
+    [CascadingParameter] 
+    private HttpContext? HttpContext { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        Logger.LogError("Error page visited");
+    }
+    
+    private void GoBack()
+    {
+        try 
+        {
+            // Usamos JavaScript Interop para volver atrás en el historial
+            NavigationManager.NavigateTo("javascript:history.back()");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error navigating back");
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}

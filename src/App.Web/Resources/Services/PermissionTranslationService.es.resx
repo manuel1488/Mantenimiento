@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Module Names -->
+  <data name="Module.Shop" xml:space="preserve">
+    <value>Tienda</value>
+  </data>
+  <data name="Module.Admin" xml:space="preserve">
+    <value>Administración</value>
+  </data>
+  <data name="Module.Shared" xml:space="preserve">
+    <value>Compartido</value>
+  </data>
+  
+  <!-- Permission Types -->
+  <data name="Permission.Access" xml:space="preserve">
+    <value>Acceso</value>
+  </data>
+  <data name="Permission.View" xml:space="preserve">
+    <value>Ver</value>
+  </data>
+  <data name="Permission.Manage" xml:space="preserve">
+    <value>Administrar</value>
+  </data>
+  <data name="Permission.Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Permission.Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="Permission.Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="Permission.Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Permission.Generate" xml:space="preserve">
+    <value>Generar</value>
+  </data>
+  <data name="Permission.Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Permission.ViewReports" xml:space="preserve">
+    <value>Ver Reportes</value>
+  </data>
+  <data name="Permission.Authorize" xml:space="preserve">
+    <value>Autorizar</value>
+  </data>
+  <data name="Permission.ViewHistory" xml:space="preserve">
+    <value>Ver Historial</value>
+  </data>
+  <data name="Permission.ModuleAccess" xml:space="preserve">
+    <value>Acceso a {0}</value>
+  </data>
+  
+  <!-- Features -->
+  <data name="Feature.ModuleAccess" xml:space="preserve">
+    <value>Acceso al Módulo</value>
+  </data>
+  <data name="Feature.Products" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="Feature.Inventory" xml:space="preserve">
+    <value>Inventario</value>
+  </data>
+  <data name="Feature.InventoryHistory" xml:space="preserve">
+    <value>Historial de Inventario</value>
+  </data>
+  <data name="Feature.InventoryTransfers" xml:space="preserve">
+    <value>Transferencias de Inventario</value>
+  </data>
+  <data name="Feature.InventoryInputs" xml:space="preserve">
+    <value>Entradas de Inventario</value>
+  </data>
+  <data name="Feature.InventoryAdjustments" xml:space="preserve">
+    <value>Ajustes de Inventario</value>
+  </data>
+  <data name="Feature.InventoryAlerts" xml:space="preserve">
+    <value>Alertas de Inventario</value>
+  </data>
+  <data name="Permission.ReceiveEmails" xml:space="preserve">
+    <value>Recibir Correos de Alertas de Inventario</value>
+    <comment>Permiso para recibir notificaciones por correo electrónico cuando los niveles de inventario alcanzan umbrales críticos (stock mín/máx)</comment>
+  </data>
+  <data name="Feature.Prices" xml:space="preserve">
+    <value>Precios</value>
+  </data>
+  <data name="Feature.Discounts" xml:space="preserve">
+    <value>Descuentos</value>
+  </data>
+  <data name="Feature.Sales" xml:space="preserve">
+    <value>Ventas</value>
+  </data>
+  <data name="Feature.Invoice" xml:space="preserve">
+    <value>Facturación</value>
+  </data>
+  <data name="Feature.Warehouses" xml:space="preserve">
+    <value>Almacenes</value>
+  </data>
+  <data name="Feature.Users" xml:space="preserve">
+    <value>Usuarios</value>
+  </data>
+  <data name="Feature.Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Feature.Settings" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="Feature.FiscalSettings" xml:space="preserve">
+    <value>Configuración Fiscal</value>
+  </data>
+  <data name="Feature.WarehouseSettings" xml:space="preserve">
+    <value>Configuración de Almacenes</value>
+  </data>
+  <data name="Feature.EmailSettings" xml:space="preserve">
+    <value>Configuración de Correo</value>
+  </data>
+  <data name="Feature.TaxRates" xml:space="preserve">
+    <value>Tasas de Impuestos</value>
+  </data>
+  <data name="Feature.UnitMeasures" xml:space="preserve">
+    <value>Unidades de Medida</value>
+  </data>
+  <data name="Feature.InitialSetup" xml:space="preserve">
+    <value>Configuración Inicial</value>
+  </data>
+  <data name="Feature.Audit" xml:space="preserve">
+    <value>Auditoría</value>
+  </data>
+  <data name="Feature.Permissions" xml:space="preserve">
+    <value>Permisos</value>
+  </data>
+  <data name="Feature.Customers" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="Feature.Reports" xml:space="preserve">
+    <value>Reportes</value>
+  </data>
+  
+  <!-- Existing UI translations -->
+  <data name="Select User" xml:space="preserve">
+    <value>Seleccionar Usuario</value>
+  </data>
+  <data name="Error loading users" xml:space="preserve">
+    <value>Error al cargar usuarios</value>
+  </data>
+  <data name="Error loading user permissions" xml:space="preserve">
+    <value>Error al cargar permisos del usuario</value>
+  </data>
+  <data name="Error updating permissions" xml:space="preserve">
+    <value>Error al actualizar permisos</value>
+  </data>
+  <data name="Permissions updated successfully" xml:space="preserve">
+    <value>Permisos actualizados correctamente</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="You don't have permission to manage user permissions." xml:space="preserve">
+    <value>No tienes permiso para administrar los permisos de usuarios.</value>
+  </data>
+  <data name="Module.Shop.Description" xml:space="preserve">
+    <value>Permisos para administrar operaciones de tienda e inventario</value>
+  </data>
+  <data name="Module.Admin.Description" xml:space="preserve">
+    <value>Permisos para administración y configuración del sistema</value>
+  </data>
+  <data name="Module.Shared.Description" xml:space="preserve">
+    <value>Permisos compartidos entre diferentes módulos</value>
+  </data>
+</root>

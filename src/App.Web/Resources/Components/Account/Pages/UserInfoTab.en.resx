@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Full Name" xml:space="preserve">
+    <value>Full Name</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Last Login" xml:space="preserve">
+    <value>Last Login</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Account Created" xml:space="preserve">
+    <value>Account Created</value>
+  </data>
+  <data name="Unable to determine user ID" xml:space="preserve">
+    <value>Unable to determine user ID</value>
+  </data>
+  <data name="User is not authenticated" xml:space="preserve">
+    <value>User is not authenticated</value>
+  </data>
+  <data name="An error occurred while loading profile information" xml:space="preserve">
+    <value>An error occurred while loading profile information</value>
+  </data>
+  <data name="Unable to load user information" xml:space="preserve">
+    <value>Unable to load user information</value>
+  </data>
+  <data name="An error occurred while loading user details" xml:space="preserve">
+    <value>An error occurred while loading user details</value>
+  </data>
+</root>

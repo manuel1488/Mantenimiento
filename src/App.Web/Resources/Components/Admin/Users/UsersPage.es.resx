@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Administration" xml:space="preserve">
+        <value>Administración</value>
+    </data>
+    <data name="Users" xml:space="preserve">
+        <value>Usuarios</value>
+    </data>
+    <data name="Roles" xml:space="preserve">
+        <value>Roles</value>
+    </data>
+    <data name="Permissions" xml:space="preserve">
+        <value>Permisos</value>
+    </data>
+    <data name="Activity" xml:space="preserve">
+        <value>Actividad</value>
+    </data>
+</root>

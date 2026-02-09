@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Shop Dashboard" xml:space="preserve">
+        <value>Panel de Control - Tienda</value>
+    </data>
+    <data name="Today's Sales" xml:space="preserve">
+        <value>Ventas de Hoy</value>
+    </data>
+    <data name="vs yesterday" xml:space="preserve">
+        <value>vs ayer</value>
+    </data>
+    <data name="Low Stock Items" xml:space="preserve">
+        <value>Productos Bajos en Stock</value>
+    </data>
+    <data name="Requires attention" xml:space="preserve">
+        <value>Requiere atención</value>
+    </data>
+    <data name="Pending Sales" xml:space="preserve">
+        <value>Ventas Pendientes</value>
+    </data>
+    <data name="Awaiting processing" xml:space="preserve">
+        <value>Esperando procesamiento</value>
+    </data>
+    <data name="Active Customers" xml:space="preserve">
+        <value>Clientes Activos</value>
+    </data>
+    <data name="this week" xml:space="preserve">
+        <value>esta semana</value>
+    </data>
+</root>

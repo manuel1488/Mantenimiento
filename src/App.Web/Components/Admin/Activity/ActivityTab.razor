@@ -1,0 +1,181 @@
+﻿@using App.Web.Components.Admin.Activity.Models
+@inject IStringLocalizer<ActivityTab> L
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-4" Elevation="0">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex gap-4">
+            <!-- Búsqueda -->
+            <MudTextField T="string" ValueChanged="@(s => OnSearch(s))"
+                         Placeholder="@L["Search activity"]"
+                         Adornment="Adornment.Start"
+                         AdornmentIcon="@Icons.Material.Filled.Search"
+                         Class="flex-1"/>
+
+            <!-- Filtro de Usuario -->
+            <MudSelect T="string" Label="@L["User"]" AnchorOrigin="Origin.BottomCenter"
+                      ValueChanged="@(u => OnUserFilterChange(u))" Style="min-width: 200px;">
+                <MudSelectItem Value="@string.Empty">@L["All"]</MudSelectItem>
+                @foreach(var user in Users)
+                {
+                    <MudSelectItem Value="@user">@user</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Filtro de Tipo -->
+            <MudSelect T="ActivityType?" Label="@L["Type"]" AnchorOrigin="Origin.BottomCenter"
+                      ValueChanged="@(t => OnTypeFilterChange(t))" Style="min-width: 200px;">
+                <MudSelectItem Value="@((ActivityType?)null)">@L["All"]</MudSelectItem>
+                @foreach(var type in Enum.GetValues<ActivityType>())
+                {
+                    <MudSelectItem Value="@type">@L[type.ToString()]</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Rango de fechas -->
+            <MudDateRangePicker @bind-DateRange="DateRange" 
+                               Label="@L["Date Range"]"
+                               Style="min-width: 240px;">
+                <PickerActions>
+                    <MudButton OnClick="@(() => DateRange = null)">@L["Clear"]</MudButton>
+                </PickerActions>
+            </MudDateRangePicker>
+
+            <!-- Botón Exportar -->
+            <MudButton Variant="Variant.Outlined" 
+                      StartIcon="@Icons.Material.Filled.FileDownload"
+                      OnClick="ExportData"
+                      Class="da-button-rounded">
+                @L["Export"]
+            </MudButton>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTable Items="@Activities" Dense="true" Hover="true" Loading="@_loading"
+                      Elevation="0" SortLabel="@L["Sort By"]">
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<ActivityModel, object>(x => (object)x.Timestamp)">
+                        @L["Date/Time"]
+                    </MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<ActivityModel, string>(x => x.UserName)">
+                        @L["User"]
+                    </MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<ActivityModel, string>(x => x.Type.ToString())">
+                        @L["Type"]
+                    </MudTableSortLabel></MudTh>
+                    <MudTh>@L["Description"]</MudTh>
+                    <MudTh>@L["IP Address"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Timestamp.ToLocalTime().ToString("g")</MudTd>
+                    <MudTd>@context.UserName</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Color="@GetActivityColor(context.Type)">
+                            @L[context.Type.ToString()]
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@context.Description</MudTd>
+                    <MudTd>@context.IpAddress</MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+                <NoRecordsContent>
+                    <MudText>@L["No activities found"]</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    private bool _loading;
+    private List<ActivityModel> Activities = new();
+    private List<string> Users = new();
+    private DateRange? DateRange;
+    private string? _searchString;
+    private string? _selectedUser;
+    private ActivityType? _selectedType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _loading = true;
+            StateHasChanged();
+
+            // TODO: Implementar carga real desde el servicio
+            await Task.Delay(500); // Simulación
+
+            // Datos de ejemplo
+            Activities = new List<ActivityModel>
+            {
+                new()
+                {
+                    Timestamp = DateTime.UtcNow.AddHours(-1),
+                    UserName = "admin",
+                    Type = ActivityType.Login,
+                    Description = "Inicio de sesión exitoso",
+                    IpAddress = "192.168.1.100"
+                },
+                new()
+                {
+                    Timestamp = DateTime.UtcNow.AddHours(-2),
+                    UserName = "vendedor1",
+                    Type = ActivityType.Sale,
+                    Description = "Nueva venta #1234",
+                    IpAddress = "192.168.1.101"
+                }
+            };
+
+            Users = Activities.Select(a => a.UserName).Distinct().ToList();
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private Color GetActivityColor(ActivityType type) => type switch
+    {
+        ActivityType.Login => Color.Success,
+        ActivityType.Logout => Color.Default,
+        ActivityType.Sale => Color.Info,
+        ActivityType.UserCreated => Color.Primary,
+        ActivityType.UserModified => Color.Warning,
+        ActivityType.UserDeleted => Color.Error,
+        ActivityType.SystemConfig => Color.Secondary,
+        _ => Color.Default
+    };
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        await LoadData();
+    }
+
+    private async Task OnUserFilterChange(string user)
+    {
+        _selectedUser = user;
+        await LoadData();
+    }
+
+    private async Task OnTypeFilterChange(ActivityType? type)
+    {
+        _selectedType = type;
+        await LoadData();
+    }
+
+    private async Task ExportData()
+    {
+        // TODO: Implementar exportación
+        Snackbar.Add(L["Export started"], Severity.Info);
+        await Task.CompletedTask;
+    }
+}

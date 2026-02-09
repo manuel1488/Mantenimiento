@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Inventory Sheet -->
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventory</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="Min Stock" xml:space="preserve">
+    <value>Min Stock</value>
+  </data>
+  <data name="Max Stock" xml:space="preserve">
+    <value>Max Stock</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Content Per Unit" xml:space="preserve">
+    <value>Content Per Unit</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <!-- Stock Status -->
+  <data name="Out of Stock" xml:space="preserve">
+    <value>Out of Stock</value>
+  </data>
+  <data name="Low Stock" xml:space="preserve">
+    <value>Low Stock</value>
+  </data>
+  <data name="Over Stock" xml:space="preserve">
+    <value>Over Stock</value>
+  </data>
+  <data name="In Stock" xml:space="preserve">
+    <value>In Stock</value>
+  </data>
+  <!-- Movement History Sheet -->
+  <data name="Movement History" xml:space="preserve">
+    <value>Movement History</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Destination" xml:space="preserve">
+    <value>Destination</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Previous Balance" xml:space="preserve">
+    <value>Previous Balance</value>
+  </data>
+  <data name="New Balance" xml:space="preserve">
+    <value>New Balance</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <!-- Alerts Sheet -->
+  <data name="Inventory Alerts" xml:space="preserve">
+    <value>Inventory Alerts</value>
+  </data>
+  <data name="Product Code" xml:space="preserve">
+    <value>Product Code</value>
+  </data>
+  <data name="Product Name" xml:space="preserve">
+    <value>Product Name</value>
+  </data>
+  <data name="Alert Type" xml:space="preserve">
+    <value>Alert Type</value>
+  </data>
+  <data name="Current Stock" xml:space="preserve">
+    <value>Current Stock</value>
+  </data>
+  <!-- Summary -->
+  <data name="Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Total Alerts" xml:space="preserve">
+    <value>Total Alerts</value>
+  </data>
+  <data name="Low Stock Alerts" xml:space="preserve">
+    <value>Low Stock Alerts</value>
+  </data>
+  <data name="Over Stock Alerts" xml:space="preserve">
+    <value>Over Stock Alerts</value>
+  </data>
+  <data name="Generated On" xml:space="preserve">
+    <value>Generated On</value>
+  </data>
+  <data name="Product Catalog" xml:space="preserve">
+    <value>Product Catalog</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Barcode</value>
+  </data>
+  <data name="Content" xml:space="preserve">
+    <value>Content</value>
+  </data>
+  <data name="Unit Measure" xml:space="preserve">
+    <value>Unit Measure</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Is Taxable" xml:space="preserve">
+    <value>Is Taxable</value>
+  </data>
+  <data name="Is Active" xml:space="preserve">
+    <value>Is Active</value>
+  </data>
+  <data name="Allow Partial Sale" xml:space="preserve">
+    <value>Allow Partial Sale</value>
+  </data>
+  <data name="Allow Custom Pricing" xml:space="preserve">
+    <value>Allow Custom Pricing</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <!-- Partial Sale Surcharges Sheet -->
+  <data name="Partial Sale Surcharges" xml:space="preserve">
+    <value>Partial Sale Surcharges</value>
+  </data>
+  <data name="Fraction" xml:space="preserve">
+    <value>Fraction</value>
+  </data>
+  <data name="Fraction Name" xml:space="preserve">
+    <value>Fraction Name</value>
+  </data>
+  <data name="Surcharge %" xml:space="preserve">
+    <value>Surcharge %</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Surcharge" xml:space="preserve">
+    <value>Surcharge</value>
+  </data>
+</root>

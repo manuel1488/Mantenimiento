@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Public Sales Discount Settings" xml:space="preserve">
+    <value>Configuración de Descuentos para Ventas Públicas</value>
+  </data>
+  <data name="Maximum Public Discount (%)" xml:space="preserve">
+    <value>Descuento Máximo para Ventas Públicas (%)</value>
+  </data>
+  <data name="Maximum discount allowed for public sales" xml:space="preserve">
+    <value>Descuento máximo permitido para ventas públicas</value>
+  </data>
+  <data name="Require Authorization for Public Discounts" xml:space="preserve">
+    <value>Requerir Autorización para Descuentos Públicos</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error al cargar la configuración</value>
+  </data>
+  <data name="Discount settings updated successfully" xml:space="preserve">
+    <value>Configuración de descuentos actualizada correctamente</value>
+  </data>
+  <data name="Error updating settings" xml:space="preserve">
+    <value>Error al actualizar la configuración</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+</root>

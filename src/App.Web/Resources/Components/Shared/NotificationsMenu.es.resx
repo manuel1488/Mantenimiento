@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Notifications" xml:space="preserve">
+        <value>Notificaciones</value>
+    </data>
+    <data name="No notifications" xml:space="preserve">
+        <value>No hay notificaciones</value>
+    </data>
+</root>

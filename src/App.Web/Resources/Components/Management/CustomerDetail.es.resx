@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Customer Details" xml:space="preserve">
+    <value>Detalles del Cliente</value>
+  </data>
+  <data name="Customer not found" xml:space="preserve">
+    <value>Cliente no encontrado</value>
+  </data>
+  <data name="Back to customers list" xml:space="preserve">
+    <value>Volver a la lista de clientes</value>
+  </data>
+  <data name="Back to List" xml:space="preserve">
+    <value>Volver a la Lista</value>
+  </data>
+  <data name="General Information" xml:space="preserve">
+    <value>Información General</value>
+  </data>
+  <data name="Trade Name" xml:space="preserve">
+    <value>Nombre Comercial</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Razón Social</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>País</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Street" xml:space="preserve">
+    <value>Calle</value>
+  </data>
+  <data name="Exterior Number" xml:space="preserve">
+    <value>Número Exterior</value>
+  </data>
+  <data name="Interior Number" xml:space="preserve">
+    <value>Número Interior</value>
+  </data>
+  <data name="Neighborhood" xml:space="preserve">
+    <value>Colonia</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="Canadian Tax Information" xml:space="preserve">
+    <value>Información Fiscal Canadiense</value>
+  </data>
+  <data name="GST Number" xml:space="preserve">
+    <value>Número GST</value>
+  </data>
+  <data name="PST Number" xml:space="preserve">
+    <value>Número PST</value>
+  </data>
+  <data name="HST Number" xml:space="preserve">
+    <value>Número HST</value>
+  </data>
+  <data name="QST Number" xml:space="preserve">
+    <value>Número QST</value>
+  </data>
+  <data name="Error loading customer" xml:space="preserve">
+    <value>Error al cargar el cliente</value>
+  </data>
+</root>

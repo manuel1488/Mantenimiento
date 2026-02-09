@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="e.g., 1/2, 1/4, 1/8" xml:space="preserve">
+    <value>ej., 1/2, 1/4, 1/8</value>
+  </data>
+  <data name="Code is required" xml:space="preserve">
+    <value>El código es requerido</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="e.g., Half, Quarter" xml:space="preserve">
+    <value>ej., Mitad, Cuarto</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Numerator" xml:space="preserve">
+    <value>Numerador</value>
+  </data>
+  <data name="Numerator is required" xml:space="preserve">
+    <value>El numerador es requerido</value>
+  </data>
+  <data name="Denominator" xml:space="preserve">
+    <value>Denominador</value>
+  </data>
+  <data name="Denominator is required" xml:space="preserve">
+    <value>El denominador es requerido</value>
+  </data>
+  <data name="Fraction value" xml:space="preserve">
+    <value>Valor de fracción</value>
+  </data>
+  <data name="Display Order" xml:space="preserve">
+    <value>Orden de Visualización</value>
+  </data>
+  <data name="Lower numbers appear first" xml:space="preserve">
+    <value>Los números menores aparecen primero</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Code already exists" xml:space="preserve">
+    <value>El código ya existe</value>
+  </data>
+  <data name="Error validating code" xml:space="preserve">
+    <value>Error al validar el código</value>
+  </data>
+  <data name="Error loading fraction" xml:space="preserve">
+    <value>Error al cargar la fracción</value>
+  </data>
+  <data name="Fraction updated successfully" xml:space="preserve">
+    <value>Fracción actualizada exitosamente</value>
+  </data>
+  <data name="Error updating fraction" xml:space="preserve">
+    <value>Error al actualizar la fracción</value>
+  </data>
+  <data name="Fraction created successfully" xml:space="preserve">
+    <value>Fracción creada exitosamente</value>
+  </data>
+  <data name="Error creating fraction" xml:space="preserve">
+    <value>Error al crear la fracción</value>
+  </data>
+  <data name="Error saving fraction" xml:space="preserve">
+    <value>Error al guardar la fracción</value>
+  </data>
+  <data name="You don't have permission to perform this action" xml:space="preserve">
+    <value>No tiene permisos para realizar esta acción</value>
+  </data>
+</root>

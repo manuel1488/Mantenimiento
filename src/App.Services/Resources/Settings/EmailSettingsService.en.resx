@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>  
+  <data name="SmtpHostPortRequired" xml:space="preserve">
+    <value>Both SMTP host and port must be provided together</value>
+    <comment>Validation message when either host or port is missing</comment>
+  </data>
+  <data name="SmtpPasswordRequired" xml:space="preserve">
+    <value>SMTP password is required when user is provided</value>
+    <comment>Validation message when password is missing but user is provided</comment>
+  </data>
+  <data name="SmtpUserRequired" xml:space="preserve">
+    <value>SMTP user is required when password is provided</value>
+    <comment>Validation message when user is missing but password is provided</comment>
+  </data>
+  <data name="ErrorGettingSettings" xml:space="preserve">
+    <value>Error getting email settings</value>
+    <comment>Error message for logging when getting settings fails</comment>
+  </data>
+  <data name="ErrorUpdatingSettings" xml:space="preserve">
+    <value>Error updating email settings</value>
+    <comment>Error message for logging when updating settings fails</comment>
+  </data>
+  <data name="UnknownUser" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>Default value when user name is not available</comment>
+  </data>
+</root>

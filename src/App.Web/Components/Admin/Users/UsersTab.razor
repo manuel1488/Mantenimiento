@@ -1,0 +1,455 @@
+﻿@using App.Web.Components.Admin.Users.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using App.Core.DTOs.Identity;
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+
+@inject IStringLocalizer<UsersTab> L
+@inject IIdentityService IdentityService
+@inject IRoleService RoleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IRoleService RoleService
+@inject ILogger<UsersTab> Logger
+@inject RoleTranslationService RoleTranslationService
+
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewUsers">
+    <Authorized>
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex gap-4">
+                    <!-- Search -->
+                    <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="@L["Search users"]"
+                        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="flex-1" />
+
+                    <!-- Role Filter -->
+                    <MudSelect T="string" Label="@L["Role"]" AnchorOrigin="Origin.BottomCenter"
+                        ValueChanged="@(r => OnRoleFilterChange(r))" Style="min-width: 200px;">
+                        <MudSelectItem Value="@("")">@L["All"]</MudSelectItem>
+                        @foreach (var role in _roles)
+                        {
+                            <MudSelectItem Value="@role">@RoleTranslationService.GetRoleDisplayName(role)</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <!-- Status Filter -->
+                    <MudSelect T="bool?" Label="@L["Status"]" AnchorOrigin="Origin.BottomCenter"
+                        ValueChanged="@(s => OnStatusFilterChange(s))" Style="min-width: 200px;">
+                        <MudSelectItem T="bool?" Value="@null">@L["All"]</MudSelectItem>
+                        <MudSelectItem T="bool?" Value="@true">@L["Active"]</MudSelectItem>
+                        <MudSelectItem T="bool?" Value="@false">@L["Inactive"]</MudSelectItem>
+                    </MudSelect>
+
+                    <!-- New User Button -->
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageUsers">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                                OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                @L["New User"]
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTable T="UserDto" ServerData="@LoadServerData" Dense="true" Hover="true" Loading="_loading"
+                        Elevation="0" Breakpoint="Breakpoint.Sm" @ref="_table">
+                        <HeaderContent>
+                            <MudTh>@L["Username"]</MudTh>
+                            <MudTh>@L["Full Name"]</MudTh>
+                            <MudTh>@L["Email"]</MudTh>
+                            <MudTh>@L["Role"]</MudTh>
+                            <MudTh>@L["Last Login"]</MudTh>
+                            <MudTh>@L["Status"]</MudTh>
+                            <MudTh>@L["Actions"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="user">
+                            <MudTd DataLabel="@L["Username"]">@user.UserName</MudTd>
+                            <MudTd DataLabel="@L["Full Name"]">@user.FullName</MudTd>
+                            <MudTd DataLabel="@L["Email"]">@user.Email</MudTd>
+                            <MudTd DataLabel="@L["Role"]">
+                                @(GetUserRoles(user.Id))
+                            </MudTd>
+                            <MudTd DataLabel="@L["Last Login"]">
+                                @(user.LastLogin?.ToLocalTime().ToString("g") ?? "-")
+                            </MudTd>
+                            <MudTd DataLabel="@L["Status"]">
+                                <MudChip T="string" Color="@(user.IsActive ? Color.Success : Color.Error)" Size="Size.Small">
+                                    @(user.IsActive ? L["Active"] : L["Inactive"])
+                                </MudChip>
+                            </MudTd>
+                            <MudTd>
+                            <AuthorizeView Policy="@ApplicationClaims.Admin.ManageUsers">
+                                <Authorized Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                            Size="Size.Small"
+                                            OnClick="@(() => OpenEditDialog(user))"
+                                            title="@L["Edit User"]" />
+                                </Authorized>
+                            </AuthorizeView>
+
+                            <AuthorizeView Policy="@ApplicationClaims.Admin.ResetPassword">
+                                <Authorized Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.VpnKey"
+                                                Size="Size.Small"
+                                                Color="Color.Warning"
+                                                OnClick="@(() => OpenResetPasswordDialog(user))"
+                                                title="@L["Reset Password"]" />
+                                </Authorized>
+                            </AuthorizeView>
+                        
+                            <AuthorizeView Policy="@ApplicationClaims.Admin.ManageUsers">
+                                <Authorized Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                            Size="Size.Small"
+                                            Color="Color.Error"
+                                            OnClick="@(() => OpenDeleteDialog(user))"
+                                            title="@L["Delete User"]" />
+                                </Authorized>
+                            </AuthorizeView>
+                            </MudTd>
+                        </RowTemplate>
+                        <NoRecordsContent>
+                            <MudText>@L["No users found"]</MudText>
+                        </NoRecordsContent>
+                        <LoadingContent>
+                            <MudText>@L["Loading users..."]</MudText>
+                        </LoadingContent>
+                        <PagerContent>
+                            <MudTablePager />
+                        </PagerContent>
+                    </MudTable>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage user permissions."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading;
+    private List<string> _roles = new();
+    private string _searchString = "";
+    private string _selectedRole = "";
+    private bool? _selectedStatus;
+    private Dictionary<string, IList<string>> _userRoles = new();
+    private MudTable<UserDto> _table = new MudTable<UserDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _roles = (await RoleService.GetAvailableRolesAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading roles");
+            Snackbar.Add(L["Error loading roles"], Severity.Error);
+        }
+    }
+
+    private string GetUserRoles(string userId)
+    {
+        if (_userRoles.TryGetValue(userId, out var roles))
+        {
+            return string.Join(", ", roles.Select(r => RoleTranslationService.GetRoleDisplayName(r)));
+        }
+        return string.Empty;
+    }
+
+    private async Task<TableData<UserDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var (totalItems, users) = await IdentityService.GetUsersAsync(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            searchString: _searchString,
+            role: _selectedRole,
+            isActive: _selectedStatus);
+
+            // Load roles for each user
+            foreach (var user in users)
+            {
+                _userRoles[user.Id] = await IdentityService.GetUserRolesAsync(user.Id);
+            }
+
+            return new TableData<UserDto>() { TotalItems = totalItems, Items = users };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading users");
+            Snackbar.Add(L["Error loading users"], Severity.Error);
+            return new TableData<UserDto>() { TotalItems = 0, Items = Enumerable.Empty<UserDto>() };
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        if (_table != null)
+            await _table.ReloadServerData();
+    }
+
+    private async Task OnRoleFilterChange(string role)
+    {
+        _selectedRole = role;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnStatusFilterChange(bool? status)
+    {
+        _selectedStatus = status;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters<UserDialog>
+        {
+            { x => x.IsNew, true },
+            { x => x.Model, new UserDialogModel { IsActive = true } }
+        };
+
+        var dialog = await DialogService.ShowAsync<UserDialog>(L["New User"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data != null && result.Data is UserDialogModel model)
+        {
+            try
+            {
+                var createDto = new CreateUserDto
+                    {
+                        UserName = model.UserName,
+                        Password = model.Password!,
+                        FullName = model.FullName,
+                        Email = model.Email,
+                        Role = model.Role
+                    };
+
+                var (identityResult, userId) = await IdentityService.CreateUserAsync(createDto);
+
+                if (identityResult.Succeeded)
+                {
+                    // Si se ha seleccionado un rol, aplicamos sus permisos
+                    if (!string.IsNullOrEmpty(model.Role))
+                    {
+                        // Cargar los permisos del rol
+                        var rolePermissions = await RoleService.GetRoleClaimsAsync(model.Role);
+                        
+                        // Actualizar los permisos del usuario con los del rol
+                        await IdentityService.UpdateUserPermissionsAsync(userId, rolePermissions);
+                    }
+                    
+                    Snackbar.Add(L["User created successfully"], Severity.Success);
+                    await _table.ReloadServerData();
+                }
+                else
+                {
+                    var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
+                    Snackbar.Add(L["Error creating user: {0}", errors], Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error creating user");
+                Snackbar.Add(L["Error creating user"], Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenEditDialog(UserDto user)
+    {
+        try 
+        {
+            // Obtener la información actualizada del usuario
+            var userResult = await IdentityService.GetUserByIdAsync(user.Id);
+            
+            if (!userResult.IsSuccess || userResult.Value == null)
+            {
+                Snackbar.Add(userResult.Error ?? L["Error loading user data"], Severity.Error);
+                return;
+            }
+            
+            // Obtener los roles del usuario
+            var roles = await IdentityService.GetUserRolesAsync(user.Id);
+            var currentRole = roles.FirstOrDefault() ?? "";
+
+            // Actualizar con la información más reciente
+            var userInfo = userResult.Value;
+
+            var parameters = new DialogParameters<UserDialog>
+            {
+                { x => x.IsNew, false },
+                { x => x.Model, new UserDialogModel
+                    {
+                        Id = userInfo.Id,
+                        UserName = userInfo.UserName,
+                        Email = userInfo.Email,
+                        FullName = userInfo.FullName,
+                        IsActive = userInfo.IsActive,
+                        Role = currentRole
+                    }
+                }
+            };
+
+            var dialog = await DialogService.ShowAsync<UserDialog>(L["Edit User"], parameters);
+            var result = await dialog.Result;
+
+            if (result is not null && !result.Canceled && result.Data != null && result.Data is UserDialogModel model)
+            {
+                try
+                {
+                    var updateDto = new UpdateUserDto
+                    {
+                        UserName = model.UserName,
+                        FullName = model.FullName,
+                        Email = model.Email,
+                        Role = model.Role,
+                        IsActive = model.IsActive
+                    };
+
+                    var identityResult = await IdentityService.UpdateUserAsync(model.Id!, updateDto);
+
+                    if (identityResult.Succeeded)
+                    {
+                        // Si el rol ha cambiado, actualizar permisos según el nuevo rol
+                        if (model.Role != currentRole)
+                        {
+                            // Cargar permisos del nuevo rol
+                            var rolePermissions = await RoleService.GetRoleClaimsAsync(model.Role);
+                            
+                            // Actualizar permisos del usuario
+                            await IdentityService.UpdateUserPermissionsAsync(model.Id!, rolePermissions);
+                        }
+                        
+                        Snackbar.Add(L["User updated successfully"], Severity.Success);
+                        await _table.ReloadServerData();
+                    }
+                    else
+                    {
+                        var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
+                        Snackbar.Add(L["Error updating user: {0}", errors], Severity.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Error updating user {UserId}", model.Id);
+                    Snackbar.Add(L["Error updating user"], Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening edit dialog for user {UserId}", user.Id);
+            Snackbar.Add(L["Error loading user information"], Severity.Error);
+        }
+    }
+
+    private async Task OpenDeleteDialog(UserDto user)
+    {
+        if (user == null) return;
+
+        try
+        {
+            var parameters = new DialogParameters
+            {
+                { nameof(ConfirmDialog.Title), L["Delete User Confirmation"].ToString() },
+                { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete user:"].ToString() },
+                { nameof(ConfirmDialog.HighlightedText), $"{user.UserName}({user.FullName}) " },
+                { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+                { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+                { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+                { nameof(ConfirmDialog.Color), Color.Error },
+                { nameof(ConfirmDialog.WarningText), L["This user and all associated data will be permanently deleted. This action cannot be undone."].ToString() }
+            };
+
+            var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+                L["Delete User"], parameters);
+            var result = await dialog.Result;
+
+            if (result is null || result.Canceled) return;
+
+            _loading = true;
+            StateHasChanged();
+
+            try
+            {
+                var identityResult = await IdentityService.DeleteUserAsync(user.Id);
+                if (identityResult.Succeeded)
+                {
+                    Snackbar.Add(L["User deleted successfully"], Severity.Success);
+                    await InvokeAsync(_table.ReloadServerData);
+                }
+                else
+                {
+                    var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
+                    Snackbar.Add(L["Error deleting user: {0}", errors], Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error deleting user {UserId}", user.Id);
+                Snackbar.Add(L["Error deleting user"], Severity.Error);
+            }
+            finally
+            {
+                _loading = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in delete dialog for user {UserId}", user.Id);
+            Snackbar.Add(L["An error occurred while processing the request"], 
+                Severity.Error);
+        }
+    }
+
+    private async Task OpenResetPasswordDialog(UserDto user)
+    {
+        var parameters = new DialogParameters<ResetPasswordDialog>
+        {
+            { x => x.Model, new AdminResetPasswordDto { UserId = user.Id } }
+        };
+
+        var dialog = await DialogService.ShowAsync<ResetPasswordDialog>(
+            L["Reset Password for {0}", user.UserName], parameters);
+        var result = await dialog.Result;
+
+        if (result == null || result.Canceled) return;
+
+        var model = result.Data as AdminResetPasswordDto ?? throw new InvalidOperationException("Result data is null or not of type AdminResetPasswordDto.");
+        
+        try
+        {
+            var resetResult = await IdentityService.AdminResetPasswordAsync(
+                model.UserId, model.NewPassword);
+                
+            if (resetResult.Succeeded)
+            {
+                Snackbar.Add(L["Password has been reset successfully"], Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(resetResult.Error ?? L["Error resetting password"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error resetting password for user {UserId}", model.UserId);
+            Snackbar.Add(L["Error resetting password"], Severity.Error);
+        }
+    }
+}

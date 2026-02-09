@@ -1,0 +1,85 @@
+@using MudBlazor
+@inject IStringLocalizer<NotFoundView> L
+@inject NavigationManager NavigationManager
+@inject ILogger<NotFoundView> Logger
+
+<div class="not-found-container">
+    <MudPaper Elevation="0" Class="not-found-content pa-6">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudIcon Icon="@Icons.Material.Filled.SentimentDissatisfied" 
+                    Color="Color.Error" 
+                    Size="Size.Large" 
+                    Style="font-size: 64px;" />
+            
+            <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Error">404</MudText>
+            
+            <MudText Typo="Typo.h5" Align="Align.Center">
+                @L["Page Not Found"]
+            </MudText>
+            
+            <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+                @L["The page you're looking for doesn't exist or has been moved."]
+            </MudText>
+            
+            <MudButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      OnClick="@NavigateToHome"
+                      Class="da-button-rounded px-6">
+                @L["Go to Home"]
+            </MudButton>
+            
+            <MudButton Variant="Variant.Text"
+                      Color="Color.Secondary"
+                      OnClick="@NavigateBack"
+                      StartIcon="@Icons.Material.Filled.ArrowBack"
+                      Class="mt-2">
+                @L["Go Back"]
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</div>
+
+<style>
+    .not-found-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 150px);
+        padding: 24px;
+    }
+    
+    .not-found-content {
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        border-radius: 8px;
+        background-color: var(--mud-palette-background);
+    }
+</style>
+
+@code {
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+    
+    private void NavigateBack()
+    {
+        try
+        {
+            // Intenta volver a la página anterior
+            NavigationManager.NavigateTo("javascript:history.back()");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error navigating back from 404 page");
+            NavigateToHome();
+        }
+    }
+    
+    protected override void OnInitialized()
+    {
+        // Registra el error 404 para análisis
+        Logger.LogWarning("404 Not Found: {Url}", NavigationManager.Uri);
+    }
+}

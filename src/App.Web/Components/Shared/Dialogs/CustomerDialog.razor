@@ -1,0 +1,375 @@
+﻿@using App.Core.DTOs.Customer
+@using App.Core.Interfaces
+@using App.Core.DTOs.Settings
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+
+@inject ICustomerService CustomerService
+@inject IStringLocalizer<CustomerDialog> L
+@inject ISnackbar Snackbar
+@inject ILookupService LookupService
+@inject ILogger<CustomerDialog> Logger
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer Style="max-width: 800px;" Class="pa-4">
+            <MudForm Model="@_model" @ref="@_form">
+                <MudGrid>
+                    <!-- Información General -->
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Name"
+                                    Label="@L["Trade Name"]"
+                                    Required="true"
+                                    RequiredError="@L["Trade name is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.LegalName"
+                                    Label="@L["Legal Name"]"
+                                    RequiredError="@L["Legal name is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.TaxId"
+                                    Label="@L["Tax ID"]" />
+                    </MudItem>
+
+                    <!-- Información de Contacto -->
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Email"
+                                    Label="@L["Email"]"
+                                    InputType="InputType.Email"
+                                    Validation="@((string email) => ValidateEmail(email))"
+                                    Placeholder="@L["example@domain.com"]"
+                                    Immediate="true" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_phoneInput"
+                                    @bind-Value:after="OnPhoneChanged"
+                                    Required="true"
+                                    MaxLength="14"
+                                    InputType="InputType.Telephone"
+                                    RequiredError="@L["Phone is required"]"
+                                    Label="@L["Phone"]"
+                                    Placeholder="@GetPhonePlaceholder()"
+                                    Validation="@((string phone) => ValidatePhone(phone))" />
+                    </MudItem>
+
+                    <!-- Dirección -->
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Street"
+                                    Label="@L["Street"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="3">
+                        <MudTextField @bind-Value="_model.ExteriorNumber"
+                                    Label="@L["Exterior Number"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="3">
+                        <MudTextField @bind-Value="_model.InteriorNumber"
+                                    Label="@L["Interior Number"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Neighborhood"
+                                    Label="@L["Neighborhood"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.City"
+                                    Label="@L["City"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.State"
+                                    Label="@L["State"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.PostalCode"
+                                    Label="@L["Postal Code"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudSelect @bind-Value="_model.CountryCode"
+                                Label="@L["Country"]"
+                                Required="true"
+                                RequiredError="@L["Country is required"]">
+                            @foreach (var country in _countries)
+                            {
+                                <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <!-- Campos específicos para Canadá (mostrar solo si el país es CA) -->
+                    @if (_model.CountryCode == "CA")
+                    {
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle1">@L["Canadian Tax Numbers"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.CaGstNumber"
+                                        Label="@L["GST Number"]" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.CaPstNumber"
+                                        Label="@L["PST Number"]" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.CaHstNumber"
+                                        Label="@L["HST Number"]" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.CaQstNumber"
+                                        Label="@L["QST Number"]" />
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudForm>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" 
+            Class="da-button-rounded"
+            title="@L["Cancel editing"]">
+            @L["Cancel"]
+        </MudButton>
+        <MudButton Color="Color.Error"
+                  OnClick="Submit"
+                  Variant="Variant.Filled"
+                  Disabled="@_processing"
+                  title="@L["Save customer data"]"
+                  Class="da-button-rounded">
+                    @if(_processing)            
+                    {
+                        <MudProgressCircular Class ="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">
+                            @L["Saving"]
+                        </MudText>   
+                    }
+                    else
+                    {
+                        @L["Save"]
+                    }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public long? CustomerId { get; set; }
+    private List<CountryDto> _countries = new();
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private CustomerDto? _customer;
+    private CreateCustomerDto _model = new();
+    private string _phoneInput = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = (await LookupService.GetCountriesAsync()).ToList();
+
+        if (CustomerId.HasValue)
+        {
+            await LoadCustomer();
+        }
+    }
+
+    private async Task LoadCustomer()
+    {
+        try
+        {
+            _customer = await CustomerService.GetCustomerByIdAsync(CustomerId!.Value);
+            if (_customer != null)
+            {
+                _model = new CreateCustomerDto
+                {
+                    Name = _customer.Name,
+                    LegalName = _customer.LegalName,
+                    TaxId = _customer.TaxId,
+                    Email = _customer.Email,
+                    Phone = _customer.Phone,
+                    Street = _customer.Street,
+                    ExteriorNumber = _customer.ExteriorNumber,
+                    InteriorNumber = _customer.InteriorNumber,
+                    Neighborhood = _customer.Neighborhood,
+                    City = _customer.City,
+                    State = _customer.State,
+                    PostalCode = _customer.PostalCode,
+                    CaGstNumber = _customer.CaGstNumber,
+                    CaPstNumber = _customer.CaPstNumber,
+                    CaHstNumber = _customer.CaHstNumber,
+                    CaQstNumber = _customer.CaQstNumber,
+                    CountryCode = _customer.CountryCode
+                };
+                _phoneInput = FormatPhoneNumber(_customer.Phone ?? string.Empty);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading customer {CustomerId}", CustomerId);
+            Snackbar.Add(L["Error loading customer"], Severity.Error);
+            MudDialog.Cancel();
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                if (CustomerId.HasValue)
+                {
+                    var updateDto = new UpdateCustomerDto
+                    {
+                        Name = _model.Name,
+                        LegalName = _model.LegalName,
+                        TaxId = _model.TaxId,
+                        Email = _model.Email,
+                        Phone = _model.Phone,
+                        Street = _model.Street,
+                        ExteriorNumber = _model.ExteriorNumber,
+                        InteriorNumber = _model.InteriorNumber,
+                        Neighborhood = _model.Neighborhood,
+                        City = _model.City,
+                        State = _model.State,
+                        PostalCode = _model.PostalCode,
+                        CaGstNumber = _model.CaGstNumber,
+                        CaPstNumber = _model.CaPstNumber,
+                        CaHstNumber = _model.CaHstNumber,
+                        CaQstNumber = _model.CaQstNumber,
+                        CountryCode = _model.CountryCode
+                    };
+
+                    await CustomerService.UpdateCustomerAsync(CustomerId.Value, updateDto);
+                    Snackbar.Add(L["Customer updated successfully"], Severity.Success);
+                }
+                else
+                {
+                    await CustomerService.CreateCustomerAsync(_model);
+                    Snackbar.Add(L["Customer created successfully"], Severity.Success);
+                }
+
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving customer");
+                Snackbar.Add(L["Error saving customer"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Validates phone number format - ensures it contains only numeric characters,
+    /// spaces, hyphens, parentheses, and plus signs
+    /// </summary>
+    /// <param name="phone">Phone number to validate</param>
+    /// <returns>Error message if validation fails, null if valid</returns>
+    private string? ValidatePhone(string phone)
+    {
+        // Phone is required, so if it's empty, let the Required validation handle it
+        if (string.IsNullOrWhiteSpace(phone))
+            return null;
+
+        // Remove common phone number formatting characters for validation
+        var cleanPhone = phone.Replace(" ", "")
+                            .Replace("-", "")
+                            .Replace("(", "")
+                            .Replace(")", "")
+                            .Replace("+", "");
+
+        // Check if the remaining characters are all numeric
+        if (!Regex.IsMatch(cleanPhone, @"^\d+$"))
+        {
+            return L["Phone number must contain only numbers, spaces, hyphens, parentheses, and plus signs"];
+        }
+
+        // Check minimum length (at least 10 digits for a valid phone number)
+        if (cleanPhone.Length != 10)
+        {
+            return L["Phone number must have exactly 10 digits"];
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Validates email format using EmailAddressAttribute when email is provided
+    /// Email is optional, so empty values are considered valid
+    /// </summary>
+    /// <param name="email">Email address to validate</param>
+    /// <returns>Error message if validation fails, null if valid</returns>
+    private string? ValidateEmail(string email)
+    {
+        // Email is optional, so empty is valid
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
+
+        // Use EmailAddressAttribute for validation
+        var emailValidator = new EmailAddressAttribute();
+        
+        if (!emailValidator.IsValid(email))
+        {
+            return L["Please enter a valid email address"];
+        }
+
+        return null;
+    }
+
+    private void OnPhoneChanged()
+    {
+        // Remove all non-numeric characters
+        var digitsOnly = new string(_phoneInput.Where(char.IsDigit).ToArray());
+
+        // Store only digits in model
+        _model.Phone = digitsOnly;
+
+        // Format for display
+        _phoneInput = FormatPhoneNumber(digitsOnly);
+    }
+
+    private string FormatPhoneNumber(string phone)
+    {
+        if (string.IsNullOrEmpty(phone))
+            return string.Empty;
+
+        // Remove all non-numeric characters
+        var digitsOnly = new string(phone.Where(char.IsDigit).ToArray());
+
+        // Apply formatting based on length
+        if (digitsOnly.Length <= 3)
+            return $"({digitsOnly}";
+        else if (digitsOnly.Length <= 6)
+            return $"({digitsOnly.Substring(0, 3)})-{digitsOnly.Substring(3)}";
+        else if (digitsOnly.Length <= 10)
+            return $"({digitsOnly.Substring(0, 3)})-{digitsOnly.Substring(3, 3)}-{digitsOnly.Substring(6)}";
+        else
+            return $"({digitsOnly.Substring(0, 3)})-{digitsOnly.Substring(3, 3)}-{digitsOnly.Substring(6, 4)}";
+    }
+
+    private string GetPhonePlaceholder()
+    {
+        return "(461)-123-4567";
+    }
+}

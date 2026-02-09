@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Inventory Sheet -->
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventario</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Almacén</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Existencias</value>
+  </data>
+  <data name="Min Stock" xml:space="preserve">
+    <value>Stock Mínimo</value>
+  </data>
+  <data name="Max Stock" xml:space="preserve">
+    <value>Stock Máximo</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Content Per Unit" xml:space="preserve">
+    <value>Contenido por Elemento</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <!-- Stock Status -->
+  <data name="Out of Stock" xml:space="preserve">
+    <value>Sin Existencias</value>
+  </data>
+  <data name="Low Stock" xml:space="preserve">
+    <value>Stock Bajo</value>
+  </data>
+  <data name="Over Stock" xml:space="preserve">
+    <value>Stock Excedido</value>
+  </data>
+  <data name="In Stock" xml:space="preserve">
+    <value>En Stock</value>
+  </data>
+  <!-- Movement History Sheet -->
+  <data name="Movement History" xml:space="preserve">
+    <value>Historial de Movimientos</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="Destination" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Previous Balance" xml:space="preserve">
+    <value>Saldo Anterior</value>
+  </data>
+  <data name="New Balance" xml:space="preserve">
+    <value>Nuevo Saldo</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referencia</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <!-- Alerts Sheet -->
+  <data name="Inventory Alerts" xml:space="preserve">
+    <value>Alertas de Inventario</value>
+  </data>
+  <data name="Product Code" xml:space="preserve">
+    <value>Código de Producto</value>
+  </data>
+  <data name="Product Name" xml:space="preserve">
+    <value>Nombre de Producto</value>
+  </data>
+  <data name="Alert Type" xml:space="preserve">
+    <value>Tipo de Alerta</value>
+  </data>
+  <data name="Current Stock" xml:space="preserve">
+    <value>Stock Actual</value>
+  </data>
+  <!-- Summary -->
+  <data name="Summary" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="Total Alerts" xml:space="preserve">
+    <value>Total de Alertas</value>
+  </data>
+  <data name="Low Stock Alerts" xml:space="preserve">
+    <value>Alertas de Stock Bajo</value>
+  </data>
+  <data name="Over Stock Alerts" xml:space="preserve">
+    <value>Alertas de Stock Excedido</value>
+  </data>
+  <data name="Generated On" xml:space="preserve">
+    <value>Generado el</value>
+  </data>
+  <data name="Product Catalog" xml:space="preserve">
+    <value>Catálogo de Productos</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Código de Barras</value>
+  </data>
+  <data name="Content" xml:space="preserve">
+    <value>Contenido</value>
+  </data>
+  <data name="Unit Measure" xml:space="preserve">
+    <value>Unidad de Medida</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="Is Taxable" xml:space="preserve">
+    <value>Gravable</value>
+  </data>
+  <data name="Is Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Allow Partial Sale" xml:space="preserve">
+    <value>Permite Venta Parcial</value>
+  </data>
+  <data name="Allow Custom Pricing" xml:space="preserve">
+    <value>Permite Precio Personalizado</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <!-- Partial Sale Surcharges Sheet -->
+  <data name="Partial Sale Surcharges" xml:space="preserve">
+    <value>Recargos por Venta Parcial</value>
+  </data>
+  <data name="Fraction" xml:space="preserve">
+    <value>Fracción</value>
+  </data>
+  <data name="Fraction Name" xml:space="preserve">
+    <value>Nombre de Fracción</value>
+  </data>
+  <data name="Surcharge %" xml:space="preserve">
+    <value>Recargo %</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Surcharge" xml:space="preserve">
+    <value>Recargo</value>
+  </data>
+</root>

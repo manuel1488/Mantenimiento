@@ -1,0 +1,287 @@
+﻿@using App.Core.DTOs.Inventory
+@using App.Core.DTOs.Product
+@using App.Core.DTOs.Warehouse
+@using App.Core.Interfaces
+@using App.Web.Services
+
+@inject IStringLocalizer<CreateTransferDialog> L
+@inject IInventoryService InventoryService
+@inject IProductService ProductService
+@inject IInventoryQueryService InventoryQueryService
+@inject InventoryEventsService InventoryEvents
+@inject ISnackbar Snackbar
+@inject ILogger<CreateTransferDialog> _logger
+
+<AuthorizeView Policy="@ApplicationClaims.Shop.ManageInventoryTransfers">
+    <Authorized>
+        <MudDialog>
+            <DialogContent>
+                <MudForm @ref="_form" Model="@_model">
+                    <!-- Almacén Origen -->
+                    <MudSelect T="int" 
+                            Label="@L["Source Warehouse"]"
+                            @bind-Value="_model.WarehouseId"
+                            Required="true"
+                            RequiredError="@L["Source warehouse is required"]"
+                            Class="mb-4">
+                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.DestinationWarehouseId))
+                        {
+                            <MudSelectItem T="int" Value="@warehouse.Id">
+                                @warehouse.Name
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <!-- Almacén Destino -->
+                    <MudSelect T="int" 
+                            Label="@L["Destination Warehouse"]"
+                            @bind-Value="_model.DestinationWarehouseId"
+                            Required="true"
+                            RequiredError="@L["Destination warehouse is required"]"
+                            Class="mb-4">
+                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.WarehouseId))
+                        {
+                            <MudSelectItem T="int" Value="@warehouse.Id">
+                                @warehouse.Name
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <!-- Tipo de Transferencia -->
+                    <MudSelect T="string" 
+                            Label="@L["Transfer Type"]"
+                            @bind-Value="_model.TransferType"
+                            Required="true"
+                            RequiredError="@L["Transfer type is required"]"
+                            Class="mb-4">
+                        <MudSelectItem Value="@InventoryMovementSubType.StandardTransfer">@L["Standard Transfer"]</MudSelectItem>
+                        <MudSelectItem Value="@InventoryMovementSubType.RushTransfer">@L["Rush Transfer"]</MudSelectItem>
+                        <MudSelectItem Value="@InventoryMovementSubType.Rebalancing">@L["Stock Rebalancing"]</MudSelectItem>
+                    </MudSelect>
+
+                    <!-- Selección de Producto -->
+                    <MudAutocomplete T="ProductDto"
+                        Label="@L["Product"]"
+                        Value="_selectedProduct"
+                        ValueChanged="OnProductChanged"
+                        SearchFunc="@SearchProducts"
+                        ToStringFunc="@(p => p == null ? string.Empty : $"{p.Code} - {p.Name} - {p.Brand}")"
+                        ResetValueOnEmptyText="true"
+                        Required="true"
+                        OnlyValidateIfDirty="true"
+                        RequiredError="@L["Product is required"]"
+                        Class="mb-4" />
+
+                    @if (_selectedProduct != null)
+                    {
+                        <MudPaper Class="pa-4 mb-4">
+                            <MudText>@L["Selected Product"]</MudText>
+                            <MudText Typo="Typo.subtitle1">@L[name: "Name"]: @_selectedProduct.Name</MudText>
+                            <MudText Typo="Typo.caption">@L[name: "Code"]: @_selectedProduct.Code</MudText> <br/>
+                            <MudText Typo="Typo.caption">@L[name: "Brand"]: @_selectedProduct.Brand</MudText> <br/>
+                            <MudText Typo="Typo.caption">@L[name: "Description"]: @_selectedProduct.Description</MudText> <br/>
+                            <MudText Typo="Typo.caption">
+                                @L["Available Stock"]: @string.Concat(@_availableStock?.ToString("N2"), " ", L["Units"])
+                            </MudText>
+                            <br/>
+                            <MudText Typo="Typo.caption">
+                                @L["Unit Measure"]: @_selectedProduct.UnitMeasureName
+                            </MudText>
+                        </MudPaper>
+                    }
+
+                    <!-- Cantidad -->
+                    <MudNumericField T="decimal" 
+                                    @bind-Value="_model.Quantity"
+                                    Label="@L["Quantity"]"
+                                    Required="true"
+                                    RequiredError="@L["Quantity is required"]"
+                                    Min="0.01M"
+                                    Format="N2"
+                                    Class="mb-4" />
+
+                    <!-- Referencia -->
+                    <MudTextField T="string"
+                                @bind-Value="_model.Reference"
+                                Label="@L["Reference"]"
+                                MaxLength="50"
+                                Class="mb-4" />
+
+                    <!-- Razón/Motivo -->
+                    <MudTextField T="string"
+                                @bind-Value="_model.Reason"
+                                Label="@L["Reason"]"
+                                Required="true"
+                                RequiredError="@L["Reason is required"]"
+                                MaxLength="500"
+                                Lines="3" />
+                </MudForm>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+                <MudButton Color="Color.Primary" 
+                        Variant="Variant.Filled" 
+                        OnClick="Submit" 
+                        Disabled="@_processing">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">@L["Processing"]</MudText>
+                    }
+                    else
+                    {
+                        @L["Transfer"]
+                    }
+                </MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public List<WarehouseDto> Warehouses { get; set; } = new();
+
+    private MudForm _form = null!;
+    private CreateInventoryTransferDto _model = new();
+    private ProductDto? _selectedProduct;
+    private decimal? _availableStock;
+    private bool _processing;
+
+    private async Task<IEnumerable<ProductDto>> SearchProducts(string value, CancellationToken token)
+    {
+        try
+        {
+            // If the text is empty, show first 50 products
+            if (string.IsNullOrEmpty(value))
+            {
+                var (_, productItems) = await ProductService.GetProductsAsync(
+                    page: 1,
+                    pageSize: 50,
+                    isActive: true);
+                return productItems;
+            }
+
+            // If there's search text, use existing search logic
+            var (_, searchItems) = await ProductService.GetProductsAsync(
+                searchString: value,
+                pageSize: 50,
+                isActive: true);
+            return searchItems;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching products");
+            Snackbar.Add(L["Error searching products"], Severity.Error);
+            return Array.Empty<ProductDto>();
+        }
+    }
+
+    private async Task OnProductChanged(ProductDto? product)
+    {
+        _selectedProduct = product; // Actualizar primero el producto seleccionado
+        
+        if (product != null && _model.WarehouseId != 0)
+        {
+            try
+            {
+                var stock = await InventoryQueryService.GetProductStockAsync(
+                    product.Id, 
+                    _model.WarehouseId);
+
+                if (stock != null)
+                {
+                    _availableStock = stock.WarehouseStock
+                        .FirstOrDefault()?.Quantity ?? 0;
+                }
+
+                _model.ProductId = product.Id; // Actualizar el ID del producto en el modelo
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading product stock");
+                Snackbar.Add(L["Error loading product stock"], Severity.Error);
+            }
+        }
+        else
+        {
+            _availableStock = null;
+            _model.ProductId = 0;
+        }
+    }
+
+    private async Task Submit()
+    {
+        try
+        {
+            await _form.Validate();
+            if (!_form.IsValid || _selectedProduct == null) return;
+
+            if (_model.Quantity > _availableStock)
+            {
+                Snackbar.Add(L["Insufficient stock"], Severity.Warning);
+                return;
+            }
+
+            _processing = true;
+
+            // Asegurarnos de que el ProductId esté establecido
+            _model.ProductId = _selectedProduct.Id;
+
+            var result = await InventoryService.CreateTransferAsync(_model);
+            
+            if (result.Success)
+            {
+                if (result.Alert != null)
+                {
+                    // Notificar al usuario que se creó la transferencia pero generó una alerta
+                    if (result.Alert.AlertType == InventoryAlertType.LowStock)
+                    {
+                        Snackbar.Add(
+                            L["Transfer successful but source stock is below minimum. Current: {0}, Minimum: {1}", 
+                            result.Alert.CurrentStock.ToString("N2"), 
+                            result.Alert.Threshold?.ToString("N2") ?? "N/A"],
+                            Severity.Warning);
+                    }
+                    else if (result.Alert.AlertType == InventoryAlertType.OverStock)
+                    {
+                        Snackbar.Add(
+                            L["Transfer successful but destination stock is above maximum. Current: {0}, Maximum: {1}",
+                            result.Alert.CurrentStock.ToString("N2"),
+                            result.Alert.Threshold?.ToString("N2") ?? "N/A"],
+                            Severity.Info);
+                    }
+
+                    InventoryEvents.NotifyAlertsChanged();
+                }
+                else
+                {
+                    Snackbar.Add(L["Transfer created successfully"], Severity.Success);
+                }
+                
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? L["Error creating transfer"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating transfer");
+            Snackbar.Add(L["Error creating transfer"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

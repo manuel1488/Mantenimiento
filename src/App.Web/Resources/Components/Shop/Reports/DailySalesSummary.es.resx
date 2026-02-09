@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Daily Sales Summary" xml:space="preserve">
+    <value>Resumen Diario de Ventas</value>
+  </data>
+  <data name="Export Excel" xml:space="preserve">
+    <value>Exportar Excel</value>
+  </data>
+  <data name="Export PDF" xml:space="preserve">
+    <value>Exportar PDF</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Hoy</value>
+  </data>
+  <data name="Yesterday" xml:space="preserve">
+    <value>Ayer</value>
+  </data>
+  <data name="This Week" xml:space="preserve">
+    <value>Esta Semana</value>
+  </data>
+  <data name="This Month" xml:space="preserve">
+    <value>Este Mes</value>
+  </data>
+  <data name="Custom Range" xml:space="preserve">
+    <value>Rango Personalizado</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Rango de Fechas</value>
+  </data>
+  <data name="All Sales" xml:space="preserve">
+    <value>Todas las Ventas</value>
+  </data>
+  <data name="General Sales" xml:space="preserve">
+    <value>Ventas Generales</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completado</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelado</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="No data available" xml:space="preserve">
+    <value>No hay datos disponibles</value>
+  </data>
+  <data name="Total Sales" xml:space="preserve">
+    <value>Total de Ventas</value>
+  </data>
+  <data name="Total Revenue" xml:space="preserve">
+    <value>Ingresos Totales</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Total Tax" xml:space="preserve">
+    <value>Impuestos Totales</value>
+  </data>
+  <data name="Total Discount" xml:space="preserve">
+    <value>Descuentos Totales</value>
+  </data>
+  <data name="Sales by Type" xml:space="preserve">
+    <value>Ventas por Tipo</value>
+  </data>
+  <data name="Public" xml:space="preserve">
+    <value>Público</value>
+  </data>
+  <data name="Sales by Status" xml:space="preserve">
+    <value>Ventas por Estado</value>
+  </data>
+  <data name="Payment Methods" xml:space="preserve">
+    <value>Métodos de Pago</value>
+  </data>
+  <data name="Sales Detail" xml:space="preserve">
+    <value>Detalle de Ventas</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Pago</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>Impuesto</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Descuento</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Error loading sales summary" xml:space="preserve">
+    <value>Error al cargar el resumen de ventas</value>
+  </data>
+  <data name="Export started" xml:space="preserve">
+    <value>Exportación iniciada</value>
+  </data>
+  <data name="Error exporting report" xml:space="preserve">
+    <value>Error al exportar el reporte</value>
+  </data>
+  <data name="Cash" xml:space="preserve">
+    <value>Efectivo</value>
+  </data>
+  <data name="CreditCard" xml:space="preserve">
+    <value>Tarjeta de Crédito</value>
+  </data>
+  <data name="DebitCard" xml:space="preserve">
+    <value>Tarjeta de Débito</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>Transferencia Bancaria</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Otro</value>
+  </data>
+  <data name="N/A" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="Cash Register - Payment Methods" xml:space="preserve">
+    <value>Corte de Caja - Métodos de Pago</value>
+  </data>
+  <data name="transactions" xml:space="preserve">
+    <value>transacciones</value>
+  </data>
+  <data name="No payment data available" xml:space="preserve">
+    <value>No hay datos de pagos disponibles</value>
+  </data>
+  <data name="Sales Breakdown" xml:space="preserve">
+    <value>Desglose de Ventas</value>
+  </data>
+  <data name="By Type" xml:space="preserve">
+    <value>Por Tipo</value>
+  </data>
+  <data name="By Status" xml:space="preserve">
+    <value>Por Estado</value>
+  </data>
+  <data name="Maximum 2 months range" xml:space="preserve">
+    <value>Rango máximo de 2 meses</value>
+  </data>
+  <data name="Date range cannot exceed 2 months (60 days)" xml:space="preserve">
+    <value>El rango de fechas no puede exceder 2 meses (60 días)</value>
+  </data>
+  <data name="Efectivo" xml:space="preserve">
+    <value>Efectivo</value>
+  </data>
+  <data name="Tarjeta de Crédito" xml:space="preserve">
+    <value>Tarjeta de Crédito</value>
+  </data>
+  <data name="Tarjeta de Débito" xml:space="preserve">
+    <value>Tarjeta de Débito</value>
+  </data>
+  <data name="Transferencia Bancaria" xml:space="preserve">
+    <value>Transferencia Bancaria</value>
+  </data>
+  <data name="Otro" xml:space="preserve">
+    <value>Otro</value>
+  </data>
+</root>

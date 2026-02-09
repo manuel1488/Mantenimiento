@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Etiquetas Principales del Ticket -->
+  <data name="Sale Ticket" xml:space="preserve">
+    <value>Ticket de Venta</value>
+  </data>
+  <data name="Company Logo" xml:space="preserve">
+    <value>Logo de la Empresa</value>
+  </data>
+  <data name="SALE RECEIPT" xml:space="preserve">
+    <value>RECIBO DE VENTA</value>
+  </data>
+  
+  <!-- Información de la Empresa -->
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  
+  <!-- Información de la Venta -->
+  <data name="Sale" xml:space="preserve">
+    <value>Venta</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+
+  <!-- Encabezados de Tabla de Productos -->
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Qty" xml:space="preserve">
+    <value>Cant</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  
+  <!-- Sección de Totales -->
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Descuento</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>IVA</value>
+  </data>
+  <data name="Rounding" xml:space="preserve">
+    <value>Redondeo</value>
+  </data>
+  <data name="TOTAL" xml:space="preserve">
+    <value>TOTAL</value>
+  </data>
+  
+  <!-- Información de Pago -->
+  <data name="Payment Method" xml:space="preserve">
+    <value>Método de Pago</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  
+  <!-- Código QR -->
+  <data name="QR Code" xml:space="preserve">
+    <value>Código QR</value>
+  </data>
+  <data name="Scan for details" xml:space="preserve">
+    <value>Escanea para detalles</value>
+  </data>
+  
+  <!-- Pie de Página -->
+  <data name="Thank you for your purchase!" xml:space="preserve">
+    <value>¡Gracias por su compra!</value>
+  </data>
+  <data name="Ref" xml:space="preserve">
+    <value>Ref</value>
+  </data>
+  
+  <!-- Métodos de Pago Comunes -->
+  <data name="Cash" xml:space="preserve">
+    <value>Efectivo</value>
+  </data>
+  <data name="Credit Card" xml:space="preserve">
+    <value>Tarjeta de Crédito</value>
+  </data>
+  <data name="Debit Card" xml:space="preserve">
+    <value>Tarjeta de Débito</value>
+  </data>
+  <data name="Transfer" xml:space="preserve">
+    <value>Transferencia</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Cheque</value>
+  </data>
+  
+  <!-- Estados Comunes -->
+  <data name="Created" xml:space="preserve">
+    <value>Creada</value>
+  </data>
+  <data name="Paid" xml:space="preserve">
+    <value>Pagado</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
+  <data name="Partial" xml:space="preserve">
+    <value>Parcial</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelado</value>
+  </data>
+  <data name="Refunded" xml:space="preserve">
+    <value>Reembolsado</value>
+  </data>
+</root>

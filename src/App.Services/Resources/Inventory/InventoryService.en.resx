@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Invalid product or warehouse" xml:space="preserve">
+    <value>Invalid product or warehouse</value>
+  </data>
+  <data name="Source and destination warehouses must be different" xml:space="preserve">
+    <value>Source and destination warehouses must be different</value>
+  </data>
+  <data name="The inventory was modified by another process" xml:space="preserve">
+    <value>The inventory was modified by another process</value>
+  </data>
+  <data name="Inventory not found for product {0} in warehouse {1}" xml:space="preserve">
+    <value>Inventory not found for product {0} in warehouse {1}</value>
+  </data>
+  <data name="Min stock cannot be greater than max stock" xml:space="preserve">
+    <value>Min stock cannot be greater than max stock</value>
+  </data>
+  <data name="Quantity must be greater than or equal to 0" xml:space="preserve">
+    <value>Quantity must be greater than or equal to 0</value>
+  </data>
+  <data name="Product not found or inactive" xml:space="preserve">
+    <value>Product not found or inactive</value>
+  </data>
+  <data name="Warehouse not found or inactive" xml:space="preserve">
+    <value>Warehouse not found or inactive</value>
+  </data>
+  <data name="Product already has inventory in this warehouse" xml:space="preserve">
+    <value>Product already has inventory in this warehouse</value>
+  </data>
+  <data name="Error creating initial inventory" xml:space="preserve">
+    <value>Error creating initial inventory</value>
+  </data>
+  <data name="Invalid or inactive warehouse" xml:space="preserve">
+    <value>Invalid or inactive warehouse</value>
+  </data>
+  <data name="Quantity must be greater than 0" xml:space="preserve">
+    <value>Quantity must be greater than 0</value>
+  </data>
+  <data name="Error validating item" xml:space="preserve">
+    <value>Error validating item</value>
+  </data>
+  <data name="Validation errors found" xml:space="preserve">
+    <value>Validation errors found</value>
+  </data>
+  <data name="Bulk Initial Load" xml:space="preserve">
+    <value>Bulk Initial Load</value>
+  </data>
+  <data name="Initial inventory setup - Bulk import" xml:space="preserve">
+    <value>Initial inventory setup - Bulk import</value>
+  </data>
+  <data name="Error processing bulk initial inventory" xml:space="preserve">
+    <value>Error processing bulk initial inventory</value>
+  </data>
+  <data name="Movement would exceed maximum stock" xml:space="preserve">
+    <value>Movement would exceed maximum stock</value>
+  </data>
+  <data name="Insufficient stock" xml:space="preserve">
+    <value>Insufficient stock</value>
+  </data>
+  <data name="Movement would result in negative stock" xml:space="preserve">
+    <value>Movement would result in negative stock</value>
+  </data>
+  <!-- Nuevos mensajes para ajustes de inventario -->
+  <data name="Concurrency error creating inventory adjustment" xml:space="preserve">
+    <value>Concurrency error creating inventory adjustment</value>
+  </data>
+  <data name="Error creating inventory adjustment" xml:space="preserve">
+    <value>Error creating inventory adjustment</value>
+  </data>
+</root>

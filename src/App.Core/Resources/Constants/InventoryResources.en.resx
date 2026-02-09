@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Movement Types -->
+  <data name="STOCK_IN" xml:space="preserve">
+    <value>Stock In</value>
+  </data>
+  <data name="PURCHASE" xml:space="preserve">
+    <value>Purchase</value>
+  </data>
+  <data name="RETURN" xml:space="preserve">
+    <value>Return</value>
+  </data>
+  <data name="STOCK_OUT" xml:space="preserve">
+    <value>Stock Out</value>
+  </data>
+  <data name="SALE" xml:space="preserve">
+    <value>Sale</value>
+  </data>
+  <data name="RETURN_SUPPLIER" xml:space="preserve">
+    <value>Return to Supplier</value>
+  </data>
+  <data name="TRANSFER" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="ADJUSTMENT" xml:space="preserve">
+    <value>Adjustment</value>
+  </data>
+  <data name="INITIAL_LOAD" xml:space="preserve">
+    <value>Initial Load</value>
+  </data>
+
+  <!-- Movement SubTypes -->
+  <data name="NEW_PRODUCT" xml:space="preserve">
+    <value>New Product</value>
+  </data>
+  <data name="SYSTEM_MIGRATION" xml:space="preserve">
+    <value>System Migration</value>
+  </data>
+  <data name="INITIAL_COUNT" xml:space="preserve">
+    <value>Initial Count</value>
+  </data>
+  <data name="OPENING_BALANCE" xml:space="preserve">
+    <value>Opening Balance</value>
+  </data>
+  <data name="CUSTOMER_ORDER" xml:space="preserve">
+    <value>Customer Order</value>
+  </data>
+  <data name="DIRECT_SALE" xml:space="preserve">
+    <value>Direct Sale</value>
+  </data>
+  <data name="PRODUCTION_USE" xml:space="preserve">
+    <value>Production Use</value>
+  </data>
+  <data name="CONSUMPTION" xml:space="preserve">
+    <value>Consumption</value>
+  </data>
+  <data name="DAMAGE" xml:space="preserve">
+    <value>Damage</value>
+  </data>
+  <data name="EXPIRY" xml:space="preserve">
+    <value>Expiry</value>
+  </data>
+  <data name="STANDARD" xml:space="preserve">
+    <value>Standard Transfer</value>
+  </data>
+  <data name="RUSH" xml:space="preserve">
+    <value>Rush Transfer</value>
+  </data>
+  <data name="REBALANCING" xml:space="preserve">
+    <value>Rebalancing</value>
+  </data>
+</root>

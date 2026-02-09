@@ -1,0 +1,15 @@
+@inject NavigationManager Navigation
+@inject IStringLocalizer<RedirectToLogin> L
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>@L["Redirecting..."]</PageTitle>
+
+@code {
+    [Parameter] public string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var encodedReturnUrl = Uri.EscapeDataString(ReturnUrl ?? "");
+        Navigation.NavigateTo($"/Account/login?returnUrl={encodedReturnUrl}", true);
+    }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Mensajes de Error -->
+  <data name="Invalid decimal value: '{0}'. Expected format: {1}">
+    <value>Valor decimal inválido: '{0}'. Formato esperado: {1}</value>
+    <comment>Mensaje de error cuando falla la conversión decimal. {0} es el valor inválido, {1} es el ejemplo de formato esperado</comment>
+  </data>
+  
+  <!-- Ejemplos de Formato -->
+  <data name="DecimalFormatExample">
+    <value>123.45</value>
+    <comment>Ejemplo de formato decimal correcto</comment>
+  </data>
+</root>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Product Details" xml:space="preserve">
+    <value>Detalles del Producto</value>
+  </data>
+  <data name="Product not found" xml:space="preserve">
+    <value>Producto no encontrado</value>
+  </data>
+  <data name="Back to List" xml:space="preserve">
+    <value>Volver a la Lista</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Código de Barras</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="SAT Product/Service Description" xml:space="preserve">
+    <value>Descripción de Producto/Servicio SAT</value>
+  </data>
+  <data name="Content/Quantity" xml:space="preserve">
+    <value>Contenido/Cantidad</value>
+  </data>
+  <data name="Partial Sales" xml:space="preserve">
+    <value>Ventas Parciales</value>
+  </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Permitido</value>
+  </data>
+  <data name="Not Allowed" xml:space="preserve">
+    <value>No Permitido</value>
+  </data>
+  <data name="Unit Measure" xml:space="preserve">
+    <value>Unidad de Medida</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>Impuesto</value>
+  </data>
+  <data name="Taxable" xml:space="preserve">
+    <value>Gravable</value>
+  </data>
+  <data name="Non-Taxable" xml:space="preserve">
+    <value>No Gravable</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="Audit Information" xml:space="preserve">
+    <value>Información de Auditoría</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Creado Por</value>
+  </data>
+  <data name="Created At" xml:space="preserve">
+    <value>Creado En</value>
+  </data>
+  <data name="Modified By" xml:space="preserve">
+    <value>Modificado Por</value>
+  </data>
+  <data name="Modified At" xml:space="preserve">
+    <value>Modificado En</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Error loading product" xml:space="preserve">
+    <value>Error al cargar el producto</value>
+  </data>
+</root>

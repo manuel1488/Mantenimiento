@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Code" xml:space="preserve">
+    <value>Code</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Brand</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Barcode</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Content" xml:space="preserve">
+    <value>Content</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="UnitMeasureCode" xml:space="preserve">
+    <value>Unit Measure Code</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="IsTaxable" xml:space="preserve">
+    <value>Is Taxable</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="IsActive" xml:space="preserve">
+    <value>Is Active</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="MexicoProductServiceCode" xml:space="preserve">
+    <value>Mexico Product/Service Code</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowPartialSale" xml:space="preserve">
+    <value>Allow Partial Sale</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowCustomPricing" xml:space="preserve">
+    <value>Allow Custom Pricing</value>
+    <comment>Product template header</comment>
+  </data>
+
+  <!-- Error Messages -->
+  <data name="Unexpected error processing Excel file: {0}">
+    <value>Unexpected error processing Excel file: {0}</value>
+    <comment>Error message when an unexpected exception occurs during Excel processing</comment>
+  </data>
+  <data name="Error validating file structure: {0}">
+    <value>Error validating file structure: {0}</value>
+    <comment>Error message when file structure validation fails</comment>
+  </data>
+  <data name="Excel file contains no worksheets">
+    <value>Excel file contains no worksheets</value>
+    <comment>Error message when Excel file has no worksheets</comment>
+  </data>
+  <data name="Excel worksheet is empty">
+    <value>Excel worksheet is empty</value>
+    <comment>Error message when worksheet has no data</comment>
+  </data>
+  <data name="Missing required columns: {0}">
+    <value>Missing required columns: {0}</value>
+    <comment>Error message when required columns are missing from Excel file</comment>
+  </data>
+  <data name="{0} column not found">
+    <value>{0} column not found</value>
+    <comment>Error message when a specific column is not found</comment>
+  </data>
+  <data name="{0} is required">
+    <value>{0} is required</value>
+    <comment>Error message when a required field is empty</comment>
+  </data>
+  <data name="{0} must be greater than 0">
+    <value>{0} must be greater than 0</value>
+    <comment>Error message when a numeric field must be positive</comment>
+  </data>
+  <data name="Invalid decimal format in {0}. Expected numeric value, received: '{1}'">
+    <value>Invalid decimal format in {0}. Expected numeric value, received: '{1}'</value>
+    <comment>Error message when decimal conversion fails</comment>
+  </data>
+  <data name="Invalid boolean format. Expected: true/false, 1/0, yes/no, received: '{0}'">
+    <value>Invalid boolean format. Expected: true/false, 1/0, yes/no, received: '{0}'</value>
+    <comment>Error message when boolean conversion fails</comment>
+  </data>
+  <data name="General error">
+    <value>General error</value>
+    <comment>Label for general processing errors</comment>
+  </data>
+  <data name="Error processing row {0}: {1}">
+    <value>Error processing row {0}: {1}</value>
+    <comment>Error message when processing a specific row fails</comment>
+  </data>
+</root>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Role.SuperAdmin" xml:space="preserve">
+    <value>Super Administrador</value>
+  </data>
+  <data name="Role.Admin" xml:space="preserve">
+    <value>Administrador</value>
+  </data>
+  <data name="Role.ShopManager" xml:space="preserve">
+    <value>Gerente de Tienda</value>
+  </data>
+  <data name="Role.ShopEmployee" xml:space="preserve">
+    <value>Empleado de Tienda</value>
+  </data>
+  <data name="Role.NoDescription" xml:space="preserve">
+    <value>No hay descripción disponible</value>
+  </data>
+  <data name="Role.SuperAdmin.Description" xml:space="preserve">
+    <value>Acceso completo a todas las características y configuraciones del sistema</value>
+  </data>
+  <data name="Role.Admin.Description" xml:space="preserve">
+    <value>Acceso administrativo con capacidad para gestionar usuarios y configuraciones del sistema</value>
+  </data>
+  <data name="Role.ShopManager.Description" xml:space="preserve">
+    <value>Gestiona las operaciones de tienda, inventario y ventas</value>
+  </data>
+  <data name="Role.ShopEmployee.Description" xml:space="preserve">
+    <value>Maneja las actividades diarias de la tienda y ventas a clientes</value>
+  </data>
+</root>

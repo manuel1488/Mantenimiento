@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="User not found" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="Invalid password" xml:space="preserve">
+    <value>Invalid password</value>
+  </data>
+  <data name="User name already exists" xml:space="preserve">
+    <value>User name already exists</value>
+  </data>
+  <data name="Email already exists" xml:space="preserve">
+    <value>Email already exists</value>
+  </data>
+  <data name="Invalid role name" xml:space="preserve">
+    <value>Invalid role name</value>
+  </data>
+  <data name="Role not found" xml:space="preserve">
+    <value>Role not found</value>
+  </data>
+</root>

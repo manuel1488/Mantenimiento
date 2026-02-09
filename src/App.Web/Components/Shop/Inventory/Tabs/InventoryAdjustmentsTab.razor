@@ -1,0 +1,323 @@
+﻿@using App.Core.DTOs.Inventory
+@using App.Core.DTOs.Warehouse
+@using App.Core.Constants
+@using App.Core.Interfaces
+@using App.Core.Options
+@using App.Shared.Services
+@using App.Web.Services
+@using Microsoft.Extensions.Options
+
+@inject IStringLocalizer<InventoryAdjustmentsTab> L
+@inject IInventoryHistoryService InventoryHistoryService
+@inject IWarehouseService WarehouseService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
+@inject ISnackbar Snackbar
+@inject IOptions<ExportOptions> ExportOptions
+@inject InventoryMovementService MovementService
+@inject ILogger<InventoryAdjustmentsTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Shop.ViewInventoryAdjustments">
+    <Authorized>
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex gap-4 flex-grow-1">
+                <AuthorizeView Context="contextNew" Policy="@ApplicationClaims.Shop.ManageInventoryAdjustments">
+                    <!-- Botón Nuevo Ajuste -->
+                    <MudButton Variant="Variant.Filled"
+                            Color="Color.Primary"
+                            StartIcon="@Icons.Material.Filled.Add"
+                            OnClick="OpenAdjustmentDialog"
+                            Class="da-button-rounded">
+                        @L["New Adjustment"]
+                    </MudButton>
+                </AuthorizeView>
+
+                <!-- Filtro de fechas -->
+                <MudDateRangePicker @bind-DateRange="_dateRange"
+                                Label="@L["Date Range"]"
+                                AdornmentColor="Color.Primary"
+                                PickerVariant="PickerVariant.Dialog"
+                                Style="min-width: 300px;" />
+
+                <!-- Filtro de Almacén -->
+                <MudSelect T="int?"
+                        Label="@L["Warehouse"]"
+                        @bind-Value="_selectedWarehouse"
+                        AnchorOrigin="Origin.BottomCenter"
+                        Style="min-width: 200px;">
+                    <MudSelectItem T="int?" Value="@null">@L["All Warehouses"]</MudSelectItem>
+                    @foreach (var warehouse in _warehouses)
+                    {
+                        <MudSelectItem T="int?" Value="@warehouse.Id">@warehouse.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <!-- Filtro de tipo de ajuste -->
+                <MudSelect T="string"
+                        Label="@L["Adjustment Type"]"
+                        @bind-Value="_selectedAdjustmentType"
+                        AnchorOrigin="Origin.BottomCenter"
+                        Style="min-width: 200px;">
+                    <MudSelectItem T="string" Value="@null">@L["All Types"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementSubType.PhysicalCount">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.PhysicalCount)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementSubType.Shrinkage">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Shrinkage)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementSubType.Damaged">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Damaged)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementSubType.Expired">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Expired)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementSubType.SystemAdjustment">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.SystemAdjustment)</MudSelectItem>
+                </MudSelect>
+
+                <!-- Búsqueda -->
+                <MudTextField T="string"
+                    @bind-Value="_searchString"
+                    @bind-Value:after="OnSearchChanged"
+                    Placeholder="@L["Search products"]"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    Style="min-width: 250px;"
+                    Class="flex-grow-1"
+                    Immediate="true"
+                    DebounceInterval="500" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTable T="InventoryMovementDto"
+                        ServerData="@LoadServerData"
+                        Dense="true"
+                        Hover="true"
+                        Loading="@_loading"
+                        @ref="_table">
+                    <HeaderContent>
+                        <MudTh>@L["Date"]</MudTh>
+                        <MudTh>@L["Adjustment Type"]</MudTh>
+                        <MudTh>@L["Product"]</MudTh>
+                        <MudTh>@L["Warehouse"]</MudTh>
+                        <MudTh Style="text-align: right">@L["Previous Quantity"]</MudTh>
+                        <MudTh Style="text-align: right">@L["New Quantity"]</MudTh>
+                        <MudTh Style="text-align: right">@L["Difference"]</MudTh>
+                        <MudTh>@L["Content Per Unit"]</MudTh>
+                        <MudTh Style="text-align: right">@L["Total Content"]</MudTh>
+                        <MudTh>@L["Unit"]</MudTh>
+                        <MudTh>@L["Reference"]</MudTh>
+                        <MudTh>@L["Created By"]</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="contextMovement">
+                        <MudTd DataLabel="@L["Date"]">
+                            @FormatToCompanyTimezone(contextMovement.MovementDate)
+                        </MudTd>
+                        <MudTd DataLabel="@L["Adjustment Type"]">
+                            <MudChip T="string" Size="Size.Small" Color="@MovementService.GetAdjustmentSubTypeColor(contextMovement.MovementSubType)">
+                                @MovementService.GetMovementSubTypeDisplay(contextMovement.MovementSubType)
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="@L["Product"]">
+                            <div class="d-flex flex-column">
+                                <MudText>@contextMovement.ProductName</MudText>
+                                <MudText Typo="Typo.caption">@contextMovement.ProductCode</MudText>
+                            </div>
+                        </MudTd>
+                        <MudTd DataLabel="@L["Warehouse"]">@contextMovement.WarehouseName</MudTd>
+                        <MudTd DataLabel="@L["Previous Quantity"]" Style="text-align: right">
+                            @contextMovement.PreviousBalance.ToString("N2")
+                        </MudTd>
+                        <MudTd DataLabel="@L["New Quantity"]" Style="text-align: right">
+                            @contextMovement.NewBalance.ToString("N2")
+                        </MudTd>
+                        <MudTd DataLabel="@L["Difference"]" Style="text-align: right">
+                            @((contextMovement.NewBalance - contextMovement.PreviousBalance).ToString("N2"))
+                            @if (contextMovement.NewBalance > contextMovement.PreviousBalance)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" Size="Size.Small" />
+                            }
+                            else if (contextMovement.NewBalance < contextMovement.PreviousBalance)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Color="Color.Error" Size="Size.Small" />
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="@L["Content Per Unit"]">
+                            @if (contextMovement.ProductContent > 0)
+                            {
+                                @contextMovement.ProductContent.ToString("N2")
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="@L["Total Content"]" Style="text-align: right">
+                            @if (contextMovement.IndividualUnits > 0)
+                            {
+                                @contextMovement.IndividualUnits.ToString("N2")
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                            }
+                        </MudTd>
+                        <MudTd DataLabel="@L["Unit"]">@contextMovement.UnitMeasureName</MudTd>
+                        <MudTd DataLabel="@L["Reference"]">@contextMovement.Reference</MudTd>
+                        <MudTd DataLabel="@L["Created By"]">@contextMovement.CreatedBy</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                    <NoRecordsContent>
+                        <MudText>@L["No adjustment records found"]</MudText>
+                    </NoRecordsContent>
+                </MudTable>
+            </MudItem>
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private MudTable<InventoryMovementDto> _table = null!;
+    private List<WarehouseDto> _warehouses = new();
+    private TimeZoneInfo? _companyTimeZone;
+    private bool _loading = true;
+    private string _searchString = "";
+    private int? _selectedWarehouse;
+    private string? _selectedAdjustmentType;
+    private DateRange _dateRange = new(DateTime.Today.AddDays(-30), DateTime.Today);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWarehouses();
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+        _loading = false;
+    }
+
+    private async Task LoadWarehouses()
+    {
+        try
+        {
+            var (_, items) = await WarehouseService.GetWarehousesAsync(
+                pageSize: 100,
+                isActive: true);
+            _warehouses = items.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading warehouses");
+            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+        }
+    }
+
+    private async Task<TableData<InventoryMovementDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _loading = true;
+
+            // Todos los filtros se aplican en la base de datos
+            var (movements, totalCount) = await InventoryHistoryService.GetWarehouseMovementHistoryAsync(
+                _selectedWarehouse,
+                _dateRange.Start,
+                _dateRange.End,
+                _searchString,
+                InventoryMovementType.Adjustment, // Solo ajustes
+                _selectedAdjustmentType, // Subtipo específico de ajuste
+                state.Page,
+                state.PageSize,
+                cancellationToken);
+
+            return new TableData<InventoryMovementDto>
+            {
+                TotalItems = totalCount,
+                Items = movements
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading inventory adjustments");
+            Snackbar.Add(L["Error loading adjustments"], Severity.Error);
+            return new TableData<InventoryMovementDto>
+            {
+                TotalItems = 0,
+                Items = Enumerable.Empty<InventoryMovementDto>()
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenAdjustmentDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { "Warehouses", _warehouses }
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateAdjustmentDialog>(
+            L["New Adjustment"],
+            parameters,
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                CloseButton = true,
+                BackdropClick = true
+            });
+
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+            Snackbar.Add(L["Adjustment created successfully"], Severity.Success);
+        }
+    }
+
+    private string FormatToCompanyTimezone(DateTime utcDate)
+    {
+        try
+        {
+            if (_companyTimeZone == null)
+                return utcDate.ToLocalTime().ToString("g");
+
+            var convertedTime = DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+            return convertedTime;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error converting date to company timezone");
+            return utcDate.ToLocalTime().ToString("g");
+        }
+    }
+
+    
+    private async Task OnSearchChanged()
+    {
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnWarehouseFilterChange(int? warehouse)
+    {
+        _selectedWarehouse = warehouse;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnAdjustmentTypeFilterChange(string? type)
+    {
+        _selectedAdjustmentType = type;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnDateRangeChanged(DateRange? range)
+    {
+        if (range?.Start != null && range?.End != null)
+        {
+            _dateRange = new DateRange(range.Start, range.End);
+            await _table.ReloadServerData();
+        }
+    }
+}

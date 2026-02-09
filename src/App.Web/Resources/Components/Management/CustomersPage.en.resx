@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Page Title -->
+  <data name="Customers Management" xml:space="preserve">
+    <value>Customers Management</value>
+  </data>
+  
+  <!-- Search and Filters -->
+  <data name="Search customers" xml:space="preserve">
+    <value>Search customers</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  
+  <!-- Actions -->
+  <data name="New Customer" xml:space="preserve">
+    <value>New Customer</value>
+  </data>
+  <data name="Edit Customer" xml:space="preserve">
+    <value>Edit Customer</value>
+  </data>
+  <data name="Delete Customer" xml:space="preserve">
+    <value>Delete Customer</value>
+  </data>
+  <data name="View Customer" xml:space="preserve">
+    <value>View Customer</value>
+  </data>
+  
+  <!-- Table Headers -->
+  <data name="Trade Name" xml:space="preserve">
+    <value>Trade Name</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Legal Name</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>Tax ID</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="No customers found" xml:space="preserve">
+    <value>No customers found</value>
+  </data>
+  <data name="Error loading customers" xml:space="preserve">
+    <value>Error loading customers</value>
+  </data>
+  <data name="Are you sure you want to delete customer:" xml:space="preserve">
+    <value>Are you sure you want to delete customer:</value>
+  </data>
+  <data name="Customer deleted successfully" xml:space="preserve">
+    <value>Customer deleted successfully</value>
+  </data>
+  <data name="Error deleting customer" xml:space="preserve">
+    <value>Error deleting customer</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+</root>

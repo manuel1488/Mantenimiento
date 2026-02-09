@@ -1,0 +1,262 @@
+﻿@using App.Core.DTOs.Settings
+@using App.Core.DTOs.UnitMeasure
+@using App.Core.Interfaces
+
+@inject IUnitMeasureService UnitMeasureService
+@inject ILookupService LookupService
+@inject ICompanySettingsService CompanySettingsService
+@inject IStringLocalizer<UnitMeasureDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<UnitMeasureDialog> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ManageUnitMeasures">
+    <Authorized>
+        <MudDialog>
+            <DialogContent>
+                <MudContainer Style="max-width: 800px;" Class="pa-4">
+                    <MudForm Model="@_model" @ref="@_form">
+                        <MudGrid>
+                            <!-- Country -->
+                            <MudItem xs="12" md="6">
+                                <MudSelect Value="_model.CountryCode"
+                                        Label="@L["Country"]"
+                                        Required="true"
+                                        RequiredError="@L["Country is required"]"
+                                        ValueChanged="@((string value) => OnCountryChanged(value))">
+                                    @foreach(var country in _countries)
+                                    {
+                                        <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+
+                            <!-- Code -->
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_model.Code"
+                                            Label="@L["Code"]"
+                                            Required="true"
+                                            HelperText="@L["Unique code for this unit measure"]"
+                                            RequiredError="@L["Code is required"]"
+                                            Error="@_codeError"
+                                            ErrorText="@_codeErrorText"
+                                            OnBlur="@ValidateCode" />
+                            </MudItem>
+
+                            <!-- Name -->
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Name"
+                                            Label="@L["Name"]"
+                                            Required="true"
+                                            RequiredError="@L["Name is required"]" />
+                            </MudItem>
+
+                            <!-- Description -->
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Description"
+                                            Label="@L["Description"]"
+                                            Lines="3" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudForm>
+                </MudContainer>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel" 
+                        Class="da-button-rounded" 
+                        title="@L["Cancel editing"]">
+                    @L["Cancel"]
+                </MudButton>
+                <MudButton Color="Color.Error"
+                        OnClick="Submit"
+                        Variant="Variant.Filled"
+                        Disabled="@(_processing || !_isValid)"
+                        title="@L["Save unit measure"]"
+                        Class="da-button-rounded">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">@L["Saving"]</MudText>
+                    }
+                    else
+                    {
+                        @L["Save"]
+                    }
+                </MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? UnitMeasureId { get; set; }
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _isValid = true;
+    private bool _codeError;
+    private string _codeErrorText = string.Empty;
+    private List<CountryDto> _countries = new();
+    private UnitMeasureDto? _unitMeasure;
+    private bool IsNew => !UnitMeasureId.HasValue;
+    
+    private UpdateUnitMeasureDto _model = new() 
+    {
+        CountryCode = "MX",
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCountries();
+        
+        // Try to use company's default country
+        try
+        {
+            var settings = await CompanySettingsService.GetSettingsAsync();
+            if (settings != null && !string.IsNullOrEmpty(settings.CountryCode))
+            {
+                _model.CountryCode = settings.CountryCode;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading company settings");
+        }
+
+        if (UnitMeasureId.HasValue)
+        {
+            await LoadUnitMeasure();
+        }
+    }
+
+    private async Task LoadCountries()
+    {
+        try
+        {
+            var countries = await LookupService.GetCountriesAsync();
+            _countries = countries.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading countries");
+            Snackbar.Add(L["Error loading countries"], Severity.Error);
+        }
+    }
+
+    private async Task LoadUnitMeasure()
+    {
+        try
+        {
+            _unitMeasure = await UnitMeasureService.GetUnitMeasureByIdAsync(UnitMeasureId!.Value);
+            if (_unitMeasure != null)
+            {
+                _model = new UpdateUnitMeasureDto
+                {
+                    CountryCode = _unitMeasure.CountryCode,
+                    Code = _unitMeasure.Code,
+                    Name = _unitMeasure.Name,
+                    Description = _unitMeasure.Description                    
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading unit measure");
+            Snackbar.Add(L["Error loading unit measure"], Severity.Error);
+            MudDialog.Cancel();
+        }
+    }
+
+    private async Task OnCountryChanged(string countryCode)
+    {
+        _model.CountryCode = countryCode;
+        if (!string.IsNullOrEmpty(_model.Code))
+        {
+            await ValidateCode();
+        }
+    }
+
+    private async Task ValidateCode()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Code) || string.IsNullOrWhiteSpace(_model.CountryCode))
+            return;
+
+        try
+        {
+            var isUnique = await UnitMeasureService.ValidateUniqueCodeAsync(
+                _model.Code, 
+                _model.CountryCode, 
+                UnitMeasureId);
+                
+            _codeError = !isUnique;
+            _codeErrorText = isUnique ? string.Empty : L["Code already exists for this country"];
+            _isValid = isUnique;
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error validating unit measure code");
+            Snackbar.Add(L["Error validating code"], Severity.Error);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        
+        // Validate code uniqueness
+        await ValidateCode();
+        
+        if (_form.IsValid && _isValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                if (UnitMeasureId.HasValue)
+                {
+                    await UnitMeasureService.UpdateUnitMeasureAsync(UnitMeasureId.Value, _model);
+                    Snackbar.Add(L["Unit measure updated successfully"], Severity.Success);
+                }
+                else
+                {
+                    var createDto = new CreateUnitMeasureDto
+                    {
+                        CountryCode = _model.CountryCode,
+                        Code = _model.Code,
+                        Name = _model.Name,
+                        Description = _model.Description
+                    };
+                    
+                    await UnitMeasureService.CreateUnitMeasureAsync(createDto);
+                    Snackbar.Add(L["Unit measure created successfully"], Severity.Success);
+                }
+
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving unit measure");
+                Snackbar.Add(L["Error saving unit measure"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

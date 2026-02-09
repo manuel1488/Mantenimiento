@@ -1,0 +1,433 @@
+﻿@using App.Core.DTOs.Settings
+@using App.Core.DTOs.Billing.Mexico
+@using App.Core.Interfaces
+@using App.Core.Validators
+@using App.Core.Constants
+@using App.Web.Services
+
+@inject ITaxSettingsService TaxSettingsService
+@inject IMexicoFiscalCatalogService MexicoFiscalCatalogService
+@inject IPermissionCheckService PermissionService
+@inject ILookupService LookupService
+@inject IStringLocalizer<FiscalSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<FiscalSettingsTab> Logger
+@inject TaxIdValidator TaxIdValidator
+
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewFiscalSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <!-- Base Information -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Base Information"]</MudText>
+                    <MudGrid>
+                        <!-- Country -->
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="string" 
+                                    Value="@_model.CountryCode"
+                                    ValueChanged="@((value) => OnCountryChanged(value))"
+                                    Label="@L["Country"]"
+                                    Required="@_hasWriteAccess"
+                                    ReadOnly="@(!_hasWriteAccess)"
+                                    RequiredError="@L["Country is required"]">
+                                @foreach (var country in _countries)
+                                {
+                                    <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        <!-- Business Name -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField T="string"
+                                Value="@_model.BusinessName"
+                                ValueChanged="@((value) => OnBusinessNameChanged(value))"
+                                Label="@L["Business Name"]"
+                                Required="@_hasWriteAccess"
+                                ReadOnly="@(!_hasWriteAccess)"
+                                RequiredError="@L["Business name is required"]"/>
+                        </MudItem>
+
+                        <!-- Tax ID -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField T="string"
+                                Value="@_model.TaxId"
+                                ValueChanged="@OnTaxIdChanged"
+                                Label="@L["Tax ID"]"
+                                Required="@_hasWriteAccess"
+                                ReadOnly="@(!_hasWriteAccess)"
+                                RequiredError="@L["Tax ID is required"]"
+                                Error="@_taxIdError"
+                                ErrorText="@_taxIdErrorText"
+                                Immediate="false"                        
+                                MaxLength="@(GetTaxIdMaxLength() ?? 0)"
+                                Validation="@(new Func<string, string?>(ValidateTaxId))">
+                                </MudTextField>
+                        </MudItem>
+
+                        <!-- Fiscal Regime (Only for Mexico) -->
+                        <MudItem xs="12" md="6">
+                            @if (_model.CountryCode == "MX")
+                            {
+                                <MudSelect T="string"
+                                        Value="@_model.FiscalRegime"
+                                        ValueChanged="@((value) => { _model.FiscalRegime = value; StateHasChanged(); })"
+                                        Label="@L["Fiscal Regime"]"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Required="@_hasWriteAccess"
+                                        RequiredError="@L["Fiscal regime is required"]">
+                                    @foreach (var regime in _fiscalRegimes)
+                                    {
+                                        <MudSelectItem Value="@regime.Code">@regime.Description (@regime.Code)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            }
+                            else 
+                            {
+                                <MudTextField Value="_model.FiscalRegime"
+                                            ValueChanged="(string value) => { _model.FiscalRegime = value; StateHasChanged(); }"
+                                            Label="@L["Fiscal Regime"]"
+                                            ReadOnly="@(!_hasWriteAccess)"
+                                            Required="@_hasWriteAccess"
+                                            RequiredError="@L["Fiscal regime is required"]"/>
+                            }
+                        </MudItem>
+
+                        <!-- Address -->
+                        <MudItem xs="12">
+                            <MudTextField Value="_model.Address"
+                                    ReadOnly="@(!_hasWriteAccess)"
+                                    ValueChanged="(string? value) => { _model.Address = value; StateHasChanged(); }"
+                                    Label="@L["Address"]"
+                                    Lines="3"/>
+                        </MudItem>
+
+                        <!-- Postal Code -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField Value="_model.PostalCode"
+                                    ReadOnly="@(!_hasWriteAccess)"
+                                    ValueChanged="(string? value) => { _model.PostalCode = value; StateHasChanged(); }"
+                                    Label="@L["Postal Code"]"/>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+
+                @if (_model.CountryCode == "MX")
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Class="mb-4">@L["Mexico Settings"]</MudText>
+                        <MudGrid>
+                            <!-- CFDI Use -->
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="string"
+                                        Value="@_model.MxDefaultCfdiUse"
+                                        ValueChanged="@((value) => { _model.MxDefaultCfdiUse = value; StateHasChanged(); })"
+                                        Label="@L["Default CFDI Use"]"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Required="@_hasWriteAccess"
+                                        RequiredError="@L["CFDI use is required"]">
+                                    @foreach (var cfdiUse in _cfdiUses)
+                                    {
+                                        <MudSelectItem Value="@cfdiUse.Code">@cfdiUse.Description (@cfdiUse.Code)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+
+                            <!-- Payment Method -->
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="string"
+                                        Value="@_model.MxDefaultPaymentMethod"
+                                        ValueChanged="@((value) => { _model.MxDefaultPaymentMethod = value; StateHasChanged(); })"
+                                        Label="@L["Default Payment Method"]"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Required="@_hasWriteAccess"
+                                        RequiredError="@L["Payment method is required"]">
+                                    @foreach (var method in _paymentMethods)
+                                    {
+                                        <MudSelectItem Value="@method.Code">@method.Description (@method.Code)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+
+                            <!-- Payment Type -->
+                            <MudItem xs="12" md="4">
+                                <MudSelect T="string"
+                                        Value="@_model.MxDefaultPaymentType"
+                                        ValueChanged="@((value) => { _model.MxDefaultPaymentType = value; StateHasChanged(); })"
+                                        Label="@L["Default Payment Type"]"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Required="@_hasWriteAccess"
+                                        RequiredError="@L["Payment type is required"]">
+                                    @foreach (var form in _paymentForms)
+                                    {
+                                        <MudSelectItem Value="@form.Code">@form.Description (@form.Code)</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+                }
+                else if (_model.CountryCode == "CA")
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Class="mb-4">@L["Canada Settings"]</MudText>
+                        <MudGrid>
+                            <!-- GST Number -->
+                            <MudItem xs="12" md="6">
+                                <MudTextField Value="_model.CaGstNumber"
+                                            ValueChanged="(string? value) => { _model.CaGstNumber = value; StateHasChanged(); }"
+                                            Label="@L["GST Number"]"
+                                            ReadOnly="@(!_hasWriteAccess)"
+                                            Required="@_hasWriteAccess"
+                                            RequiredError="@L["GST number is required"]"/>
+                            </MudItem>
+
+                            <!-- PST Number -->
+                            <MudItem xs="12" md="6">
+                                <MudTextField Value="_model.CaPstNumber"
+                                            ReadOnly="@(!_hasWriteAccess)"
+                                            ValueChanged="(string? value) => { _model.CaPstNumber = value; StateHasChanged(); }"
+                                            Label="@L["PST Number"]"/>
+                            </MudItem>
+
+                            <!-- HST Number -->
+                            <MudItem xs="12" md="6">
+                                <MudTextField Value="_model.CaHstNumber"
+                                            ReadOnly="@(!_hasWriteAccess)"
+                                            ValueChanged="(string? value) => { _model.CaHstNumber = value; StateHasChanged(); }"
+                                            Label="@L["HST Number"]"/>
+                            </MudItem>
+
+                            <!-- QST Number -->
+                            <MudItem xs="12" md="6">
+                                <MudTextField Value="_model.CaQstNumber"
+                                            ReadOnly="@(!_hasWriteAccess)"
+                                            ValueChanged="(string? value) => { _model.CaQstNumber = value; StateHasChanged(); }"
+                                            Label="@L["QST Number"]"/>
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
+                }
+
+                <!-- Save Button -->
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ManageFiscalSettings" Context="authSaveButton">
+                    <MudItem xs="12" Class="d-flex justify-end">
+                        <MudButton Variant="Variant.Filled"
+                                Color="Color.Error"
+                                OnClick="SaveChangesAsync"
+                                Disabled="@(_processing || !_isValid)"
+                                Class="da-button-rounded">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">@L["Saving"]</MudText>
+                            }
+                            else
+                            {
+                                @L["Save Changes"]
+                            }
+                        </MudButton>
+                    </MudItem>
+                </AuthorizeView>                
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _isValid = true;
+    private bool _taxIdError;
+    private string _taxIdErrorText = string.Empty;
+    private bool _hasWriteAccess;
+    private List<CountryDto> _countries = new();
+    private UpdateTaxSettingsDto _model = new();
+    private TaxSettingsDto? _settings;
+
+    // Mexico Fiscal Catalogs
+    private List<MexicoFiscalRegimeDto> _fiscalRegimes = new();
+    private List<MexicoCfdiUseDto> _cfdiUses = new();
+    private List<MexicoPaymentMethodDto> _paymentMethods = new();
+    private List<MexicoPaymentFormDto> _paymentForms = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check permissions
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageFiscalSettings);
+
+        var countries = await LookupService.GetCountriesAsync();
+        _countries = countries.ToList();
+
+        // Load Mexico fiscal catalogs
+        await LoadMexicoFiscalCatalogsAsync();
+
+        await LoadSettings();
+    }
+
+    private async Task LoadMexicoFiscalCatalogsAsync()
+    {
+        try 
+        {
+            _fiscalRegimes = (await MexicoFiscalCatalogService.GetFiscalRegimesAsync()).ToList();
+            _cfdiUses = (await MexicoFiscalCatalogService.GetCfdiUsesAsync()).ToList();
+            _paymentMethods = (await MexicoFiscalCatalogService.GetPaymentMethodsAsync()).ToList();
+            _paymentForms = (await MexicoFiscalCatalogService.GetPaymentFormsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading Mexico fiscal catalogs");
+            Snackbar.Add(L["Error loading fiscal catalogs"], Severity.Error);
+        }
+    }
+
+    private void OnBusinessNameChanged(string value)
+    {
+        _model.BusinessName = value;
+        StateHasChanged();
+    }
+
+    private async Task OnCountryChanged(string value)
+    {
+        _model.CountryCode = value;
+        _taxIdError = false;
+        _taxIdErrorText = string.Empty;
+
+        // Clear Mexico-specific fields if country is not Mexico
+        if (value != "MX")
+        {
+            _model.MxDefaultCfdiUse = null;
+            _model.MxDefaultPaymentMethod = null;
+            _model.MxDefaultPaymentType = null;
+        }
+
+        await ValidateSettings();
+        StateHasChanged();
+    }
+
+    private void OnTaxIdChanged(string value)
+    {
+        _model.TaxId = value;
+        ValidateTaxId(value);
+        StateHasChanged();
+    }
+
+    private string? ValidateTaxId(string value)
+    {
+        if (string.IsNullOrEmpty(_model.CountryCode)) 
+            return null;
+
+        var result = TaxIdValidator.ValidateTaxId(_model.CountryCode, value);
+        _taxIdError = !result.IsSuccess;
+        _taxIdErrorText = result.Error ?? string.Empty;
+        _isValid = result.IsSuccess;
+
+        return _taxIdErrorText;
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            _settings = await TaxSettingsService.GetSettingsAsync();
+            if (_settings != null)
+            {
+                _model = new UpdateTaxSettingsDto
+                {
+                    CountryCode = _settings.CountryCode,
+                    BusinessName = _settings.BusinessName,
+                    TaxId = _settings.TaxId,
+                    FiscalRegime = _settings.FiscalRegime,
+                    PostalCode = _settings.PostalCode,
+                    Address = _settings.Address,
+                    MxDefaultCfdiUse = _settings.MxDefaultCfdiUse,
+                    MxDefaultPaymentMethod = _settings.MxDefaultPaymentMethod,
+                    MxDefaultPaymentType = _settings.MxDefaultPaymentType,
+                    CaGstNumber = _settings.CaGstNumber,
+                    CaPstNumber = _settings.CaPstNumber,
+                    CaHstNumber = _settings.CaHstNumber,
+                    CaQstNumber = _settings.CaQstNumber
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading tax settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private int? GetTaxIdMaxLength()
+    {
+        if (string.IsNullOrEmpty(_model.CountryCode))
+            return null;
+            
+        var format = TaxIdValidator.GetFormatForCountry(_model.CountryCode);
+        return format?.MaxLength;
+    }
+
+    private async Task ValidateSettings()
+    {
+        if (string.IsNullOrEmpty(_model.CountryCode)) return;
+
+        try
+        {
+            var errors = await TaxSettingsService.ValidateSettingsAsync(_model.CountryCode, _model);
+            _isValid = !errors.Any();
+            
+            if (!_isValid)
+            {
+                var taxIdError = errors.FirstOrDefault(e => e.Contains("RFC") || e.Contains("BN"));
+                if (taxIdError != null)
+                {
+                    _taxIdError = true;
+                    _taxIdErrorText = taxIdError;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error validating settings");
+            Snackbar.Add(L["Error validating settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (_form.IsValid && _isValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                await ValidateSettings();
+                if (_isValid)
+                {
+                    await TaxSettingsService.UpdateSettingsAsync(_model);
+                    Snackbar.Add(L["Settings updated successfully"], Severity.Success);
+                    await LoadSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving tax settings");
+                Snackbar.Add(L["Error saving settings"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

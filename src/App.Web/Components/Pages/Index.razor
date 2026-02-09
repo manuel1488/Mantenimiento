@@ -1,0 +1,20 @@
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+
+@page "/"
+@attribute [Authorize]
+@inject IStringLocalizer<Index> L
+
+<PageTitle>App</PageTitle>
+
+<MudContainer Class="mt-4">
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary" Class="mb-3">
+            @L["Welcome"]
+        </MudText>
+        
+        <MudText Typo="Typo.body1" Align="Align.Center">
+            @L["Please use the menu to navigate through the application."]
+        </MudText>
+    </MudPaper>
+</MudContainer>

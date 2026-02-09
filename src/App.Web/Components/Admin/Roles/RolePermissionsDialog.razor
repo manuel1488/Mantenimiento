@@ -1,0 +1,176 @@
+﻿@using App.Core.Constants
+@inject IStringLocalizer<RolePermissionsDialog> L
+@inject IRoleService RoleService
+@inject IDialogService DialogService
+@using MudBlazor
+@using MudBlazor.Components
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer Style="max-height: 600px; overflow-y: auto" Class="pa-6">
+            <MudText Typo="Typo.subtitle1" Class="mb-4">
+                @string.Format(L["Permissions for role {0}"], RoleName)
+            </MudText>
+
+            <MudTabs Elevation="0" ApplyEffectsToContainer="true" PanelClass="pa-2">
+                <!-- Shop Permissions -->
+                <MudTabPanel Text="@L["Shop"]">
+                    <MudCard Elevation="0" Class="mb-4">
+                        @foreach (var group in GetGroupedShopPermissions())
+                        {
+                            <MudCardHeader>
+                                <MudText Typo="Typo.h6">@L[group.Key]</MudText>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudGrid>
+                                    @foreach (var permission in group.Value)
+                                    {
+                                        <MudItem xs="12" sm="6" md="4">
+                                            <MudCheckBox Value="@SelectedPermissions.Contains(permission)"
+                                                         ValueChanged="@((bool value) => OnPermissionToggle(value, permission))"
+                                                         Label="@GetPermissionDisplayName(permission)" 
+                                                         Color="Color.Error"/>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudCardContent>
+                        }
+                    </MudCard>
+                </MudTabPanel>
+
+                <!-- Admin Permissions -->
+                <MudTabPanel Text="@L["Admin"]">
+                    <MudCard Elevation="0" Class="mb-4">
+                        @foreach (var group in GetGroupedAdminPermissions())
+                        {
+                            <MudCardHeader>
+                                <MudText Typo="Typo.h6">@L[group.Key]</MudText>                                
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudGrid>
+                                    @foreach (var permission in group.Value)
+                                    {
+                                        <MudItem xs="12" sm="6" md="4">
+                                            <MudCheckBox Value="@SelectedPermissions.Contains(permission)"
+                                                         ValueChanged="@((bool value) => OnPermissionToggle(value, permission))"
+                                                         Label="@GetPermissionDisplayName(permission)"
+                                                         Color="Color.Error"/>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudCardContent>
+                        }
+                    </MudCard>
+                </MudTabPanel>
+
+                <!-- Shared Permissions -->
+                <MudTabPanel Text="@L["Shared"]">
+                    <MudCard Elevation="0" Class="mb-4">
+                        @foreach (var group in GetGroupedSharedPermissions())
+                        {
+                            <MudCardHeader>                                
+                                <MudText Typo="Typo.h6">@L[group.Key]</MudText>                                
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudGrid>
+                                    @foreach (var permission in group.Value)
+                                    {
+                                        <MudItem xs="12" sm="6" md="4">
+                                            <MudCheckBox Value="@SelectedPermissions.Contains(permission)"
+                                                         ValueChanged="@((bool value) => OnPermissionToggle(value, permission))"
+                                                         Label="@GetPermissionDisplayName(permission)"
+                                                         Color="Color.Error"/>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudCardContent>
+                        }
+                    </MudCard>
+                </MudTabPanel>
+            </MudTabs>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">
+            @L["Cancel"]
+        </MudButton>
+        <MudButton Color="Color.Error" 
+                  OnClick="Submit" 
+                  Class="da-button-rounded" 
+                  Variant="Variant.Filled">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialogInstance { get; set; } = null!;
+    [Parameter] public string RoleId { get; set; } = string.Empty;
+    [Parameter] public string RoleName { get; set; } = string.Empty;
+
+    private HashSet<string> SelectedPermissions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentPermissions = await RoleService.GetRoleClaimsAsync(RoleId);
+        SelectedPermissions = new HashSet<string>(currentPermissions);
+        StateHasChanged();
+    }
+
+    private IDictionary<string, IEnumerable<string>> GetGroupedShopPermissions()
+    {
+        return typeof(ApplicationClaims.Shop)
+            .GetFields()
+            .Where(f => f.IsLiteral && !f.IsInitOnly)
+            .Select(f => (string)f.GetValue(null)!)
+            .GroupBy(p => p.Split('.')[1])
+            .ToDictionary(g => g.Key, g => g.AsEnumerable());
+    }
+
+    private IDictionary<string, IEnumerable<string>> GetGroupedAdminPermissions()
+    {
+        return typeof(ApplicationClaims.Admin)
+            .GetFields()
+            .Where(f => f.IsLiteral && !f.IsInitOnly)
+            .Select(f => (string)f.GetValue(null)!)
+            .GroupBy(p => p.Split('.')[1])
+            .ToDictionary(g => g.Key, g => g.AsEnumerable());
+    }
+
+    private IDictionary<string, IEnumerable<string>> GetGroupedSharedPermissions()
+    {
+        return typeof(ApplicationClaims.Shared)
+            .GetFields()
+            .Where(f => f.IsLiteral && !f.IsInitOnly)
+            .Select(f => (string)f.GetValue(null)!)
+            .GroupBy(p => p.Split('.')[1])
+            .ToDictionary(g => g.Key, g => g.AsEnumerable());
+    }
+
+    private string GetPermissionDisplayName(string permission)
+    {
+        var parts = permission.Split('.');
+        return parts[^1];
+    }
+
+    private void OnPermissionToggle(bool value, string permission)
+    {
+        if (value)
+            SelectedPermissions.Add(permission);
+        else
+            SelectedPermissions.Remove(permission);
+        
+        StateHasChanged();
+    }
+
+    private async Task Submit()
+    {
+        await RoleService.UpdateRoleClaimsAsync(RoleId, SelectedPermissions);
+        MudDialogInstance.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialogInstance.Cancel();
+    }
+}

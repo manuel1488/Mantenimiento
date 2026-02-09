@@ -1,0 +1,14 @@
+.da-admin {
+    --da-primary: #E53935;
+    --da-secondary: #757575;
+    --da-surface: #FFFFFF;
+    --da-background: #F5F5F5;
+}
+
+.da-card {
+    border-radius: 8px !important;
+}
+
+.da-button-rounded {
+    border-radius: 20px !important;
+}

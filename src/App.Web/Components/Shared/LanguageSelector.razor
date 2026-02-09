@@ -1,0 +1,39 @@
+﻿@using System.Globalization
+@using System.Web
+@using App.Core.Options
+@inject NavigationManager Navigation
+@inject IStringLocalizer<LanguageSelector> L
+@inject IConfiguration Configuration
+@inject CultureOptions cultureOptions
+
+<MudMenu Icon="@Icons.Material.Filled.Translate" Color="Color.Inherit" Dense="true">
+    @foreach (var culture in _supportedCultures)
+    {
+        <MudMenuItem OnClick="@(() => OnCultureSelected(culture))">
+            @culture.NativeName
+        </MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    private CultureInfo[] _supportedCultures = null!;
+
+    protected override void OnInitialized()
+    {
+        _supportedCultures = cultureOptions.SupportedCultures;
+    }
+
+    private void OnCultureSelected(CultureInfo culture)
+    {
+        var uri = new Uri(Navigation.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        query["culture"] = culture.Name;
+
+        var uriBuilder = new UriBuilder(uri)
+        {
+            Query = query.ToString()
+        };
+
+        Navigation.NavigateTo(uriBuilder.Uri.ToString(), forceLoad: true);
+    }
+}

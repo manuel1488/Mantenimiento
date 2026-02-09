@@ -1,0 +1,122 @@
+services:
+  # Setup for development
+  webapp:
+    build:
+      context: .
+      dockerfile: .dockerfile
+      args:
+        BUILD_CONFIGURATION: ${BUILD_CONFIGURATION}
+    container_name: ${CONTAINER_PREFIX}-web-dev
+    restart: unless-stopped
+    ports:
+      - "${PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - TZ=${TZ}
+      # Database Configuration
+      - Database__ConnectionString=${DATABASE_CONNECTION_STRING}
+      # Application Configuration
+      - Application__Name=${Application__Name}
+      - Application__Version=${Application__Version}
+      - Application__DefaultLanguage=${Application__DefaultLanguage}
+      - Application__SupportedLanguages__0=${Application__SupportedLanguages__0}
+      - Application__SupportedLanguages__1=${Application__SupportedLanguages__1}
+      - Application__BaseUrl=${Application__BaseUrl}
+    networks:
+      - app-network
+    volumes:
+      - app-logs:/app/logs
+      - uploads-dev:/app/wwwroot/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: ${CPU_LIMIT}
+          memory: ${MEMORY_LIMIT}
+        reservations:
+          cpus: ${CPU_RESERVATION}
+          memory: ${MEMORY_RESERVATION}
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - development
+
+  # Setup for production
+  webapp-prod:
+    build:
+      context: .
+      dockerfile: .dockerfile
+      args:
+        BUILD_CONFIGURATION: ${BUILD_CONFIGURATION}
+    container_name: ${CONTAINER_PREFIX}-web-prod
+    restart: unless-stopped
+    ports:
+      - "${PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - TZ=${TZ}
+      # Database Configuration
+      - Database__ConnectionString=${DATABASE_CONNECTION_STRING}
+      # Application Configuration
+      - Application__Name=${Application__Name}
+      - Application__Version=${Application__Version}
+      - Application__DefaultLanguage=${Application__DefaultLanguage}
+      - Application__SupportedLanguages__0=${Application__SupportedLanguages__0}
+      - Application__SupportedLanguages__1=${Application__SupportedLanguages__1}
+      - Application__BaseUrl=${Application__BaseUrl}
+    networks:
+      - app-network
+    volumes:
+      - app-logs-prod:/app/logs
+      - uploads-prod:/app/wwwroot/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: ${CPU_LIMIT}
+          memory: ${MEMORY_LIMIT}
+        reservations:
+          cpus: ${CPU_RESERVATION}
+          memory: ${MEMORY_RESERVATION}
+    profiles:
+      - production
+
+  # Base de datos solo para desarrollo
+  db:
+    build:
+      context: .
+      dockerfile: .dockerfile.mysql
+    container_name: ${CONTAINER_PREFIX}-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    #ports:
+    #  - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    name: ${CONTAINER_PREFIX}-mysql-data
+  app-logs:
+    name: ${CONTAINER_PREFIX}-logs-dev
+  app-logs-prod:
+    name: ${CONTAINER_PREFIX}-logs-prod
+  uploads-dev:
+    name: ${CONTAINER_PREFIX}-uploads-dev
+  uploads-prod:
+    name: ${CONTAINER_PREFIX}-uploads-prod

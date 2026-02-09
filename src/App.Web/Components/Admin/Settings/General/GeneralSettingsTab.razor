@@ -1,0 +1,220 @@
+﻿@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Core.Constants
+@using App.Web.Services
+
+@inject ICompanySettingsService CompanySettingsService
+@inject IPermissionCheckService PermissionService
+@inject IStringLocalizer<GeneralSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<GeneralSettingsTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <!-- Company Information section -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Company Information"]</MudText>
+                    <MudGrid>
+                        <!-- Company Name -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.CompanyName"
+                                        Label="@L["Company Name"]"
+                                        Required="@_hasWriteAccess"
+                                        RequiredError="@L["Company name is required"]"
+                                        ReadOnly="@(!_hasWriteAccess)" />
+                        </MudItem>
+
+                        <!-- Country -->
+                        <MudItem xs="12" md="6">
+                            <MudSelect @bind-Value="_model.CountryCode"
+                                    Label="@L["Country"]"
+                                    Required="@_hasWriteAccess"
+                                    RequiredError="@L["Country is required"]"
+                                    ReadOnly="@(!_hasWriteAccess)">
+                                @foreach (var country in _countries)
+                                {
+                                    <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        <!-- Currency -->
+                        <MudItem xs="12" md="6">
+                            <MudSelect @bind-Value="_model.CurrencyCode"
+                                    Label="@L["Currency"]"
+                                    Required="@_hasWriteAccess"
+                                    RequiredError="@L["Currency is required"]"
+                                    ReadOnly="@(!_hasWriteAccess)">
+                                @foreach (var currency in _currencies)
+                                {
+                                    <MudSelectItem Value="@currency.Code">@($"{currency.Code} - {currency.Name}")</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+
+                        <!-- Time Zone -->
+                        <MudItem xs="12" md="6">
+                            @if (_hasWriteAccess)
+                            {
+                                <MudAutocomplete T="string"
+                                            Label="@L["Time Zone"]"
+                                            @bind-Value="_model.TimeZoneId"
+                                            SearchFunc="@SearchTimeZones"
+                                            Required="true"
+                                            RequiredError="@L["Time zone is required"]"
+                                            ToStringFunc="@((string t) => GetTimeZoneDisplayName(t))"
+                                            AdornmentIcon="@Icons.Material.Filled.Schedule"
+                                            AdornmentColor="Color.Secondary" />
+                            }
+                            else
+                            {
+                                <MudTextField Value="@GetTimeZoneDisplayName(_model.TimeZoneId)"
+                                            Label="@L["Time Zone"]"
+                                            ReadOnly="true" />
+                            }
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+
+                <!-- Action buttons -->
+                <MudItem xs="12" Class="d-flex justify-end">
+                    @if (_hasWriteAccess)
+                    {
+                        <MudButton Variant="Variant.Filled"
+                                Color="Color.Error"
+                                OnClick="SaveChangesAsync"
+                                Disabled="@(_processing || !_isValid)"
+                                Class="da-button-rounded">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">@L["Saving"]</MudText>
+                            }
+                            else
+                            {
+                                @L["Save Changes"]
+                            }
+                        </MudButton>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Inject] private ILookupService LookupService { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _isValid = true;
+    private bool _hasWriteAccess;
+    private List<CountryDto> _countries = new();
+    private List<CurrencyDto> _currencies = new();
+    private List<TimeZoneInfo> _timeZones = new();
+    private UpdateCompanySettingsDto _model = new();
+    private CompanySettingsDto? _settings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check permissions
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings);
+
+        // Load data
+        var countries = await LookupService.GetCountriesAsync();
+        _countries = countries.ToList();
+
+        var currencies = await LookupService.GetCurrenciesAsync();
+        _currencies = currencies.ToList();
+
+        // Load available time zones
+        _timeZones = TimeZoneInfo.GetSystemTimeZones().ToList();
+
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            _settings = await CompanySettingsService.GetSettingsAsync();
+            if (_settings != null)
+            {
+                _model = new UpdateCompanySettingsDto
+                {
+                    CompanyName = _settings.CompanyName,
+                    CountryCode = _settings.CountryCode,
+                    CurrencyCode = _settings.CurrencyCode,
+                    TimeZoneId = _settings.TimeZoneId
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading company settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchTimeZones(string value, CancellationToken cancellationToken)
+    {
+        return await Task.Run(() =>
+        {
+            if (string.IsNullOrEmpty(value))
+                return _timeZones.Select(tz => tz.Id);
+
+            return _timeZones
+                .Where(tz => tz.DisplayName.Contains(value, StringComparison.OrdinalIgnoreCase) || 
+                            tz.Id.Contains(value, StringComparison.OrdinalIgnoreCase))
+                .Select(tz => tz.Id)
+                .ToList();
+                
+        }, cancellationToken);
+    }
+
+    private string GetTimeZoneDisplayName(string timeZoneId)
+    {
+        var timeZone = _timeZones.FirstOrDefault(tz => tz.Id == timeZoneId);
+        if (timeZone == null)
+            return timeZoneId;
+
+        var offset = timeZone.BaseUtcOffset;
+        var offsetStr = $"UTC{(offset >= TimeSpan.Zero ? "+" : "-")}{Math.Abs(offset.Hours):D2}:{Math.Abs(offset.Minutes):D2}";
+        return $"{timeZone.DisplayName} ({offsetStr})";
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (_form.IsValid && _isValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                await CompanySettingsService.UpdateSettingsAsync(_model);
+                Snackbar.Add(L["Settings updated successfully"], Severity.Success);
+                await LoadSettings(); // Reload settings
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving company settings");
+                Snackbar.Add(L["Error saving settings"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

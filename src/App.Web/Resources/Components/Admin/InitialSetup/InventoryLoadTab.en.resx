@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Warehouse</value>
+    <comment>Warehouse selector label</comment>
+  </data>
+  <data name="Load Type" xml:space="preserve">
+    <value>Load Type</value>
+    <comment>Load type selector label</comment>
+  </data>
+  <data name="Individual Load" xml:space="preserve">
+    <value>Individual Load</value>
+    <comment>Individual load option</comment>
+  </data>
+  <data name="Bulk Load" xml:space="preserve">
+    <value>Bulk Load</value>
+    <comment>Bulk load option</comment>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+    <comment>Product selector label</comment>
+  </data>
+  <data name="InitialQuantity" xml:space="preserve">
+    <value>Initial Quantity</value>
+    <comment>Initial quantity field label</comment>
+  </data>
+  <data name="Min Stock" xml:space="preserve">
+    <value>Min Stock</value>
+    <comment>Minimum stock field label</comment>
+  </data>
+  <data name="Max Stock" xml:space="preserve">
+    <value>Max Stock</value>
+    <comment>Maximum stock field label</comment>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Processing</value>
+    <comment>Processing indicator text</comment>
+  </data>
+  <data name="Load Initial Inventory" xml:space="preserve">
+    <value>Load Initial Inventory</value>
+    <comment>Load button text for individual</comment>
+  </data>
+  <data name="Upload File" xml:space="preserve">
+    <value>Upload File</value>
+    <comment>Upload file button text</comment>
+  </data>
+  <data name="Supported formats: {0}. Max file size: {1}MB" xml:space="preserve">
+    <value>Supported formats: {0}. Max file size: {1}MB</value>
+    <comment>File upload information</comment>
+  </data>
+  <data name="Download Template" xml:space="preserve">
+    <value>Download Template</value>
+    <comment>Download template link text</comment>
+  </data>
+  <data name="Import Initial Inventory" xml:space="preserve">
+    <value>Import Initial Inventory</value>
+    <comment>Import button text for bulk</comment>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+    <comment>Product code column header</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+    <comment>Product name column header</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Quantity column header</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>Status column header</comment>
+  </data>
+  <data name="Error loading warehouses" xml:space="preserve">
+    <value>Error loading warehouses</value>
+    <comment>Error message for warehouse loading</comment>
+  </data>
+  <data name="Initial inventory loaded successfully" xml:space="preserve">
+    <value>Initial inventory loaded successfully</value>
+    <comment>Success message for individual load</comment>
+  </data>
+  <data name="A error unknow error has ocurred" xml:space="preserve">
+    <value>An unknown error has occurred</value>
+    <comment>Generic error message</comment>
+  </data>
+  <data name="Error loading initial inventory" xml:space="preserve">
+    <value>Error loading initial inventory</value>
+    <comment>Error message for inventory loading</comment>
+  </data>
+  <data name="Only {0} files are allowed" xml:space="preserve">
+    <value>Only {0} files are allowed</value>
+    <comment>File type validation message</comment>
+  </data>
+  <data name="File size exceeds maximum allowed ({0}MB)" xml:space="preserve">
+    <value>File size exceeds maximum allowed ({0}MB)</value>
+    <comment>File size validation message</comment>
+  </data>
+  <data name="Error importing initial inventory" xml:space="preserve">
+    <value>Error importing initial inventory</value>
+    <comment>Error message for bulk import</comment>
+  </data>
+  <data name="Error loading inventory data" xml:space="preserve">
+    <value>Error loading inventory data</value>
+    <comment>Error message for data refresh</comment>
+  </data>
+  <data name="An unknown error has occurred" xml:space="preserve">
+    <value>An unknown error has occurred</value>
+    <comment>Generic error message</comment>
+  </data>
+  <data name="Error processing CSV file" xml:space="preserve">
+    <value>Error processing CSV file</value>
+    <comment>Error message for CSV processing</comment>
+  </data>
+  <data name="Import Results" xml:space="preserve">
+    <value>Import Results</value>
+    <comment>Import results dialog title</comment>
+  </data>
+</root>

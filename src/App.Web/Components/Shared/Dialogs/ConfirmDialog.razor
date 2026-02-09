@@ -1,0 +1,156 @@
+@using MudBlazor
+@inject IStringLocalizer<ConfirmDialog> L 
+@inject ILogger<ConfirmDialog> Logger
+
+<MudDialog Options="@_dialogOptions">
+    <DialogContent>
+        <MudContainer Class="pa-4">
+            <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                <!-- Icono de advertencia -->
+                <MudIcon Icon="@_dialogIcon" 
+                        Color="@Color" 
+                        Size="Size.Large"
+                        Style="width: 48px; height: 48px;" />
+
+                <!-- Título -->
+                <MudText Align="Align.Center" Typo="Typo.h6">
+                    @Title
+                </MudText>
+
+                <!-- Texto principal de confirmación -->
+                @if (!string.IsNullOrEmpty(ContentText))
+                {
+                    <MudText Align="Align.Center">
+                        @ContentText
+                    </MudText>
+                }
+
+                <!-- Elemento destacado (ej: nombre de usuario) -->
+                @if (!string.IsNullOrEmpty(HighlightedText))
+                {
+                    <MudPaper Elevation="0" 
+                             Class="pa-3 rounded-lg" 
+                             Style="background-color: var(--mud-palette-background-grey); width: 100%;">
+                        <MudText Align="Align.Center" 
+                                Typo="Typo.h6" 
+                                Color="@Color">
+                            <strong>@HighlightedText</strong>
+                        </MudText>
+                    </MudPaper>
+                }
+
+                <!-- Mensaje de advertencia para acciones destructivas -->
+                @if (ShowWarning)
+                {
+                    <MudAlert Severity="Severity.Warning" 
+                             Variant="Variant.Filled" 
+                             Class="mt-2"
+                             Style="width: 100%;">
+                        @WarningText
+                    </MudAlert>
+                }
+
+                <!-- Contenido adicional si existe -->
+                @if (AdditionalContent != null)
+                {
+                    <div class="mt-2" style="width: 100%;">
+                        @AdditionalContent
+                    </div>
+                }
+            </MudStack>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <!-- Botón Cancelar -->
+        <MudButton OnClick="HandleCancel" 
+                   Variant="Variant.Outlined"
+                   Class="da-button-rounded">
+            @(string.IsNullOrEmpty(CancelText) ? L["Cancel"] : CancelText)
+        </MudButton>
+
+        <!-- Botón de Confirmación -->
+        <MudButton OnClick="HandleConfirm"
+                  Color="@Color"
+                  Variant="Variant.Filled"
+                  StartIcon="@ConfirmIcon"
+                  Class="da-button-rounded">
+            @(string.IsNullOrEmpty(ConfirmText) ? L["Confirm"] : ConfirmText)
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string ContentText { get; set; } = string.Empty;
+    [Parameter] public string HighlightedText { get; set; } = string.Empty;
+    [Parameter] public string ConfirmText { get; set; } = string.Empty;
+    [Parameter] public string CancelText { get; set; } = string.Empty;
+    [Parameter] public string WarningText { get; set; } = string.Empty;
+    [Parameter] public bool ShowWarning { get; set; } = true;
+    [Parameter] public Color Color { get; set; } = Color.Error;
+    [Parameter] public DialogType Type { get; set; } = DialogType.Delete;
+    [Parameter] public RenderFragment? AdditionalContent { get; set; }
+
+    // Propiedades calculadas basadas en el tipo de diálogo
+    private string _dialogIcon => Type switch
+    {
+        DialogType.Delete => Icons.Material.Filled.Warning,
+        DialogType.Warning => Icons.Material.Filled.Warning,
+        DialogType.Info => Icons.Material.Filled.Info,
+        DialogType.Success => Icons.Material.Filled.CheckCircle,
+        _ => Icons.Material.Filled.Help
+    };
+
+    private string ConfirmIcon => Type switch
+    {
+        DialogType.Delete => Icons.Material.Filled.Delete,
+        DialogType.Warning => Icons.Material.Filled.Warning,
+        DialogType.Success => Icons.Material.Filled.Check,
+        _ => Icons.Material.Filled.Check
+    };
+
+    private DialogOptions _dialogOptions = new()
+    {
+        CloseOnEscapeKey = true,
+        BackdropClick = true,
+        MaxWidth = MaxWidth.ExtraSmall,
+        FullWidth = true,
+        Position = DialogPosition.Center,
+        CloseButton = false
+    };
+
+    private async Task HandleConfirm()
+    {
+        try
+        {
+            await InvokeAsync(() => MudDialog.Close(DialogResult.Ok(true)));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error handling confirmation in dialog");
+            await InvokeAsync(() => MudDialog.Cancel());
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        try
+        {
+            await InvokeAsync(() => MudDialog.Cancel());
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error handling cancel in dialog");
+        }
+    }
+
+    public enum DialogType
+    {
+        Delete,
+        Warning,
+        Info,
+        Success
+    }
+}

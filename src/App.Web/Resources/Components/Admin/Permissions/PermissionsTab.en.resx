@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Select User" xml:space="preserve">
+        <value>Select User</value>
+    </data>
+    <data name="Saving" xml:space="preserve">
+        <value>Saving</value>
+    </data>
+    <data name="Save Changes" xml:space="preserve">
+        <value>Save Changes</value>
+    </data>
+    <data name="Error loading users" xml:space="preserve">
+        <value>Error loading users</value>
+    </data>
+    <data name="Error loading user permissions" xml:space="preserve">
+        <value>Error loading user permissions</value>
+    </data>
+    <data name="Error updating permissions" xml:space="preserve">
+        <value>Error updating permissions</value>
+    </data>
+    <data name="Permissions updated successfully" xml:space="preserve">
+        <value>Permissions updated successfully</value>
+    </data>
+    <data name="Module.Users" xml:space="preserve">
+        <value>Users</value>
+    </data>
+    <data name="Module.Users.Description" xml:space="preserve">
+        <value>Manage user-related permissions</value>
+    </data>
+    <data name="Module.Roles" xml:space="preserve">
+        <value>Roles</value>
+    </data>
+    <data name="Module.Roles.Description" xml:space="preserve">
+        <value>Manage role-related permissions</value>
+    </data>
+</root>

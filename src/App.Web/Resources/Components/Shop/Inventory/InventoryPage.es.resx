@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventario</value>
+  </data>
+  <data name="Inventory Management" xml:space="preserve">
+    <value>Gestión de Inventario</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Existencias</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Historial</value>
+  </data>
+  <data name="Transfers" xml:space="preserve">
+    <value>Transferencias</value>
+  </data>
+  <data name="Stock Input" xml:space="preserve">
+    <value>Entrada de Stock</value>
+  </data>
+  <data name="Adjustments" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>Alertas</value>
+  </data>
+  <data name="Error loading alerts" xml:space="preserve">
+    <value>Error al cargar las alertas</value>
+  </data>
+</root>

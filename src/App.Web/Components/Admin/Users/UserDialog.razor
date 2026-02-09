@@ -1,0 +1,300 @@
+﻿@using App.Web.Components.Admin.Users.Models
+@using App.Web.Services
+@using MudBlazor
+@using MudBlazor.Services
+@using App.Core.Constants
+
+@inject IStringLocalizer<UserDialog> L
+@inject IIdentityService IdentityService
+@inject IRoleService RoleService
+@inject IDialogService DialogService
+@inject RoleTranslationService RoleTranslationService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(IsNew ? L["New User"] : L["Edit User"])
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-width: 800px;">
+            <MudForm Model="@Model" @ref="@_form">
+                <MudGrid>
+                    <!-- Usuario y Email en la misma fila -->
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="Model.UserName"
+                                    Label="@L["Username"]"
+                                    Required="true"
+                                    RequiredError="@L["Username is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="Model.Email"
+                                    Label="@L["Email"]"
+                                    InputType="InputType.Email" />
+                    </MudItem>
+
+                    <!-- Nombre Completo en su propia fila -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Model.FullName"
+                                    Label="@L["Full Name"]"
+                                    Required="true"
+                                    RequiredError="@L["Full name is required"]" />
+                    </MudItem>
+
+                    @if (IsNew)
+                    {
+                        <!-- Contraseña y confirmación en la misma fila -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="Model.Password"
+                                Label="@L["Password"]"
+                                InputType="@_passwordInputType"
+                                Adornment="Adornment.End"
+                                AdornmentIcon="@_passwordVisibilityIcon"
+                                OnAdornmentClick="TogglePasswordVisibility"
+                                Required="true"
+                                RequiredError="@L["Password is required"]"
+                                Validation="@((string password) => ValidatePassword(password))" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="Model.ConfirmPassword"
+                                        Label="@L["Confirm Password"]"
+                                        InputType="@_passwordInputType"
+                                        Adornment="Adornment.End"
+                                        AdornmentIcon="@_passwordVisibilityIcon"
+                                        OnAdornmentClick="TogglePasswordVisibility"
+                                        Required="true"
+                                        RequiredError="@L["Password confirmation is required"]"
+                                        Validation="@((string password) => ValidatePasswordMatch(password))" />
+                        </MudItem>
+                        
+                        <!-- Requisitos de contraseña en su propia fila, con espacio adecuado -->
+                        <MudItem xs="12" Class="mt-2">
+                            <MudPaper Elevation="0" Class="pa-3 mud-background-gray rounded">
+                                <MudText Typo="Typo.subtitle2" Class="d-flex align-center mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" Color="Color.Info" Size="Size.Small" />
+                                    @L["Password must meet the following requirements:"]
+                                </MudText>
+                                <MudGrid Spacing="1">
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.body2" Class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                            @L["At least 8 characters"]
+                                        </MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.body2" Class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                            @L["At least one uppercase letter (A-Z)"]
+                                        </MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.body2" Class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                            @L["At least one lowercase letter (a-z)"]
+                                        </MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.body2" Class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                            @L["At least one digit (0-9)"]
+                                        </MudText>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.body2" Class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                            @L["At least one special character (!@#$%^&*)"]
+                                        </MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudPaper>
+                        </MudItem>
+                    }
+
+                    <!-- Rol y Estado en la misma fila -->
+                    <MudItem xs="12" md="6" Class="mt-3">
+                        <MudSelect Value="Model.Role" Label="@L["Role"]"
+                                Required="true" RequiredError="@L["Role is required"]"
+                                ValueChanged="@((string roleName) => OnRoleChanged(roleName))">
+                            @foreach (var role in Roles)
+                            {
+                                <MudSelectItem Value="@role">
+                                    <div class="d-flex align-center">
+                                        @RoleTranslationService.GetRoleDisplayName(role)
+                                        <MudTooltip Text="@RoleTranslationService.GetRoleDescription(role)">
+                                            <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="ml-2" />
+                                        </MudTooltip>
+                                    </div>
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6" Class="mt-3 d-flex align-center">
+                        <MudSwitch T="bool" @bind-Value="Model.IsActive" 
+                                 Color="Color.Success" 
+                                 Label="@L["Active"]" />
+                    </MudItem>
+
+                    <!-- Mensaje de advertencia sobre permisos -->
+                    @if (_roleChanged && !IsNew)
+                    {
+                        <MudItem xs="12" Class="mt-3">
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mt-3">
+                                <div class="d-flex align-center">
+                                    <MudIcon Icon="@Icons.Material.Filled.Security" Class="mr-3" />
+                                    <div>
+                                        <MudText Typo="Typo.body1" Class="mb-1">@L["Changing Role Will Update Permissions"]</MudText>
+                                        <MudText Typo="Typo.body2">
+                                            @L["User permissions will be updated to match the selected role when you save these changes."]
+                                        </MudText>
+                                    </div>
+                                </div>
+                            </MudAlert>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudForm>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="Submit" 
+                  Class="da-button-rounded" Variant="Variant.Filled">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public UserDialogModel Model { get; set; } = new();
+    [Parameter] public bool IsNew { get; set; }
+
+    private MudForm _form = null!;
+    private List<string> Roles = new();
+    private string _originalRole = string.Empty;
+    private bool _roleChanged = false;
+    private Dictionary<string, IEnumerable<string>> _rolePermissions = new();
+    
+    // Password visibility variables
+    private bool _passwordVisible = false;
+    private InputType _passwordInputType = InputType.Password;
+    private string _passwordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cargar roles disponibles
+        Roles = (await RoleService.GetAvailableRolesAsync()).ToList();
+        
+        // Cargar los permisos por rol para referencia
+        await LoadRolePermissionsAsync();
+        
+        // Guardar el rol original para comparación
+        _originalRole = Model.Role;
+    }
+    
+    private async Task LoadRolePermissionsAsync()
+    {
+        try
+        {
+            _rolePermissions = await IdentityService.GetAllRolesWithPermissionsAsync();
+        }
+        catch (Exception)
+        {
+            // Manejo de errores
+        }
+    }
+    
+    private async Task OnRoleChanged(string roleName)
+    {
+        // Actualizar el modelo
+        Model.Role = roleName;
+        
+        // Determinar si cambió el rol
+        _roleChanged = !string.IsNullOrEmpty(_originalRole) && _originalRole != roleName;
+        
+        // Si el rol ha cambiado, cargar los permisos del nuevo rol
+        if (_roleChanged || IsNew)
+        {
+            if (_rolePermissions.TryGetValue(roleName, out var permissions))
+            {
+                Model.Permissions = permissions.ToList();
+            }
+            else
+            {
+                var rolePermissions = await RoleService.GetRoleClaimsAsync(roleName);
+                Model.Permissions = rolePermissions.ToList();
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+    }
+    
+    // Toggle password visibility
+    private void TogglePasswordVisibility()
+    {
+        if (_passwordVisible)
+        {
+            _passwordVisible = false;
+            _passwordInputType = InputType.Password;
+            _passwordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+        }
+        else
+        {
+            _passwordVisible = true;
+            _passwordInputType = InputType.Text;
+            _passwordVisibilityIcon = Icons.Material.Filled.Visibility;
+        }
+    }
+    
+    // Validate password complexity
+    private string ValidatePassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            return L["Password is required"];
+            
+        if (password.Length < 8)
+            return L["Password must be at least 8 characters"];
+            
+        if (!password.Any(char.IsUpper))
+            return L["Password must contain at least one uppercase letter"];
+            
+        if (!password.Any(char.IsLower))
+            return L["Password must contain at least one lowercase letter"];
+            
+        if (!password.Any(char.IsDigit))
+            return L["Password must contain at least one digit"];
+            
+        if (!password.Any(c => !char.IsLetterOrDigit(c)))
+            return L["Password must contain at least one special character"];
+            
+        return string.Empty;
+    }
+    
+    // Validate password match
+    private string ValidatePasswordMatch(string confirmPassword)
+    {
+        if (string.IsNullOrWhiteSpace(confirmPassword))
+            return L["Confirm password is required"];
+            
+        if (confirmPassword != Model.Password)
+            return L["Passwords do not match"];
+            
+        return string.Empty;
+    }
+}

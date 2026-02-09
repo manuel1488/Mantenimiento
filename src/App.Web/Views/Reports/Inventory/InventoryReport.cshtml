@@ -1,0 +1,213 @@
+﻿@using App.Core.DTOs.Inventory
+@using App.Core.DTOs.Reports
+@using App.Web.Controllers
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<InventoryExportController> L
+@model BaseReportDto<InventoryDto>
+
+@{
+    string FormatDateTime(DateTime utcDate)
+    {
+        var convertedTime = TimeZoneInfo.ConvertTimeFromUtc(utcDate, Model.TimeZone);
+        return convertedTime.ToString("g");
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@L["Inventory Status Report"]</title>
+    <style>
+        :root {
+            --primary-color: #E53935;
+            --secondary-color: #757575;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --error-color: #E53935;
+            --info-color: #2196F3;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .report-title {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .report-date {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: #FAFAFA;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 500;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .movement-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-stock-in {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .type-stock-out {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+
+        .type-transfer {
+            background-color: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .type-adjustment {
+            background-color: #FFF3E0;
+            color: #EF6C00;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--secondary-color);
+        }
+
+        .status-chip {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-in-stock {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .status-low-stock {
+            background-color: #FFF3E0;
+            color: #EF6C00;
+        }
+
+        .status-out-of-stock {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+
+        .status-over-stock {
+            background-color: #E3F2FD;
+            color: #1565C0;
+        }
+
+        @@media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="data:image/svg+xml,@Uri.EscapeDataString("<svg width='200' height='50'><text x='10' y='30' font-family='Arial' font-size='24' fill='#E53935'>App</text></svg>")" 
+             alt="Logo" class="logo" />
+        <h1 class="report-title">@L["Inventory Status Report"]</h1>
+        <div class="report-date">@L["Generated on {0}", FormatDateTime(Model.GeneratedAt)]</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>@L["Code"]</th>
+                <th>@L["Name"]</th>
+                <th>@L["Brand"]</th>
+                <th>@L["Description"]</th>
+                <th>@L["Warehouse"]</th>
+                <th class="text-right">@L["Stock"]</th>
+                <th class="text-right">@L["Min Stock"]</th>
+                <th class="text-right">@L["Max Stock"]</th>
+                <th>@L["Unit"]</th>
+                <th>@L["Status"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Movements)
+            {
+                var statusClass = item.Quantity == 0 ? "status-out-of-stock"
+                    : item.MinStock.HasValue && item.Quantity < item.MinStock ? "status-low-stock"
+                    : item.MaxStock.HasValue && item.Quantity > item.MaxStock ? "status-over-stock"
+                    : "status-in-stock";
+
+                var statusText = item.Quantity == 0 ? L["Out of Stock"]
+                    : item.MinStock.HasValue && item.Quantity < item.MinStock ? L["Low Stock"]
+                    : item.MaxStock.HasValue && item.Quantity > item.MaxStock ? L["Over Stock"]
+                    : L["In Stock"];
+
+                <tr>
+                    <td>@item.ProductCode</td>
+                    <td>@item.ProductName</td>
+                    <td>@item.ProductBrand</td>
+                    <td>@item.ProductDescription</td>
+                    <td>@item.WarehouseName</td>
+                    <td class="text-right">@item.Quantity.ToString("N2")</td>
+                    <td class="text-right">@(item.MinStock?.ToString("N2") ?? "-")</td>
+                    <td class="text-right">@(item.MaxStock?.ToString("N2") ?? "-")</td>
+                    <td>@item.UnitMeasureName</td>
+                    <td>
+                        <span class="status-chip @statusClass">@statusText</span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>@L["Page {0} of {1}", 1, 1]</p>
+    </div>
+</body>
+</html>

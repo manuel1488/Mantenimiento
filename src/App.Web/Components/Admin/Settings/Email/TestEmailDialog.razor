@@ -1,0 +1,44 @@
+@using System.ComponentModel.DataAnnotations
+@inject IStringLocalizer<TestEmailDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isValid">
+            <MudTextField @bind-Value="_email"
+                         Label="@L["Email Address"]"
+                         Required="true"
+                         RequiredError="@L["Email is required"]"
+                         InputType="InputType.Email"
+                         Validation="@(new EmailAddressAttribute() { ErrorMessage = L["Please enter a valid email address"] })"
+                         Immediate="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="@Color" 
+                  Variant="Variant.Filled" 
+                  OnClick="Submit" 
+                  Disabled="!_isValid"
+                  Class="da-button-rounded">
+            @ButtonText
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string ContentText { get; set; } = "";
+    [Parameter] public string ButtonText { get; set; } = "Ok";
+    [Parameter] public Color Color { get; set; }
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private string _email = "";
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(_email));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

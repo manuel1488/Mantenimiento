@@ -1,0 +1,115 @@
+﻿@using App.Core.DTOs.Inventory
+@using Microsoft.AspNetCore.Authorization
+
+@inject IStringLocalizer<BulkLoadResultDialog> L
+@inject NavigationManager NavigationManager
+@inject ILogger<BulkLoadResultDialog> _logger
+@inject ISnackbar Snackbar
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ManageInitialSetup)]
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ManageInitialSetup">
+    <Authorized>
+        <MudDialog>
+            <DialogContent>
+                <MudContainer Style="max-height: 500px; overflow-y: auto">
+                    <MudGrid>
+                        <!-- Summary -->
+                        <MudItem xs="12" Class="d-flex gap-4">
+                            <MudPaper Elevation="0" Class="pa-4 flex-grow-1">
+                                <MudStack>
+                                    <MudText><strong>@L["Total Products"]:</strong> @Results.Count</MudText>
+                                    <MudText><strong>@L["Success"]:</strong> @Results.Count(x => x.Success)</MudText>
+                                    <MudText><strong>@L["Failed"]:</strong> @Results.Count(x => !x.Success)</MudText>
+                                </MudStack>
+                            </MudPaper>
+                        </MudItem>
+
+                        <!-- Results Table -->
+                        <MudItem xs="12">
+                            <MudTable Items="@Results" Dense="true" Hover="true">
+                                <HeaderContent>
+                                    <MudTh>@L["Code"]</MudTh>
+                                    <MudTh>@L["Name"]</MudTh>
+                                    <MudTh Style="text-align:right">@L["Quantity"]</MudTh>
+                                    <MudTh Style="text-align:right">@L["Min Stock"]</MudTh>
+                                    <MudTh Style="text-align:right">@L["Max Stock"]</MudTh>
+                                    <MudTh>@L["Status"]</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="productContext">
+                                    <MudTd DataLabel="@L["Code"]">@productContext.ProductCode</MudTd>
+                                    <MudTd DataLabel="@L["Name"]">@productContext.ProductName</MudTd>
+                                    <MudTd DataLabel="@L["Quantity"]" Style="text-align:right">
+                                        @productContext.Quantity.ToString("N2")
+                                    </MudTd>
+                                    <MudTd DataLabel="@L["Min Stock"]" Style="text-align:right">
+                                        @(productContext.MinStock?.ToString("N2") ?? "-")
+                                    </MudTd>
+                                    <MudTd DataLabel="@L["Max Stock"]" Style="text-align:right">
+                                        @(productContext.MaxStock?.ToString("N2") ?? "-")
+                                    </MudTd>
+                                    <MudTd DataLabel="@L["Status"]">
+                                        @if (productContext.Success)
+                                        {
+                                            <MudChip T="string" Color="Color.Success" Size="Size.Small">
+                                                @L["Success"]
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudTooltip Text="@productContext.Error">
+                                                <MudChip T="string" Color="Color.Error" Size="Size.Small">
+                                                    @L["Failed"]
+                                                </MudChip>
+                                            </MudTooltip>
+                                        }
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudItem>
+                    </MudGrid>
+                </MudContainer>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Close"]</MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage user permissions."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public List<BulkInventoryLoadResultDto> Results { get; set; } = new();
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void ExportResults()
+    {
+        try
+        {
+            var jsonData = System.Text.Json.JsonSerializer.Serialize(Results);
+            // Construir URL con los datos codificados
+            var queryParameters = System.Web.HttpUtility.UrlEncode(jsonData);
+            var downloadUrl = $"{NavigationManager.BaseUri}api/Download/bulk-load-results?data={queryParameters}";
+            
+            // Navegar a la URL para iniciar la descarga
+            NavigationManager.NavigateTo(downloadUrl, forceLoad: true);
+            
+            Snackbar.Add(L["Export started"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting results");
+            Snackbar.Add(L["Error exporting results"], Severity.Error);
+        }
+    }
+}

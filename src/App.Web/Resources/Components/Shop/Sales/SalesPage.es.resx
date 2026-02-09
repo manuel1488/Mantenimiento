@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Sales Terminal" xml:space="preserve">
+    <value>Terminal de Ventas</value>
+  </data>
+  <data name="Go to Settings" xml:space="preserve">
+    <value>Ir a Configuración</value>
+  </data>
+  <data name="Public Sale" xml:space="preserve">
+    <value>Venta Pública</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Customer is required" xml:space="preserve">
+    <value>El cliente es obligatorio</value>
+  </data>
+  <data name="Type to search more..." xml:space="preserve">
+    <value>Escribe para buscar más...</value>
+  </data>
+  <data name="No customer found" xml:space="preserve">
+    <value>No se encontró ningún cliente</value>
+  </data>
+  <data name="Add Customer" xml:space="preserve">
+    <value>Agregar Cliente</value>
+  </data>
+  <data name="Payment Method" xml:space="preserve">
+    <value>Método de Pago</value>
+  </data>
+  <data name="Cash" xml:space="preserve">
+    <value>Efectivo</value>
+  </data>
+  <data name="Credit Card" xml:space="preserve">
+    <value>Tarjeta de Crédito</value>
+  </data>
+  <data name="Debit Card" xml:space="preserve">
+    <value>Tarjeta de Débito</value>
+  </data>
+  <data name="Bank Transfer" xml:space="preserve">
+    <value>Transferencia Bancaria</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Otro</value>
+  </data>
+  <data name="Add Products" xml:space="preserve">
+    <value>Agregar Productos</value>
+  </data>
+  <data name="Search Products" xml:space="preserve">
+    <value>Buscar Productos</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Existencia</value>
+  </data>
+  <data name="No products found" xml:space="preserve">
+    <value>No se encontraron productos</value>
+  </data>
+  <data name="Search and add products to the cart" xml:space="preserve">
+    <value>Busca y agrega productos al carrito</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Sale Summary" xml:space="preserve">
+    <value>Resumen de Venta</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Descuento</value>
+  </data>
+  <data name="Discount Amount" xml:space="preserve">
+    <value>Monto de Descuento</value>
+  </data>
+  <data name="Authorized By" xml:space="preserve">
+    <value>Autorizado Por</value>
+  </data>
+  <data name="Authorization required to apply discount" xml:space="preserve">
+    <value>Se requiere autorización para aplicar descuento</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>Impuesto</value>
+  </data>
+  <data name="Rounding" xml:space="preserve">
+    <value>Redondeo</value>
+  </data>
+  <data name="Processing..." xml:space="preserve">
+    <value>Procesando...</value>
+  </data>
+  <data name="Authorize and Complete Sale" xml:space="preserve">
+    <value>Autorizar y Completar Venta</value>
+  </data>
+  <data name="Complete Sale" xml:space="preserve">
+    <value>Completar Venta</value>
+  </data>
+  <data name="Clear Cart" xml:space="preserve">
+    <value>Vaciar Carrito</value>
+  </data>
+  <data name="Company settings not configured. Please configure company settings before creating sales." xml:space="preserve">
+    <value>Configuración de la empresa no establecida. Por favor configure los ajustes de la empresa antes de crear ventas.</value>
+  </data>
+  <data name="Tax settings not configured. Please configure tax settings before creating sales." xml:space="preserve">
+    <value>Configuración de impuestos no establecida. Por favor configure los ajustes de impuestos antes de crear ventas.</value>
+  </data>
+  <data name="No effective tax rate found. Please configure at least one active tax rate." xml:space="preserve">
+    <value>No se encontró tasa de impuesto efectiva. Por favor configure al menos una tasa de impuesto activa.</value>
+  </data>
+  <data name="Error getting tax rate. Please ensure tax rates are properly configured." xml:space="preserve">
+    <value>Error al obtener la tasa de impuesto. Por favor asegúrese de que las tasas de impuesto estén configuradas correctamente.</value>
+  </data>
+  <data name="Error initializing sales page: {0}" xml:space="preserve">
+    <value>Error al inicializar la página de ventas: {0}</value>
+  </data>
+  <data name="No public sales warehouse configured" xml:space="preserve">
+    <value>No hay almacén de ventas públicas configurado</value>
+  </data>
+  <data name="Error loading discount settings" xml:space="preserve">
+    <value>Error al cargar la configuración de descuentos</value>
+  </data>
+  <data name="Error searching customers" xml:space="preserve">
+    <value>Error al buscar clientes</value>
+  </data>
+  <data name="Error searching products" xml:space="preserve">
+    <value>Error al buscar productos</value>
+  </data>
+  <data name="Product {0} is out of stock" xml:space="preserve">
+    <value>El producto {0} está agotado</value>
+  </data>
+  <data name="Product {0} is not available in the selected warehouse" xml:space="preserve">
+    <value>El producto {0} no está disponible en el almacén seleccionado</value>
+  </data>
+  <data name="Added 1 unit of {0}. Total: {1}" xml:space="preserve">
+    <value>Agregada 1 unidad de {0}. Total: {1}</value>
+  </data>
+  <data name="Cannot add more of this product, insufficient stock" xml:space="preserve">
+    <value>No se pueden agregar más de este producto, stock insuficiente</value>
+  </data>
+  <data name="Product {0} added to cart" xml:space="preserve">
+    <value>Producto {0} agregado al carrito</value>
+  </data>
+  <data name="Error adding product to cart" xml:space="preserve">
+    <value>Error al agregar producto al carrito</value>
+  </data>
+  <data name="Discount reduced to maximum allowed value: {0}%" xml:space="preserve">
+    <value>Descuento reducido al valor máximo permitido: {0}%</value>
+  </data>
+  <data name="Discount amount changed. Authorization required." xml:space="preserve">
+    <value>Monto de descuento cambiado. Se requiere autorización.</value>
+  </data>
+  <data name="New Customer" xml:space="preserve">
+    <value>Nuevo Cliente</value>
+  </data>
+  <data name="Discount Authorization" xml:space="preserve">
+    <value>Autorización de Descuento</value>
+  </data>
+  <data name="Discount authorization was canceled. Sale cannot be completed." xml:space="preserve">
+    <value>La autorización de descuento fue cancelada. La venta no puede ser completada.</value>
+  </data>
+  <data name="Discount authorized successfully" xml:space="preserve">
+    <value>Descuento autorizado correctamente</value>
+  </data>
+  <data name="Please complete all required fields" xml:space="preserve">
+    <value>Por favor complete todos los campos requeridos</value>
+  </data>
+  <data name="Sale completed successfully" xml:space="preserve">
+    <value>Venta completada con éxito</value>
+  </data>
+  <data name="Sale Receipt" xml:space="preserve">
+    <value>Recibo de Venta</value>
+  </data>
+  <data name="Error processing sale: {0}" xml:space="preserve">
+    <value>Error al procesar la venta: {0}</value>
+  </data>
+  <data name="Price must be greater than 0" xml:space="preserve">
+    <value>El precio debe ser mayor que 0</value>
+  </data>
+  <data name="Total must be greater than 0" xml:space="preserve">
+    <value>El total debe ser mayor que 0</value>
+  </data>
+  <data name="Cannot calculate unit price: quantity must be greater than 0" xml:space="preserve">
+    <value>No se puede calcular el precio unitario: la cantidad debe ser mayor que 0</value>
+  </data>
+  <data name="Package" xml:space="preserve">
+    <value>Envase</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Error selecting product" xml:space="preserve">
+    <value>Error al seleccionar producto</value>
+  </data>
+  <data name="Fraction" xml:space="preserve">
+    <value>Fracción</value>
+  </data>
+  <data name="None (proportional)" xml:space="preserve">
+    <value>Ninguna (proporcional)</value>
+  </data>
+  <data name="Surcharge" xml:space="preserve">
+    <value>Recargo</value>
+  </data>
+</root>

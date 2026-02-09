@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Almacén</value>
+  </data>
+  <data name="All Warehouses" xml:space="preserve">
+    <value>Todos los Almacenes</value>
+  </data>
+  <data name="Alert Type" xml:space="preserve">
+    <value>Tipo de Alerta</value>
+  </data>
+  <data name="All Types" xml:space="preserve">
+    <value>Todos los Tipos</value>
+  </data>
+  <data name="Low Stock" xml:space="preserve">
+    <value>Stock Bajo</value>
+  </data>
+  <data name="Over Stock" xml:space="preserve">
+    <value>Sobre Stock</value>
+  </data>
+  <data name="Search products" xml:space="preserve">
+    <value>Buscar productos</value>
+  </data>
+  <data name="Refresh Alerts" xml:space="preserve">
+    <value>Actualizar Alertas</value>
+  </data>
+  <data name="Export to Excel" xml:space="preserve">
+    <value>Exportar a Excel</value>
+  </data>
+  <data name="Max. {0:N0} records" xml:space="preserve">
+    <value>Máx. {0:N0} registros</value>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Imprimir</value>
+  </data>
+  <data name="Current Inventory Alerts" xml:space="preserve">
+    <value>Alertas de Inventario Actuales</value>
+  </data>
+  <data name="Showing {0} alerts" xml:space="preserve">
+    <value>Mostrando {0} alertas</value>
+  </data>
+  <data name="No inventory alerts found" xml:space="preserve">
+    <value>No se encontraron alertas de inventario</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Current Stock" xml:space="preserve">
+    <value>Stock Actual</value>
+  </data>
+  <data name="Min Stock" xml:space="preserve">
+    <value>Stock Mínimo</value>
+  </data>
+  <data name="Max Stock" xml:space="preserve">
+    <value>Stock Máximo</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Edit Product" xml:space="preserve">
+    <value>Editar Producto</value>
+  </data>
+  <data name="Add Stock" xml:space="preserve">
+    <value>Agregar Stock</value>
+  </data>
+  <data name="Transfer Stock" xml:space="preserve">
+    <value>Transferir Stock</value>
+  </data>
+  <data name="No alerts match the current filters" xml:space="preserve">
+    <value>Ninguna alerta coincide con los filtros actuales</value>
+  </data>
+  <data name="Error loading warehouses" xml:space="preserve">
+    <value>Error al cargar almacenes</value>
+  </data>
+  <data name="Error loading alerts" xml:space="preserve">
+    <value>Error al cargar alertas</value>
+  </data>
+  <data name="Alerts refreshed" xml:space="preserve">
+    <value>Alertas actualizadas</value>
+  </data>
+  <data name="Stock added successfully" xml:space="preserve">
+    <value>Stock agregado exitosamente</value>
+  </data>
+  <data name="Stock transferred successfully" xml:space="preserve">
+    <value>Stock transferido exitosamente</value>
+  </data>
+  <data name="Export started" xml:space="preserve">
+    <value>Exportación iniciada</value>
+  </data>
+  <data name="Error exporting alerts" xml:space="preserve">
+    <value>Error al exportar alertas</value>
+  </data>
+  <data name="Print started" xml:space="preserve">
+    <value>Impresión iniciada</value>
+  </data>
+  <data name="Error printing alerts" xml:space="preserve">
+    <value>Error al imprimir alertas</value>
+  </data>
+</root>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="UserProfile" xml:space="preserve">
+    <value>Perfil de Usuario</value>
+    <comment>Título para la página de perfil de usuario</comment>
+  </data>
+  <data name="PersonalInfo" xml:space="preserve">
+    <value>Información Personal</value>
+    <comment>Título de pestaña para la sección de información personal</comment>
+  </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Cambiar Contraseña</value>
+    <comment>Título de pestaña y botón para la funcionalidad de cambio de contraseña</comment>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>Contraseña Actual</value>
+    <comment>Etiqueta para el campo de contraseña actual</comment>
+  </data>
+  <data name="CurrentPasswordRequired" xml:space="preserve">
+    <value>Por favor ingrese su contraseña actual</value>
+    <comment>Mensaje de error cuando no se proporciona la contraseña actual</comment>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>Nueva Contraseña</value>
+    <comment>Etiqueta para el campo de nueva contraseña</comment>
+  </data>
+  <data name="NewPasswordRequired" xml:space="preserve">
+    <value>Por favor ingrese una nueva contraseña</value>
+    <comment>Mensaje de error cuando no se proporciona una nueva contraseña</comment>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Confirmar Contraseña</value>
+    <comment>Etiqueta para el campo de confirmación de contraseña</comment>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Procesando...</value>
+    <comment>Texto mostrado durante el envío del formulario</comment>
+  </data>
+  <data name="PasswordChangedSuccessfully" xml:space="preserve">
+    <value>Su contraseña ha sido cambiada exitosamente</value>
+    <comment>Mensaje de éxito después del cambio de contraseña</comment>
+  </data>
+  <data name="ErrorChangingPassword" xml:space="preserve">
+    <value>Ocurrió un error al cambiar su contraseña. Por favor intente nuevamente.</value>
+    <comment>Mensaje de error cuando falla el cambio de contraseña</comment>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>La contraseña es obligatoria.</value>
+    <comment>Mensaje de error para contraseña faltante</comment>
+  </data>
+  <data name="PasswordMin8Chars" xml:space="preserve">
+    <value>La contraseña debe tener al menos 8 caracteres.</value>
+    <comment>Mensaje de error para el requisito de longitud de contraseña</comment>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>La contraseña debe contener al menos una letra mayúscula.</value>
+    <comment>Mensaje de error para el requisito de caracteres en mayúsculas</comment>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>La contraseña debe contener al menos una letra minúscula.</value>
+    <comment>Mensaje de error para el requisito de caracteres en minúsculas</comment>
+  </data>
+  <data name="PasswordRequiresDigit" xml:space="preserve">
+    <value>La contraseña debe contener al menos un número.</value>
+    <comment>Mensaje de error para el requisito de dígitos</comment>
+  </data>
+  <data name="PasswordRequiresSpecial" xml:space="preserve">
+    <value>La contraseña debe contener al menos un carácter especial.</value>
+    <comment>Mensaje de error para el requisito de caracteres especiales</comment>
+  </data>
+  <data name="ConfirmPasswordRequired" xml:space="preserve">
+    <value>La confirmación de contraseña es obligatoria.</value>
+    <comment>Mensaje de error para la confirmación de contraseña faltante</comment>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Las contraseñas no coinciden.</value>
+    <comment>Mensaje de error para contraseñas que no coinciden</comment>
+  </data>
+</root>

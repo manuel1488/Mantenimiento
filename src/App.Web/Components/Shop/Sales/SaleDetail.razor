@@ -1,0 +1,372 @@
+﻿@page "/shop/sales/{Id:long}"
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Shop
+@using App.Core.Constants
+@using App.Web.Components.Shared.Dialogs
+
+@inject ISaleService SaleService
+@inject IStringLocalizer<SaleDetail> L
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ILogger<SaleDetail> Logger
+@inject ICompanySettingsService SettingsService
+@inject IDialogService DialogService
+
+<AuthorizeView Policy="@ApplicationClaims.Shop.ViewSales">
+    <Authorized>
+        <PageTitle>@L["Sale Details"]</PageTitle>
+
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @if (_loading)
+            {
+                <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+            }
+            else if (_sale == null)
+            {
+                <MudAlert Severity="Severity.Error">@L["Sale not found"]</MudAlert>
+            }
+            else
+            {
+                <MudGrid>
+                    <MudItem xs="12" Class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.h4">@L["Sale"] #@_sale.Id</MudText>
+                            <MudText Typo="Typo.subtitle1">@_sale.SaleDate.ToLocalTime().ToString("g")</MudText>
+                        </div>
+                        <MudStack Row="true" Spacing="2">
+                            @if (_sale.Status != App.Core.Enums.Shop.SaleStatus.Cancelled)
+                            {
+                                <AuthorizeView Context="contextCancel" Policy="@ApplicationClaims.Shop.CancelSale">
+                                    <MudButton 
+                                        Variant="Variant.Outlined"
+                                        Color="Color.Error"
+                                        StartIcon="@Icons.Material.Filled.Cancel"
+                                        Class="da-button-rounded"
+                                        OnClick="@OpenCancelDialog">
+                                        @L["Cancel Sale"]
+                                    </MudButton>
+                                </AuthorizeView>
+                            }
+                            
+                            <MudButton Variant="Variant.Outlined"
+                                    StartIcon="@Icons.Material.Filled.ArrowBack"
+                                    Class="da-button-rounded"
+                                    OnClick="@(() => Navigation.NavigateTo("/shop/sales"))">
+                                @L["Back to List"]
+                            </MudButton>
+                        </MudStack>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="0" Class="pa-4">
+                            <MudText Typo="Typo.h6" Class="mb-4">@L["Sale Information"]</MudText>
+                            
+                            <MudList T="SaleDto" Dense="false">
+                                <MudListItem>
+                                    <MudText Typo="Typo.body2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Status"]: </MudText>
+                                        <MudChip Size="Size.Small" Color="@GetStatusColor(_sale.Status)">
+                                            @GetStatusDisplayText(_sale.Status)
+                                        </MudChip>
+                                    </MudText>
+                                </MudListItem>
+                                
+                                <MudListItem>
+                                    <MudText Typo="Typo.body2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Type"]: </MudText>
+                                        <MudChip Size="Size.Small" Color="Color.Default">
+                                            @L["Public"]
+                                        </MudChip>
+                                    </MudText>
+                                </MudListItem>
+                                
+                                <MudListItem>
+                                    <MudText Typo="Typo.body2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Payment Method"]: </MudText>
+                                        @_sale.PaymentMethod
+                                    </MudText>
+                                </MudListItem>
+                                
+                                @if (_sale.DiscountPercentage > 0)
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body2">
+                                            <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Discount"]: </MudText>
+                                            @_sale.DiscountPercentage.ToString("0.##")% (@_sale.DiscountAmount.ToString("C"))
+                                        </MudText>
+                                    </MudListItem>
+                                    
+                                    @if (!string.IsNullOrEmpty(_sale.DiscountAuthorizedBy))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Authorized By"]: </MudText>
+                                                @_sale.DiscountAuthorizedBy
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+                                }
+                            </MudList>
+                            
+                        </MudPaper>
+                    </MudItem>
+                    
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="0" Class="pa-4">
+                            <MudText Typo="Typo.h6" Class="mb-4">@L["Customer Information"]</MudText>
+                            
+                            <MudList T="SaleDto">
+                                <MudListItem>
+                                    <MudText Typo="Typo.body2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Customer"]: </MudText>
+                                        <MudLink Href="@($"/customers/{_sale.CustomerId}")">
+                                            @_sale.CustomerName
+                                        </MudLink>
+                                    </MudText>
+                                </MudListItem>
+                            </MudList>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudPaper Elevation="0" Class="pa-4">
+                            <MudText Typo="Typo.h6" Class="mb-4">@L["Items"]</MudText>
+                            
+                            <MudTable Items="@_sale.Details" Hover="true" Dense="true">
+                                <HeaderContent>
+                                    <MudTh>@L["Product"]</MudTh>
+                                    <MudTh>@L["Code"]</MudTh>
+                                    <MudTh>@L["Unit Price"]</MudTh>
+                                    <MudTh>@L["Price Type"]</MudTh>
+                                    <MudTh>@L["Quantity"]</MudTh>
+                                    <MudTh>@L["Discount"]</MudTh>
+                                    <MudTh>@L["Tax"]</MudTh>
+                                    <MudTh>@L["Subtotal"]</MudTh>
+                                    <MudTh>@L["Total"]</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="contextItem">
+                                    <MudTd DataLabel="@L["Product"]">@contextItem.ProductName</MudTd>
+                                    <MudTd DataLabel="@L["Code"]">@contextItem.ProductCode</MudTd>
+                                    <MudTd DataLabel="@L["Unit Price"]">@contextItem.UnitPrice.ToString("C")</MudTd>
+                                    <MudTd DataLabel="@L["Price Type"]">
+                                        @if (contextItem.IsCustomPrice)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Filled.Edit">
+                                                @L["Custom"]
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Icon="@Icons.Material.Filled.LocalOffer">
+                                                @L["Catalog"]
+                                            </MudChip>
+                                        }
+                                    </MudTd>
+                                    <MudTd DataLabel="@L["Quantity"]">@contextItem.Quantity</MudTd>
+                                    <MudTd DataLabel="@L["Discount"]">
+                                        @if (contextItem.DiscountPercentage > 0)
+                                        {
+                                            <text>@contextItem.DiscountPercentage.ToString("0.##")% (@contextItem.DiscountAmount.ToString("C"))</text>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </MudTd>
+                                    <MudTd DataLabel="@L["Tax"]">@contextItem.TaxRate.ToString("0.##")% (@contextItem.TaxAmount.ToString("C"))</MudTd>
+                                    <MudTd DataLabel="@L["Subtotal"]">@contextItem.Subtotal.ToString("C")</MudTd>
+                                    <MudTd DataLabel="@L["Total"]">@contextItem.Total.ToString("C")</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                            
+                            <MudDivider Class="my-4" />
+                            
+                            <MudStack Row="true" Justify="Justify.FlexEnd">
+                                <MudPaper Elevation="0" Style="min-width: 250px;" Class="pa-4">
+                                    <MudList Dense="true" Padding="false" T="SaleDto">
+                                        <MudListItem>
+                                            <div class="d-flex justify-space-between">
+                                                <MudText Typo="Typo.subtitle2">@L["Subtotal"]:</MudText>
+                                                <MudText>@_sale.Subtotal.ToString("C")</MudText>
+                                            </div>
+                                        </MudListItem>
+                                        
+                                        @if (_sale.DiscountAmount > 0)
+                                        {
+                                            <MudListItem>
+                                                <div class="d-flex justify-space-between">
+                                                    <MudText Typo="Typo.subtitle2">@L["Discount"]:</MudText>
+                                                    <MudText>-@_sale.DiscountAmount.ToString("C")</MudText>
+                                                </div>
+                                            </MudListItem>
+                                        }
+                                        
+                                        <MudListItem>
+                                            <div class="d-flex justify-space-between">
+                                                <MudText Typo="Typo.subtitle2">@L["Tax"]:</MudText>
+                                                <MudText>@_sale.TaxAmount.ToString("C")</MudText>
+                                            </div>
+                                        </MudListItem>
+                                        
+                                        <MudListItem>
+                                            <div class="d-flex justify-space-between">
+                                                <MudText Typo="Typo.h6">@L["Total"]:</MudText>
+                                                <MudText Typo="Typo.h6" Color="Color.Primary">@_sale.Total.ToString("C")</MudText>
+                                            </div>
+                                        </MudListItem>
+                                    </MudList>
+                                </MudPaper>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- Audit Information -->
+                    <MudItem xs="12">
+                        <MudPaper Elevation="0" Class="pa-4">
+                            <MudText Typo="Typo.h6" Class="mb-4">@L["Audit Information"]</MudText>
+                            
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Created By"]</MudText>
+                                    <MudText>@_sale.CreatedBy</MudText>
+                                </MudItem>
+                                
+                                <MudItem xs="12" sm="6">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Created At"]</MudText>
+                                    <MudText>@FormatToCompanyTimezone(_sale.CreatedAt)</MudText>
+                                </MudItem>
+                                
+                                @if (_sale.ModifiedBy != null)
+                                {
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Modified By"]</MudText>
+                                        <MudText>@_sale.ModifiedBy</MudText>
+                                    </MudItem>
+                                    
+                                    <MudItem xs="12" sm="6">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Modified At"]</MudText>
+                                        <MudText>@(_sale.ModifiedAt.HasValue ? FormatToCompanyTimezone(_sale.ModifiedAt.Value) : "-")</MudText>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public long Id { get; set; }
+    private SaleDto? _sale;
+    private TimeZoneInfo? _companyTimeZone;
+    private bool _loading = true;
+    private string _cancellationReason = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _companyTimeZone = await SettingsService.GetCurrentTimeZoneAsync();
+        await LoadSale();        
+    }
+
+    private async Task LoadSale()
+    {
+        try
+        {
+            _loading = true;
+            _sale = await SaleService.GetSaleByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading sale");
+            Snackbar.Add(L["Error loading sale"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenCancelDialog()
+    {
+        if (_sale == null) return;
+
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Cancel Sale"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to cancel this sale:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), $"#{_sale.Id} - {_sale.CustomerName}" },
+            { nameof(ConfirmDialog.ConfirmText), L["Cancel Sale"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Keep Sale"].ToString() },
+            { nameof(ConfirmDialog.WarningText), L["This will return all products to inventory"].ToString() },
+            { nameof(ConfirmDialog.ShowWarning), true },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Warning },
+            { nameof(ConfirmDialog.AdditionalContent), (RenderFragment)(@<MudTextField @bind-Value="@_cancellationReason" Label="@L["Reason for cancellation"]" Required="true" />) }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            L["Cancel Sale"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var cancelResult = await SaleService.CancelSaleAsync(_sale.Id, _cancellationReason);
+                if (cancelResult.IsSuccess)
+                {
+                    Snackbar.Add(L["Sale cancelled successfully"], Severity.Success);
+                    await LoadSale();
+                }
+                else
+                {
+                    Snackbar.Add(cancelResult.Error!, Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error cancelling sale {SaleId}", _sale.Id);
+                Snackbar.Add(L["Error cancelling sale"], Severity.Error);
+            }
+        }
+    }
+
+    private string FormatToCompanyTimezone(DateTime utcDate)
+    {
+        try
+        {
+            if (_companyTimeZone == null)
+                return utcDate.ToLocalTime().ToString("g");
+
+            var convertedTime = TimeZoneInfo.ConvertTimeFromUtc(utcDate, _companyTimeZone);
+            return convertedTime.ToString("g");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error converting date to company timezone");
+            return utcDate.ToLocalTime().ToString("g");
+        }
+    }
+    
+    private Color GetStatusColor(App.Core.Enums.Shop.SaleStatus status) => status switch
+    {
+        App.Core.Enums.Shop.SaleStatus.Created => Color.Info,
+        App.Core.Enums.Shop.SaleStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+
+    private string GetStatusDisplayText(App.Core.Enums.Shop.SaleStatus status) => status switch
+    {
+        App.Core.Enums.Shop.SaleStatus.Created => L["Created"],
+        App.Core.Enums.Shop.SaleStatus.Cancelled => L["Cancelled"],
+        _ => status.ToString()
+    };
+}

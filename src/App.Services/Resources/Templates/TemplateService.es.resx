@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Inventory Template -->
+  <data name="ProductCode" xml:space="preserve">
+    <value>Código de Producto</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="MinStock" xml:space="preserve">
+    <value>Stock Mínimo</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="MaxStock" xml:space="preserve">
+    <value>Stock Máximo</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="Invalid Quantity" xml:space="preserve">
+    <value>Cantidad Inválida</value>
+    <comment>Error title for validation</comment>
+  </data>
+  <data name="Quantity must be greater than or equal to 0" xml:space="preserve">
+    <value>La cantidad debe ser mayor o igual a 0</value>
+    <comment>Error message for validation</comment>
+  </data>
+  <data name="Invalid Min Stock" xml:space="preserve">
+    <value>Stock Mínimo Inválido</value>
+    <comment>Error title for validation</comment>
+  </data>
+  <data name="Min Stock must be greater than or equal to 0" xml:space="preserve">
+    <value>El stock mínimo debe ser mayor o igual a 0</value>
+    <comment>Error message for validation</comment>
+  </data>
+  <data name="Invalid Max Stock" xml:space="preserve">
+    <value>Stock Máximo Inválido</value>
+    <comment>Error title for validation</comment>
+  </data>
+  <data name="Max Stock must be greater than or equal to 0" xml:space="preserve">
+    <value>El stock máximo debe ser mayor o igual a 0</value>
+    <comment>Error message for validation</comment>
+  </data>
+  
+  <!-- Product Template -->
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Código de Barras</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Content" xml:space="preserve">
+    <value>Contenido</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="UnitMeasureCode" xml:space="preserve">
+    <value>Código de Unidad de Medida</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="IsTaxable" xml:space="preserve">
+    <value>Es Gravable</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="IsActive" xml:space="preserve">
+    <value>Está Activo</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="MexicoProductServiceCode" xml:space="preserve">
+    <value>Código SAT de Producto/Servicio</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowPartialSale" xml:space="preserve">
+    <value>Permitir Venta Parcial</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowCustomPricing" xml:space="preserve">
+    <value>Permitir Precio Personalizado</value>
+    <comment>Product template header</comment>
+  </data>
+
+  <!-- Product Template Example Data -->
+  <data name="Sample Product" xml:space="preserve">
+    <value>Producto de Ejemplo</value>
+    <comment>Example data</comment>
+  </data>
+  <data name="Sample Brand" xml:space="preserve">
+    <value>Marca de Ejemplo</value>
+    <comment>Example data</comment>
+  </data>
+  <data name="Product description" xml:space="preserve">
+    <value>Descripción del producto</value>
+    <comment>Example data</comment>
+  </data>
+  
+  <!-- Comments and Instructions -->
+  <data name="Optional. Leave empty to auto-generate product code." xml:space="preserve">
+    <value>Opcional. Dejar vacío para generar automáticamente el código de producto.</value>
+    <comment>Product template instruction</comment>
+  </data>
+  <data name="Boolean: true/false, 1/0, yes/no, y/n" xml:space="preserve">
+    <value>Booleano: true/false, 1/0, si/no, s/n</value>
+    <comment>Product template instruction</comment>
+  </data>
+  <data name="Required for Mexico. Use valid SAT product/service code." xml:space="preserve">
+    <value>Requerido para México. Utilice un código válido de producto/servicio del SAT.</value>
+    <comment>Product template instruction</comment>
+  </data>
+  <data name="Available unit codes:" xml:space="preserve">
+    <value>Códigos de unidad disponibles:</value>
+    <comment>Unit measure instruction</comment>
+  </data>
+  <data name="... and {0} more" xml:space="preserve">
+    <value>... y {0} más</value>
+    <comment>Unit measure list truncation message</comment>
+  </data>
+  <data name="No unit measures found for this country" xml:space="preserve">
+    <value>No se encontraron unidades de medida para este país</value>
+    <comment>Unit measure error message</comment>
+  </data>
+  <data name="Boolean: true/false, 1/0, yes/no, y/n. Indicates if product can be sold in partial quantities." xml:space="preserve">
+    <value>Boolean: true/false, 1/0, yes/no, y/n. Indica si el producto se puede vender en cantidades parciales.</value>
+    <comment>Product template instruction</comment>
+  </data>
+  <data name="Boolean: true/false, 1/0, yes/no, y/n. Indicates if product price can be customized during sales (useful for liquid products)." xml:space="preserve">
+    <value>Booleano: true/false, 1/0, yes/no, y/n. Indica si el precio del producto puede personalizarse durante la venta (útil para productos líquidos).</value>
+    <comment>Instrucción de plantilla de producto</comment>
+  </data>
+</root>

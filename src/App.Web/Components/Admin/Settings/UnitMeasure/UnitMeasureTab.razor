@@ -1,0 +1,290 @@
+﻿@using App.Core.DTOs.UnitMeasure
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Services
+
+@inject IUnitMeasureService UnitMeasureService
+@inject ICompanySettingsService CompanySettingsService
+@inject ILookupService LookupService
+@inject IDialogService DialogService
+@inject IPermissionCheckService PermissionService
+@inject IStringLocalizer<UnitMeasureTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<UnitMeasureTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewUnitMeasures">
+    <Authorized>
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex justify-space-between align-center">
+                    <MudText Typo="Typo.h6">@L["Unit Measures"]</MudText>
+
+                    <!-- Filter and New Button -->
+                    <div class="d-flex gap-4">
+                        <MudSelect T="string" 
+                                Value="@_selectedCountry"
+                                ValueChanged="@OnCountryChanged"
+                                Label="@L["Country"]"
+                                AnchorOrigin="Origin.BottomCenter"
+                                Style="min-width: 150px;">
+                            @foreach(var country in _countries)
+                            {
+                                <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <MudTextField T="string" 
+                                  ValueChanged="@(s => OnSearch(s))"
+                                  Placeholder="@L["Search unit measures"]"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Immediate="true"
+                                  Style="width: 250px"/>
+
+                        <AuthorizeView Context="authNew" Policy="@ApplicationClaims.Admin.ManageUnitMeasures">
+                            <MudButton Variant="Variant.Filled"
+                                    Color="Color.Error"
+                                    StartIcon="@Icons.Material.Filled.Add"
+                                    OnClick="OpenCreateDialog"
+                                    Disabled="@string.IsNullOrEmpty(_selectedCountry)"
+                                    Class="da-button-rounded">
+                                @L["New Unit Measure"]
+                            </MudButton>
+                        </AuthorizeView>                        
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12">
+                    @if (!string.IsNullOrEmpty(_selectedCountry))
+                    {
+                        <MudTable T="UnitMeasureDto" 
+                                ServerData="@LoadServerData"
+                                Dense="true"
+                                Hover="true"
+                                Loading="@_loading"
+                                @ref="_table">
+                            <HeaderContent>
+                                <MudTh>@L["Code"]</MudTh>
+                                <MudTh>@L["Name"]</MudTh>
+                                <MudTh>@L["Description"]</MudTh>
+                                <MudTh Style="width: 100px">@L["Actions"]</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="contextUnitMeasure">
+                                <MudTd DataLabel="@L["Code"]">@contextUnitMeasure.Code</MudTd>
+                                <MudTd DataLabel="@L["Name"]">@contextUnitMeasure.Name</MudTd>
+                                <MudTd DataLabel="@L["Description"]">@contextUnitMeasure.Description</MudTd>
+                                <MudTd>
+                                    <AuthorizeView Context="authActions" Policy="@ApplicationClaims.Admin.ManageUnitMeasures">
+                                       <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                    Size="Size.Small"
+                                                    OnClick="@(() => OpenEditDialog(contextUnitMeasure))"
+                                                    title="@L["Edit Unit Measure"]" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                    Size="Size.Small"
+                                                    Color="Color.Error"
+                                                    title="@L["Delete Unit Measure"]"
+                                                    OnClick="@(() => OpenDeleteDialog(contextUnitMeasure))" /> 
+                                    </AuthorizeView>                                
+                                </MudTd>
+                            </RowTemplate>
+                            <PagerContent>
+                                <MudTablePager />
+                            </PagerContent>
+                            <NoRecordsContent>
+                                <MudText>@L["No unit measures found"]</MudText>
+                            </NoRecordsContent>
+                        </MudTable>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-3">
+                            @L["Please select a country to view unit measures"]
+                        </MudAlert>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private MudTable<UnitMeasureDto> _table = null!;
+    private bool _loading;
+    private string _searchString = "";
+    private string _selectedCountry = "";
+    private List<CountryDto> _countries = new();
+    private bool _hasWriteAccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check permissions
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageUnitMeasures);
+        
+        await LoadCountries();
+        
+        // Try to use company's default country
+        try
+        {
+            var settings = await CompanySettingsService.GetSettingsAsync();
+            if (settings != null && !string.IsNullOrEmpty(settings.CountryCode))
+            {
+                _selectedCountry = settings.CountryCode;
+            }
+            else if (_countries.Count > 0)
+            {
+                _selectedCountry = _countries[0].Code;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading company settings");
+            
+            // Fallback to first country
+            if (_countries.Count > 0)
+            {
+                _selectedCountry = _countries[0].Code;
+            }
+        }
+    }
+
+    private async Task LoadCountries()
+    {
+        try
+        {
+            var countries = await LookupService.GetCountriesAsync();
+            _countries = countries.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading countries");
+            Snackbar.Add(L["Error loading countries"], Severity.Error);
+        }
+    }
+
+    private async Task<TableData<UnitMeasureDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _loading = true;
+            
+            if (string.IsNullOrEmpty(_selectedCountry))
+            {
+                return new TableData<UnitMeasureDto> { TotalItems = 0, Items = Array.Empty<UnitMeasureDto>() };
+            }
+            
+            var (totalItems, items) = await UnitMeasureService.GetUnitMeasuresAsync(
+                page: state.Page + 1,
+                pageSize: state.PageSize,
+                searchString: _searchString,
+                countryCode: _selectedCountry);
+
+            return new TableData<UnitMeasureDto>() { TotalItems = totalItems, Items = items };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading unit measures");
+            Snackbar.Add(L["Error loading unit measures"], Severity.Error);
+            return new TableData<UnitMeasureDto>() { TotalItems = 0, Items = Enumerable.Empty<UnitMeasureDto>() };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnCountryChanged(string value)
+    {
+        _selectedCountry = value;
+        if (_table != null)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        if (_table != null)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters<UnitMeasureDialog>();
+
+        var dialog = await DialogService.ShowAsync<UnitMeasureDialog>(L["New Unit Measure"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenEditDialog(UnitMeasureDto unitMeasure)
+    {
+        var parameters = new DialogParameters<UnitMeasureDialog>
+        {
+            { x => x.UnitMeasureId, unitMeasure.Id }
+        };
+
+        var dialog = await DialogService.ShowAsync<UnitMeasureDialog>(
+            L["Edit Unit Measure"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenDeleteDialog(UnitMeasureDto unitMeasure)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Unit Measure"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete unit measure:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), $"{unitMeasure.Name} ({unitMeasure.Code})" },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            L["Delete Unit Measure"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var success = await UnitMeasureService.DeleteUnitMeasureAsync(unitMeasure.Id);
+                
+                if (success)
+                {
+                    Snackbar.Add(L["Unit measure deleted successfully"], Severity.Success);
+                    await _table.ReloadServerData();
+                }
+                else
+                {
+                    Snackbar.Add(L["Error deleting unit measure"], Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error deleting unit measure: {Message}", ex.Message);
+                Snackbar.Add(L["Error deleting unit measure"], Severity.Error);
+            }
+        }
+    }
+}

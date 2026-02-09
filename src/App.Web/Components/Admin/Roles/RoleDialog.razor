@@ -1,0 +1,59 @@
+﻿@using App.Web.Components.Admin.Roles.Models
+@inject IStringLocalizer<RoleDialog> L
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(IsNew ? L["New Role"] : L["Edit Role"])
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form">
+            <MudGrid>
+                <!-- Nombre del Rol -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Name"
+                                Label="@L["Role Name"]"
+                                Required="true"
+                                RequiredError="@L["Role name is required"]" />
+                </MudItem>
+
+                <!-- Descripción -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Description"
+                                Label="@L["Description"]"
+                                Lines="3" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="Submit" 
+                  Class="da-button-rounded" Variant="Variant.Filled">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public RoleDialogModel Model { get; set; } = new();
+    [Parameter] public bool IsNew { get; set; }
+
+    private MudForm _form = null!;
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+    }
+}

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Loading receipt" xml:space="preserve">
+    <value>Loading receipt</value>
+    <comment>Message shown while loading receipt data</comment>
+  </data>
+  <data name="Sale not found" xml:space="preserve">
+    <value>Sale not found</value>
+    <comment>Error message when sale cannot be found</comment>
+  </data>
+  <data name="Receipt" xml:space="preserve">
+    <value>Receipt</value>
+    <comment>Receipt title/header</comment>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+    <comment>Subtotal label in totals section</comment>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Discount</value>
+    <comment>Discount label in totals section</comment>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>Tax</value>
+    <comment>Tax label in totals section</comment>
+  </data>
+  <data name="Rounding" xml:space="preserve">
+    <value>Rounding</value>
+    <comment>Rounding adjustment label in totals section</comment>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+    <comment>Total amount label</comment>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Payment</value>
+    <comment>Payment method label</comment>
+  </data>
+  <data name="Authorized by" xml:space="preserve">
+    <value>Authorized by</value>
+    <comment>Label for discount authorization person</comment>
+  </data>
+  <data name="Thank you for your purchase!" xml:space="preserve">
+    <value>Thank you for your purchase!</value>
+    <comment>Thank you message at the end of receipt</comment>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Print</value>
+    <comment>Print button text</comment>
+  </data>
+  <data name="PDF" xml:space="preserve">
+    <value>PDF</value>
+    <comment>PDF download button text</comment>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>Close dialog button text</comment>
+  </data>
+  <data name="Error loading receipt" xml:space="preserve">
+    <value>Error loading receipt</value>
+    <comment>Error message when receipt fails to load</comment>
+  </data>
+  <data name="Error loading sale" xml:space="preserve">
+    <value>Error loading sale</value>
+    <comment>Error message when sale data fails to load</comment>
+  </data>
+  <data name="Error printing ticket" xml:space="preserve">
+    <value>Error printing ticket</value>
+    <comment>Error message when print operation fails</comment>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+    <comment>Sale status - Created</comment>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+    <comment>Sale status - Cancelled</comment>
+  </data>
+  <data name="Cash" xml:space="preserve">
+    <value>Cash</value>
+    <comment>Payment method - Cash</comment>
+  </data>
+  <data name="Credit Card" xml:space="preserve">
+    <value>Credit Card</value>
+    <comment>Payment method - Credit card</comment>
+  </data>
+  <data name="Debit Card" xml:space="preserve">
+    <value>Debit Card</value>
+    <comment>Payment method - Debit card</comment>
+  </data>
+  <data name="Transfer" xml:space="preserve">
+    <value>Transfer</value>
+    <comment>Payment method - Bank transfer</comment>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Check</value>
+    <comment>Payment method - Check</comment>
+  </data>
+</root>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Search and Filters -->
+  <data name="Search products">
+    <value>Search products</value>
+    <comment>Placeholder text for product search input</comment>
+  </data>
+  <data name="Warehouse">
+    <value>Warehouse</value>
+    <comment>Warehouse filter label</comment>
+  </data>
+  <data name="All">
+    <value>All</value>
+    <comment>Option to show all warehouses</comment>
+  </data>
+  <data name="Has Stock">
+    <value>Has Stock</value>
+    <comment>Filter to show products with stock</comment>
+  </data>
+  <data name="Below Min Stock">
+    <value>Below Min Stock</value>
+    <comment>Filter to show products below minimum stock</comment>
+  </data>
+  <data name="Above Max Stock">
+    <value>Above Max Stock</value>
+    <comment>Filter to show products above maximum stock</comment>
+  </data>
+
+  <!-- Export and Print -->
+  <data name="Export to Excel">
+    <value>Export to Excel</value>
+    <comment>Export to Excel option</comment>
+  </data>
+  <data name="Print">
+    <value>Print</value>
+    <comment>Print option</comment>
+  </data>
+  <data name="Max. {0:N0} records">
+    <value>Max. {0:N0} records</value>
+    <comment>Maximum records limit message</comment>
+  </data>
+
+  <!-- Table Headers -->
+  <data name="Code">
+    <value>Code</value>
+    <comment>Product code column header</comment>
+  </data>
+  <data name="Name">
+    <value>Name</value>
+    <comment>Product name column header</comment>
+  </data>
+  <data name="Brand">
+    <value>Brand</value>
+    <comment>Product brand column header</comment>
+  </data>
+  <data name="Description">
+    <value>Description</value>
+    <comment>Product description column header</comment>
+  </data>
+  <data name="Content Per Unit">
+    <value>Content Per Unit</value>
+    <comment>Product content per unit column header</comment>
+  </data>
+  <data name="Stock">
+    <value>Stock</value>
+    <comment>Stock quantity column header</comment>
+  </data>
+  <data name="Total Content">
+    <value>Total Content</value>
+    <comment>Total content column header</comment>
+  </data>
+  <data name="Min Stock">
+    <value>Min Stock</value>
+    <comment>Minimum stock column header</comment>
+  </data>
+  <data name="Max Stock">
+    <value>Max Stock</value>
+    <comment>Maximum stock column header</comment>
+  </data>
+  <data name="Unit">
+    <value>Unit</value>
+    <comment>Unit of measure column header</comment>
+  </data>
+  <data name="Status">
+    <value>Status</value>
+    <comment>Stock status column header</comment>
+  </data>
+
+  <!-- Table Content -->
+  <data name="No description">
+    <value>No description</value>
+    <comment>Text shown when product has no description</comment>
+  </data>
+  <data name="No inventory records found">
+    <value>No inventory records found</value>
+    <comment>Message shown when no inventory records are found</comment>
+  </data>
+
+  <!-- Stock Status -->
+  <data name="Out of Stock">
+    <value>Out of Stock</value>
+    <comment>Status when product is out of stock</comment>
+  </data>
+  <data name="Low Stock">
+    <value>Low Stock</value>
+    <comment>Status when product is below minimum stock</comment>
+  </data>
+  <data name="Over Stock">
+    <value>Over Stock</value>
+    <comment>Status when product exceeds maximum stock</comment>
+  </data>
+  <data name="In Stock">
+    <value>In Stock</value>
+    <comment>Status when product has normal stock levels</comment>
+  </data>
+
+  <!-- Authorization -->
+  <data name="You don't have permission to view this page">
+    <value>You don't have permission to view this page</value>
+    <comment>Message shown when user lacks authorization</comment>
+  </data>
+
+  <!-- Error Messages -->
+  <data name="Error loading warehouses">
+    <value>Error loading warehouses</value>
+    <comment>Error message when warehouse loading fails</comment>
+  </data>
+  <data name="Error loading inventory">
+    <value>Error loading inventory</value>
+    <comment>Error message when inventory loading fails</comment>
+  </data>
+  <data name="Error exporting inventory">
+    <value>Error exporting inventory</value>
+    <comment>Error message when export fails</comment>
+  </data>
+  <data name="Error printing inventory">
+    <value>Error printing inventory</value>
+    <comment>Error message when printing fails</comment>
+  </data>
+
+  <!-- Success Messages -->
+  <data name="Export started">
+    <value>Export started</value>
+    <comment>Success message when export starts</comment>
+  </data>
+  <data name="Print started">
+    <value>Print started</value>
+    <comment>Success message when print starts</comment>
+  </data>
+</root>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Form Labels and Fields -->
+  <data name="Adjustment Type" xml:space="preserve">
+    <value>Adjustment Type</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Warehouse</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Selected Product" xml:space="preserve">
+    <value>Selected Product</value>
+  </data>
+  <data name="Product Code" xml:space="preserve">
+    <value>Product Code</value>
+  </data>
+  <data name="Product Brand" xml:space="preserve">
+    <value>Product Brand</value>
+  </data>
+  <data name="Product Description" xml:space="preserve">
+    <value>Product Description</value>
+  </data>
+  <data name="Current Stock" xml:space="preserve">
+    <value>Current Stock</value>
+  </data>
+  <data name="Unit Measure" xml:space="preserve">
+    <value>Unit Measure</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="New Quantity" xml:space="preserve">
+    <value>New Quantity</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  
+  <!-- Validation Messages -->
+  <data name="Adjustment type is required" xml:space="preserve">
+    <value>Adjustment type is required</value>
+  </data>
+  <data name="Warehouse is required" xml:space="preserve">
+    <value>Warehouse is required</value>
+  </data>
+  <data name="Product is required" xml:space="preserve">
+    <value>Product is required</value>
+  </data>
+  <data name="New quantity is required" xml:space="preserve">
+    <value>New quantity is required</value>
+  </data>
+  <data name="Reason is required" xml:space="preserve">
+    <value>Reason is required</value>
+  </data>
+  
+  <!-- Error and Info Messages -->
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+  <data name="Error searching products" xml:space="preserve">
+    <value>Error searching products</value>
+  </data>
+  <data name="Product not found in this warehouse" xml:space="preserve">
+    <value>Product not found in this warehouse</value>
+  </data>
+  <data name="Error loading product stock" xml:space="preserve">
+    <value>Error loading product stock</value>
+  </data>
+  <data name="Error creating inventory adjustment" xml:space="preserve">
+    <value>Error creating inventory adjustment</value>
+  </data>
+  <data name="Adjustment created successfully" xml:space="preserve">
+    <value>Adjustment created successfully</value>
+  </data>
+  
+  <!-- Alert Messages -->
+  <data name="Adjustment successful but stock is below minimum. Current: {0}, Minimum: {1}" xml:space="preserve">
+    <value>Adjustment successful but stock is below minimum. Current: {0}, Minimum: {1}</value>
+  </data>
+  <data name="Adjustment successful but stock is above maximum. Current: {0}, Maximum: {1}" xml:space="preserve">
+    <value>Adjustment successful but stock is above maximum. Current: {0}, Maximum: {1}</value>
+  </data>
+  
+  <!-- Buttons -->
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+</root>

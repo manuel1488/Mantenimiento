@@ -1,0 +1,93 @@
+﻿@page "/admin/settings"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@using App.Web.Components.Admin.Settings.Warehouses
+@using App.Web.Components.Admin.Settings.General
+@using App.Web.Components.Admin.Settings.Fiscal
+@using App.Web.Components.Admin.Settings.UnitMeasure
+@using App.Web.Components.Admin.Settings.Email
+@using App.Web.Components.Admin.Settings.TaxRate
+@using App.Web.Components.Admin.Settings.Discount
+@using App.Web.Components.Admin.Settings.Ticket
+@using App.Web.Components.Admin.Settings.PartialSaleFractions
+@using App.Web.Components.Admin.Settings.Rounding
+
+@inject IStringLocalizer<SettingsPage> L
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
+
+<PageTitle>@L["Settings"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudCard Elevation="0">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">@L["Company Settings"]</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        
+        <MudCardContent Class="pt-0">
+            <MudTabs Elevation="0" 
+                     Color="Color.Error" 
+                     ApplyEffectsToContainer="true" 
+                     PanelClass="pt-6">
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["General"]" Icon="@Icons.Material.Filled.Settings">
+                        <GeneralSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewFiscalSettings">
+                    <MudTabPanel Text="@L["Fiscal"]" Icon="@Icons.Material.Filled.Receipt">
+                        <FiscalSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewDisccounts">
+                    <MudTabPanel Text="@L["Discounts"]" Icon="@Icons.Material.Filled.Discount">
+                        <DiscountSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewWarehouseSettings">
+                    <MudTabPanel Text="@L["Warehouses"]" Icon="@Icons.Material.Filled.Warehouse">
+                        <WarehousesTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUnitMeasures">
+                    <MudTabPanel Text="@L["Unit Measures"]" Icon="@Icons.Material.Filled.Scale">
+                        <UnitMeasureTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewEmailSettings">
+                    <MudTabPanel Text="@L["Email"]" Icon="@Icons.Material.Filled.Email">
+                        <EmailSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewTaxRates">
+                    <MudTabPanel Text="@L["Tax Rates"]" Icon="@Icons.Material.Filled.Percent">
+                        <TaxRatesTab />
+                    </MudTabPanel>
+                </AuthorizeView>   
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewTicketSettings">
+                    <MudTabPanel Text="@L["Ticket Settings"]" Icon="@Icons.Material.Filled.ReceiptLong">
+                        <TicketConfigurationTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Partial Fractions"]" Icon="@Icons.Material.Filled.PieChart">
+                        <PartialSaleFractionsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Rounding"]" Icon="@Icons.Material.Filled.RoundedCorner">
+                        <RoundingSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+            </MudTabs>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // TODO: Implement authorization logic
+    }
+}

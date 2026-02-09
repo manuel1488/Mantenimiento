@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Access Denied Page -->
+  <data name="Access Denied" xml:space="preserve">
+    <value>Access Denied</value>
+    <comment>Page title and main heading for the access denied page</comment>
+  </data>
+  <data name="You do not have permission to access the requested resource." xml:space="preserve">
+    <value>You do not have permission to access the requested resource.</value>
+    <comment>Explanatory message on access denied page</comment>
+  </data>
+  <data name="Return to Home" xml:space="preserve">
+    <value>Return to Home</value>
+    <comment>Button text to return to home page</comment>
+  </data>
+</root>

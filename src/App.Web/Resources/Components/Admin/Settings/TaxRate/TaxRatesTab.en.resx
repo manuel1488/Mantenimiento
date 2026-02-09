@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- UI Labels -->
+  <data name="Tax Rates" xml:space="preserve">
+    <value>Tax Rates</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="New Tax Rate" xml:space="preserve">
+    <value>New Tax Rate</value>
+  </data>
+  <data name="Active Tax Rates" xml:space="preserve">
+    <value>Active Tax Rates</value>
+  </data>
+  <data name="Historical Tax Rates" xml:space="preserve">
+    <value>Historical Tax Rates</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Date Range</value>
+  </data>
+  
+  <!-- Table Headers -->
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Rate" xml:space="preserve">
+    <value>Rate</value>
+  </data>
+  <data name="Province" xml:space="preserve">
+    <value>Province</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Effective From" xml:space="preserve">
+    <value>Effective From</value>
+  </data>
+  <data name="Effective To" xml:space="preserve">
+    <value>Effective To</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  
+  <!-- Dialog Titles -->
+  <data name="Edit Tax Rate" xml:space="preserve">
+    <value>Edit Tax Rate</value>
+  </data>
+  <data name="Delete Tax Rate" xml:space="preserve">
+    <value>Delete Tax Rate</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="No active tax rates found" xml:space="preserve">
+    <value>No active tax rates found</value>
+  </data>
+  <data name="No historical tax rates found" xml:space="preserve">
+    <value>No historical tax rates found</value>
+  </data>
+  <data name="Please select a country to view tax rates" xml:space="preserve">
+    <value>Please select a country to view tax rates</value>
+  </data>
+  <data name="Error loading company settings" xml:space="preserve">
+    <value>Error loading company settings</value>
+  </data>
+  <data name="Error loading countries" xml:space="preserve">
+    <value>Error loading countries</value>
+  </data>
+  <data name="Error loading tax rates" xml:space="preserve">
+    <value>Error loading tax rates</value>
+  </data>
+  <data name="Error deleting tax rate" xml:space="preserve">
+    <value>Error deleting tax rate</value>
+  </data>
+  <data name="Tax rate deleted successfully" xml:space="preserve">
+    <value>Tax rate deleted successfully</value>
+  </data>
+  
+  <!-- Confirmation Dialog -->
+  <data name="Are you sure you want to delete tax rate:" xml:space="preserve">
+    <value>Are you sure you want to delete tax rate:</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>This action cannot be undone.</value>
+  </data>
+</root>

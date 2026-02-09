@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="UnitMeasureNotFound" xml:space="preserve">
+        <value>Unit measure not found with ID {0}</value>
+    </data>
+    <data name="ErrorGettingUnitMeasures" xml:space="preserve">
+        <value>Error getting unit measures</value>
+    </data>
+    <data name="CountryCodeRequired" xml:space="preserve">
+        <value>Country code is required</value>
+    </data>
+    <data name="InvalidCountryCode" xml:space="preserve">
+        <value>Invalid country code {0}</value>
+    </data>
+    <data name="NoUnitMeasuresFound" xml:space="preserve">
+        <value>No unit measures found for country {0}</value>
+    </data>
+</root>

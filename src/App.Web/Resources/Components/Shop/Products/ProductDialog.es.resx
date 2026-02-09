@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Allow Partial Sales" xml:space="preserve">
+    <value>Permitir Ventas Parciales</value>
+  </data>
+  <data name="Allow Custom Pricing" xml:space="preserve">
+    <value>Permitir Precio Personalizado</value>
+  </data>
+  <data name="Apply Tax" xml:space="preserve">
+    <value>Aplicar Impuesto</value>
+  </data>
+  <data name="Auto-generate product code" xml:space="preserve">
+    <value>Generar código de producto automáticamente</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Código de Barras</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+  </data>
+  <data name="Brand is required" xml:space="preserve">
+    <value>La marca es requerida</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Cancel editing" xml:space="preserve">
+    <value>Cancelar edición</value>
+  </data>
+  <data name="Change Image" xml:space="preserve">
+    <value>Cambiar Imagen</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Code is required" xml:space="preserve">
+    <value>El código es requerido</value>
+  </data>
+  <data name="Content is required" xml:space="preserve">
+    <value>El contenido es requerido</value>
+  </data>
+  <data name="Content/Quantity" xml:space="preserve">
+    <value>Contenido/Cantidad</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Error generating product code" xml:space="preserve">
+    <value>Error al generar código de producto</value>
+  </data>
+  <data name="Error loading product" xml:space="preserve">
+    <value>Error al cargar el producto</value>
+  </data>
+  <data name="Error loading SAT catalog" xml:space="preserve">
+    <value>Error al cargar el catálogo SAT</value>
+  </data>
+  <data name="Error loading SAT product services" xml:space="preserve">
+    <value>Error al cargar los servicios de productos SAT</value>
+  </data>
+  <data name="Error loading unit measures" xml:space="preserve">
+    <value>Error al cargar las unidades de medida</value>
+  </data>
+  <data name="Error saving product" xml:space="preserve">
+    <value>Error al guardar el producto</value>
+  </data>
+  <data name="Error selecting file" xml:space="preserve">
+    <value>Error al seleccionar el archivo</value>
+  </data>
+  <data name="Error validating product barcode" xml:space="preserve">
+    <value>Error al validar el código de barras del producto</value>
+  </data>
+  <data name="Error validating product code" xml:space="preserve">
+    <value>Error al validar el código del producto</value>
+  </data>
+  <data name="File exceeds maximum size" xml:space="preserve">
+    <value>El archivo excede el tamaño máximo</value>
+  </data>
+  <data name="File type not allowed" xml:space="preserve">
+    <value>Tipo de archivo no permitido</value>
+  </data>
+  <data name="Generate New" xml:space="preserve">
+    <value>Generar Nuevo</value>
+  </data>
+  <data name="Generated Code" xml:space="preserve">
+    <value>Código Generado</value>
+  </data>
+  <data name="Generating..." xml:space="preserve">
+    <value>Generando...</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="Price is required" xml:space="preserve">
+    <value>El precio es requerido</value>
+  </data>
+  <data name="Product Image" xml:space="preserve">
+    <value>Imagen del Producto</value>
+  </data>
+  <data name="Product barcode already exists" xml:space="preserve">
+    <value>El código de barras del producto ya existe</value>
+  </data>
+  <data name="Product code already exists" xml:space="preserve">
+    <value>El código del producto ya existe</value>
+  </data>
+  <data name="Product created successfully" xml:space="preserve">
+    <value>Producto creado exitosamente</value>
+  </data>
+  <data name="Product updated successfully" xml:space="preserve">
+    <value>Producto actualizado exitosamente</value>
+  </data>
+  <data name="SAT Product/Service Code" xml:space="preserve">
+    <value>Código de Producto/Servicio SAT</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Save product data" xml:space="preserve">
+    <value>Guardar datos del producto</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Select a unit" xml:space="preserve">
+    <value>Seleccione una unidad</value>
+  </data>
+  <data name="Unit Measure" xml:space="preserve">
+    <value>Unidad de Medida</value>
+  </data>
+  <data name="Unit measure is required" xml:space="preserve">
+    <value>La unidad de medida es requerida</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Partial Sale Surcharges" xml:space="preserve">
+    <value>Recargos de Venta Parcial</value>
+  </data>
+  <data name="Configure surcharge percentage for each fraction. Leave at 0% for proportional pricing." xml:space="preserve">
+    <value>Configure el porcentaje de recargo para cada fracción. Deje en 0% para precio proporcional.</value>
+  </data>
+  <data name="Fraction" xml:space="preserve">
+    <value>Fracción</value>
+  </data>
+  <data name="Surcharge %" xml:space="preserve">
+    <value>Recargo %</value>
+  </data>
+  <data name="Error loading fractions" xml:space="preserve">
+    <value>Error al cargar las fracciones</value>
+  </data>
+  <data name="Error loading surcharge configurations" xml:space="preserve">
+    <value>Error al cargar las configuraciones de recargo</value>
+  </data>
+</root>

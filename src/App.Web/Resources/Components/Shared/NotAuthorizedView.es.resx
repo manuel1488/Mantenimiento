@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Access Denied" xml:space="preserve">
+        <value>Acceso Denegado</value>
+    </data>
+    <data name="You don't have permission to access this resource" xml:space="preserve">
+        <value>No tienes permiso para acceder a este recurso</value>
+    </data>
+    <data name="Go to Home" xml:space="preserve">
+        <value>Ir al Inicio</value>
+    </data>
+</root>

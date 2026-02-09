@@ -1,0 +1,100 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using App.Core.Constants
+@using MudBlazor
+@inject IStringLocalizer<NavMenu> L
+
+<MudDrawerHeader>
+    <MudText Typo="Typo.h6">@L["App Name"]</MudText>
+</MudDrawerHeader>
+
+<MudNavMenu>
+    <MudNavLink Icon="@Icons.Material.Filled.Dashboard"
+                Href="/dashboard" Match="NavLinkMatch.All">
+        @L["Dashboard"]
+    </MudNavLink>
+
+    <!-- Sección Shop (Tienda) -->
+    <AuthorizeView Policy="@ApplicationClaims.Shop.ShopAccess">
+        <Authorized Context="shopAuth">
+            <MudNavGroup Title="@L["Shop"]"
+                        Icon="@Icons.Material.Filled.Store"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewSales">
+                    <Authorized Context="salesAuth">
+                        <MudNavLink Href="/shop/sales">@L["Sales"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewHistorySales">
+                    <Authorized Context="salesHistoryAuth">
+                        <MudNavLink Href="/shop/sales-history">@L["View sales history"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewDailySalesSummary">
+                    <Authorized Context="dailySummaryAuth">
+                        <MudNavLink Href="/shop/daily-sales-summary">@L["Daily Sales Summary"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewSalesReport">
+                    <Authorized Context="reportsAuth">
+                        <MudNavLink Href="/shop/reports/sales">@L["Sales Reports"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewProducts">
+                    <Authorized Context="productsAuth">
+                        <MudNavLink Href="/shop/products">@L["Products"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInventory">
+                    <Authorized Context="inventoryAuth">
+                        <MudNavLink Href="/shop/inventory">@L["Inventory"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
+    <!-- Sección Management (Gestión) -->
+    <AuthorizeView Policy="@ApplicationClaims.Shared.SharedAccess">
+        <Authorized Context="customersAuth">
+            <MudNavGroup Title="@L["Management"]"
+                        Icon="@Icons.Material.Filled.People"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCustomers">
+                    <MudNavLink Href="/customers">@L["Customers"]</MudNavLink>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
+    <!-- Sección Administration (Administración) -->
+    <AuthorizeView Policy="@ApplicationClaims.Admin.AdminAccess">
+        <Authorized Context="adminAuth">
+            <MudNavGroup Title="@L["Administration"]"
+                        Icon="@Icons.Material.Filled.AdminPanelSettings"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUsers">
+                    <Authorized Context="usersAuth">
+                        <MudNavLink Href="/admin/users">@L["Users & Roles"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <Authorized Context="settingsAuth">
+                        <MudNavLink Href="/admin/settings">@L["Settings"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ManageInitialSetup">
+                    <Authorized Context="setupAuth">
+                        <MudNavLink Href="/admin/initial-setup">@L["Initial Setup"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+</MudNavMenu>

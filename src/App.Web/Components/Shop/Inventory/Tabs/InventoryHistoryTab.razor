@@ -1,0 +1,424 @@
+﻿@using App.Core.DTOs.Inventory
+@using App.Core.DTOs.Warehouse
+@using App.Core.Constants
+@using App.Core.Interfaces
+@using App.Core.Options
+@using App.Shared.Services
+@using App.Web.Services
+@using Microsoft.Extensions.Options
+
+@inject IStringLocalizer<InventoryHistoryTab> L
+@inject IInventoryHistoryService InventoryHistoryService
+@inject IWarehouseService WarehouseService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject ILogger<InventoryHistoryTab> Logger
+@inject IDateTime DateTimeService
+@inject ICompanySettingsService CompanySettingsService
+@inject IOptions<ExportOptions> ExportOptions
+@inject IDialogService DialogService
+@inject InventoryMovementService MovementService
+
+<AuthorizeView Policy="@ApplicationClaims.Shop.ViewInventoryHistory">
+    <Authorized>
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex gap-4 flex-grow-1">
+                <!-- Filtro de fechas -->
+                <MudDateRangePicker
+                    @bind-DateRange="_dateRange"
+                    @bind-DateRange:after="OnDateRangeChanged"
+                    Label="@L["Date Range"]"
+                    AdornmentColor="Color.Error"
+                    PickerVariant="PickerVariant.Dialog"
+                    Style="min-width: 300px;" />
+
+                <!-- Filtro de Almacén -->
+                <MudSelect T="int?" 
+                        Label="@L["Warehouse"]"
+                        @bind-Value="_selectedWarehouse"
+                        @bind-Value:after="OnWarehouseFilterChange"
+                        AnchorOrigin="Origin.BottomCenter"
+                        Style="min-width: 200px;">
+                    <MudSelectItem T="int?" Value="@null">@L["All Warehouses"]</MudSelectItem>
+                    @foreach(var warehouse in _warehouses)
+                    {
+                        <MudSelectItem T="int?" Value="@warehouse.Id">
+                            @warehouse.Name
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                <!-- Filtro de tipo de movimiento -->
+                <MudSelect T="string" 
+                        Label="@L["Movement Type"]"
+                        @bind-Value="_selectedMovementType"
+                        @bind-Value:after="OnMovementTypeFilterChange"
+                        AnchorOrigin="Origin.BottomCenter"
+                        Style="min-width: 200px;">
+                    <MudSelectItem T="string" Value="@null">@L["All Types"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementType.InitialLoad">@L["Initial Load"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementType.Purchase">@L["Purchase"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementType.Sale">@L["Sale"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementType.Transfer">@L["Transfer"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementType.Adjustment">@L["Adjustment"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@InventoryMovementType.Return">@L["Return"]</MudSelectItem>
+                </MudSelect>
+
+                <!-- Búsqueda -->
+                <MudTextField T="string" 
+                    @bind-Value="_searchString"
+                    @bind-Value:after="OnSearchChanged"
+                    Placeholder="@L["Search products"]"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    Style="min-width: 250px;"
+                    Class="flex-grow-1"
+                    Immediate="true"
+                    DebounceInterval="500"/>
+
+                <!-- Botones de Export/Print -->
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" 
+                        Color="Color.Default">
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload"
+                                OnClick="ExportToExcel">
+                        <div class="d-flex flex-column">
+                            <MudText>@L["Export to Excel"]</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @L["Max. {0:N0} records", ExportOptions.Value.MaxExportRecords]
+                            </MudText>
+                        </div>
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Print"
+                                OnClick="PrintHistory">
+                        <div class="d-flex flex-column">
+                            <MudText>@L["Print"]</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @L["Max. {0:N0} records", ExportOptions.Value.MaxPdfRecords]
+                            </MudText>
+                        </div>
+                    </MudMenuItem>
+                </MudMenu>
+            </MudItem>
+
+            <MudItem xs="12">
+                @if (!_loading)
+                {
+                    <MudTable T="InventoryMovementDto" 
+                            ServerData="@LoadServerData"
+                            Dense="true"
+                            Hover="true"
+                            Loading="@_loading"
+                            @ref="_table">
+                        <HeaderContent>
+                            <MudTh>@L["Date"]</MudTh>
+                            <MudTh>@L["Product"]</MudTh>
+                            <MudTh>@L[name: "Brand"]</MudTh>
+                            <MudTh>@L[name: "Description"]</MudTh>
+                            <MudTh>@L["Type"]</MudTh>
+                            <MudTh>@L["Source"]</MudTh>
+                            <MudTh>@L["Destination"]</MudTh>
+                            <MudTh Style="text-align: right">@L["Quantity"]</MudTh>
+                            <MudTh>@L["Content Per Unit"]</MudTh>
+                            <MudTh Style="text-align: right">@L["Total Content"]</MudTh>
+                            <MudTh>@L["Unit"]</MudTh>
+                            <MudTh Style="text-align: right">@L["Previous Balance"]</MudTh>
+                            <MudTh Style="text-align: right">@L["New Balance"]</MudTh>
+                            <MudTh>@L["Reference"]</MudTh>
+                            <MudTh>@L["Reason"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="contextHistory">
+                            <MudTd DataLabel="@L["Date"]">
+                                @FormatToCompanyTimezone(contextHistory.MovementDate)
+                            </MudTd>
+                            <MudTd DataLabel="@L["Product"]">
+                                <div class="d-flex flex-column">
+                                    <MudText>@contextHistory.ProductName</MudText>
+                                    <MudText Typo="Typo.caption">@contextHistory.ProductCode</MudText>
+                                </div>
+                            </MudTd>
+                            <MudTd DataLabel="@L["Brand"]">
+                                @contextHistory.BrandName
+                            </MudTd>
+                            <MudTd DataLabel="@L["Description"]">
+                                @contextHistory.ProductDescription
+                            </MudTd>
+                            <MudTd DataLabel="@L["Type"]">
+                                <MudChip T="string" Size="Size.Small" Color="@MovementService.GetMovementTypeColor(contextHistory.MovementType)">
+                                    @GetMovementTypeDisplay(contextHistory.MovementType)
+                                </MudChip>
+                                @if (!string.IsNullOrEmpty(contextHistory.MovementSubType))
+                                {
+                                    <MudText Typo="Typo.caption">
+                                        @MovementService.GetMovementSubTypeDisplay(contextHistory.MovementSubType)
+                                    </MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="@L["Source"]">@contextHistory.WarehouseName</MudTd>
+                            <MudTd DataLabel="@L["Destination"]">
+                                @contextHistory.DestinationWarehouseName
+                            </MudTd>
+                            <MudTd DataLabel="@L["Quantity"]" Style="text-align: right">
+                                @contextHistory.Quantity.ToString("N2")
+                            </MudTd>
+                            <MudTd DataLabel="@L["Content Per Unit"]">
+                                @if (contextHistory.ProductContent > 0)
+                                {
+                                    @contextHistory.ProductContent.ToString("N2")
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="@L["Total Content"]" Style="text-align: right">
+                                @if (contextHistory.IndividualUnits > 0)
+                                {
+                                    @contextHistory.IndividualUnits.ToString("N2")
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">-</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="@L["Unit"]">@contextHistory.UnitMeasureName</MudTd>
+                            <MudTd DataLabel="@L["Previous Balance"]" Style="text-align: right">
+                                @contextHistory.PreviousBalance.ToString("N2")
+                            </MudTd>
+                            <MudTd DataLabel="@L["New Balance"]" Style="text-align: right">
+                                @contextHistory.NewBalance.ToString("N2")
+                            </MudTd>
+                            <MudTd DataLabel="@L["Reference"]">@contextHistory.Reference</MudTd>
+                            <MudTd DataLabel="@L["Reason"]">@contextHistory.Reason</MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager />
+                        </PagerContent>
+                        <NoRecordsContent>
+                            <MudText>@L["No movement records found"]</MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                }
+            </MudItem>
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private MudTable<InventoryMovementDto> _table = null!;
+    private List<WarehouseDto> _warehouses = new();
+    private TimeZoneInfo? _companyTimeZone;
+    private bool _loading = true;
+    private bool _initialized = false;
+    private string _searchString = "";
+    private int? _selectedWarehouse;
+    private string? _selectedMovementType;
+    private DateRange _dateRange = new(DateTime.Today.AddDays(-30), DateTime.Today);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWarehouses();
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+        _initialized = true;
+        _loading = false;
+    }
+
+    private async Task LoadWarehouses()
+    {
+        try
+        {
+            var (_, items) = await WarehouseService.GetWarehousesAsync(
+                pageSize: 100, 
+                isActive: true);
+            _warehouses = items.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading warehouses");
+            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+        }
+    }
+
+    private async Task<TableData<InventoryMovementDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (!_initialized)
+            {
+                return new TableData<InventoryMovementDto> 
+                { 
+                    TotalItems = 0, 
+                    Items = Enumerable.Empty<InventoryMovementDto>() 
+                };
+            }
+
+            _loading = true;
+
+            var (movements, totalCount) = await InventoryHistoryService.GetWarehouseMovementHistoryAsync(
+                _selectedWarehouse,
+                _dateRange.Start,
+                _dateRange.End,
+                _searchString,
+                _selectedMovementType,
+                null,
+                state.Page,
+                state.PageSize,
+                cancellationToken);
+
+            return new TableData<InventoryMovementDto> 
+            { 
+                TotalItems = totalCount, 
+                Items = movements 
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogDebug("Data loading was cancelled");
+            return new TableData<InventoryMovementDto> 
+            { 
+                TotalItems = 0, 
+                Items = Enumerable.Empty<InventoryMovementDto>() 
+            };
+        }
+        catch (Exception ex)
+        {
+            // Solo errores reales se muestran al usuario
+            Logger.LogError(ex, "Error loading inventory movements");
+            Snackbar.Add(L["Error loading movements"], Severity.Error);
+            return new TableData<InventoryMovementDto> 
+            { 
+                TotalItems = 0, 
+                Items = Enumerable.Empty<InventoryMovementDto>() 
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private string GetMovementTypeDisplay(string movementType) => 
+        MovementService.GetMovementTypeDisplay(movementType);
+
+    private void ExportToExcel()
+    {
+        try
+        {            
+            // Build query parameters
+            var queryParams = new List<string>
+            {
+                $"pageSize={ExportOptions.Value.MaxExportRecords}"
+            };
+                
+            if (_selectedWarehouse.HasValue)
+                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                    
+            if (_dateRange.Start.HasValue)
+                queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
+                    
+            if (_dateRange.End.HasValue)
+                queryParams.Add($"endDate={Uri.EscapeDataString(_dateRange.End.Value.ToString("O"))}");
+                    
+            if (!string.IsNullOrEmpty(_searchString))
+                queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
+                    
+            if (!string.IsNullOrEmpty(_selectedMovementType))
+                queryParams.Add($"movementType={Uri.EscapeDataString(_selectedMovementType)}");
+
+            var queryString = queryParams.Any() ? $"?{string.Join("&", queryParams)}" : "";
+            var exportUrl = $"api/InventoryExport/exportHistory{queryString}";
+
+            NavigationManager.NavigateTo(exportUrl, true);
+            Snackbar.Add(L["Export started"], Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting movement history");
+            Snackbar.Add(L["Error exporting history"], Severity.Error);
+        }
+    }
+
+    private void PrintHistory()
+    {
+        try
+        {
+            // Build query parameters
+            var queryParams = new List<string>
+            {
+                $"pageSize={ExportOptions.Value.MaxPdfRecords}"
+            };
+                
+            if (_selectedWarehouse.HasValue)
+                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                    
+            if (_dateRange.Start.HasValue)
+                queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
+                    
+            if (_dateRange.End.HasValue)
+                queryParams.Add($"endDate={Uri.EscapeDataString(_dateRange.End.Value.ToString("O"))}");
+                    
+            if (!string.IsNullOrEmpty(_searchString))
+                queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
+                    
+            if (!string.IsNullOrEmpty(_selectedMovementType))
+                queryParams.Add($"movementType={Uri.EscapeDataString(_selectedMovementType)}");
+
+            var queryString = queryParams.Any() ? $"?{string.Join("&", queryParams)}" : "";
+            var printUrl = $"api/InventoryExport/printHistory{queryString}";
+
+            NavigationManager.NavigateTo(printUrl, true);
+            Snackbar.Add(L["Print started"], Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error printing movement history");
+            Snackbar.Add(L["Error printing history"], Severity.Error);
+        }
+    }
+
+    private async Task OnDateRangeChanged()
+    {
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnWarehouseFilterChange()
+    {
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnSearchChanged()
+    {
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnMovementTypeFilterChange()
+    {
+        await _table.ReloadServerData();
+    }
+
+    private string FormatToCompanyTimezone(DateTime utcDate)
+    {
+        try
+        {
+            if (_companyTimeZone == null)
+                return utcDate.ToLocalTime().ToString("g");
+
+            var convertedTime = DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+            return convertedTime;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error converting date to company timezone");
+            return utcDate.ToLocalTime().ToString("g");
+        }
+    }
+}

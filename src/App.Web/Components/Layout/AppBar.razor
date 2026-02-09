@@ -1,0 +1,102 @@
+﻿@using App.Core.Options
+@using Microsoft.AspNetCore.Identity
+@using System.Globalization
+@using System.Web
+@using Microsoft.Extensions.Options
+@inject CultureOptions cultureOptions
+@inject IOptions<ApplicationOptions> applicationOptions
+@inject IStringLocalizer<AppBar> L
+@inject NavigationManager NavigationManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+<MudAppBar Elevation="2">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" 
+        Edge="Edge.Start"
+        title="@L["MenuToggle"]"
+        OnClick="@(() => OnDrawerToggle.InvokeAsync())" />
+
+    <MudText Typo="Typo.h6" Class="ml-4">@applicationOptions.Value.Name</MudText>
+    <MudSpacer />
+
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+        <ActivatorContent>
+            <MudIconButton Icon="@Icons.Material.Filled.Translate" Color="Color.Inherit" 
+                title="@L["LanguageSelection"]"/>
+        </ActivatorContent>
+        <ChildContent>
+            @foreach (var culture in cultureOptions.SupportedCultures)
+            {
+                <MudMenuItem OnClick="@(() => OnCultureSelected(culture))">
+                    @culture.DisplayName
+                </MudMenuItem>
+            }
+        </ChildContent>
+    </MudMenu>
+    <AntiforgeryToken />
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+        <ActivatorContent>
+            <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Inherit"
+                title="@L["UserMenu"]"/>            
+        </ActivatorContent>
+        <ChildContent>
+            <AuthorizeView Context="auth">
+                <Authorized>                    
+                    <MudText Class="px-4 py-2">@auth.User.Identity?.Name</MudText>
+                    <MudDivider />
+                    <MudMenuItem OnClick="@(() => NavigationManager.NavigateTo("/profile"))">
+                        @L["Profile"]
+                    </MudMenuItem>
+                    <div class="px-3 py-2">
+                        <form action="Account/Logout" method="post">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                            <button type="submit"
+                                class="mud-button-root mud-button mud-button-text mud-button-text-inherit mud-button-text-size-medium mud-width-full">
+                                @L["Logout"]
+                            </button>
+                        </form>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </ChildContent>
+    </MudMenu>
+
+</MudAppBar>
+
+@code {
+    [Parameter] public EventCallback OnDrawerToggle { get; set; }
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnCultureSelected(CultureInfo culture)
+    {
+        // Obtener la URI actual
+        var uri = new Uri(NavigationManager.Uri)
+            .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+        
+        // Codificar los parámetros para la URL
+        var cultureEscaped = Uri.EscapeDataString(culture.Name);
+        var uriEscaped = Uri.EscapeDataString(uri);
+
+        // Navegar a la acción del controlador con los parámetros
+        NavigationManager.NavigateTo(
+            $"/Culture/SetCulture?culture={cultureEscaped}&redirectUri={uriEscaped}",
+            forceLoad: true);
+    }
+}

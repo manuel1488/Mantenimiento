@@ -1,0 +1,470 @@
+﻿@using CsvHelper
+@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Product
+@using App.Core.DTOs.Inventory
+@using App.Core.Constants
+@using App.Core.Interfaces
+@using App.Services.Mappings
+@using App.Web.Components.Shared.Dialogs
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@using OfficeOpenXml
+
+@inject IStringLocalizer<InventoryLoadTab> L
+@inject IWarehouseService WarehouseService
+@inject IProductService ProductService
+@inject IInventoryService InventoryService
+@inject IInventoryQueryService InventoryQueryService
+@inject IInventoryColumnMappingService ColumnMappingService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<InventoryLoadTab> Logger
+
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ManageInitialSetup">
+    <Authorized>
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex gap-4">
+                <MudSelect T="int?" Label="@L["Warehouse"]" @bind-Value="_selectedWarehouseId" Dense="true" Class="flex-1">
+                    @foreach (var warehouse in _warehouses)
+                    {
+                        <MudSelectItem T="int?" Value="@warehouse.Id">@warehouse.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="string" Label="@L["Load Type"]" @bind-Value="_loadType" Dense="true">
+                    <MudSelectItem Value="@LoadType.Individual">@L["Individual Load"]</MudSelectItem>
+                    <MudSelectItem Value="@LoadType.Bulk">@L["Bulk Load"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            @if (_loadType == LoadType.Individual)
+            {
+                <MudItem xs="12">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudAutocomplete T="ProductDto" 
+                                Label="@L["Product"]"  
+                                @bind-Value="_selectedProduct"
+                                SearchFunc="@SearchProducts" 
+                                ToStringFunc="@(p => p == null ? string.Empty : $"{p.Code} - {p.Name}")"
+                                ResetValueOnEmptyText="true"
+                                Required="true"
+                                MinCharacters="0" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudNumericField T="decimal" @bind-Value="_quantity" Label="@L["InitialQuantity"]" Min="0"
+                                Format="N2" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudNumericField T="decimal?" @bind-Value="_minStock" Label="@L["Min Stock"]" Min="0" Format="N2" />
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <MudNumericField T="decimal?" @bind-Value="_maxStock" Label="@L["Max Stock"]" Min="0" Format="N2" />
+                        </MudItem>
+
+                        <MudItem xs="12" Class="d-flex justify-end">
+                            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="LoadIndividualInventoryAsync"
+                                Disabled="@(!CanSubmit())" Class="da-button-rounded">
+                                @if (_processing)
+                                {
+                                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                    <MudText Class="ms-2">@L["Processing"]</MudText>
+                                }
+                                else
+                                {
+                                    @L["Load Initial Inventory"]
+                                }
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4" Elevation="0">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <InputFile id="fileInput" OnChange="OnFileSelected" 
+                                    accept="@AllowedFileTypes" MaxFileSize="@MaxFileSize" hidden />
+                                <div class="d-flex flex-column gap-4">
+                                    <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary"
+                                        StartIcon="@Icons.Material.Filled.CloudUpload" for="fileInput" Size="Size.Large"
+                                        Class="da-button-rounded">
+                                        @L["Upload File"]
+                                    </MudButton>
+
+                                    <MudText Typo="Typo.caption">
+                                        @L["Supported formats: {0}. Max file size: {1}MB", AllowedFileTypes, MaxFileSize / (1024 * 1024)]                                
+                                    </MudText>
+
+                                    @if (_selectedFile != null)
+                                    {
+                                        <MudChip T="string" Color="Color.Success" Size="Size.Small">
+                                            @_selectedFile.Name
+                                        </MudChip>
+                                    }
+                                </div>
+                            </MudItem>
+
+                            <MudItem xs="12" Class="mt-4">
+                                <MudLink Href="/api/templates/inventory" Target="_blank">
+                                    @L["Download Template"]
+                                </MudLink>
+                            </MudItem>
+
+                            <MudItem xs="12" Class="d-flex justify-end">
+                                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ImportBulkInventoryAsync"
+                                    Disabled="@(!CanImport())" Class="da-button-rounded">
+                                    @if (_processing)
+                                    {
+                                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                        <MudText Class="ms-2">@L["Processing"]</MudText>
+                                    }
+                                    else
+                                    {
+                                        @L["Import Initial Inventory"]
+                                    }
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudItem>
+            }
+
+            @if (_loadedItems.Any())
+            {
+                <MudItem xs="12">
+                    <MudTable Items="@_loadedItems" Dense="true" Hover="true">
+                        <HeaderContent>
+                            <MudTh>@L["Code"]</MudTh>
+                            <MudTh>@L["Name"]</MudTh>
+                            <MudTh Style="text-align: right">@L["Quantity"]</MudTh>
+                            <MudTh Style="text-align: right">@L["Min Stock"]</MudTh>
+                            <MudTh Style="text-align: right">@L["Max Stock"]</MudTh>
+                            <MudTh>@L["Status"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="productContext">
+                            <MudTd DataLabel="@L["Code"]">@productContext.ProductCode</MudTd>
+                            <MudTd DataLabel="@L["Name"]">@productContext.ProductName</MudTd>
+                            <MudTd DataLabel="@L["Quantity"]" Style="text-align: right">
+                                @productContext.Quantity.ToString("N2")
+                            </MudTd>
+                            <MudTd DataLabel="@L["Min Stock"]" Style="text-align: right">
+                                @(productContext.MinStock?.ToString("N2") ?? "-")
+                            </MudTd>
+                            <MudTd DataLabel="@L["Max Stock"]" Style="text-align: right">
+                                @(productContext.MaxStock?.ToString("N2") ?? "-")
+                            </MudTd>
+                            <MudTd DataLabel="@L["Status"]">
+                                @* TODO: Add status chip *@
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudItem>
+            }
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage initial inventory."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private static class LoadType
+    {
+        public const string Individual = "INDIVIDUAL";
+        public const string Bulk = "BULK";
+    }
+
+    private List<WarehouseDto> _warehouses = new();
+    private int? _selectedWarehouseId;
+    private string _loadType = LoadType.Individual;
+    private bool _processing;
+
+    // Individual load properties
+    private ProductDto? _selectedProduct;
+    private decimal _quantity;
+    private decimal? _minStock;
+    private decimal? _maxStock;
+
+    // Bulk load properties
+    private IBrowserFile? _selectedFile;
+    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
+    private const string AllowedFileTypes = ".csv";
+
+    // Results
+    private List<InventoryDto> _loadedItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWarehouses();
+    }
+
+    private async Task LoadWarehouses()
+    {
+        try
+        {
+            var (_, items) = await WarehouseService.GetWarehousesAsync(
+            pageSize: 100,
+            isActive: true);
+            _warehouses = items.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading warehouses");
+            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+        }
+    }
+
+    private async Task<IEnumerable<ProductDto>> SearchProducts(string value, CancellationToken token)
+    {
+        try
+        {
+            // Si el texto está vacío, mostrar los primeros 50 productos
+            if (string.IsNullOrEmpty(value))
+            {
+                var (_, productItems) = await ProductService.GetProductsAsync(
+                    page: 1,
+                    pageSize: 50,
+                    isActive: true);
+                return productItems;
+            }
+
+            // Si hay texto de búsqueda, usar la lógica de búsqueda existente
+            var (_, searchItems) = await ProductService.GetProductsAsync(
+                searchString: value,
+                pageSize: 50,
+                isActive: true);
+            return searchItems;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching products");
+            return Array.Empty<ProductDto>();
+        }
+    }
+
+    private bool CanSubmit()
+    {
+        return !_processing &&
+        _selectedWarehouseId.HasValue &&
+        _selectedProduct != null &&
+        _quantity > 0;
+    }
+
+    private bool CanImport()
+    {
+        return !_processing &&
+        _selectedWarehouseId.HasValue &&
+        _selectedFile != null;
+    }
+
+    private async Task LoadIndividualInventoryAsync()
+    {
+        if (!CanSubmit()) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            var result = await InventoryService.CreateInitialInventoryAsync(
+                new InitialInventoryLoadDto
+                {
+                    ProductId = _selectedProduct!.Id,
+                    WarehouseId = _selectedWarehouseId!.Value,
+                    Quantity = _quantity,
+                    MinStock = _minStock,
+                    MaxStock = _maxStock,
+                    Reference = "Initial Load",
+                    Reason = "Initial inventory setup"
+                });
+
+            if (result.Success)
+            {
+                Snackbar.Add(L["Initial inventory loaded successfully"], Severity.Success);
+                
+                // Reset form
+                _selectedProduct = null;
+                _quantity = 0;
+                _minStock = null;
+                _maxStock = null;
+
+                await RefreshLoadedItemsAsync();
+            }
+            else
+            {
+                Snackbar.Add(result.ErrorMessage ?? L["A error unknow error has ocurred"], Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading initial inventory");
+            Snackbar.Add(L["Error loading initial inventory"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var allowedExtensions = AllowedFileTypes.Split(',').Select(x => x.Trim().ToLowerInvariant());
+        var fileExtension = Path.GetExtension(file.Name).ToLowerInvariant();
+
+        // validate file extension
+        if (!allowedExtensions.Contains(fileExtension))
+        {
+            Snackbar.Add(L[$"Only {AllowedFileTypes} files are allowed"], Severity.Warning);
+            return Task.CompletedTask;
+        }
+
+        // validate file size
+        if (file.Size > MaxFileSize)
+        {
+            Snackbar.Add(L[$"File size exceeds maximum allowed ({MaxFileSize / (1024 * 1024)}MB)"], Severity.Warning);
+            return Task.CompletedTask;
+        }
+
+        _selectedFile = e.File;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task ImportBulkInventoryAsync()
+    {
+        if (!CanImport()) return;
+        const int bufferSize = 81920;
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            using var stream = new MemoryStream();
+            await _selectedFile!.OpenReadStream().CopyToAsync(stream, bufferSize, cts.Token);
+            stream.Position = 0;
+
+            var results = await ProcessBulkLoadAsync(stream);
+            
+            await ShowBulkLoadResultsAsync(results);
+            await RefreshLoadedItemsAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error importing initial inventory");
+            Snackbar.Add(L["Error importing initial inventory"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            _selectedFile = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshLoadedItemsAsync()
+    {
+        if (!_selectedWarehouseId.HasValue) return;
+
+        try
+        {
+            var warehouse = await InventoryQueryService.GetWarehouseStockAsync(
+            _selectedWarehouseId.Value);
+
+            _loadedItems = warehouse.ProductStock
+            .Select(p => new InventoryDto
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductCode = p.ProductCode,
+                    WarehouseId = warehouse.WarehouseId,
+                    WarehouseName = warehouse.WarehouseName,
+                    Quantity = p.Quantity,
+                    MinStock = p.MinStock,
+                    MaxStock = p.MaxStock,
+                    UnitMeasureName = p.UnitMeasureName
+                }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error refreshing loaded items");
+            Snackbar.Add(L["Error loading inventory data"], Severity.Error);
+        }
+    }
+
+
+    private async Task<List<BulkInventoryLoadResultDto>> ProcessBulkLoadAsync(Stream fileStream)
+    {
+        try
+        {
+            using var reader = new StreamReader(fileStream);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+            // Configurar el mapeo
+            csv.Context.RegisterClassMap(new InventoryBulkLoadRecordMap(ColumnMappingService));
+
+            var request = new BulkInitialLoadRequestDto
+            {
+                WarehouseId = _selectedWarehouseId!.Value,
+                Items = new List<BulkInventoryLoadDto>()
+            };
+
+            // Leer registros del CSV
+            var records = csv.GetRecords<InventoryBulkLoadRecord>();
+            foreach (var record in records)
+            {
+                request.Items.Add(new BulkInventoryLoadDto
+                {
+                    ProductCode = record.ProductCode,
+                    Quantity = record.Quantity,
+                    MinStock = record.MinStock,
+                    MaxStock = record.MaxStock
+                });
+            }
+
+            // Procesar en el servicio
+            var result = await InventoryService.CreateBulkInitialInventoryAsync(request);
+
+            _processing = false;
+            StateHasChanged();
+            
+            if (!result.Success)
+            {
+                Snackbar.Add(result.ErrorMessage ?? L["An unknown error has occurred"], Severity.Error);
+            }
+
+            return result.Data ?? new List<BulkInventoryLoadResultDto>();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing CSV file");
+            Snackbar.Add(L["Error processing CSV file"], Severity.Error);
+            return new List<BulkInventoryLoadResultDto>();
+        }
+    }
+
+
+    private async Task ShowBulkLoadResultsAsync(List<BulkInventoryLoadResultDto> results)
+    {
+        var parameters = new DialogParameters
+        {
+            { "Results", results }
+        };
+
+        var dialog = await DialogService.ShowAsync<BulkLoadResultDialog>(
+        L["Import Results"], parameters);
+        await dialog.Result;
+    }
+}

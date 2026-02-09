@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Ticket Configuration" xml:space="preserve">
+    <value>Ticket Configuration</value>
+  </data>
+  <data name="Company Information" xml:space="preserve">
+    <value>Company Information</value>
+  </data>
+  <data name="Company Name" xml:space="preserve">
+    <value>Company Name</value>
+  </data>
+  <data name="Company name is required" xml:space="preserve">
+    <value>Company name is required</value>
+  </data>
+  <data name="Company Address" xml:space="preserve">
+    <value>Company Address</value>
+  </data>
+  <data name="Company Phone" xml:space="preserve">
+    <value>Company Phone</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>Tax ID</value>
+  </data>
+  <data name="Ticket Display Options" xml:space="preserve">
+    <value>Ticket Display Options</value>
+  </data>
+  <data name="Show Company Logo" xml:space="preserve">
+    <value>Show Company Logo</value>
+  </data>
+  <data name="Show QR Code" xml:space="preserve">
+    <value>Show QR Code</value>
+  </data>
+  <data name="Ticket Width (mm)" xml:space="preserve">
+    <value>Ticket Width (mm)</value>
+  </data>
+  <data name="Default Copies" xml:space="preserve">
+    <value>Default Copies</value>
+  </data>
+  <data name="Custom Text" xml:space="preserve">
+    <value>Custom Text</value>
+  </data>
+  <data name="Custom Header" xml:space="preserve">
+    <value>Custom Header</value>
+  </data>
+  <data name="HTML is supported" xml:space="preserve">
+    <value>HTML is supported</value>
+  </data>
+  <data name="Custom Footer" xml:space="preserve">
+    <value>Custom Footer</value>
+  </data>
+  <data name="Company Logo" xml:space="preserve">
+    <value>Company Logo</value>
+  </data>
+  <data name="Upload Logo" xml:space="preserve">
+    <value>Upload Logo</value>
+  </data>
+  <data name="Remove Logo" xml:space="preserve">
+    <value>Remove Logo</value>
+  </data>
+  <data name="Saving..." xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="Save Configuration" xml:space="preserve">
+    <value>Save Configuration</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+  <data name="Error loading configuration" xml:space="preserve">
+    <value>Error loading configuration</value>
+  </data>
+  <data name="Logo file is too large (max 1MB)" xml:space="preserve">
+    <value>Logo file is too large (max 1MB)</value>
+  </data>
+  <data name="Only image files are allowed" xml:space="preserve">
+    <value>Only image files are allowed</value>
+  </data>
+  <data name="Error processing logo file" xml:space="preserve">
+    <value>Error processing logo file</value>
+  </data>
+  <data name="Configuration saved successfully" xml:space="preserve">
+    <value>Configuration saved successfully</value>
+  </data>
+  <data name="Error saving configuration" xml:space="preserve">
+    <value>Error saving configuration</value>
+  </data>
+</root>

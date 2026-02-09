@@ -1,0 +1,50 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# C# files
+*.cs text diff=csharp
+*.cshtml text diff=html
+*.razor text diff=html
+*.csx text diff=csharp
+
+# .NET project files
+*.sln text eol=crlf
+*.csproj text eol=crlf
+*.vbproj text eol=crlf
+*.fsproj text eol=crlf
+*.dbproj text eol=crlf
+
+# Web files
+*.html text diff=html
+*.css text diff=css
+*.js text
+*.json text
+*.htm text diff=html
+
+# Documents
+*.md text diff=markdown
+*.txt text
+*.pdf binary
+
+# Images and binary files (treated as binary by git)
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.ttf binary
+*.webp binary
+
+# NuGet
+*.nuspec text
+packages.config text
+package.json text
+package-lock.json text
+
+# Build output and dependencies
+bin/ binary
+obj/ binary
+node_modules/ binary
+wwwroot/lib/ binary

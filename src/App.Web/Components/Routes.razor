@@ -1,0 +1,46 @@
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using App.Web.Components.Shared
+@using App.Web.Components.Layout
+
+@inject NavigationManager NavigationManager
+
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">        
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                @if (context.User.Identity?.IsAuthenticated == true)
+                {
+                    <RedirectToAccessDenied />
+                }
+                else
+                {
+                    <RedirectToLogin ReturnUrl="@NavigationManager.Uri" />
+                }
+            </NotAuthorized>
+            <Authorizing>
+                <LoadingView />
+            </Authorizing>
+        </AuthorizeRouteView>
+
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>404 - Not found</PageTitle>
+        <CascadingAuthenticationState>
+            <AuthorizeView>
+                <Authorized>
+                    <ErrorLayout>
+                        <NotFoundView />
+                    </ErrorLayout>
+                </Authorized>
+                <NotAuthorized>
+                    <EmptyLayout>
+                        <NotFoundView />
+                    </EmptyLayout>
+                </NotAuthorized>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
+    </NotFound>
+</Router>

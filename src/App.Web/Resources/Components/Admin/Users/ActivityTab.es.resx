@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Search activity" xml:space="preserve">
+        <value>Buscar actividad...</value>
+    </data>
+    <data name="User" xml:space="preserve">
+        <value>Usuario</value>
+    </data>
+    <data name="Type" xml:space="preserve">
+        <value>Tipo</value>
+    </data>
+    <data name="All" xml:space="preserve">
+        <value>Todos</value>
+    </data>
+    <data name="Date Range" xml:space="preserve">
+        <value>Rango de Fechas</value>
+    </data>
+    <data name="Clear" xml:space="preserve">
+        <value>Limpiar</value>
+    </data>
+    <data name="Export" xml:space="preserve">
+        <value>Exportar</value>
+    </data>
+    <data name="Date/Time" xml:space="preserve">
+        <value>Fecha/Hora</value>
+    </data>
+    <data name="Description" xml:space="preserve">
+        <value>Descripción</value>
+    </data>
+    <data name="IP Address" xml:space="preserve">
+        <value>Dirección IP</value>
+    </data>
+    <data name="No activities found" xml:space="preserve">
+        <value>No se encontraron actividades</value>
+    </data>
+    <data name="Sort By" xml:space="preserve">
+        <value>Ordenar por</value>
+    </data>
+    <data name="Export started" xml:space="preserve">
+        <value>Exportación iniciada</value>
+    </data>
+    <!-- Activity Types -->
+    <data name="Login" xml:space="preserve">
+        <value>Ingreso</value>
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value>Salida</value>
+    </data>
+    <data name="Sale" xml:space="preserve">
+        <value>Venta</value>
+    </data>
+    <data name="UserCreated" xml:space="preserve">
+        <value>Usuario Creado</value>
+    </data>
+    <data name="UserModified" xml:space="preserve">
+        <value>Usuario Modificado</value>
+    </data>
+    <data name="UserDeleted" xml:space="preserve">
+        <value>Usuario Eliminado</value>
+    </data>
+    <data name="SystemConfig" xml:space="preserve">
+        <value>Configuración</value>
+    </data>
+</root>

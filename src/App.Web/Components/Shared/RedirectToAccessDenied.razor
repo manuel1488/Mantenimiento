@@ -1,0 +1,11 @@
+@inject NavigationManager NavigationManager
+
+@code {
+    [Parameter] public string ReturnUrl { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Simply redirect to the access-denied page without ReturnUrl to avoid confusion
+        NavigationManager.NavigateTo("/access-denied", forceLoad: true);
+    }
+}

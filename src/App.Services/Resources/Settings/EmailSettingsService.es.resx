@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root> 
+  <data name="SmtpHostPortRequired" xml:space="preserve">
+    <value>El host y el puerto SMTP deben proporcionarse juntos</value>
+    <comment>Mensaje de validación cuando falta el host o el puerto</comment>
+  </data>
+  <data name="SmtpPasswordRequired" xml:space="preserve">
+    <value>Se requiere la contraseña SMTP cuando se proporciona el usuario</value>
+    <comment>Mensaje de validación cuando falta la contraseña pero se proporciona el usuario</comment>
+  </data>
+  <data name="SmtpUserRequired" xml:space="preserve">
+    <value>Se requiere el usuario SMTP cuando se proporciona la contraseña</value>
+    <comment>Mensaje de validación cuando falta el usuario pero se proporciona la contraseña</comment>
+  </data>
+  <data name="ErrorGettingSettings" xml:space="preserve">
+    <value>Error al obtener la configuración de correo electrónico</value>
+    <comment>Mensaje de error para registro cuando falla la obtención de configuración</comment>
+  </data>
+  <data name="ErrorUpdatingSettings" xml:space="preserve">
+    <value>Error al actualizar la configuración de correo electrónico</value>
+    <comment>Mensaje de error para registro cuando falla la actualización de configuración</comment>
+  </data>
+  <data name="UnknownUser" xml:space="preserve">
+    <value>Desconocido</value>
+    <comment>Valor predeterminado cuando el nombre de usuario no está disponible</comment>
+  </data>
+</root>

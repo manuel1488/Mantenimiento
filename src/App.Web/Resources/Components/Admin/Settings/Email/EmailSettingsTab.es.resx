@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- SMTP Server Settings Section -->
+  <data name="SMTP Server Settings" xml:space="preserve">
+    <value>Configuración del Servidor SMTP</value>
+  </data>
+  <data name="SMTP Host" xml:space="preserve">
+    <value>Servidor SMTP</value>
+  </data>
+  <data name="e.g., smtp.gmail.com" xml:space="preserve">
+    <value>ej., smtp.gmail.com</value>
+  </data>
+  <data name="SMTP Port" xml:space="preserve">
+    <value>Puerto SMTP</value>
+  </data>
+  <data name="e.g., 587 for TLS, 465 for SSL" xml:space="preserve">
+    <value>ej., 587 para TLS, 465 para SSL</value>
+  </data>
+  <data name="SMTP Username" xml:space="preserve">
+    <value>Usuario SMTP</value>
+  </data>
+  <data name="SMTP Password" xml:space="preserve">
+    <value>Contraseña SMTP</value>
+  </data>
+
+  <!-- Email Settings Section -->
+  <data name="Email Settings" xml:space="preserve">
+    <value>Configuración de Correo</value>
+  </data>
+  <data name="From Email" xml:space="preserve">
+    <value>Correo Remitente</value>
+  </data>
+  <data name="From Name" xml:space="preserve">
+    <value>Nombre Remitente</value>
+  </data>
+  <data name="Use SSL/TLS" xml:space="preserve">
+    <value>Usar SSL/TLS</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="Test Connection" xml:space="preserve">
+    <value>Probar Conexión</value>
+  </data>
+  <data name="Send Test Email" xml:space="preserve">
+    <value>Enviar Correo de Prueba</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+
+  <!-- Messages -->
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error al cargar la configuración</value>
+  </data>
+  <data name="Connection test successful" xml:space="preserve">
+    <value>Prueba de conexión exitosa</value>
+  </data>
+  <data name="Connection test failed" xml:space="preserve">
+    <value>Prueba de conexión fallida</value>
+  </data>
+  <data name="Error testing connection" xml:space="preserve">
+    <value>Error al probar la conexión</value>
+  </data>
+  <data name="Enter the email address to send a test message:" xml:space="preserve">
+    <value>Ingrese el correo electrónico para enviar un mensaje de prueba:</value>
+  </data>
+  <data name="Please enter a valid email address" xml:space="preserve">
+    <value>Por favor ingrese un correo electrónico válido</value>
+  </data>
+  <data name="Test email sent successfully" xml:space="preserve">
+    <value>Correo de prueba enviado exitosamente</value>
+  </data>
+  <data name="Error sending test email" xml:space="preserve">
+    <value>Error al enviar el correo de prueba</value>
+  </data>
+  <data name="Settings updated successfully" xml:space="preserve">
+    <value>Configuración actualizada exitosamente</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+</root>

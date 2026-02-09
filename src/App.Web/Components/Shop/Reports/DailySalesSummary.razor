@@ -1,0 +1,513 @@
+﻿@page "/shop/daily-sales-summary"
+@using System.Globalization
+@using App.Core.Constants
+@using App.Core.DTOs.Reports
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces
+@using App.Core.Options
+@using Microsoft.Extensions.Options
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewDailySalesSummary)]
+
+@inject ISalesReportService ReportService
+@inject IStringLocalizer<DailySalesSummary> L
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ILogger<DailySalesSummary> Logger
+@inject IOptions<ExportOptions> ExportOptions
+
+<PageTitle>@L["Daily Sales Summary"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-4">
+    <!-- Header with Quick Filters -->
+    <MudPaper Elevation="0" Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex justify-space-between align-center flex-wrap gap-4">
+                <MudText Typo="Typo.h4">@L["Daily Sales Summary"]</MudText>
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ExportDailySalesSummary">
+                    <Authorized>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <MudButton Variant="Variant.Outlined" OnClick="ExportToExcel"
+                                StartIcon="@Icons.Material.Filled.FileDownload" Disabled="@_exporting"
+                                Size="Size.Small">
+                                @L["Export Excel"]
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" OnClick="ExportToPdf"
+                                StartIcon="@Icons.Material.Filled.PictureAsPdf" Disabled="@_exporting"
+                                Size="Size.Small">
+                                @L["Export PDF"]
+                            </MudButton>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+            </MudItem>
+
+            <!-- Quick Date Filters -->
+            <MudItem xs="12">
+                <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                    <MudButton OnClick="@(() => SetQuickFilter("Today"))"
+                        Variant="@(_selectedFilter == "Today" ? Variant.Filled : Variant.Outlined)">
+                        @L["Today"]
+                    </MudButton>
+                    <MudButton OnClick="@(() => SetQuickFilter("Yesterday"))"
+                        Variant="@(_selectedFilter == "Yesterday" ? Variant.Filled : Variant.Outlined)">
+                        @L["Yesterday"]
+                    </MudButton>
+                    <MudButton OnClick="@(() => SetQuickFilter("ThisWeek"))"
+                        Variant="@(_selectedFilter == "ThisWeek" ? Variant.Filled : Variant.Outlined)">
+                        @L["This Week"]
+                    </MudButton>
+                    <MudButton OnClick="@(() => SetQuickFilter("ThisMonth"))"
+                        Variant="@(_selectedFilter == "ThisMonth" ? Variant.Filled : Variant.Outlined)">
+                        @L["This Month"]
+                    </MudButton>
+                    <MudButton OnClick="@(() => { _selectedFilter = "Custom"; StateHasChanged(); })"
+                        Variant="@(_selectedFilter == "Custom" ? Variant.Filled : Variant.Outlined)">
+                        @L["Custom Range"]
+                    </MudButton>
+                </MudButtonGroup>
+            </MudItem>
+
+            <!-- Filters Row -->
+            <MudItem xs="12" sm="6" md="3">
+                <MudDateRangePicker DateRange="_dateRange"
+                    DateRangeChanged="@OnDateRangeChanged"
+                    Label="@L["Date Range"]"
+                    AdornmentColor="Color.Primary"
+                    PickerVariant="PickerVariant.Dialog"
+                    Disabled="@(_selectedFilter != "Custom")"
+                    HelperText="@L["Maximum 2 months range"]" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudText Typo="Typo.subtitle2" Class="d-flex align-center gap-2 pa-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Store" Size="Size.Small" />
+                    @L["Public Sales"]
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudSelect T="string" @bind-Value="_selectedStatus" Label="@L["Status"]"
+                    AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem T="string" Value="@null">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Created")">@L["Created"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Cancelled")">@L["Cancelled"]</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3" Class="d-flex align-center">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                    OnClick="RefreshReport" FullWidth="true" StartIcon="@Icons.Material.Filled.Refresh">
+                    @L["Refresh"]
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (_loading)
+    {
+        <MudPaper Class="pa-8 d-flex justify-center">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        </MudPaper>
+    }
+    else if (_summary == null)
+    {
+        <MudAlert Severity="Severity.Warning">@L["No data available"]</MudAlert>
+    }
+    else
+    {
+        <!-- Summary Cards -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Sales"]</MudText>
+                            <MudText Typo="Typo.h4">@_summary.TotalSales</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Receipt" Size="Size.Large" Color="Color.Primary" />
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Revenue"]</MudText>
+                            <MudText Typo="Typo.h4" Color="Color.Success">@_summary.TotalRevenue.ToString("C")</MudText>
+                            <MudText Typo="Typo.caption" Class="mt-1">
+                                @L["Subtotal"]: @((_summary.TotalRevenue - _summary.TotalTax).ToString("C"))
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Large" Color="Color.Success" />
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Tax"]</MudText>
+                            <MudText Typo="Typo.h4">@_summary.TotalTax.ToString("C")</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Info" />
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="2" Class="pa-4">
+                    <div class="d-flex justify-space-between align-center">
+                        <div>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Total Discount"]</MudText>
+                            <MudText Typo="Typo.h4">@_summary.TotalDiscount.ToString("C")</MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.Discount" Size="Size.Large" Color="Color.Warning" />
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Cash Register Summary Style -->
+        <MudPaper Elevation="2" Class="pa-4 mb-4">
+            <div class="d-flex align-center mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.Payments" Color="Color.Primary" Class="mr-2" />
+                <MudText Typo="Typo.h6">@L["Cash Register - Payment Methods"]</MudText>
+            </div>
+            <MudDivider Class="mb-3" />
+            <MudStack Spacing="2">
+                @foreach (var paymentGroup in _paymentMethodBreakdown.OrderByDescending(x => x.Value))
+                {
+                    <div class="d-flex justify-space-between align-center pa-2" style="background-color: var(--mud-palette-background-grey); border-radius: 4px;">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@GetPaymentIcon(paymentGroup.Key)" Size="Size.Small" Class="mr-2" />
+                            <div>
+                                <MudText Typo="Typo.body1"><strong>@L[paymentGroup.Key]</strong></MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @GetPaymentMethodCount(paymentGroup.Key) @L["transactions"]
+                                </MudText>
+                            </div>
+                        </div>
+                        <MudText Typo="Typo.h6" Color="Color.Success">
+                            <strong>@paymentGroup.Value.ToString("C2")</strong>
+                        </MudText>
+                    </div>
+                }
+                @if (!_paymentMethodBreakdown.Any())
+                {
+                    <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary" Class="pa-4">
+                        @L["No payment data available"]
+                    </MudText>
+                }
+            </MudStack>
+        </MudPaper>
+
+        <!-- Sales Detail Table -->
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">@L["Sales Detail"]</MudText>
+            <MudDataGrid T="SaleDto" Items="@_sales" Dense="true" Hover="true"
+                Filterable="true" SortMode="SortMode.Multiple"
+                Loading="@_loading" RowsPerPage="25">
+                <Columns>
+                    <PropertyColumn Property="x => x.Id" Title="@L["ID"]" />
+                    <PropertyColumn Property="x => x.SaleDate" Title="@L["Date"]" Format="dd/MM/yyyy HH:mm">
+                        <CellTemplate>
+                            @context.Item.SaleDate.ToLocalTime().ToString("g")
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]" />
+                    <PropertyColumn Property="x => x.SaleType" Title="@L["Type"]">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary">
+                                @L["Public"]
+                            </MudChip>
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.Status" Title="@L["Status"]">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Item.Status)">
+                                @L[context.Item.Status.ToString()]
+                            </MudChip>
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.PaymentMethod" Title="@L["Payment"]">
+                        <CellTemplate>
+                            @L[context.Item.PaymentMethod ?? "N/A"]
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.Subtotal" Title="@L["Subtotal"]" Format="C2" />
+                    <PropertyColumn Property="x => x.TaxAmount" Title="@L["Tax"]" Format="C2" />
+                    <PropertyColumn Property="x => x.DiscountAmount" Title="@L["Discount"]" Format="C2" />
+                    <PropertyColumn Property="x => x.Total" Title="@L["Total"]" Format="C2">
+                        <CellTemplate>
+                            <MudText Color="Color.Primary"><strong>@context.Item.Total.ToString("C2")</strong></MudText>
+                        </CellTemplate>
+                    </PropertyColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="SaleDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private bool _loading = true;
+    private bool _exporting = false;
+    private DateRange _dateRange = new(DateTime.Today, DateTime.Today);
+    private string _selectedFilter = "Today";
+    private SaleType _saleType = SaleType.Public;
+    private string? _selectedStatus = null;
+
+    private SalesSummaryDto? _summary;
+    private IList<SaleDto> _sales = new List<SaleDto>();
+    private Dictionary<string, decimal> _paymentMethodBreakdown = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshReport();
+    }
+
+    private async Task SetQuickFilter(string filter)
+    {
+        _selectedFilter = filter;
+        var today = DateTime.Today;
+
+        _dateRange = filter switch
+        {
+            "Today" => new DateRange(today, today),
+            "Yesterday" => new DateRange(today.AddDays(-1), today.AddDays(-1)),
+            "ThisWeek" => new DateRange(today.AddDays(-(int)today.DayOfWeek), today),
+            "ThisMonth" => new DateRange(new DateTime(today.Year, today.Month, 1), today),
+            _ => _dateRange
+        };
+
+        await RefreshReport();
+    }
+
+    private async Task OnDateRangeChanged(DateRange dateRange)
+    {
+        if (dateRange?.Start != null && dateRange?.End != null)
+        {
+            var daysDiff = (dateRange.End.Value - dateRange.Start.Value).Days;
+
+            if (daysDiff > 60)
+            {
+                Snackbar.Add(L["Date range cannot exceed 2 months (60 days)"], Severity.Warning);
+                return;
+            }
+
+            _dateRange = dateRange;
+            await RefreshReport();
+        }
+    }
+
+    private async Task RefreshReport()
+    {
+        try
+        {
+            _loading = true;
+            StateHasChanged();
+
+            SaleType? saleType = SaleType.Public;
+
+            // Convertir fechas locales a UTC para la consulta
+            DateTime? startDateUtc = null;
+            DateTime? endDateUtc = null;
+
+            if (_dateRange?.Start != null)
+            {
+                startDateUtc = DateTime.SpecifyKind(_dateRange.Start.Value, DateTimeKind.Local).ToUniversalTime();
+            }
+
+            if (_dateRange?.End != null)
+            {
+                // Fin del día en UTC
+                endDateUtc = DateTime.SpecifyKind(_dateRange.End.Value.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local).ToUniversalTime();
+            }
+
+            var request = new SalesReportRequestDto
+            {
+                StartDate = startDateUtc,
+                EndDate = endDateUtc,
+                SaleType = saleType,
+                Status = _selectedStatus,
+                PageSize = 1000
+            };
+
+            _summary = await ReportService.GetSalesSummaryAsync(request);
+            var (_, sales) = await ReportService.GetSalesReportAsync(request);
+            _sales = sales;
+
+            // Calculate payment method breakdown with amounts
+            CalculatePaymentMethodBreakdown();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading sales summary");
+            Snackbar.Add(L["Error loading sales summary"], Severity.Error);
+            _summary = null;
+            _sales = new List<SaleDto>();
+            _paymentMethodBreakdown = new();
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CalculatePaymentMethodBreakdown()
+    {
+        _paymentMethodBreakdown = _sales
+            .Where(s => !string.IsNullOrEmpty(s.PaymentMethod))
+            .GroupBy(s => s.PaymentMethod!)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(s => s.Total)
+            );
+    }
+
+    private int GetPaymentMethodCount(string paymentMethod)
+    {
+        return _sales.Count(s => s.PaymentMethod == paymentMethod);
+    }
+
+    private string GetPaymentIcon(string paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            "Cash" => Icons.Material.Filled.Money,
+            "CreditCard" => Icons.Material.Filled.CreditCard,
+            "DebitCard" => Icons.Material.Filled.CreditCard,
+            "BankTransfer" => Icons.Material.Filled.AccountBalance,
+            _ => Icons.Material.Filled.Payment
+        };
+    }
+
+    private async Task ExportToExcel()
+    {
+        _exporting = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                SaleType? saleType = SaleType.Public;
+
+                var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                // Convertir fechas locales a UTC (inicio del día y fin del día)
+                if (_dateRange?.Start != null)
+                {
+                    var startUtc = DateTime.SpecifyKind(_dateRange.Start.Value, DateTimeKind.Local).ToUniversalTime();
+                    queryParams["startDate"] = startUtc.ToString("o");
+                }
+
+                if (_dateRange?.End != null)
+                {
+                    var endUtc = DateTime.SpecifyKind(_dateRange.End.Value.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local).ToUniversalTime();
+                    queryParams["endDate"] = endUtc.ToString("o");
+                }
+
+                if (saleType.HasValue)
+                    queryParams["saleType"] = ((int)saleType.Value).ToString();
+
+                if (!string.IsNullOrEmpty(_selectedStatus))
+                    queryParams["status"] = _selectedStatus;
+
+                queryParams["pageSize"] = ExportOptions.Value.MaxExportRecords.ToString();
+                queryParams["includeDetails"] = "true";
+
+                var url = $"/api/SalesReport/excel?{queryParams}";
+
+                NavigationManager.NavigateTo(url, true);
+            });
+
+            Snackbar.Add(L["Export started"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting to Excel");
+            Snackbar.Add(L["Error exporting report"], Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportToPdf()
+    {
+        _exporting = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                SaleType? saleType = SaleType.Public;
+
+                var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                // Convertir fechas locales a UTC (inicio del día y fin del día)
+                if (_dateRange?.Start != null)
+                {
+                    var startUtc = DateTime.SpecifyKind(_dateRange.Start.Value, DateTimeKind.Local).ToUniversalTime();
+                    queryParams["startDate"] = startUtc.ToString("o");
+                }
+
+                if (_dateRange?.End != null)
+                {
+                    var endUtc = DateTime.SpecifyKind(_dateRange.End.Value.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local).ToUniversalTime();
+                    queryParams["endDate"] = endUtc.ToString("o");
+                }
+
+                if (saleType.HasValue)
+                    queryParams["saleType"] = ((int)saleType.Value).ToString();
+
+                if (!string.IsNullOrEmpty(_selectedStatus))
+                    queryParams["status"] = _selectedStatus;
+
+                queryParams["pageSize"] = ExportOptions.Value.MaxPdfRecords.ToString();
+                queryParams["includeDetails"] = "true";
+
+                var url = $"/api/SalesReport/pdf?{queryParams}";
+
+                NavigationManager.NavigateTo(url, true);
+            });
+
+            Snackbar.Add(L["Export started"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting to PDF");
+            Snackbar.Add(L["Error exporting report"], Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private Color GetStatusColor(App.Core.Enums.Shop.SaleStatus status)
+    {
+        return status switch
+        {
+            App.Core.Enums.Shop.SaleStatus.Created => Color.Info,
+            App.Core.Enums.Shop.SaleStatus.Cancelled => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetStatusChipColor(string status)
+    {
+        return status switch
+        {
+            "Created" => Color.Info,
+            "Cancelled" => Color.Error,
+            _ => Color.Default
+        };
+    }
+}

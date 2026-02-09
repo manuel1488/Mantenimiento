@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="InitialLoad" xml:space="preserve">
+    <value>Initial Load</value>
+  </data>
+  <data name="Purchase" xml:space="preserve">
+    <value>Purchase</value>
+  </data>
+  <data name="Sale" xml:space="preserve">
+    <value>Sale</value>
+  </data>
+  <data name="Transfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="Adjustment" xml:space="preserve">
+    <value>Adjustment</value>
+  </data>
+  <data name="Return" xml:space="preserve">
+    <value>Return</value>
+  </data>
+  <data name="StockIn" xml:space="preserve">
+    <value>Stock In</value>
+  </data>
+  <data name="StockOut" xml:space="preserve">
+    <value>Stock Out</value>
+  </data>
+  <data name="ReturnToSupplier" xml:space="preserve">
+    <value>Return to Supplier</value>
+  </data>
+  <data name="SubType_Standard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="SubType_Rush" xml:space="preserve">
+    <value>Rush</value>
+  </data>
+  <data name="SubType_Rebalancing" xml:space="preserve">
+    <value>Rebalancing</value>
+  </data>
+  <data name="SubType_NewProduct" xml:space="preserve">
+    <value>New Product</value>
+  </data>
+  <data name="SubType_SystemMigration" xml:space="preserve">
+    <value>System Migration</value>
+  </data>
+  <data name="SubType_InitialCount" xml:space="preserve">
+    <value>Initial Count</value>
+  </data>
+  <data name="SubType_OpeningBalance" xml:space="preserve">
+    <value>Opening Balance</value>
+  </data>
+  <data name="SubType_CustomerOrder" xml:space="preserve">
+    <value>Customer Order</value>
+  </data>
+  <data name="SubType_DirectSale" xml:space="preserve">
+    <value>Direct Sale</value>
+  </data>
+  <data name="SubType_ProductionUse" xml:space="preserve">
+    <value>Production Use</value>
+  </data>
+  <data name="SubType_Consumption" xml:space="preserve">
+    <value>Consumption</value>
+  </data>
+  <data name="SubType_Damage" xml:space="preserve">
+    <value>Damage</value>
+  </data>
+  <data name="SubType_Expiry" xml:space="preserve">
+    <value>Expiry</value>
+  </data>
+  <data name="SubType_PhysicalCount" xml:space="preserve">
+    <value>Physical Count</value>
+  </data>
+  <data name="SubType_Shrinkage" xml:space="preserve">
+    <value>Shrinkage</value>
+  </data>
+  <data name="SubType_Damaged" xml:space="preserve">
+    <value>Damaged</value>
+  </data>
+  <data name="SubType_Expired" xml:space="preserve">
+    <value>Expired</value>
+  </data>
+  <data name="SubType_SystemAdjustment" xml:space="preserve">
+    <value>System Adjustment</value>
+  </data>
+</root>

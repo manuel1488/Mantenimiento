@@ -1,0 +1,344 @@
+﻿@page "/shop/sales-history"
+@using App.Core.Constants
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Shop
+@using App.Shared.Services
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Components.Shop.Sales
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+
+@inject ISaleService SaleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SalesHistoryPage> L
+@inject ILogger<SalesHistoryPage> Logger
+@inject IDateTime DateTimeService
+@inject ICompanySettingsService CompanySettingsService
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewHistorySales)]
+
+<PageTitle>@L["Sales History"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudGrid>
+        <!-- Header Section -->
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+            <MudText Typo="Typo.h4">@L["Sales History"]</MudText>
+        </MudItem>
+        
+        <!-- Filters Section -->
+        <MudItem xs="12" Class="mb-3">
+            <MudPaper Class="pa-4" Elevation="1">
+                <MudGrid Spacing="3">
+                    <!-- Search Field -->
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudTextField T="string" 
+                                     ValueChanged="@(s => OnSearch(s))"
+                                     Placeholder="@L["Search sales"]"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                     FullWidth/>
+                    </MudItem>
+
+                    <!-- Date Range Filter -->
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDateRangePicker @bind-DateRange="_dateRange" 
+                                           Label="@L["Date Range"]" 
+                                           AutoClose="true"
+                                           AdornmentIcon="@Icons.Material.Filled.DateRange"
+                                           PickerClosed="OnDateRangeChanged"/>
+                    </MudItem>
+
+                    <!-- Sale Type Filter -->
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="SaleType?" 
+                                  Label="@L["Sale Type"]"
+                                  ValueChanged="@(t => OnSaleTypeFilterChange(t))"
+                                  AnchorOrigin="Origin.BottomCenter"
+                                  FullWidth>
+                            <MudSelectItem T="SaleType?" Value="@null">@L["All"]</MudSelectItem>
+                            <MudSelectItem T="SaleType?" Value="@SaleType.Public">@L["Public"]</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <!-- Status Filter -->
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="string" 
+                                  Label="@L["Status"]"
+                                  ValueChanged="@(s => OnStatusFilterChange(s))"
+                                  AnchorOrigin="Origin.BottomCenter"
+                                  FullWidth>
+                            <MudSelectItem T="string" Value="@null">@L["All"]</MudSelectItem>
+                            <MudSelectItem T="string" Value="@SaleStatus.Created">@L["Created"]</MudSelectItem>
+                            <MudSelectItem T="string" Value="@SaleStatus.Cancelled">@L["Cancelled"]</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Table Section -->
+        <MudItem xs="12">
+            <MudTable T="SaleDto" 
+                     ServerData="@LoadServerData"
+                     Dense="true"
+                     Hover="true"
+                     Loading="@_loading"
+                     Striped="true"
+                     @ref="_table">
+                <HeaderContent>
+                    <MudTh>@L["Sale #"]</MudTh>
+                    <MudTh>@L["Date"]</MudTh>
+                    <MudTh>@L["Customer"]</MudTh>
+                    <MudTh>@L["Payment Method"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["Subtotal"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["Discount"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["Tax"]</MudTh>
+                    <MudTh Style="text-align: right;">@L["Total"]</MudTh>
+                    <MudTh>@L["Status"]</MudTh>
+                    <MudTh Style="text-align: center; width: 140px;">@L["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@L["Sale #"]">@context.Id</MudTd>
+                    <MudTd DataLabel="@L["Date"]">@FormatToCompanyTimezone(context.SaleDate)</MudTd>
+                    <MudTd DataLabel="@L["Customer"]">@context.CustomerName</MudTd>
+                    <MudTd DataLabel="@L["Payment Method"]">@context.PaymentMethod</MudTd>
+                    <MudTd DataLabel="@L["Subtotal"]" Style="text-align: right;">@context.Subtotal.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Discount"]" Style="text-align: right;">
+                        @if (context.DiscountPercentage > 0)
+                        {
+                            <text>@context.DiscountPercentage.ToString("0.##")% (@context.DiscountAmount.ToString("C"))</text>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="@L["Tax"]" Style="text-align: right;">@context.TaxAmount.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Total"]" Style="text-align: right;">@context.Total.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Status"]">
+                        <MudChip Size="Size.Small" T="string" Color="@GetStatusColor(context.Status)">
+                            @GetStatusDisplayText(context.Status)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd Style="text-align: center;">
+                        <div class="d-flex justify-center align-center gap-2">
+                            <!-- View Sale Details -->
+                            <MudTooltip Text="@L["View Sale"]">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                              Size="Size.Small"
+                                              Color="Color.Primary"
+                                              OnClick="@(() => Navigation.NavigateTo($"/shop/sales/{context.Id}"))" />
+                            </MudTooltip>
+                            
+                            <!-- Print Receipt -->
+                            <MudTooltip Text="@L["Print Receipt"]">
+                                <MudIconButton Icon="@Icons.Material.Filled.Print"
+                                              Size="Size.Small"
+                                              Color="Color.Default"
+                                              OnClick="@(() => OpenReceiptDialog(context.Id))" />
+                            </MudTooltip>
+                                
+                            <!-- Cancel Sale (only for Created status) -->
+                            @if (context.Status == App.Core.Enums.Shop.SaleStatus.Created)
+                            {
+                                <AuthorizeView Context="contextCancel" Policy="@ApplicationClaims.Shop.CancelSale">
+                                    <MudTooltip Text="@L["Cancel Sale"]">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                      Size="Size.Small"
+                                                      Color="Color.Error"
+                                                      OnClick="@(() => OpenCancelDialog(context))" />
+                                    </MudTooltip>
+                                </AuthorizeView>
+                            }
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+                <NoRecordsContent>
+                    <MudText>@L["No sales found"]</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<style>
+    .gap-2 > * + * {
+        margin-left: 8px;
+    }
+</style>
+
+@code {
+    private MudTable<SaleDto> _table = null!;
+    private bool _loading;
+    private string _searchString = "";
+    private DateRange _dateRange = new();
+    private SaleType? _selectedSaleType;
+    private string? _selectedStatus;
+    private string _cancellationReason = "";
+    private TimeZoneInfo? _companyTimeZone;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+
+        // Set default date range to current month
+        var today = DateTime.Today;
+        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        
+        _dateRange = new DateRange(firstDayOfMonth, lastDayOfMonth);
+    }
+
+    private async Task<TableData<SaleDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _loading = true;
+            var (totalItems, items) = await SaleService.GetSalesAsync(
+                page: state.Page + 1,
+                pageSize: state.PageSize,
+                searchString: _searchString,
+                startDate: _dateRange.Start,
+                endDate: _dateRange.End,
+                status: _selectedStatus,
+                saleType: _selectedSaleType);
+
+            return new TableData<SaleDto>() { TotalItems = totalItems, Items = items };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading sales");
+            Snackbar.Add(L["Error loading sales"], Severity.Error);
+            return new TableData<SaleDto>() { TotalItems = 0, Items = Enumerable.Empty<SaleDto>() };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnDateRangeChanged()
+    {
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnSaleTypeFilterChange(SaleType? saleType)
+    {
+        _selectedSaleType = saleType;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnStatusFilterChange(string? status)
+    {
+        _selectedStatus = status;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OpenReceiptDialog(long saleId)
+    {
+        try
+        {
+            var dialog = await DialogService.ShowAsync<SaleReceiptDialog>(
+                L["Sale Receipt"],
+                new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, saleId } },
+                new DialogOptions 
+                { 
+                    MaxWidth = MaxWidth.Medium,
+                    FullWidth = true
+                });
+            
+            await dialog.Result;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening receipt dialog for sale {SaleId}", saleId);
+            Snackbar.Add(L["Error opening receipt dialog"], Severity.Error);
+        }
+    }
+
+    private async Task OpenCancelDialog(SaleDto sale)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Cancel Sale"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to cancel this sale:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), $"#{sale.Id} - {sale.CustomerName}" },
+            { nameof(ConfirmDialog.ConfirmText), L["Cancel Sale"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Keep Sale"].ToString() },
+            { nameof(ConfirmDialog.WarningText), L["This will return all products to inventory"].ToString() },
+            { nameof(ConfirmDialog.ShowWarning), true },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Warning },
+            { nameof(ConfirmDialog.AdditionalContent), (RenderFragment)(@<MudTextField @bind-Value="@_cancellationReason" Label="@L["Reason for cancellation"]" Required="true" />) }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            L["Cancel Sale"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var cancelResult = await SaleService.CancelSaleAsync(sale.Id, _cancellationReason);
+                if (cancelResult.IsSuccess)
+                {
+                    Snackbar.Add(L["Sale cancelled successfully"], Severity.Success);
+                    await _table.ReloadServerData();
+                }
+                else
+                {
+                    Snackbar.Add(cancelResult.Error!, Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error cancelling sale {SaleId}", sale.Id);
+                Snackbar.Add(L["Error cancelling sale"], Severity.Error);
+            }
+        }
+    }
+
+    private string FormatToCompanyTimezone(DateTime utcDate)
+    {
+        try
+        {
+            if (_companyTimeZone == null)
+                return utcDate.ToLocalTime().ToString("g");
+
+            return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error converting date to company timezone");
+            return utcDate.ToLocalTime().ToString("g");
+        }
+    }
+
+    private Color GetStatusColor(App.Core.Enums.Shop.SaleStatus status) => status switch
+    {
+        App.Core.Enums.Shop.SaleStatus.Created => Color.Info,
+        App.Core.Enums.Shop.SaleStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+
+    private string GetStatusDisplayText(App.Core.Enums.Shop.SaleStatus status) => status switch
+    {
+        App.Core.Enums.Shop.SaleStatus.Created => L["Created"],
+        App.Core.Enums.Shop.SaleStatus.Cancelled => L["Cancelled"],
+        _ => status.ToString()
+    };
+}

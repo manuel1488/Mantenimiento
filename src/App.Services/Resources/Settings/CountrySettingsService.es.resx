@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Country settings already exist for code {0}" xml:space="preserve">
+    <value>La configuración del país con código {0} ya existe</value>
+  </data>
+  <data name="Country settings not found for code {0}" xml:space="preserve">
+    <value>No se encontró la configuración del país con código {0}</value>
+  </data>
+  <data name="Error creating country settings" xml:space="preserve">
+    <value>Error al crear la configuración del país</value>
+  </data>
+  <data name="Error updating country settings" xml:space="preserve">
+    <value>Error al actualizar la configuración del país</value>
+  </data>
+  <data name="Error deleting country settings" xml:space="preserve">
+    <value>Error al eliminar la configuración del país</value>
+  </data>
+  <data name="Invalid country code format" xml:space="preserve">
+    <value>Formato de código de país inválido</value>
+  </data>
+  <data name="Invalid currency code format" xml:space="preserve">
+    <value>Formato de código de moneda inválido</value>
+  </data>
+  <data name="Tax regime is required" xml:space="preserve">
+    <value>El régimen fiscal es requerido</value>
+  </data>
+  <data name="Country code is required" xml:space="preserve">
+    <value>El código de país es requerido</value>
+  </data>
+  <data name="Currency code is required" xml:space="preserve">
+    <value>El código de moneda es requerido</value>
+  </data>
+</root>

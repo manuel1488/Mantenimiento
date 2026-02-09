@@ -1,0 +1,355 @@
+﻿@page "/shop/products"
+@using App.Core.Constants
+@using App.Core.DTOs.Product
+@using App.Core.DTOs.Settings
+@using App.Core.DTOs.UnitMeasure
+@using App.Core.Interfaces
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using Microsoft.AspNetCore.Authorization
+@using App.Web.Components.Shop.Products
+
+@inject IProductService ProductService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<ProductsPage> L
+@inject ILogger<ProductsPage> Logger
+@inject IUnitMeasureService UnitMeasureService
+@inject ICompanySettingsService SettingsService
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewProducts)]
+
+<PageTitle>@L["Products Management"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudGrid>
+        <!-- Search Bar Row -->
+        <MudItem xs="12" Class="mb-2">
+            <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="@L["Search products"]"
+                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true" />
+        </MudItem>
+
+        <!-- Filters and Actions Row -->
+        <MudItem xs="12" Class="d-flex flex-wrap gap-3 align-center mb-3">
+            <!-- Filters Section -->
+            <div class="d-flex gap-3 flex-grow-1 flex-wrap">
+                <!-- Unit Measure Filter -->
+                <MudSelect T="int?" Label="@L["Unit Measure"]" ValueChanged="@(u => OnUnitMeasureFilterChange(u))"
+                    AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense"
+                    Style="min-width: 180px;">
+                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
+                    @foreach (var unit in _unitMeasures)
+                    {
+                        <MudSelectItem T="int?" Value="@unit.Id">
+                            @unit.Name
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+
+                <!-- Status Filter -->
+                <MudSelect T="bool?" Label="@L["Status"]" ValueChanged="@(s => OnStatusFilterChange(s))"
+                    AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense"
+                    Style="min-width: 140px;">
+                    <MudSelectItem T="bool?" Value="@null">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="@true">@L["Active"]</MudSelectItem>
+                    <MudSelectItem T="bool?" Value="@false">@L["Inactive"]</MudSelectItem>
+                </MudSelect>
+            </div>
+
+            <!-- Action Buttons Section -->
+            <AuthorizeView Policy="@ApplicationClaims.Shop.BulkImportProducts">
+                <div class="d-flex gap-2 flex-wrap">
+                    <!-- Download Catalog Button -->
+                    <MudButton Variant="Variant.Outlined" Color="Color.Info" Size="Size.Medium"
+                        StartIcon="@Icons.Material.Filled.Download" OnClick="DownloadCatalog"
+                        Class="da-button-rounded">
+                        @L["Download Catalog"]
+                    </MudButton>
+
+                    <!-- Bulk Import Button -->
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Medium"
+                        StartIcon="@Icons.Material.Filled.Upload" OnClick="OpenBulkLoadDialog"
+                        Class="da-button-rounded">
+                        @L["Bulk Import"]
+                    </MudButton>
+
+                    <!-- New Product Button -->
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                        OnClick="OpenCreateDialog" Class="da-button-rounded" Size="Size.Medium">
+                        @L["New Product"]
+                    </MudButton>
+                </div>
+            </AuthorizeView>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTable T="ProductDto" ServerData="@LoadServerData" Dense="true" Hover="true" Loading="@_loading"
+                @ref="_table">
+                <HeaderContent>
+                    <MudTh></MudTh>
+                    <MudTh>@L["Code"]</MudTh>
+                    <MudTh>@L["Name"]</MudTh>
+                    <MudTh>@L["Description"]</MudTh>
+                    <MudTh>@L["Brand"]</MudTh>
+                    @if (_isMexico)
+                    {
+                        <MudTh>@L["SAT Code"]</MudTh>
+                    }
+                    <MudTh>@L["Content"]</MudTh>
+                    <MudTh>@L["Unit"]</MudTh>
+                    <MudTh>@L["Price"]</MudTh>
+                    <MudTh>@L["Taxable"]</MudTh>
+                    <MudTh>@L["Status"]</MudTh>
+                    <MudTh>@L["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudImage Src="@($"/api/ProductImage/{context.Id}/thumbnail")" Alt="@context.Name"
+                            Width="50" Height="50" ObjectFit="ObjectFit.Cover" Class="rounded-lg" 
+                            onError="this.style.display='none'; this.nextSibling.style.display='block';" />
+                        <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" 
+                            Class="mud-text-disabled" style="display: none;" />
+                    </MudTd>
+                    <MudTd DataLabel="@L["Code"]">@context.Code</MudTd>
+                    <MudTd DataLabel="@L["Name"]">@context.Name</MudTd>
+                    <MudTd DataLabel="@L["Description"]">@context.Description</MudTd>
+                    <MudTd DataLabel="@L["Brand"]">@context.Brand</MudTd>
+                    @if (_isMexico)
+                    {
+                        <MudTd DataLabel="@L["SAT Code"]">
+                            @if (context.MexicoProductServiceId.HasValue)
+                            {
+                                @context.MexicoProductServiceCode
+                            }
+                            else
+                            {
+                                <MudText Class="mud-text-disabled">-</MudText>
+                            }
+                        </MudTd>
+                    }
+                    <MudTd DataLabel="@L["Content"]">
+                        @context.Content.ToString("N3") @context.UnitMeasureName
+                    </MudTd>
+                    <MudTd DataLabel="@L["Unit"]">@context.UnitMeasureName</MudTd>
+                    <MudTd DataLabel="@L["Price"]">@context.Price.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Taxable"]">
+                        <MudChip T="bool" Size="Size.Small"
+                            Color="@(context.IsTaxable? Color.Success: Color.Default)">
+                            @(context.IsTaxable? L["Yes"] : L["No"])
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@L["Status"]">
+                        <MudChip T="bool" Size="Size.Small" Color="@(context.IsActive? Color.Success: Color.Error)">
+                            @(context.IsActive? L["Active"] : L["Inactive"])
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small"
+                            OnClick="@(() => Navigation.NavigateTo($"/shop/products/{context.Id}"))"
+                            title="@L["View Product"]" />
+                        <AuthorizeView Context="contextEdit" Policy="@ApplicationClaims.Shop.ManageProducts">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                OnClick="@(() => OpenEditDialog(context))" title="@L["Edit Product"]" />
+                        </AuthorizeView>
+                        <AuthorizeView Context="contextDelete" Policy="@ApplicationClaims.Shop.DeleteProducts">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                title="@L["Delete Product"]" OnClick="@(() => OpenDeleteDialog(context))" />
+                        </AuthorizeView>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+                <NoRecordsContent>
+                    <MudText>@L["No products found"]</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private MudTable<ProductDto> _table = null!;
+    private bool _loading;
+    private string _searchString = "";
+    private int? _selectedUnitMeasure;
+    private bool? _selectedStatus;
+    private bool _isMexico;
+    private List<UnitMeasureDto> _unitMeasures = new();
+    private CompanySettingsDto? companySettingsDto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        companySettingsDto = await SettingsService.GetSettingsAsync();
+        _isMexico = companySettingsDto?.CountryCode == CountryCodes.Mexico;
+        await LoadUnitMeasures();
+    }
+
+    private async Task LoadUnitMeasures()
+    {
+        _unitMeasures = new List<UnitMeasureDto>();
+        if (companySettingsDto != null)
+        {
+            _unitMeasures = (await UnitMeasureService.GetActiveUnitMeasuresAsync(companySettingsDto.CountryCode)).ToList();
+        }
+    }
+
+    private async Task<TableData<ProductDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _loading = true;
+            var (totalItems, items) = await ProductService.GetProductsAsync(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            searchString: _searchString,
+            unitMeasureId: _selectedUnitMeasure,
+            isActive: _selectedStatus);
+
+            return new TableData<ProductDto>() { TotalItems = totalItems, Items = items };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading products");
+            Snackbar.Add(L["Error loading products"], Severity.Error);
+            return new TableData<ProductDto>() { TotalItems = 0, Items = Enumerable.Empty<ProductDto>() };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnUnitMeasureFilterChange(int? unitId)
+    {
+        _selectedUnitMeasure = unitId;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnStatusFilterChange(bool? status)
+    {
+        _selectedStatus = status;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = await DialogService.ShowAsync<ProductDialog>(L["New Product"]);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OpenEditDialog(ProductDto product)
+    {
+        var parameters = new DialogParameters<ProductDialog>
+        {
+            { x => x.ProductId, product.Id }
+        };
+
+        var dialog = await DialogService.ShowAsync<ProductDialog>(
+        L["Edit Product"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        StateHasChanged();
+    }
+
+    private async Task OpenDeleteDialog(ProductDto product)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Product"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete product:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), product.Name },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.WarningText), L["This action is irreversible"].ToString() },
+            { nameof(ConfirmDialog.ShowWarning), true },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+        L["Delete Product"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var success = await ProductService.DeleteProductAsync(product.Id);
+                if (success)
+                {
+                    Snackbar.Add(L["Product deleted successfully"], Severity.Success);
+                    await _table.ReloadServerData();
+                }
+                else
+                {
+                    Snackbar.Add(L["Error deleting product"], Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error deleting product {ProductId}", product.Id);
+                Snackbar.Add(L["Error deleting product"], Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenBulkLoadDialog()
+    {
+        var dialog = await DialogService.ShowAsync<ProductBulkLoadDialog>(
+            L["Bulk Import Products"], 
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                BackdropClick = true,
+                CloseButton = true,
+                CloseOnEscapeKey = false
+            });
+        
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled && result.Data is int importedCount && importedCount > 0)
+        {
+            await _table.ReloadServerData();
+            Snackbar.Add(L["{0} products imported successfully", importedCount], Severity.Success);
+        }
+    }
+
+    private void DownloadCatalog()
+    {
+        try
+        {
+            var exportUrl = "api/Products/catalog/download";
+            NavigationManager.NavigateTo(exportUrl, true);
+            Snackbar.Add(L["Catalog download started"], Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error downloading product catalog");
+            Snackbar.Add(L["Error downloading catalog"], Severity.Error);
+        }
+    }
+}

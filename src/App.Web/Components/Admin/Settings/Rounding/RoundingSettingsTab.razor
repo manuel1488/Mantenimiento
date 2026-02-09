@@ -1,0 +1,212 @@
+﻿@using App.Core.DTOs.Settings
+@using App.Core.Enums.Settings
+@using App.Core.Interfaces
+@using App.Core.Constants
+@using App.Core.Interfaces.Settings
+@using App.Web.Services
+
+@inject IRoundingSettingsService RoundingSettingsService
+@inject IPermissionCheckService PermissionService
+@inject IStringLocalizer<RoundingSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<RoundingSettingsTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Rounding Settings"]</MudText>
+                </MudItem>
+
+                <!-- Enable/Disable Toggle -->
+                <MudItem xs="12">
+                    <MudSwitch @bind-Value="_model.IsEnabled"
+                               Label="@L["Enable Rounding"]"
+                               Color="Color.Primary"
+                               ReadOnly="@(!_hasWriteAccess)" />
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                        @L["When enabled, sale totals will be rounded according to the settings below"]
+                    </MudText>
+                </MudItem>
+
+                <!-- Rounding Method -->
+                <MudItem xs="12" md="6">
+                    <MudSelect T="RoundingMethod"
+                               @bind-Value="_model.Method"
+                               Label="@L["Rounding Method"]"
+                               Disabled="@(!_model.IsEnabled || !_hasWriteAccess)"
+                               Variant="Variant.Outlined">
+                        <MudSelectItem Value="RoundingMethod.Ceiling">@L["Round Up (Ceiling)"]</MudSelectItem>
+                        <MudSelectItem Value="RoundingMethod.Floor">@L["Round Down (Floor)"]</MudSelectItem>
+                        <MudSelectItem Value="RoundingMethod.Nearest">@L["Round to Nearest"]</MudSelectItem>
+                    </MudSelect>
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary mt-1">
+                        @GetMethodDescription(_model.Method)
+                    </MudText>
+                </MudItem>
+
+                <!-- Decimal Places -->
+                <MudItem xs="12" md="6">
+                    <MudSelect T="int"
+                               @bind-Value="_model.DecimalPlaces"
+                               Label="@L["Decimal Places"]"
+                               Disabled="@(!_model.IsEnabled || !_hasWriteAccess)"
+                               Variant="Variant.Outlined">
+                        <MudSelectItem Value="0">@L["Whole numbers (e.g., $100)"]</MudSelectItem>
+                        <MudSelectItem Value="1">@L["One decimal (e.g., $99.5)"]</MudSelectItem>
+                        <MudSelectItem Value="2">@L["Two decimals (e.g., $99.99)"]</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <!-- Minimum Threshold -->
+                <MudItem xs="12" md="6">
+                    <MudNumericField T="decimal"
+                                     @bind-Value="_model.MinimumThreshold"
+                                     Label="@L["Minimum Threshold"]"
+                                     Disabled="@(!_model.IsEnabled || !_hasWriteAccess)"
+                                     Min="0"
+                                     Format="C2"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     HelperText="@L["Sales below this amount will not be rounded"]"
+                                     Variant="Variant.Outlined" />
+                </MudItem>
+
+                <!-- Preview -->
+                @if (_model.IsEnabled)
+                {
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info" Class="mt-4">
+                            <MudText Typo="Typo.subtitle2">@L["Preview Example"]</MudText>
+                            <MudText Typo="Typo.body2">
+                                @L["A sale of $99.47 would be rounded to"] @GetPreviewAmount(99.47m)
+                            </MudText>
+                        </MudAlert>
+                    </MudItem>
+                }
+
+                <!-- Save Button -->
+                <MudItem xs="12" Class="d-flex justify-end mt-8">
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageSettings">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Error"
+                                       OnClick="SaveChangesAsync"
+                                       Disabled="@_processing"
+                                       Class="da-button-rounded">
+                                @if (_processing)
+                                {
+                                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                    <MudText Class="ms-2">@L["Saving"]</MudText>
+                                }
+                                else
+                                {
+                                    @L["Save Changes"]
+                                }
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _hasWriteAccess;
+    private UpdateRoundingSettingsDto _model = new()
+    {
+        IsEnabled = false,
+        Method = RoundingMethod.Ceiling,
+        DecimalPlaces = 0,
+        MinimumThreshold = 0
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings);
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            var result = await RoundingSettingsService.GetSettingsAsync();
+            if (result.IsSuccess && result.Value != null)
+            {
+                _model = new UpdateRoundingSettingsDto
+                {
+                    IsEnabled = result.Value.IsEnabled,
+                    Method = result.Value.Method,
+                    DecimalPlaces = result.Value.DecimalPlaces,
+                    MinimumThreshold = result.Value.MinimumThreshold
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading rounding settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        _processing = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await RoundingSettingsService.CreateOrUpdateSettingsAsync(_model);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Rounding settings updated successfully"], Severity.Success);
+                await LoadSettings();
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? L["Error updating settings"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving rounding settings");
+            Snackbar.Add(L["Error saving settings"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetMethodDescription(RoundingMethod method) => method switch
+    {
+        RoundingMethod.Ceiling => L["Always rounds up to the next value"],
+        RoundingMethod.Floor => L["Always rounds down to the previous value"],
+        RoundingMethod.Nearest => L["Rounds to the nearest value (0.5 rounds up)"],
+        _ => ""
+    };
+
+    private string GetPreviewAmount(decimal amount)
+    {
+        decimal multiplier = (decimal)Math.Pow(10, _model.DecimalPlaces);
+        decimal rounded = _model.Method switch
+        {
+            RoundingMethod.Ceiling => Math.Ceiling(amount * multiplier) / multiplier,
+            RoundingMethod.Floor => Math.Floor(amount * multiplier) / multiplier,
+            RoundingMethod.Nearest => Math.Round(amount, _model.DecimalPlaces, MidpointRounding.AwayFromZero),
+            _ => amount
+        };
+        return rounded.ToString("C");
+    }
+}

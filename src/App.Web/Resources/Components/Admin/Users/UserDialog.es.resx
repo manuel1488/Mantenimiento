@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New User" xml:space="preserve">
+    <value>Nuevo Usuario</value>
+  </data>
+  <data name="Edit User" xml:space="preserve">
+    <value>Editar Usuario</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Nombre de Usuario</value>
+  </data>
+  <data name="Username is required" xml:space="preserve">
+    <value>El nombre de usuario es obligatorio</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="Full Name" xml:space="preserve">
+    <value>Nombre Completo</value>
+  </data>
+  <data name="Full name is required" xml:space="preserve">
+    <value>El nombre completo es obligatorio</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Password is required" xml:space="preserve">
+    <value>La contraseña es obligatoria</value>
+  </data>
+  <data name="Confirm Password" xml:space="preserve">
+    <value>Confirmar Contraseña</value>
+  </data>
+  <data name="Password confirmation is required" xml:space="preserve">
+    <value>La confirmación de contraseña es obligatoria</value>
+  </data>
+  <data name="Password must meet the following requirements:" xml:space="preserve">
+    <value>La contraseña debe cumplir los siguientes requisitos:</value>
+  </data>
+  <data name="At least 8 characters" xml:space="preserve">
+    <value>Al menos 8 caracteres</value>
+  </data>
+  <data name="At least one uppercase letter (A-Z)" xml:space="preserve">
+    <value>Al menos una letra mayúscula (A-Z)</value>
+  </data>
+  <data name="At least one lowercase letter (a-z)" xml:space="preserve">
+    <value>Al menos una letra minúscula (a-z)</value>
+  </data>
+  <data name="At least one digit (0-9)" xml:space="preserve">
+    <value>Al menos un dígito (0-9)</value>
+  </data>
+  <data name="At least one special character (!@#$%^&amp;*)" xml:space="preserve">
+    <value>Al menos un carácter especial (!@#$%^&amp;*)</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Role is required" xml:space="preserve">
+    <value>El rol es obligatorio</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Changing Role Will Update Permissions" xml:space="preserve">
+    <value>Cambiar el Rol Actualizará los Permisos</value>
+  </data>
+  <data name="User permissions will be updated to match the selected role when you save these changes." xml:space="preserve">
+    <value>Los permisos del usuario se actualizarán para coincidir con el rol seleccionado cuando guardes estos cambios.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Password must be at least 8 characters" xml:space="preserve">
+    <value>La contraseña debe tener al menos 8 caracteres</value>
+  </data>
+  <data name="Password must contain at least one uppercase letter" xml:space="preserve">
+    <value>La contraseña debe contener al menos una letra mayúscula</value>
+  </data>
+  <data name="Password must contain at least one lowercase letter" xml:space="preserve">
+    <value>La contraseña debe contener al menos una letra minúscula</value>
+  </data>
+  <data name="Password must contain at least one digit" xml:space="preserve">
+    <value>La contraseña debe contener al menos un dígito</value>
+  </data>
+  <data name="Password must contain at least one special character" xml:space="preserve">
+    <value>La contraseña debe contener al menos un carácter especial</value>
+  </data>
+  <data name="Confirm password is required" xml:space="preserve">
+    <value>La confirmación de contraseña es obligatoria</value>
+  </data>
+  <data name="Passwords do not match" xml:space="preserve">
+    <value>Las contraseñas no coinciden</value>
+  </data>
+</root>

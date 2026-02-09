@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>  
+  <!-- Etiquetas y Campos del Formulario -->
+  <data name="Adjustment Type" xml:space="preserve">
+    <value>Tipo de Ajuste</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Almacén</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Selected Product" xml:space="preserve">
+    <value>Producto Seleccionado</value>
+  </data>
+  <data name="Product Code" xml:space="preserve">
+    <value>Código de Producto</value>
+  </data>
+  <data name="Product Brand" xml:space="preserve">
+    <value>Marca de Producto</value>
+  </data>
+  <data name="Product Description" xml:space="preserve">
+    <value>Descripción de Producto</value>
+  </data>
+  <data name="Current Stock" xml:space="preserve">
+    <value>Existencia Actual</value>
+  </data>
+  <data name="Unit Measure" xml:space="preserve">
+    <value>Unidad de Medida</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>Unidades</value>
+  </data>
+  <data name="New Quantity" xml:space="preserve">
+    <value>Nueva Cantidad</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referencia</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  
+  <!-- Mensajes de Validación -->
+  <data name="Adjustment type is required" xml:space="preserve">
+    <value>El tipo de ajuste es requerido</value>
+  </data>
+  <data name="Warehouse is required" xml:space="preserve">
+    <value>El almacén es requerido</value>
+  </data>
+  <data name="Product is required" xml:space="preserve">
+    <value>El producto es requerido</value>
+  </data>
+  <data name="New quantity is required" xml:space="preserve">
+    <value>La nueva cantidad es requerida</value>
+  </data>
+  <data name="Reason is required" xml:space="preserve">
+    <value>El motivo es requerido</value>
+  </data>
+  
+  <!-- Mensajes de Error e Información -->
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permisos para ver esta página</value>
+  </data>
+  <data name="Error searching products" xml:space="preserve">
+    <value>Error al buscar productos</value>
+  </data>
+  <data name="Product not found in this warehouse" xml:space="preserve">
+    <value>Producto no encontrado en este almacén</value>
+  </data>
+  <data name="Error loading product stock" xml:space="preserve">
+    <value>Error al cargar la existencia del producto</value>
+  </data>
+  <data name="Error creating inventory adjustment" xml:space="preserve">
+    <value>Error al crear el ajuste de inventario</value>
+  </data>
+  <data name="Adjustment created successfully" xml:space="preserve">
+    <value>Ajuste creado exitosamente</value>
+  </data>
+  
+  <!-- Mensajes de Alerta -->
+  <data name="Adjustment successful but stock is below minimum. Current: {0}, Minimum: {1}" xml:space="preserve">
+    <value>Ajuste exitoso pero la existencia está por debajo del mínimo. Actual: {0}, Mínimo: {1}</value>
+  </data>
+  <data name="Adjustment successful but stock is above maximum. Current: {0}, Maximum: {1}" xml:space="preserve">
+    <value>Ajuste exitoso pero la existencia está por encima del máximo. Actual: {0}, Máximo: {1}</value>
+  </data>
+  
+  <!-- Botones -->
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Procesando</value>
+  </data>
+</root>

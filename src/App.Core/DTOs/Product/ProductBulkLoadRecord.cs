@@ -1,0 +1,18 @@
+﻿namespace App.Core.DTOs.Product;
+
+public class ProductBulkLoadRecord
+{
+    public string? Code { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Brand { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Barcode { get; set; }
+    public decimal Content { get; set; } = 1;
+    public string UnitMeasureCode { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public bool IsTaxable { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string? MexicoProductServiceCode { get; set; }
+    public bool AllowPartialSale { get; set; } = false;
+    public bool AllowCustomPricing { get; set; } = false;
+}

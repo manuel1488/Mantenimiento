@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Ticket Configuration" xml:space="preserve">
+    <value>Configuración de Tickets</value>
+  </data>
+  <data name="Company Information" xml:space="preserve">
+    <value>Información de la Empresa</value>
+  </data>
+  <data name="Company Name" xml:space="preserve">
+    <value>Nombre de la Empresa</value>
+  </data>
+  <data name="Company name is required" xml:space="preserve">
+    <value>El nombre de la empresa es obligatorio</value>
+  </data>
+  <data name="Company Address" xml:space="preserve">
+    <value>Dirección de la Empresa</value>
+  </data>
+  <data name="Company Phone" xml:space="preserve">
+    <value>Teléfono de la Empresa</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Ticket Display Options" xml:space="preserve">
+    <value>Opciones de Visualización del Ticket</value>
+  </data>
+  <data name="Show Company Logo" xml:space="preserve">
+    <value>Mostrar Logo de la Empresa</value>
+  </data>
+  <data name="Show QR Code" xml:space="preserve">
+    <value>Mostrar Código QR</value>
+  </data>
+  <data name="Ticket Width (mm)" xml:space="preserve">
+    <value>Ancho del Ticket (mm)</value>
+  </data>
+  <data name="Default Copies" xml:space="preserve">
+    <value>Copias Predeterminadas</value>
+  </data>
+  <data name="Custom Text" xml:space="preserve">
+    <value>Texto Personalizado</value>
+  </data>
+  <data name="Custom Header" xml:space="preserve">
+    <value>Encabezado Personalizado</value>
+  </data>
+  <data name="HTML is supported" xml:space="preserve">
+    <value>Se admite HTML</value>
+  </data>
+  <data name="Custom Footer" xml:space="preserve">
+    <value>Pie de Página Personalizado</value>
+  </data>
+  <data name="Company Logo" xml:space="preserve">
+    <value>Logo de la Empresa</value>
+  </data>
+  <data name="Upload Logo" xml:space="preserve">
+    <value>Subir Logo</value>
+  </data>
+  <data name="Remove Logo" xml:space="preserve">
+    <value>Eliminar Logo</value>
+  </data>
+  <data name="Saving..." xml:space="preserve">
+    <value>Guardando...</value>
+  </data>
+  <data name="Save Configuration" xml:space="preserve">
+    <value>Guardar Configuración</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Error loading configuration" xml:space="preserve">
+    <value>Error al cargar la configuración</value>
+  </data>
+  <data name="Logo file is too large (max 1MB)" xml:space="preserve">
+    <value>El archivo del logo es demasiado grande (máx. 1MB)</value>
+  </data>
+  <data name="Only image files are allowed" xml:space="preserve">
+    <value>Solo se permiten archivos de imagen</value>
+  </data>
+  <data name="Error processing logo file" xml:space="preserve">
+    <value>Error al procesar el archivo del logo</value>
+  </data>
+  <data name="Configuration saved successfully" xml:space="preserve">
+    <value>Configuración guardada correctamente</value>
+  </data>
+  <data name="Error saving configuration" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+</root>

@@ -1,0 +1,237 @@
+﻿@using App.Core.DTOs.Identity
+@using App.Web.Services
+
+@inject IStringLocalizer<PermissionsTab> L
+@inject IIdentityService IdentityService
+@inject ISnackbar Snackbar
+@inject ILogger<PermissionsTab> _logger
+@inject PermissionTranslationService PermissionService
+@inject RoleTranslationService RoleTranslationService
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ManagePermissions">
+    <Authorized>
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex gap-4">
+                    <MudSelect T="string" 
+                            Label="@L["Select User"]"
+                            ValueChanged="@OnUserSelected"
+                            AnchorOrigin="Origin.BottomLeft"
+                            Class="flex-grow-1">
+                        @foreach(var user in _users)
+                        {
+                            <MudSelectItem Value="@user.Id">@($"{user.UserName} - {user.FullName}")</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @if (!string.IsNullOrEmpty(_selectedUserId))
+                {
+                    <MudItem xs="12">
+                        <MudTabs Elevation="0" 
+                                Color="Color.Error" 
+                                ApplyEffectsToContainer="true" 
+                                PanelClass="pt-6">
+                            @foreach (var group in _permissionGroups)
+                            {
+                                <MudTabPanel Text="@PermissionService.GetModuleDisplayName(group.Key)">
+                                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-4">
+                                        @L[$"Module.{group.Key}.Description"]
+                                    </MudText>
+                                    <MudGrid>
+                                        @foreach (var permission in group.Value)
+                                        {
+                                            <MudItem xs="12" sm="6" md="4">
+                                                <MudCheckBox Label="@PermissionService.GetFullPermissionDisplayName(permission)"
+                                                             Color="Color.Error"
+                                                             Value="@_selectedPermissions.Contains(permission)"
+                                                             ValueChanged="@((bool value) => OnPermissionToggle(permission, value))" />
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+                                </MudTabPanel>
+                            }
+                        </MudTabs>
+
+                        <MudDivider Class="my-6" />
+
+                        <MudItem xs="12" Class="d-flex justify-space-between">
+                            <!-- Información sobre el rol -->
+                            @if (!string.IsNullOrEmpty(_matchingRole))
+                            {
+                                <MudChip T="string" Color="Color.Info" Icon="@Icons.Material.Filled.Info">
+                                    @L["Current permissions match the {0} role", RoleTranslationService.GetRoleDisplayName(_matchingRole)]
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Secondary" Icon="@Icons.Material.Filled.Info">
+                                    @L["Custom permissions (no matching role)"]
+                                </MudChip>
+                            }
+
+                            <!-- Botón de guardar -->
+                            <MudButton Variant="Variant.Filled"
+                                    Color="Color.Error"
+                                    OnClick="SavePermissionsAsync"
+                                    Disabled="@_processing"
+                                    Class="da-button-rounded">
+                                @if (_processing)
+                                {
+                                    <MudProgressCircular Class="ms-n1" 
+                                                        Size="Size.Small" 
+                                                        Indeterminate="true" />
+                                    <MudText Class="ms-2">@L["Saving"]</MudText>
+                                }
+                                else
+                                {
+                                    @L["Save Changes"]
+                                }
+                            </MudButton>
+                        </MudItem>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudPaper>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage user permissions."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _processing;
+    private string? _selectedUserId;
+    private string? _matchingRole;
+    private List<UserDto> _users = new();
+    private Dictionary<string, List<string>> _permissionGroups = new();
+    private HashSet<string> _selectedPermissions = new();
+    private Dictionary<string, IEnumerable<string>> _rolePermissions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+        LoadPermissionGroups();
+        await LoadRolePermissionsAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            var (_, users) = await IdentityService.GetUsersAsync(
+                pageSize: 100, 
+                isActive: true
+            );
+            _users = users.ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading users");
+            Snackbar.Add(L["Error loading users"], Severity.Error);
+        }
+    }
+
+    private async Task LoadRolePermissionsAsync()
+    {
+        try
+        {
+            _rolePermissions = await IdentityService.GetAllRolesWithPermissionsAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading role permissions");
+            Snackbar.Add(L["Error loading role permissions"], Severity.Error);
+        }
+    }
+
+    private void LoadPermissionGroups()
+    {
+        _permissionGroups = ApplicationClaims.GetAllClaims()
+            .GroupBy(p => p.Split('.')[0])
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    private async Task OnUserSelected(string userId)
+    {
+        _selectedUserId = userId;
+        await LoadUserPermissionsAsync();
+    }
+
+    private void CheckForMatchingRole()
+    {
+        _matchingRole = null;
+        foreach (var role in _rolePermissions)
+        {
+            if (new HashSet<string>(role.Value).SetEquals(_selectedPermissions))
+            {
+                _matchingRole = role.Key;
+                break;
+            }
+        }
+    }
+
+    private async Task LoadUserPermissionsAsync()
+    {
+        if (string.IsNullOrEmpty(_selectedUserId)) return;
+
+        try
+        {
+            _selectedPermissions.Clear();
+            
+            // Obtener los permisos del usuario usando el servicio
+            var userPermissions = await IdentityService.GetUserPermissionsAsync(_selectedUserId);
+            _selectedPermissions = new HashSet<string>(userPermissions);
+            
+            // Verificar si los permisos coinciden con algún rol
+            CheckForMatchingRole();
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading user permissions");
+            Snackbar.Add(L["Error loading user permissions"], Severity.Error);
+        }
+    }
+
+    private void OnPermissionToggle(string permission, bool value)
+    {
+        if (value)
+            _selectedPermissions.Add(permission);
+        else
+            _selectedPermissions.Remove(permission);
+        
+        // Verificar si ahora coincide con algún rol
+        CheckForMatchingRole();
+    }
+
+    private async Task SavePermissionsAsync()
+    {
+        if (string.IsNullOrEmpty(_selectedUserId)) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            // Actualizar permisos de usuario
+            await IdentityService.UpdateUserPermissionsAsync(_selectedUserId, _selectedPermissions);
+            
+            Snackbar.Add(L["Permissions updated successfully"], Severity.Success);
+            await LoadUserPermissionsAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating permissions");
+            Snackbar.Add(L["Error updating permissions"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+}

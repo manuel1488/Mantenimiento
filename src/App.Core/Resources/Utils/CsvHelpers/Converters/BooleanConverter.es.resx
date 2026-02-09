@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Mensajes de Error -->
+  <data name="Invalid boolean value: '{0}'. Expected: {1}">
+    <value>Valor booleano inválido: '{0}'. Se esperaba: {1}</value>
+    <comment>Mensaje de error cuando falla la conversión booleana. {0} es el valor inválido, {1} es la lista de valores válidos</comment>
+  </data>
+  
+  <!-- Valores Booleanos Válidos -->
+  <data name="ValidBooleanValues">
+    <value>verdadero/falso, 1/0, sí/no, s/n, true/false, yes/no, y/n</value>
+    <comment>Lista de valores booleanos válidos para el idioma español (incluye inglés para compatibilidad)</comment>
+  </data>
+  
+  <!-- Valores Verdaderos (para referencia) -->
+  <data name="TrueValues">
+    <value>verdadero, sí, s, true, yes, y, 1</value>
+    <comment>Valores que representan verdadero en español e inglés</comment>
+  </data>
+  
+  <!-- Valores Falsos (para referencia) -->
+  <data name="FalseValues">
+    <value>falso, no, n, false, 0</value>
+    <comment>Valores que representan falso en español e inglés</comment>
+  </data>
+</root>

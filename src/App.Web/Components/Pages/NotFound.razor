@@ -1,0 +1,25 @@
+﻿@page "/not-found"
+@using App.Web.Components.Shared
+@using App.Web.Components.Layout
+@layout ErrorLayout
+
+<PageTitle>404 - Page Not Found</PageTitle>
+
+<NotFoundView />
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "statusCode")]
+    public string? StatusCode { get; set; }
+    
+    [Inject]
+    public ILogger<NotFound> Logger { get; set; } = null!;
+    
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(StatusCode))
+        {
+            Logger.LogWarning("Status code page triggered: {StatusCode}", StatusCode);
+        }
+    }
+}

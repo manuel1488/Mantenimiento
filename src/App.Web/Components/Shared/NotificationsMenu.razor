@@ -1,0 +1,70 @@
+@inject IStringLocalizer<NotificationsMenu> L
+
+<MudMenu Icon="@Icons.Material.Filled.Notifications" 
+         Color="Color.Inherit" 
+         Dense="true">
+    <MudText Typo="Typo.subtitle2" Class="px-4 py-2">
+        @L["Notifications"]
+    </MudText>
+    <MudDivider Class="mb-2" />
+    
+    @if (!_notifications.Any())
+    {
+        <MudText Typo="Typo.body2" Class="pa-4">
+            @L["No notifications"]
+        </MudText>
+    }
+    else
+    {
+        @foreach (var notification in _notifications)
+        {
+            <MudMenuItem>
+                <div class="d-flex">
+                    <MudIcon Icon="@notification.Icon" 
+                            Color="@notification.Color" 
+                            Class="mr-2" />
+                    <div>
+                        <MudText Typo="Typo.body2">@notification.Message</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @notification.Time.ToLocalTime().ToString("g")
+                        </MudText>
+                    </div>
+                </div>
+            </MudMenuItem>
+        }
+    }
+</MudMenu>
+
+@code {
+    private List<NotificationItem> _notifications = new();
+
+    protected override void OnInitialized()
+    {
+        // TODO: Cargar notificaciones reales
+        _notifications = new List<NotificationItem>
+        {
+            new()
+            {
+                Message = "Nueva orden de trabajo #1234",
+                Icon = Icons.Material.Filled.Assignment,
+                Color = Color.Info,
+                Time = DateTime.UtcNow.AddMinutes(-30)
+            },
+            new()
+            {
+                Message = "Stock bajo en producto XYZ",
+                Icon = Icons.Material.Filled.Warning,
+                Color = Color.Warning,
+                Time = DateTime.UtcNow.AddHours(-2)
+            }
+        };
+    }
+
+    private class NotificationItem
+    {
+        public string Message { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public Color Color { get; set; }
+        public DateTime Time { get; set; }
+    }
+}

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error processing inventory: {0}" xml:space="preserve">
+    <value>Error processing inventory: {0}</value>
+  </data>
+  <data name="An error occurred while creating the sale: {0}" xml:space="preserve">
+    <value>An error occurred while creating the sale: {0}</value>
+  </data>
+  <data name="Sale not found with ID: {0}" xml:space="preserve">
+    <value>Sale not found with ID: {0}</value>
+  </data>
+  <data name="Cannot update a cancelled sale" xml:space="preserve">
+    <value>Cannot update a cancelled sale</value>
+  </data>
+  <data name="An error occurred while updating the sale: {0}" xml:space="preserve">
+    <value>An error occurred while updating the sale: {0}</value>
+  </data>
+  <data name="Error returning inventory: {0}" xml:space="preserve">
+    <value>Error returning inventory: {0}</value>
+  </data>
+  <data name="An error occurred while cancelling the sale: {0}" xml:space="preserve">
+    <value>An error occurred while cancelling the sale: {0}</value>
+  </data>
+  <data name="Error retrieving discount settings" xml:space="preserve">
+    <value>Error retrieving discount settings</value>
+  </data>
+  <data name="The specified user is not authorized to approve discounts" xml:space="preserve">
+    <value>The specified user is not authorized to approve discounts</value>
+  </data>
+  <data name="Public discount cannot exceed {0}%" xml:space="preserve">
+    <value>Public discount cannot exceed {0}%</value>
+  </data>
+  <data name="Authorization required for any public discount" xml:space="preserve">
+    <value>Authorization required for any public discount</value>
+  </data>
+  <data name="An error occurred while validating the discount" xml:space="preserve">
+    <value>An error occurred while validating the discount</value>
+  </data>
+  <data name="An error occurred while retrieving the public sales warehouse" xml:space="preserve">
+    <value>An error occurred while retrieving the public sales warehouse</value>
+  </data>
+  <data name="Warehouse not found or not active" xml:space="preserve">
+    <value>Warehouse not found or not active</value>
+  </data>
+  <data name="An error occurred while setting the public sales warehouse" xml:space="preserve">
+    <value>An error occurred while setting the public sales warehouse</value>
+  </data>
+  <data name="Sale must have at least one product" xml:space="preserve">
+    <value>Sale must have at least one product</value>
+  </data>
+  <data name="Customer not found with ID: {0}" xml:space="preserve">
+    <value>Customer not found with ID: {0}</value>
+  </data>
+  <data name="No public sales warehouse has been configured" xml:space="preserve">
+    <value>No public sales warehouse has been configured</value>
+  </data>
+  <data name="Invalid status transition from {0} to {1}" xml:space="preserve">
+    <value>Invalid status transition from {0} to {1}</value>
+  </data>
+  <data name="One or more products not found: {0}" xml:space="preserve">
+    <value>One or more products not found: {0}</value>
+  </data>
+  <data name="Insufficient stock for products: {0}" xml:space="preserve">
+    <value>Insufficient stock for products: {0}</value>
+  </data>
+  <data name="Error calculating sale: {0}" xml:space="preserve">
+    <value>Error calculating sale: {0}</value>
+  </data>
+  <data name="Company settings not configured. Please configure company settings before creating sales." xml:space="preserve">
+    <value>Company settings not configured. Please configure company settings before creating sales.</value>
+  </data>
+  <data name="Tax settings not configured. Please configure tax settings before creating sales." xml:space="preserve">
+    <value>Tax settings not configured. Please configure tax settings before creating sales.</value>
+  </data>
+  <data name="No effective tax rate found. Please configure at least one active tax rate." xml:space="preserve">
+    <value>No effective tax rate found. Please configure at least one active tax rate.</value>
+  </data>
+  <data name="Error getting tax rate. Please ensure tax rates are properly configured." xml:space="preserve">
+    <value>Error getting tax rate. Please ensure tax rates are properly configured.</value>
+  </data>
+</root>

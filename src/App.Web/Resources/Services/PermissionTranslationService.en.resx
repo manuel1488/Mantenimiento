@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Module Names -->
+  <data name="Module.Shop" xml:space="preserve">
+    <value>Shop</value>
+  </data>
+  <data name="Module.Admin" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="Module.Shared" xml:space="preserve">
+    <value>Shared</value>
+  </data>
+  
+  <!-- Permission Types -->
+  <data name="Permission.Access" xml:space="preserve">
+    <value>Access</value>
+  </data>
+  <data name="Permission.View" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="Permission.Manage" xml:space="preserve">
+    <value>Manage</value>
+  </data>
+  <data name="Permission.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Permission.Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Permission.Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Permission.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Permission.Generate" xml:space="preserve">
+    <value>Generate</value>
+  </data>
+  <data name="Permission.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Permission.ViewReports" xml:space="preserve">
+    <value>View Reports</value>
+  </data>
+  <data name="Permission.Authorize" xml:space="preserve">
+    <value>Authorize</value>
+  </data>
+  <data name="Permission.ViewHistory" xml:space="preserve">
+    <value>View History</value>
+  </data>
+  <data name="Permission.ModuleAccess" xml:space="preserve">
+    <value>Access to {0}</value>
+  </data>
+  
+  <!-- Features -->
+  <data name="Feature.ModuleAccess" xml:space="preserve">
+    <value>Module Access</value>
+  </data>
+  <data name="Feature.Products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="Feature.Inventory" xml:space="preserve">
+    <value>Inventory</value>
+  </data>
+  <data name="Feature.InventoryHistory" xml:space="preserve">
+    <value>Inventory History</value>
+  </data>
+  <data name="Feature.InventoryTransfers" xml:space="preserve">
+    <value>Inventory Transfers</value>
+  </data>
+  <data name="Feature.InventoryInputs" xml:space="preserve">
+    <value>Inventory Inputs</value>
+  </data>
+  <data name="Feature.InventoryAdjustments" xml:space="preserve">
+    <value>Inventory Adjustments</value>
+  </data>
+  <data name="Feature.InventoryAlerts" xml:space="preserve">
+    <value>Inventory Alerts</value>
+  </data>
+  <data name="Permission.ReceiveEmails" xml:space="preserve">
+    <value>Receive Inventory Alert Emails</value>
+    <comment>Permission to receive email notifications when inventory levels reach critical thresholds (min/max stock)</comment>
+  </data>
+  <data name="Feature.Prices" xml:space="preserve">
+    <value>Prices</value>
+  </data>
+  <data name="Feature.Discounts" xml:space="preserve">
+    <value>Discounts</value>
+  </data>
+  <data name="Feature.Sales" xml:space="preserve">
+    <value>Sales</value>
+  </data>
+  <data name="Feature.Invoice" xml:space="preserve">
+    <value>Invoicing</value>
+  </data>
+  <data name="Feature.Warehouses" xml:space="preserve">
+    <value>Warehouses</value>
+  </data>
+  <data name="Feature.Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Feature.Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="Feature.Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Feature.FiscalSettings" xml:space="preserve">
+    <value>Fiscal Settings</value>
+  </data>
+  <data name="Feature.WarehouseSettings" xml:space="preserve">
+    <value>Warehouse Settings</value>
+  </data>
+  <data name="Feature.EmailSettings" xml:space="preserve">
+    <value>Email Settings</value>
+  </data>
+  <data name="Feature.TaxRates" xml:space="preserve">
+    <value>Tax Rates</value>
+  </data>
+  <data name="Feature.UnitMeasures" xml:space="preserve">
+    <value>Units of Measure</value>
+  </data>
+  <data name="Feature.InitialSetup" xml:space="preserve">
+    <value>Initial Setup</value>
+  </data>
+  <data name="Feature.Audit" xml:space="preserve">
+    <value>Audit</value>
+  </data>
+  <data name="Feature.Permissions" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="Feature.Customers" xml:space="preserve">
+    <value>Customers</value>
+  </data>
+  <data name="Feature.Reports" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  
+  <!-- Existing UI translations -->
+  <data name="Select User" xml:space="preserve">
+    <value>Select User</value>
+  </data>
+  <data name="Error loading users" xml:space="preserve">
+    <value>Error loading users</value>
+  </data>
+  <data name="Error loading user permissions" xml:space="preserve">
+    <value>Error loading user permissions</value>
+  </data>
+  <data name="Error updating permissions" xml:space="preserve">
+    <value>Error updating permissions</value>
+  </data>
+  <data name="Permissions updated successfully" xml:space="preserve">
+    <value>Permissions updated successfully</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="You don't have permission to manage user permissions." xml:space="preserve">
+    <value>You don't have permission to manage user permissions.</value>
+  </data>
+  <data name="Module.Shop.Description" xml:space="preserve">
+    <value>Permissions for managing store and inventory operations</value>
+  </data>
+  <data name="Module.Admin.Description" xml:space="preserve">
+    <value>Permissions for system administration and configuration</value>
+  </data>
+  <data name="Module.Shared.Description" xml:space="preserve">
+    <value>Permissions shared across different modules</value>
+  </data>
+</root>

@@ -1,0 +1,163 @@
+﻿@using App.Web.Components.Admin.Roles.Models
+@using App.Web.Components.Admin.Users.Models
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using Microsoft.AspNetCore.Authorization
+@inject IStringLocalizer<RolesTab> L
+@inject IRoleService RoleService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+<MudPaper Class="pa-4" Elevation="0">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex justify-space-between align-center">
+            <!-- Título de la sección -->
+            <MudText Typo="Typo.h6">@L["Roles"]</MudText>
+
+            <!-- Botón Nuevo Rol -->
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Error"
+                      StartIcon="@Icons.Material.Filled.Add"
+                      Class="da-button-rounded"
+                      OnClick="OpenCreateDialog">
+                @L["New Role"]
+            </MudButton>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudGrid>
+                @foreach (var role in Roles)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Elevation="2" Class="da-card">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">@role.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @role.Description
+                                    </MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Typo="Typo.body2">
+                                    @L["Users"]: @role.UserCount
+                                </MudText>
+                            </MudCardContent>
+                            <MudCardActions Class="pa-4">
+                                <MudButton Variant="Variant.Text" 
+                                         OnClick="@(() => OpenEditDialog(role))">
+                                    @L["Edit"]
+                                </MudButton>
+                                <MudButton Variant="Variant.Text" 
+                                         OnClick="@(() => OpenPermissionsDialog(role))">
+                                    @L["Permissions"]
+                                </MudButton>
+                                @if (!IsSystemRole(role.Name))
+                                {
+                                    <MudButton Variant="Variant.Text" 
+                                             Color="Color.Error"
+                                             OnClick="@(() => OpenDeleteDialog(role))">
+                                        @L["Delete"]
+                                    </MudButton>
+                                }
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    private List<RoleModel> Roles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoles();
+    }
+
+    private async Task LoadRoles()
+    {
+        // TODO: Implementar carga de roles desde el servicio
+        var roleNames = await RoleService.GetAvailableRolesAsync();
+        Roles = roleNames.Select(name => new RoleModel { Name = name }).ToList();
+    }
+
+    private bool IsSystemRole(string roleName)
+    {
+        return roleName.Equals(ApplicationRoles.Admin, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = await DialogService.ShowAsync<RoleDialog>(L["New Role"]);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await LoadRoles();
+        }
+    }
+
+    private async Task OpenEditDialog(RoleModel role)
+    {
+        var parameters = new DialogParameters<RoleDialog>
+        {
+            { x => x.Model, new RoleDialogModel 
+              { 
+                  Id = role.Id,
+                  Name = role.Name,
+                  Description = role.Description 
+              } 
+            },
+            { x => x.IsNew, false }
+        };
+
+        var dialog = await DialogService.ShowAsync<RoleDialog>(
+            L["Edit Role"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await LoadRoles();
+        }
+    }
+
+    private async Task OpenPermissionsDialog(RoleModel role)
+    {
+        var parameters = new DialogParameters<RolePermissionsDialog>
+        {
+            { x => x.RoleId, role.Id },
+            { x => x.RoleName, role.Name }
+        };
+
+        var dialog = await DialogService.ShowAsync<RolePermissionsDialog>(
+            string.Format(L["Permissions for role {0}"], role.Name),
+            parameters);
+        await dialog.Result;
+    }
+
+    private async Task OpenDeleteDialog(RoleModel role)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", string.Format(L["Are you sure you want to delete the role {0}?"], role.Name) },
+            { "ButtonText", L["Delete"] },
+            { "Color", Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            L["Delete Role"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            // TODO: Implementar eliminación
+            await LoadRoles();
+        }
+    }
+
+    
+}

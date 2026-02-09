@@ -1,0 +1,181 @@
+﻿@page "/customers/{Id:long}"
+@using App.Core.DTOs.Customer
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+
+@inject ICustomerService CustomerService
+@inject IStringLocalizer<CustomerDetail> L
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ILookupService LookupService
+@inject ILogger<CustomerDetail> _logger
+@attribute [Authorize (Policy = ApplicationClaims.Shared.ViewCustomers)]
+
+<PageTitle>@L["Customer Details"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    @if (_loading)
+    {
+        <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+    }
+    else if (_customer == null)
+    {
+        <MudAlert Severity="Severity.Error">@L["Customer not found"]</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex justify-space-between align-center">
+                <MudText Typo="Typo.h4">@_customer.Name</MudText>
+                <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.ArrowBack"
+                          Class="da-button-rounded"
+                          title="@L["Back to customers list"]"
+                          OnClick="@(() => Navigation.NavigateTo("/customers"))">
+                    @L["Back to List"]
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6" Class="mb-4">@L["General Information"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Trade Name"]" Variant="Variant.Text">
+                            @_customer.Name
+                        </MudField>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Legal Name"]" Variant="Variant.Text">
+                            @_customer.LegalName
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Tax ID"]" Variant="Variant.Text">
+                            @(_customer.TaxId ?? "-")
+                        </MudField>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Country"]" Variant="Variant.Text">
+                            @(_countries.FirstOrDefault(c => c.Code == _customer.CountryCode)?.Name ?? _customer.CountryCode)
+                        </MudField>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+
+            <!-- Actualizar la sección de dirección -->
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6" Class="mb-4">@L["Address"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudField Label="@L["Street"]" Variant="Variant.Text">
+                            @(_customer.Street ?? "-")
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Exterior Number"]" Variant="Variant.Text">
+                            @(_customer.ExteriorNumber ?? "-")
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Interior Number"]" Variant="Variant.Text">
+                            @(_customer.InteriorNumber ?? "-")
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Neighborhood"]" Variant="Variant.Text">
+                            @(_customer.Neighborhood ?? "-")
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["City"]" Variant="Variant.Text">
+                            @(_customer.City ?? "-")
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["State"]" Variant="Variant.Text">
+                            @(_customer.State ?? "-")
+                        </MudField>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudField Label="@L["Postal Code"]" Variant="Variant.Text">
+                            @(_customer.PostalCode ?? "-")
+                        </MudField>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+            <!-- Agregar sección para información fiscal de Canadá si aplica -->
+            @if (_customer.CountryCode == "CA")
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Canadian Tax Information"]</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["GST Number"]" Variant="Variant.Text">
+                                @(_customer.CaGstNumber ?? "-")
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["PST Number"]" Variant="Variant.Text">
+                                @(_customer.CaPstNumber ?? "-")
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["HST Number"]" Variant="Variant.Text">
+                                @(_customer.CaHstNumber ?? "-")
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["QST Number"]" Variant="Variant.Text">
+                                @(_customer.CaQstNumber ?? "-")
+                            </MudField>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public long Id { get; set; }
+    private CustomerDto? _customer;
+    private List<CountryDto> _countries = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = (await LookupService.GetCountriesAsync()).ToList();
+        await LoadCustomer();
+    }
+
+    private async Task LoadCustomer()
+    {
+        try
+        {
+            _customer = await CustomerService.GetCustomerByIdAsync(Id);
+            if (_customer == null)
+            {
+                Snackbar.Add(L["Customer not found"], Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading customer");
+            Snackbar.Add(L["Error loading customer"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

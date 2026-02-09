@@ -1,0 +1,37 @@
+# Development files
+.git/
+.github/
+.vs/
+.vscode/
+**/bin/
+**/obj/
+**/*.user
+
+# Environment files
+**/.env
+!**/appsettings.*.json
+!**/appsettings.json
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Logs
+**/logs/
+**/*.log
+
+# Dependencies
+**/node_modules/
+**/packages/
+
+# Development certificates
+**/*.pfx
+**/*.key
+
+# Docs
+docs/
+
+# Images files
+src/DA.Web/wwwroot/uploads/

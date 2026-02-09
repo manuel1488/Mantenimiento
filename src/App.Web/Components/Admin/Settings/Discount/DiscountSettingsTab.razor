@@ -1,0 +1,150 @@
+﻿@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Core.Constants
+@using App.Core.Interfaces.Settings
+@using App.Web.Services
+
+@inject IDiscountSettingsService DiscountSettingsService
+@inject IPermissionCheckService PermissionService
+@inject IStringLocalizer<DiscountSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<DiscountSettingsTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewDisccounts">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <!-- Public Sales Discount Settings -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Public Sales Discount Settings"]</MudText>
+                    <MudGrid>
+                        <!-- Maximum Public Discount -->
+                        <MudItem xs="12" md="6">
+                            <MudNumericField T="decimal"
+                                           @bind-Value="_model.MaximumPublicDiscount"
+                                           Label="@L["Maximum Public Discount (%)"]"
+                                           Required="@_hasWriteAccess"
+                                           Min="0"
+                                           Max="100"
+                                           ReadOnly="@(!_hasWriteAccess)"
+                                           Format="N2"
+                                           AdornmentText="%"
+                                           Adornment="Adornment.End"
+                                           HelperText="@L["Maximum discount allowed for public sales"]" />
+                        </MudItem>
+
+                        <!-- Require Authorization Checkbox -->
+                        <MudItem xs="12" md="6" Class="d-flex align-center">
+                            <MudCheckBox @bind-Value="_model.RequireAuthorizationForPublicDiscount"
+                                       ReadOnly="@(!_hasWriteAccess)"
+                                       Label="@L["Require Authorization for Public Discounts"]"
+                                       Color="Color.Primary" />
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+
+                <!-- Save Button -->
+                <MudItem xs="12" Class="d-flex justify-end mt-8">
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageDisccounts">
+                        <Authorized Context="contextDisccount">
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Error"
+                                     OnClick="SaveChangesAsync"
+                                     Disabled="@_processing"
+                                     Class="da-button-rounded">
+                                @if (_processing)
+                                {
+                                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                    <MudText Class="ms-2">@L["Saving"]</MudText>
+                                }
+                                else
+                                {
+                                    @L["Save Changes"]
+                                }
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _hasWriteAccess;
+    private UpdateDiscountSettingsDto _model = new()
+    {
+        MaximumPublicDiscount = 15,
+        RequireAuthorizationForPublicDiscount = true
+    };
+    private DiscountSettingsDto? _settings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageDisccounts);
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            var result = await DiscountSettingsService.GetSettingsAsync();
+            if (result.IsSuccess && result.Value != null)
+            {
+                _settings = result.Value;
+                _model = new UpdateDiscountSettingsDto
+                {
+                    MaximumPublicDiscount = _settings.MaximumPublicDiscount,
+                    RequireAuthorizationForPublicDiscount = _settings.RequireAuthorizationForPublicDiscount
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading discount settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                var result = await DiscountSettingsService.CreateOrUpdateSettingsAsync(_model);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Discount settings updated successfully"], Severity.Success);
+                    await LoadSettings();
+                }
+                else
+                {
+                    Snackbar.Add(result.Error ?? L["Error updating settings"], Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving discount settings");
+                Snackbar.Add(L["Error saving settings"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

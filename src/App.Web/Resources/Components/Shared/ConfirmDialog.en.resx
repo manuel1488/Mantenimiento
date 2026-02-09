@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="Confirm" xml:space="preserve">
+        <value>Confirm</value>
+    </data>
+    <data name="Delete Confirmation" xml:space="preserve">
+        <value>Delete Confirmation</value>
+    </data>
+    <data name="Warning" xml:space="preserve">
+        <value>Warning</value>
+    </data>
+    <data name="Information" xml:space="preserve">
+        <value>Information</value>
+    </data>
+    <data name="Success" xml:space="preserve">
+        <value>Success</value>
+    </data>
+    <data name="Error handling confirmation in dialog" xml:space="preserve">
+        <value>Error handling confirmation in dialog</value>
+    </data>
+    <data name="Error handling cancel in dialog" xml:space="preserve">
+        <value>Error handling cancel in dialog</value>
+    </data>
+    <data name="This action cannot be undone" xml:space="preserve">
+        <value>This action cannot be undone</value>
+    </data>
+    <data name="Are you sure?" xml:space="preserve">
+        <value>Are you sure?</value>
+    </data>
+    <data name="Please confirm" xml:space="preserve">
+        <value>Please confirm</value>
+    </data>
+    <data name="Delete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+    <data name="Continue" xml:space="preserve">
+        <value>Continue</value>
+    </data>
+    <data name="Accept" xml:space="preserve">
+        <value>Accept</value>
+    </data>
+</root>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!-- Product Template -->
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Código de Barras</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Content" xml:space="preserve">
+    <value>Contenido</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="UnitMeasureCode" xml:space="preserve">
+    <value>Código de Unidad de Medida</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="IsTaxable" xml:space="preserve">
+    <value>Es Gravable</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="IsActive" xml:space="preserve">
+    <value>Está Activo</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="MexicoProductServiceCode" xml:space="preserve">
+    <value>Código SAT de Producto/Servicio</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowPartialSale" xml:space="preserve">
+    <value>Permitir Venta Parcial</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowCustomPricing" xml:space="preserve">
+    <value>Permitir Precio Personalizado</value>
+    <comment>Product template header</comment>
+  </data>
+
+  <!-- Mensajes de Error -->
+  <data name="Unexpected error processing Excel file: {0}">
+    <value>Error inesperado procesando el archivo de Excel: {0}</value>
+    <comment>Mensaje de error cuando ocurre una excepción inesperada durante el procesamiento de Excel</comment>
+  </data>
+  <data name="Error validating file structure: {0}">
+    <value>Error validando la estructura del archivo: {0}</value>
+    <comment>Mensaje de error cuando la validación de la estructura del archivo falla</comment>
+  </data>
+  <data name="Excel file contains no worksheets">
+    <value>El archivo de Excel no contiene hojas de cálculo</value>
+    <comment>Mensaje de error cuando el archivo de Excel no tiene hojas de trabajo</comment>
+  </data>
+  <data name="Excel worksheet is empty">
+    <value>La hoja de cálculo de Excel está vacía</value>
+    <comment>Mensaje de error cuando la hoja de trabajo no tiene datos</comment>
+  </data>
+  <data name="Missing required columns: {0}">
+    <value>Faltan columnas requeridas: {0}</value>
+    <comment>Mensaje de error cuando faltan columnas requeridas en el archivo de Excel</comment>
+  </data>
+  <data name="{0} column not found">
+    <value>Columna {0} no encontrada</value>
+    <comment>Mensaje de error cuando no se encuentra una columna específica</comment>
+  </data>
+  <data name="{0} is required">
+    <value>{0} es requerido</value>
+    <comment>Mensaje de error cuando un campo requerido está vacío</comment>
+  </data>
+  <data name="{0} must be greater than 0">
+    <value>{0} debe ser mayor que 0</value>
+    <comment>Mensaje de error cuando un campo numérico debe ser positivo</comment>
+  </data>
+  <data name="Invalid decimal format in {0}. Expected numeric value, received: '{1}'">
+    <value>Formato decimal inválido en {0}. Se esperaba un valor numérico, se recibió: '{1}'</value>
+    <comment>Mensaje de error cuando falla la conversión de decimal</comment>
+  </data>
+  <data name="Invalid boolean format. Expected: true/false, 1/0, yes/no, received: '{0}'">
+    <value>Formato booleano inválido. Se esperaba: verdadero/falso, 1/0, sí/no, se recibió: '{0}'</value>
+    <comment>Mensaje de error cuando falla la conversión de booleano</comment>
+  </data>
+  <data name="General error">
+    <value>Error general</value>
+    <comment>Etiqueta para errores generales de procesamiento</comment>
+  </data>
+  <data name="Error processing row {0}: {1}">
+    <value>Error procesando la fila {0}: {1}</value>
+    <comment>Mensaje de error cuando el procesamiento de una fila específica falla</comment>
+  </data>
+</root>

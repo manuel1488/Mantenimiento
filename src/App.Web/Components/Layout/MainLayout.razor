@@ -1,0 +1,139 @@
+﻿@inherits LayoutComponentBase
+@inject IBrowserViewportService BrowserViewportService
+@inject ILogger<MainLayout> _logger
+@implements IAsyncDisposable
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<AuthorizeView>
+    <Authorized>
+        <MudLayout>
+            <AppBar OnDrawerToggle="DrawerToggle" />
+            <MudDrawer @bind-Open="_drawerOpen" 
+                      Elevation="1"
+                      ClipMode="@_clipMode"
+                      Overlay="@_isSmallScreen"
+                      Variant="@_drawerVariant"
+                      Breakpoint="@_breakpoint"
+                      OverlayAutoClose="@_isSmallScreen">
+                <NavMenu />
+            </MudDrawer>
+
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-4">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </MudLayout>
+    </Authorized>
+    <NotAuthorized>
+        @Body
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _drawerOpen;
+    private bool _isSmallScreen;
+    private Guid _subscriptionId = Guid.NewGuid();
+
+    // Drawer properties configurable based on screen size
+    private DrawerClipMode _clipMode => _isSmallScreen ? DrawerClipMode.Never : DrawerClipMode.Always;
+    private DrawerVariant _drawerVariant => _isSmallScreen ? DrawerVariant.Temporary : DrawerVariant.Responsive;
+    private Breakpoint _breakpoint => Breakpoint.Md;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Configure initial state based on screen size
+        var breakpoint = await BrowserViewportService.GetCurrentBreakpointAsync();
+        _isSmallScreen = breakpoint <= _breakpoint;
+        _drawerOpen = !_isSmallScreen;
+
+        await BrowserViewportService.SubscribeAsync(_subscriptionId, async @event =>
+        {
+            var wasSmallScreen = _isSmallScreen;
+            _isSmallScreen = @event.Breakpoint <= _breakpoint;
+
+            // If screen type changed
+            if (wasSmallScreen != _isSmallScreen)
+            {
+                // Close drawer on small screen
+                if (_isSmallScreen)
+                {
+                    _drawerOpen = false;
+                }
+                // Open drawer on large screen
+                else
+                {
+                    _drawerOpen = true;
+                }
+                await InvokeAsync(StateHasChanged);
+            }
+        });
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_subscriptionId != Guid.Empty)
+        {
+            try
+            {
+                await BrowserViewportService.UnsubscribeAsync(_subscriptionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unsubscribing from viewport service");
+            }
+        }
+    }
+
+    private MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#E53935",
+            Secondary = "#757575",
+            Background = "#F5F5F5",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#E53935",
+        },
+        Typography = new Typography
+        {
+            H1 = new H1Typography
+            {
+                FontSize = "24px",
+                FontWeight = "400",
+                LineHeight = "1.167",
+                LetterSpacing = "-.01562em"
+            },
+            H2 = new H2Typography
+            {
+                FontSize = "20px",
+                FontWeight = "300",
+                LineHeight = "1.2",
+                LetterSpacing = "-.00833em"
+            },
+            Body1 = new Body1Typography
+            {
+                FontSize = "14px",
+                FontWeight = "400",
+                LineHeight = "1.5",
+                LetterSpacing = ".00938em"
+            },
+            Caption = new CaptionTypography
+            {
+                FontSize = "12px",
+                FontWeight = "400",
+                LineHeight = "1.66",
+                LetterSpacing = ".03333em"
+            }
+        }
+    };
+}

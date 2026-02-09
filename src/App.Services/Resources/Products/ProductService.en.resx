@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="ProductNotFound" xml:space="preserve">
+        <value>Product not found with ID {0}</value>
+    </data>
+    <data name="ProductWithCodeExists" xml:space="preserve">
+        <value>Product with code {0} already exists</value>
+    </data>
+    <data name="CannotDeleteProductWithRelatedRecords" xml:space="preserve">
+        <value>Cannot delete product because it has related sales records</value>
+    </data>
+    <data name="ErrorGettingProducts" xml:space="preserve">
+        <value>Error getting products</value>
+    </data>
+    <data name="ErrorCreatingProduct" xml:space="preserve">
+        <value>Error creating product</value>
+    </data>
+    <data name="ErrorUpdatingProduct" xml:space="preserve">
+        <value>Error updating product</value>
+    </data>
+    <data name="ErrorDeletingProduct" xml:space="preserve">
+        <value>Error deleting product</value>
+    </data>
+    <data name="UnitMeasureRequired" xml:space="preserve">
+        <value>Unit measure is required</value>
+    </data>
+    <data name="InvalidPrice" xml:space="preserve">
+        <value>Price must be greater than zero</value>
+    </data>
+    <data name="CodeRequired" xml:space="preserve">
+        <value>Product code is required</value>
+    </data>
+    <data name="NameRequired" xml:space="preserve">
+        <value>Product name is required</value>
+    </data>
+</root>

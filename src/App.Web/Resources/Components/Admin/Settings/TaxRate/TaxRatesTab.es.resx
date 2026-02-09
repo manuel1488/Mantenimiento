@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- UI Labels -->
+  <data name="Tax Rates" xml:space="preserve">
+    <value>Tasas de Impuesto</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>País</value>
+  </data>
+  <data name="New Tax Rate" xml:space="preserve">
+    <value>Nueva Tasa de Impuesto</value>
+  </data>
+  <data name="Active Tax Rates" xml:space="preserve">
+    <value>Tasas de Impuesto Activas</value>
+  </data>
+  <data name="Historical Tax Rates" xml:space="preserve">
+    <value>Historial de Tasas de Impuesto</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Rango de Fechas</value>
+  </data>
+  
+  <!-- Table Headers -->
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Rate" xml:space="preserve">
+    <value>Tasa</value>
+  </data>
+  <data name="Province" xml:space="preserve">
+    <value>Provincia</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Effective From" xml:space="preserve">
+    <value>Vigente Desde</value>
+  </data>
+  <data name="Effective To" xml:space="preserve">
+    <value>Vigente Hasta</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  
+  <!-- Dialog Titles -->
+  <data name="Edit Tax Rate" xml:space="preserve">
+    <value>Editar Tasa de Impuesto</value>
+  </data>
+  <data name="Delete Tax Rate" xml:space="preserve">
+    <value>Eliminar Tasa de Impuesto</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="No active tax rates found" xml:space="preserve">
+    <value>No se encontraron tasas de impuesto activas</value>
+  </data>
+  <data name="No historical tax rates found" xml:space="preserve">
+    <value>No se encontró historial de tasas de impuesto</value>
+  </data>
+  <data name="Please select a country to view tax rates" xml:space="preserve">
+    <value>Por favor seleccione un país para ver las tasas de impuesto</value>
+  </data>
+  <data name="Error loading company settings" xml:space="preserve">
+    <value>Error al cargar la configuración de la empresa</value>
+  </data>
+  <data name="Error loading countries" xml:space="preserve">
+    <value>Error al cargar los países</value>
+  </data>
+  <data name="Error loading tax rates" xml:space="preserve">
+    <value>Error al cargar las tasas de impuesto</value>
+  </data>
+  <data name="Error deleting tax rate" xml:space="preserve">
+    <value>Error al eliminar la tasa de impuesto</value>
+  </data>
+  <data name="Tax rate deleted successfully" xml:space="preserve">
+    <value>Tasa de impuesto eliminada exitosamente</value>
+  </data>
+  
+  <!-- Confirmation Dialog -->
+  <data name="Are you sure you want to delete tax rate:" xml:space="preserve">
+    <value>¿Está seguro que desea eliminar la tasa de impuesto:</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+</root>

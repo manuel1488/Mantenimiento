@@ -1,0 +1,35 @@
+@page "/access-denied"
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<AccessDenied> L
+
+<PageTitle>@L["Access Denied"]</PageTitle>
+
+<MudContainer Class="mt-6 pt-6">
+    <MudPaper Elevation="3" Class="pa-6 ma-6">
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" sm="8">
+                <div class="d-flex flex-column align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Lock" 
+                            Color="Color.Error" 
+                            Size="Size.Large" 
+                            Class="mb-4" />
+                    
+                    <MudText Typo="Typo.h4" Align="Align.Center" Class="mud-text-primary mb-4">
+                        @L["Access Denied"]
+                    </MudText>
+                    
+                    <MudText Typo="Typo.body1" Align="Align.Center" Class="mb-4">
+                        @L["You do not have permission to access the requested resource."]
+                    </MudText>
+                    
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              Class="mt-4"
+                              Href="/">
+                        @L["Return to Home"]
+                    </MudButton>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="UserProfile" xml:space="preserve">
+    <value>User Profile</value>
+    <comment>Title for the user profile page</comment>
+  </data>
+  <data name="PersonalInfo" xml:space="preserve">
+    <value>Personal Information</value>
+    <comment>Tab title for personal information section</comment>
+  </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Change Password</value>
+    <comment>Tab title and button for password change functionality</comment>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>Current Password</value>
+    <comment>Label for current password field</comment>
+  </data>
+  <data name="CurrentPasswordRequired" xml:space="preserve">
+    <value>Please enter your current password</value>
+    <comment>Error message when current password is not provided</comment>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>New Password</value>
+    <comment>Label for new password field</comment>
+  </data>
+  <data name="NewPasswordRequired" xml:space="preserve">
+    <value>Please enter a new password</value>
+    <comment>Error message when new password is not provided</comment>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Confirm Password</value>
+    <comment>Label for confirm password field</comment>
+  </data>
+  <data name="ConfirmPasswordRequired" xml:space="preserve">
+    <value>Please confirm your new password</value>
+    <comment>Error message when confirm password is not provided</comment>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Processing...</value>
+    <comment>Text shown during form submission</comment>
+  </data>
+  <data name="PasswordChangedSuccessfully" xml:space="preserve">
+    <value>Your password has been changed successfully</value>
+    <comment>Success message after password change</comment>
+  </data>
+  <data name="ErrorChangingPassword" xml:space="preserve">
+    <value>An error occurred while changing your password. Please try again.</value>
+    <comment>Error message when password change fails</comment>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Password is required.</value>
+    <comment>Error message for missing password</comment>
+  </data>
+  <data name="PasswordMin8Chars" xml:space="preserve">
+    <value>Password must be at least 8 characters long.</value>
+    <comment>Error message for password length requirement</comment>
+  </data>
+  <data name="PasswordRequiresUppercase" xml:space="preserve">
+    <value>Password must contain at least one uppercase letter.</value>
+    <comment>Error message for uppercase character requirement</comment>
+  </data>
+  <data name="PasswordRequiresLowercase" xml:space="preserve">
+    <value>Password must contain at least one lowercase letter.</value>
+    <comment>Error message for lowercase character requirement</comment>
+  </data>
+  <data name="PasswordRequiresDigit" xml:space="preserve">
+    <value>Password must contain at least one number.</value>
+    <comment>Error message for digit requirement</comment>
+  </data>
+  <data name="PasswordRequiresSpecial" xml:space="preserve">
+    <value>Password must contain at least one special character.</value>
+    <comment>Error message for special character requirement</comment>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Passwords do not match.</value>
+    <comment>Error message for password mismatch</comment>
+  </data>
+</root>

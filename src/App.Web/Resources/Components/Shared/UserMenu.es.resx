@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Profile" xml:space="preserve">
+        <value>Perfil</value>
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value>Cerrar Sesión</value>
+    </data>
+</root>

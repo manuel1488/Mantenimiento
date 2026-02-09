@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Settings" xml:space="preserve">
+    <value>Configuración</value>
+    <comment>Page title</comment>
+  </data>
+  <data name="Company Settings" xml:space="preserve">
+    <value>Configuración de la Empresa</value>
+    <comment>Card header title</comment>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+    <comment>General settings tab</comment>
+  </data>
+  <data name="Fiscal" xml:space="preserve">
+    <value>Fiscal</value>
+    <comment>Fiscal settings tab</comment>
+  </data>
+  <data name="Discounts" xml:space="preserve">
+    <value>Descuentos</value>
+    <comment>Discounts settings tab</comment>
+  </data>
+  <data name="Warehouses" xml:space="preserve">
+    <value>Almacenes</value>
+    <comment>Warehouses settings tab</comment>
+  </data>
+  <data name="Unit Measures" xml:space="preserve">
+    <value>Unidades de Medida</value>
+    <comment>Unit measures settings tab</comment>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+    <comment>Email settings tab</comment>
+  </data>
+  <data name="Tax Rates" xml:space="preserve">
+    <value>Tasas de Impuestos</value>
+    <comment>Tax rates settings tab</comment>
+  </data>
+  <data name="Ticket Settings" xml:space="preserve">
+    <value>Configuración de Tickets</value>
+    <comment>Ticket settings tab</comment>
+  </data>
+  <data name="Partial Fractions" xml:space="preserve">
+    <value>Fracciones Parciales</value>
+    <comment>Partial sale fractions settings tab</comment>
+  </data>
+  <data name="Rounding" xml:space="preserve">
+    <value>Redondeo</value>
+    <comment>Rounding settings tab</comment>
+  </data>
+</root>

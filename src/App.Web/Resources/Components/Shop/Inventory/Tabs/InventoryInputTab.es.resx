@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New Input" xml:space="preserve">
+    <value>Nuevo Ingreso</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Rango de Fechas</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Almacén</value>
+  </data>
+  <data name="All Warehouses" xml:space="preserve">
+    <value>Todos los Almacenes</value>
+  </data>
+  <data name="Input Type" xml:space="preserve">
+    <value>Tipo de Ingreso</value>
+  </data>
+  <data name="All Types" xml:space="preserve">
+    <value>Todos los Tipos</value>
+  </data>
+  <data name="Stock Input" xml:space="preserve">
+    <value>Entrada de Stock</value>
+  </data>
+  <data name="Purchase" xml:space="preserve">
+    <value>Compra</value>
+  </data>
+  <data name="Return" xml:space="preserve">
+    <value>Devolución</value>
+  </data>
+  <data name="Search products" xml:space="preserve">
+    <value>Buscar productos</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Content Per Unit" xml:space="preserve">
+    <value>Contenido por Unidad</value>
+  </data>
+  <data name="Total Content" xml:space="preserve">
+    <value>Contenido Total</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Previous Balance" xml:space="preserve">
+    <value>Saldo Anterior</value>
+  </data>
+  <data name="New Balance" xml:space="preserve">
+    <value>Nuevo Saldo</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referencia</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Creado Por</value>
+  </data>
+  <data name="No input records found" xml:space="preserve">
+    <value>No se encontraron registros de entrada</value>
+  </data>
+  <data name="New Product" xml:space="preserve">
+    <value>Nuevo Producto</value>
+  </data>
+  <data name="System Migration" xml:space="preserve">
+    <value>Migración del Sistema</value>
+  </data>
+  <data name="Initial Count" xml:space="preserve">
+    <value>Conteo Inicial</value>
+  </data>
+  <data name="Opening Balance" xml:space="preserve">
+    <value>Saldo Inicial</value>
+  </data>
+  <data name="Error loading warehouses" xml:space="preserve">
+    <value>Error al cargar almacenes</value>
+  </data>
+  <data name="Error loading movements" xml:space="preserve">
+    <value>Error al cargar movimientos</value>
+  </data>
+  <data name="Input created successfully" xml:space="preserve">
+    <value>Ingreso creado exitosamente</value>
+  </data>
+</root>

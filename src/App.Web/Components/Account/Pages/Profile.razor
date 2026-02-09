@@ -1,0 +1,228 @@
+﻿@page "/profile"
+@using App.Core.Identity.Interfaces
+@using App.Core.DTOs.Identity
+@using App.Core.Interfaces.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.ComponentModel.DataAnnotations
+@using App.Web.Components.Shared
+@using System.Security.Claims
+@using App.Core.Services
+
+@inject IStringLocalizer<Profile> L
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IIdentityService IdentityService
+@inject ISnackbar Snackbar
+@inject ILogger<Profile> Logger
+@inject IPasswordValidationService PasswordValidator
+
+@attribute [Authorize]
+
+<PageTitle>@L["UserProfile"] - App</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">@L["UserProfile"]</MudText>
+
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" 
+             PanelClass="pa-6" Color="Color.Error">
+        <MudTabPanel Text="@L["PersonalInfo"]" Icon="@Icons.Material.Filled.Person">
+            <UserInfoTab />
+        </MudTabPanel>
+        <MudTabPanel Text="@L["ChangePassword"]" Icon="@Icons.Material.Filled.Lock">
+            <MudCard Elevation="0">
+                <MudCardContent>
+                    <MudForm @ref="_form" Model="@_model">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.CurrentPassword"
+                                    InputType="@_currentPasswordInputType"
+                                    Adornment="Adornment.End"
+                                    AdornmentAriaLabel="@(_currentPasswordVisible ? L["HidePasswordTooltip"] : L["ShowPasswordTooltip"])"
+                                    AdornmentIcon="@(_currentPasswordVisibilityIcon)"
+                                    OnAdornmentClick="ToggleCurrentPasswordVisibility"
+                                    Label="@L["CurrentPassword"]"
+                                    Required="true"
+                                    RequiredError="@L["CurrentPasswordRequired"]" />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField T="string" @bind-Value="_model.NewPassword"
+                                    InputType="@_newPasswordInputType"
+                                    Adornment="Adornment.End"
+                                    AdornmentAriaLabel="@(_newPasswordVisible ? L["HidePasswordTooltip"] : L["ShowPasswordTooltip"])"
+                                    AdornmentIcon="@(_newPasswordVisibilityIcon)"
+                                    OnAdornmentClick="ToggleNewPasswordVisibility"
+                                    Label="@L["NewPassword"]"
+                                    Required="true"
+                                    RequiredError="@L["PasswordRequired"]"
+                                    Validation="@((string password) => PasswordValidator.ValidatePassword(password, L))" />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField T="string" @bind-value="_model.ConfirmPassword"
+                                    InputType="@_confirmPasswordInputType"
+                                    Adornment="Adornment.End"
+                                    AdornmentAriaLabel="@(_confirmPasswordVisible ? L["HidePasswordTooltip"] : L["ShowPasswordTooltip"])"
+                                    AdornmentIcon="@(_confirmPasswordVisibilityIcon)"
+                                    OnAdornmentClick="ToggleConfirmPasswordVisibility"
+                                    Label="@L["ConfirmPassword"]"
+                                    Required="true"
+                                    RequiredError="@L["ConfirmPasswordRequired"]"
+                                    Validation="@((string confirmPassword) => ValidatePasswordMatch(confirmPassword))" />
+                            </MudItem>
+                            
+                            <MudItem xs="12" Class="mt-2">
+                                <PasswordRequirements />
+                            </MudItem>
+                        </MudGrid>
+                    </MudForm>
+                </MudCardContent>
+                <MudCardActions Class="d-flex justify-end">
+                    <MudButton Variant="Variant.Filled"
+                              Color="Color.Error"
+                              OnClick="ChangePasswordAsync"
+                              Disabled="@_isProcessing"
+                              Class="da-button-rounded">
+                        @if (_isProcessing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">@L["Processing"]</MudText>
+                        }
+                        else
+                        {
+                            @L["ChangePassword"]
+                        }
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private ChangePasswordDto _model = new();
+    private MudForm _form = null!;
+    private bool _isProcessing = false;
+    private string? _userId;
+
+    private bool _newPasswordVisible = false;
+    private bool _confirmPasswordVisible = false;
+    private bool _currentPasswordVisible = false;
+    private InputType _newPasswordInputType = InputType.Password;
+    private InputType _confirmPasswordInputType = InputType.Password;
+    private InputType _currentPasswordInputType = InputType.Password;
+
+    private string _newPasswordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+    private string _confirmPasswordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+    private string _currentPasswordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        if (_isProcessing || string.IsNullOrEmpty(_userId)) return;
+
+        try
+        {
+            _isProcessing = true;
+            StateHasChanged();
+
+            await _form.Validate();
+            if (!_form.IsValid) return;
+
+            var result = await IdentityService.ChangePasswordAsync(
+                _userId, 
+                _model.CurrentPassword, 
+                _model.NewPassword);
+                    
+            if (result.Succeeded)
+            {
+                Snackbar.Add(L["PasswordChangedSuccessfully"], Severity.Success);
+                _model = new ChangePasswordDto();
+                _form.ResetValidation();
+                StateHasChanged();
+            }
+            else
+            {
+                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                Snackbar.Add(errorMessage, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error changing password for user {UserId}", _userId);
+            Snackbar.Add(L["ErrorChangingPassword"], Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private string? ValidatePasswordMatch(string confirmPassword)
+    {
+        if (string.IsNullOrWhiteSpace(confirmPassword))
+            return L["ConfirmPasswordRequired"];
+
+        if (confirmPassword != _model.NewPassword)
+            return L["PasswordsDoNotMatch"];
+
+        return null;
+    }
+
+    private void ToggleNewPasswordVisibility()
+    {
+        if (_newPasswordVisible)
+        {
+            _newPasswordVisible = false;
+            _newPasswordInputType = InputType.Password;
+            _newPasswordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+        }
+        else
+        {
+            _newPasswordVisible = true;
+            _newPasswordInputType = InputType.Text;
+            _newPasswordVisibilityIcon = Icons.Material.Filled.Visibility;
+        }
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        if (_confirmPasswordVisible)
+        {
+            _confirmPasswordVisible = false;
+            _confirmPasswordInputType = InputType.Password;
+            _confirmPasswordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+        }
+        else
+        {
+            _confirmPasswordVisible = true;
+            _confirmPasswordInputType = InputType.Text;
+            _confirmPasswordVisibilityIcon = Icons.Material.Filled.Visibility;
+        }
+    }
+
+    private void ToggleCurrentPasswordVisibility()
+    {
+        if (_currentPasswordVisible)
+        {
+            _currentPasswordVisible = false;
+            _currentPasswordInputType = InputType.Password;
+            _currentPasswordVisibilityIcon = Icons.Material.Filled.VisibilityOff;
+        }
+        else
+        {
+            _currentPasswordVisible = true;
+            _currentPasswordInputType = InputType.Text;
+            _currentPasswordVisibilityIcon = Icons.Material.Filled.Visibility;
+        }
+    }
+}

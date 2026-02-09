@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Inventory Template -->
+  <data name="ProductCode" xml:space="preserve">
+    <value>Código de Producto</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="MinStock" xml:space="preserve">
+    <value>Stock Mínimo</value>
+    <comment>Inventory template header</comment>
+  </data>
+  <data name="MaxStock" xml:space="preserve">
+    <value>Stock Máximo</value>
+    <comment>Inventory template header</comment>
+  </data>
+</root>

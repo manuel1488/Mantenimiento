@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>  
+  <!-- Información General -->
+  <data name="Trade Name" xml:space="preserve">
+    <value>Nombre Comercial</value>
+  </data>
+  <data name="Trade name is required" xml:space="preserve">
+    <value>El nombre comercial es requerido</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Razón Social</value>
+  </data>
+  <data name="Legal name is required" xml:space="preserve">
+    <value>La razón social es requerida</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>RFC/NIT</value>
+  </data>
+  
+  <!-- Información de Contacto -->
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="example@domain.com" xml:space="preserve">
+    <value>ejemplo@dominio.com</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Phone is required" xml:space="preserve">
+    <value>El teléfono es requerido</value>
+  </data>
+  
+  <!-- Información de Dirección -->
+  <data name="Street" xml:space="preserve">
+    <value>Calle</value>
+  </data>
+  <data name="Exterior Number" xml:space="preserve">
+    <value>Número Exterior</value>
+  </data>
+  <data name="Interior Number" xml:space="preserve">
+    <value>Número Interior</value>
+  </data>
+  <data name="Neighborhood" xml:space="preserve">
+    <value>Colonia</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>País</value>
+  </data>
+  <data name="Country is required" xml:space="preserve">
+    <value>El país es requerido</value>
+  </data>
+  
+  <!-- Números de Impuestos Canadienses -->
+  <data name="Canadian Tax Numbers" xml:space="preserve">
+    <value>Números de Impuestos Canadienses</value>
+  </data>
+  <data name="GST Number" xml:space="preserve">
+    <value>Número GST</value>
+  </data>
+  <data name="PST Number" xml:space="preserve">
+    <value>Número PST</value>
+  </data>
+  <data name="HST Number" xml:space="preserve">
+    <value>Número HST</value>
+  </data>
+  <data name="QST Number" xml:space="preserve">
+    <value>Número QST</value>
+  </data>
+  
+  <!-- Acciones del Diálogo -->
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Cancel editing" xml:space="preserve">
+    <value>Cancelar edición</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Save customer data" xml:space="preserve">
+    <value>Guardar datos del cliente</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  
+  <!-- Mensajes de Éxito -->
+  <data name="Customer created successfully" xml:space="preserve">
+    <value>Cliente creado exitosamente</value>
+  </data>
+  <data name="Customer updated successfully" xml:space="preserve">
+    <value>Cliente actualizado exitosamente</value>
+  </data>
+  
+  <!-- Mensajes de Error -->
+  <data name="Error loading customer" xml:space="preserve">
+    <value>Error al cargar el cliente</value>
+  </data>
+  <data name="Error saving customer" xml:space="preserve">
+    <value>Error al guardar el cliente</value>
+  </data>
+  
+  <!-- Mensajes de Validación -->
+  <data name="Phone number must contain only numbers, spaces, hyphens, parentheses, and plus signs" xml:space="preserve">
+    <value>El número telefónico debe contener solo números, espacios, guiones, paréntesis y signos de suma</value>
+  </data>
+  <data name="Phone number must have exactly 10 digits" xml:space="preserve">
+    <value>El número telefónico debe tener exactamente 10 dígitos</value>
+  </data>
+  <data name="Please enter a valid email address" xml:space="preserve">
+    <value>Por favor ingrese una dirección de correo electrónico válida</value>
+  </data>
+</root>

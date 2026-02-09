@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="e.g., 1/2, 1/4, 1/8" xml:space="preserve">
+    <value>e.g., 1/2, 1/4, 1/8</value>
+  </data>
+  <data name="Code is required" xml:space="preserve">
+    <value>Code is required</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="e.g., Half, Quarter" xml:space="preserve">
+    <value>e.g., Half, Quarter</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="Numerator" xml:space="preserve">
+    <value>Numerator</value>
+  </data>
+  <data name="Numerator is required" xml:space="preserve">
+    <value>Numerator is required</value>
+  </data>
+  <data name="Denominator" xml:space="preserve">
+    <value>Denominator</value>
+  </data>
+  <data name="Denominator is required" xml:space="preserve">
+    <value>Denominator is required</value>
+  </data>
+  <data name="Fraction value" xml:space="preserve">
+    <value>Fraction value</value>
+  </data>
+  <data name="Display Order" xml:space="preserve">
+    <value>Display Order</value>
+  </data>
+  <data name="Lower numbers appear first" xml:space="preserve">
+    <value>Lower numbers appear first</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Code already exists" xml:space="preserve">
+    <value>Code already exists</value>
+  </data>
+  <data name="Error validating code" xml:space="preserve">
+    <value>Error validating code</value>
+  </data>
+  <data name="Error loading fraction" xml:space="preserve">
+    <value>Error loading fraction</value>
+  </data>
+  <data name="Fraction updated successfully" xml:space="preserve">
+    <value>Fraction updated successfully</value>
+  </data>
+  <data name="Error updating fraction" xml:space="preserve">
+    <value>Error updating fraction</value>
+  </data>
+  <data name="Fraction created successfully" xml:space="preserve">
+    <value>Fraction created successfully</value>
+  </data>
+  <data name="Error creating fraction" xml:space="preserve">
+    <value>Error creating fraction</value>
+  </data>
+  <data name="Error saving fraction" xml:space="preserve">
+    <value>Error saving fraction</value>
+  </data>
+  <data name="You don't have permission to perform this action" xml:space="preserve">
+    <value>You don't have permission to perform this action</value>
+  </data>
+</root>

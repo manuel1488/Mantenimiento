@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Sales History" xml:space="preserve">
+    <value>Historial de Ventas</value>
+  </data>
+  <data name="Search sales" xml:space="preserve">
+    <value>Buscar ventas</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Rango de Fechas</value>
+  </data>
+  <data name="Sale Type" xml:space="preserve">
+    <value>Tipo de Venta</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todas</value>
+  </data>
+  <data name="Public" xml:space="preserve">
+    <value>Pública</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Creada</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completada</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelada</value>
+  </data>
+  <data name="Sale #" xml:space="preserve">
+    <value>Venta #</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Payment Method" xml:space="preserve">
+    <value>Método de Pago</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Descuento</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>Impuesto</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="View Sale" xml:space="preserve">
+    <value>Ver Venta</value>
+  </data>
+  <data name="Cancel Sale" xml:space="preserve">
+    <value>Cancelar Venta</value>
+  </data>
+  <data name="No sales found" xml:space="preserve">
+    <value>No se encontraron ventas</value>
+  </data>
+  <data name="Error loading sales" xml:space="preserve">
+    <value>Error al cargar ventas</value>
+  </data>
+  <data name="Are you sure you want to cancel this sale:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas cancelar esta venta:</value>
+  </data>
+  <data name="Keep Sale" xml:space="preserve">
+    <value>Mantener Venta</value>
+  </data>
+  <data name="This will return all products to inventory" xml:space="preserve">
+    <value>Esto devolverá todos los productos al inventario</value>
+  </data>
+  <data name="Reason for cancellation" xml:space="preserve">
+    <value>Motivo de cancelación</value>
+  </data>
+  <data name="Sale cancelled successfully" xml:space="preserve">
+    <value>Venta cancelada exitosamente</value>
+  </data>
+  <data name="Error cancelling sale" xml:space="preserve">
+    <value>Error al cancelar la venta</value>
+  </data>
+</root>

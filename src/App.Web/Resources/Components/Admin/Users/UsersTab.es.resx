@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Búsqueda y Filtros -->
+  <data name="Search users" xml:space="preserve">
+    <value>Buscar usuarios</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="New User" xml:space="preserve">
+    <value>Nuevo Usuario</value>
+  </data>
+  
+  <!-- Encabezados de Tabla -->
+  <data name="Username" xml:space="preserve">
+    <value>Nombre de Usuario</value>
+  </data>
+  <data name="Full Name" xml:space="preserve">
+    <value>Nombre Completo</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="Last Login" xml:space="preserve">
+    <value>Último Acceso</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  
+  <!-- Tooltips de Acciones -->
+  <data name="Reset Password" xml:space="preserve">
+    <value>Restablecer Contraseña</value>
+  </data>
+  <data name="Delete User" xml:space="preserve">
+    <value>Eliminar Usuario</value>
+  </data>
+  
+  <!-- Estados de Tabla -->
+  <data name="No users found" xml:space="preserve">
+    <value>No se encontraron usuarios</value>
+  </data>
+  <data name="Loading users..." xml:space="preserve">
+    <value>Cargando usuarios...</value>
+  </data>
+  
+  <!-- Mensajes de Autorización -->
+  <data name="You don't have permission to manage user permissions." xml:space="preserve">
+    <value>No tienes permisos para gestionar usuarios.</value>
+  </data>
+  
+  <!-- Mensajes de Error -->
+  <data name="Error loading roles" xml:space="preserve">
+    <value>Error al cargar los roles</value>
+  </data>
+  <data name="Error loading users" xml:space="preserve">
+    <value>Error al cargar los usuarios</value>
+  </data>
+  <data name="Error creating user" xml:space="preserve">
+    <value>Error al crear el usuario</value>
+  </data>
+  <data name="Error creating user: {0}" xml:space="preserve">
+    <value>Error al crear el usuario: {0}</value>
+  </data>
+  <data name="Error loading user data" xml:space="preserve">
+    <value>Error al cargar los datos del usuario</value>
+  </data>
+  <data name="Error updating user" xml:space="preserve">
+    <value>Error al actualizar el usuario</value>
+  </data>
+  <data name="Error updating user: {0}" xml:space="preserve">
+    <value>Error al actualizar el usuario: {0}</value>
+  </data>
+  <data name="Error loading user information" xml:space="preserve">
+    <value>Error al cargar la información del usuario</value>
+  </data>
+  <data name="Error deleting user" xml:space="preserve">
+    <value>Error al eliminar el usuario</value>
+  </data>
+  <data name="Error deleting user: {0}" xml:space="preserve">
+    <value>Error al eliminar el usuario: {0}</value>
+  </data>
+  <data name="Error resetting password" xml:space="preserve">
+    <value>Error al restablecer la contraseña</value>
+  </data>
+  <data name="An error occurred while processing the request" xml:space="preserve">
+    <value>Ocurrió un error al procesar la solicitud</value>
+  </data>
+  
+  <!-- Mensajes de Éxito -->
+  <data name="User created successfully" xml:space="preserve">
+    <value>Usuario creado exitosamente</value>
+  </data>
+  <data name="User updated successfully" xml:space="preserve">
+    <value>Usuario actualizado exitosamente</value>
+  </data>
+  <data name="User deleted successfully" xml:space="preserve">
+    <value>Usuario eliminado exitosamente</value>
+  </data>
+  <data name="Password has been reset successfully" xml:space="preserve">
+    <value>La contraseña ha sido restablecida exitosamente</value>
+  </data>
+  
+  <!-- Títulos y Contenido de Diálogos -->
+  <data name="Edit User" xml:space="preserve">
+    <value>Editar Usuario</value>
+  </data>
+  <data name="Delete User Confirmation" xml:space="preserve">
+    <value>Confirmación de Eliminación de Usuario</value>
+  </data>
+  <data name="Are you sure you want to delete user:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar el usuario:</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="This user and all associated data will be permanently deleted. This action cannot be undone." xml:space="preserve">
+    <value>Este usuario y todos los datos asociados serán eliminados permanentemente. Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Reset Password for {0}" xml:space="preserve">
+    <value>Restablecer Contraseña para {0}</value>
+  </data>
+</root>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="PageSize must be greater than 0" xml:space="preserve">
+    <value>PageSize must be greater than 0</value>
+  </data>
+  <data name="Export request exceeds maximum allowed records ({0})" xml:space="preserve">
+    <value>Export request exceeds maximum allowed records ({0})</value>
+  </data>
+  <data name="Error exporting sales report" xml:space="preserve">
+    <value>Error exporting sales report</value>
+  </data>
+  <data name="Print request exceeds maximum allowed records ({0})" xml:space="preserve">
+    <value>Print request exceeds maximum allowed records ({0})</value>
+  </data>
+</root>

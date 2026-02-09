@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Sales History" xml:space="preserve">
+    <value>Sales History</value>
+  </data>
+  <data name="Search sales" xml:space="preserve">
+    <value>Search sales</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Date Range</value>
+  </data>
+  <data name="Sale Type" xml:space="preserve">
+    <value>Sale Type</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Public" xml:space="preserve">
+    <value>Public</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Sale #" xml:space="preserve">
+    <value>Sale #</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Payment Method" xml:space="preserve">
+    <value>Payment Method</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="View Sale" xml:space="preserve">
+    <value>View Sale</value>
+  </data>
+  <data name="Cancel Sale" xml:space="preserve">
+    <value>Cancel Sale</value>
+  </data>
+  <data name="No sales found" xml:space="preserve">
+    <value>No sales found</value>
+  </data>
+  <data name="Error loading sales" xml:space="preserve">
+    <value>Error loading sales</value>
+  </data>
+  <data name="Are you sure you want to cancel this sale:" xml:space="preserve">
+    <value>Are you sure you want to cancel this sale:</value>
+  </data>
+  <data name="Keep Sale" xml:space="preserve">
+    <value>Keep Sale</value>
+  </data>
+  <data name="This will return all products to inventory" xml:space="preserve">
+    <value>This will return all products to inventory</value>
+  </data>
+  <data name="Reason for cancellation" xml:space="preserve">
+    <value>Reason for cancellation</value>
+  </data>
+  <data name="Sale cancelled successfully" xml:space="preserve">
+    <value>Sale cancelled successfully</value>
+  </data>
+  <data name="Error cancelling sale" xml:space="preserve">
+    <value>Error cancelling sale</value>
+  </data>
+</root>

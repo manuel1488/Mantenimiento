@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="InvalidTaxRateValue" xml:space="preserve">
+    <value>Valor de tasa de impuesto inválido. Debe estar entre 0 y 100</value>
+    <comment>Mensaje de validación para el rango de tasa de impuesto</comment>
+  </data>
+  <data name="TaxRateCodeExists" xml:space="preserve">
+    <value>El código de tasa de impuesto ya existe para este país</value>
+    <comment>Mensaje de error para código de tasa duplicado</comment>
+  </data>
+  <data name="TaxRateNotFound" xml:space="preserve">
+    <value>Tasa de impuesto no encontrada</value>
+    <comment>Mensaje de error cuando la tasa no existe</comment>
+  </data>
+  <data name="InvalidEffectiveDate" xml:space="preserve">
+    <value>La fecha de fin efectiva debe ser posterior a la fecha de inicio efectiva</value>
+    <comment>Mensaje de validación para fechas efectivas</comment>
+  </data>
+</root>

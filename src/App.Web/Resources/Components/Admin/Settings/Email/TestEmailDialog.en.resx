@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- SMTP Server Settings Section -->
+  <data name="SMTP Server Settings" xml:space="preserve">
+    <value>SMTP Server Settings</value>
+  </data>
+  <data name="SMTP Host" xml:space="preserve">
+    <value>SMTP Host</value>
+  </data>
+  <data name="e.g., smtp.gmail.com" xml:space="preserve">
+    <value>e.g., smtp.gmail.com</value>
+  </data>
+  <data name="SMTP Port" xml:space="preserve">
+    <value>SMTP Port</value>
+  </data>
+  <data name="e.g., 587 for TLS, 465 for SSL" xml:space="preserve">
+    <value>e.g., 587 for TLS, 465 for SSL</value>
+  </data>
+  <data name="SMTP Username" xml:space="preserve">
+    <value>SMTP Username</value>
+  </data>
+  <data name="SMTP Password" xml:space="preserve">
+    <value>SMTP Password</value>
+  </data>
+
+  <!-- Email Settings Section -->
+  <data name="Email Settings" xml:space="preserve">
+    <value>Email Settings</value>
+  </data>
+  <data name="From Email" xml:space="preserve">
+    <value>From Email</value>
+  </data>
+  <data name="From Name" xml:space="preserve">
+    <value>From Name</value>
+  </data>
+  <data name="Use SSL/TLS" xml:space="preserve">
+    <value>Use SSL/TLS</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="Test Connection" xml:space="preserve">
+    <value>Test Connection</value>
+  </data>
+  <data name="Send Test Email" xml:space="preserve">
+    <value>Send Test Email</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+
+  <!-- Messages -->
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Connection test successful" xml:space="preserve">
+    <value>Connection test successful</value>
+  </data>
+  <data name="Connection test failed" xml:space="preserve">
+    <value>Connection test failed</value>
+  </data>
+  <data name="Error testing connection" xml:space="preserve">
+    <value>Error testing connection</value>
+  </data>
+  <data name="Enter the email address to send a test message:" xml:space="preserve">
+    <value>Enter the email address to send a test message:</value>
+  </data>
+  <data name="Please enter a valid email address" xml:space="preserve">
+    <value>Please enter a valid email address</value>
+  </data>
+  <data name="Test email sent successfully" xml:space="preserve">
+    <value>Test email sent successfully</value>
+  </data>
+  <data name="Error sending test email" xml:space="preserve">
+    <value>Error sending test email</value>
+  </data>
+  <data name="Settings updated successfully" xml:space="preserve">
+    <value>Settings updated successfully</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+
+  <!-- Test Email Dialog -->
+  <data name="Email Address" xml:space="preserve">
+    <value>Email Address</value>
+  </data>
+  <data name="Email is required" xml:space="preserve">
+    <value>Email is required</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+</root>

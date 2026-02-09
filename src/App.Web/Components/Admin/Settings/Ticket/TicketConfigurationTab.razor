@@ -1,0 +1,293 @@
+﻿@using App.Core.Constants
+@using App.Core.DTOs.Ticket
+@using App.Core.Interfaces
+@using App.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+
+@inject ITicketService TicketService
+@inject IStringLocalizer<TicketConfigurationTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<TicketConfigurationTab> Logger
+@inject IPermissionCheckService PermissionService
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
+
+<PageTitle>@L["Ticket Configuration"]</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h5" Class="mb-4">@L["Ticket Configuration"]</MudText>
+
+                        @if (_loading)
+                        {
+                            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+                        }
+                        else
+                        {
+                            <MudForm @ref="_form" Model="@_model" @bind-IsValid="@_isValid">
+                                <MudGrid>
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Company Information"]</MudText>
+
+                                        <MudTextField @bind-Value="_model.CompanyName" Label="@L["Company Name"]" Required="true"
+                                            RequiredError="@L["Company name is required"]" ReadOnly="@(!_hasManagePermission)" />
+
+                                        <MudTextField @bind-Value="_model.CompanyAddress" Label="@L["Company Address"]" Class="mt-3"
+                                            Lines="2" ReadOnly="@(!_hasManagePermission)" />
+
+                                        <MudTextField @bind-Value="_model.CompanyPhone" Label="@L["Company Phone"]" Class="mt-3" 
+                                            ReadOnly="@(!_hasManagePermission)" />
+
+                                        <MudTextField @bind-Value="_model.CompanyTaxId" Label="@L["Tax ID"]" Class="mt-3" 
+                                            ReadOnly="@(!_hasManagePermission)" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" Class="mt-4">
+                                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Ticket Display Options"]</MudText>
+
+                                        <MudSwitch T="bool" @bind-Value="_model.ShowCompanyLogo" Label="@L["Show Company Logo"]"
+                                            Color="Color.Primary" Disabled="@(!_hasManagePermission)" />
+
+                                        <MudSwitch T="bool" @bind-Value="_model.ShowQRCode" Label="@L["Show QR Code"]"
+                                            Color="Color.Primary" Disabled="@(!_hasManagePermission)" />
+
+                                        <MudNumericField @bind-Value="_model.TicketWidth" Label="@L["Ticket Width (mm)"]" Min="58"
+                                            Max="210" Class="mt-3" ReadOnly="@(!_hasManagePermission)" />
+
+                                        <MudNumericField @bind-Value="_model.DefaultCopies" Label="@L["Default Copies"]" Min="1"
+                                            Max="5" Class="mt-3" ReadOnly="@(!_hasManagePermission)" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" Class="mt-4">
+                                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Custom Text"]</MudText>
+
+                                        <MudTextField @bind-Value="_model.CustomHeader" Label="@L["Custom Header"]"
+                                            HelperText="@L["HTML is supported"]" Class="mt-3" Lines="3" ReadOnly="@(!_hasManagePermission)" />
+
+                                        <MudTextField @bind-Value="_model.CustomFooter" Label="@L["Custom Footer"]"
+                                            HelperText="@L["HTML is supported"]" Class="mt-3" Lines="3" ReadOnly="@(!_hasManagePermission)" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" Class="mt-4">
+                                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Company Logo"]</MudText>
+
+                                        @if (!string.IsNullOrEmpty(_model.CompanyLogoBase64))
+                                        {
+                                            <div class="d-flex justify-center mb-4">
+                                                <img src="data:image/png;base64,@_model.CompanyLogoBase64"
+                                                    style="max-width: 200px; max-height: 100px;" />
+                                            </div>
+                                        }
+
+                                        @if (_hasManagePermission)
+                                        {
+                                            <div class="d-flex align-center gap-3">
+                                                <InputFile id="fileInput" OnChange="@HandleFileSelected" accept="image/*"
+                                                    class="d-none" />
+
+                                                <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary"
+                                                    StartIcon="@Icons.Material.Filled.CloudUpload" for="fileInput">
+                                                    @L["Upload Logo"]
+                                                </MudButton>
+
+                                                @if (!string.IsNullOrEmpty(_model.CompanyLogoBase64))
+                                                {
+                                                    <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                                                        OnClick="@(() => _model.CompanyLogoBase64 = null)">
+                                                        @L["Remove Logo"]
+                                                    </MudButton>
+                                                }
+                                            </div>
+                                        }
+                                    </MudItem>
+                                </MudGrid>
+
+                                <AuthorizeView Context="manageContext" Policy="@ApplicationClaims.Admin.ManageSettings">
+                                    <Authorized>
+                                        <div class="d-flex justify-end mt-6">
+                                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveConfiguration"
+                                                Disabled="@(!_isValid || _isSaving)">
+                                                @if (_isSaving)
+                                                {
+                                                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                                    @L["Saving..."]
+                                                }
+                                                else
+                                                {
+                                                    @L["Save Configuration"]
+                                                }
+                                            </MudButton>
+                                        </div>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </MudForm>
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudForm _form = null!;
+    private TicketConfigurationDto _model = new();
+    private UpdateTicketConfigurationDto _updateModel = new();
+    private bool _isValid;
+    private bool _loading = true;
+    private bool _isSaving = false;
+    private bool _hasManagePermission = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check permissions
+        _hasManagePermission = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings);
+        
+        await LoadConfiguration();
+    }
+
+    private async Task LoadConfiguration()
+    {
+        try
+        {
+            _loading = true;
+            _model = await TicketService.GetTicketConfigurationAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading ticket configuration");
+            Snackbar.Add(L["Error loading configuration"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnLogoUpload(IBrowserFile file)
+    {
+        if (!_hasManagePermission) return;
+        
+        try
+        {
+            if (file == null) return;
+
+            // Validar tamaño y tipo
+            if (file.Size > 1024 * 1024) // 1MB
+            {
+                Snackbar.Add(L["Logo file is too large (max 1MB)"], Severity.Warning);
+                return;
+            }
+
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
+                return;
+            }
+
+            // Leer el archivo como array de bytes
+            using var stream = file.OpenReadStream(1024 * 1024);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            // Convertir a Base64
+            var base64 = Convert.ToBase64String(memoryStream.ToArray());
+            _model.CompanyLogoBase64 = base64;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing logo upload");
+            Snackbar.Add(L["Error processing logo file"], Severity.Error);
+        }
+    }
+
+    private async Task SaveConfiguration()
+    {
+        if (!_hasManagePermission) return;
+        
+        try
+        {
+            _isSaving = true;
+
+            // Preparar modelo de actualización
+            _updateModel = new UpdateTicketConfigurationDto
+            {
+                CompanyName = _model.CompanyName,
+                CompanyAddress = _model.CompanyAddress,
+                CompanyPhone = _model.CompanyPhone,
+                CompanyTaxId = _model.CompanyTaxId,
+                CompanyLogoBase64 = _model.CompanyLogoBase64,
+                ShowCompanyLogo = _model.ShowCompanyLogo,
+                ShowQRCode = _model.ShowQRCode,
+                CustomHeader = _model.CustomHeader,
+                CustomFooter = _model.CustomFooter,
+                TicketWidth = _model.TicketWidth,
+                DefaultCopies = _model.DefaultCopies
+            };
+
+            await TicketService.UpdateTicketConfigurationAsync(_updateModel);
+            Snackbar.Add(L["Configuration saved successfully"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving ticket configuration");
+            Snackbar.Add(L["Error saving configuration"], Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        if (!_hasManagePermission) return;
+        
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            // Validar tamaño y tipo
+            if (file.Size > 1024 * 1024) // 1MB
+            {
+                Snackbar.Add(L["Logo file is too large (max 1MB)"], Severity.Warning);
+                return;
+            }
+
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
+                return;
+            }
+
+            // Leer el archivo como array de bytes
+            using var stream = file.OpenReadStream(1024 * 1024);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            // Convertir a Base64
+            var base64 = Convert.ToBase64String(memoryStream.ToArray());
+            _model.CompanyLogoBase64 = base64;
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing logo upload");
+            Snackbar.Add(L["Error processing logo file"], Severity.Error);
+        }
+    }
+}

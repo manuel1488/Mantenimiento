@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Index Page -->
+  <data name="Welcome" xml:space="preserve">
+    <value>Bienvenido</value>
+    <comment>Main welcome heading on index page</comment>
+  </data>
+  <data name="Please use the menu to navigate through the application." xml:space="preserve">
+    <value>Por favor, utiliza el menú para navegar por la aplicación.</value>
+    <comment>Navigation instruction on index page</comment>
+  </data>
+</root>

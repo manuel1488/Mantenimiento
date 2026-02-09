@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Invalid product or warehouse" xml:space="preserve">
+    <value>Producto o almacén no válido</value>
+  </data>
+  <data name="Source and destination warehouses must be different" xml:space="preserve">
+    <value>Los almacenes de origen y destino deben ser diferentes</value>
+  </data>
+  <data name="The inventory was modified by another process" xml:space="preserve">
+    <value>El inventario fue modificado por otro proceso</value>
+  </data>
+  <data name="Inventory not found for product {0} in warehouse {1}" xml:space="preserve">
+    <value>No se encontró inventario para el producto {0} en el almacén {1}</value>
+  </data>
+  <data name="Min stock cannot be greater than max stock" xml:space="preserve">
+    <value>El stock mínimo no puede ser mayor que el stock máximo</value>
+  </data>
+  <data name="Quantity must be greater than or equal to 0" xml:space="preserve">
+    <value>La cantidad debe ser mayor o igual a 0</value>
+  </data>
+  <data name="Product not found or inactive" xml:space="preserve">
+    <value>Producto no encontrado o inactivo</value>
+  </data>
+  <data name="Warehouse not found or inactive" xml:space="preserve">
+    <value>Almacén no encontrado o inactivo</value>
+  </data>
+  <data name="Product already has inventory in this warehouse" xml:space="preserve">
+    <value>El producto ya tiene inventario en este almacén</value>
+  </data>
+  <data name="Error creating initial inventory" xml:space="preserve">
+    <value>Error al crear inventario inicial</value>
+  </data>
+  <data name="Invalid or inactive warehouse" xml:space="preserve">
+    <value>Almacén no válido o inactivo</value>
+  </data>
+  <data name="Quantity must be greater than 0" xml:space="preserve">
+    <value>La cantidad debe ser mayor que 0</value>
+  </data>
+  <data name="Error validating item" xml:space="preserve">
+    <value>Error al validar el artículo</value>
+  </data>
+  <data name="Validation errors found" xml:space="preserve">
+    <value>Se encontraron errores de validación</value>
+  </data>
+  <data name="Bulk Initial Load" xml:space="preserve">
+    <value>Carga Inicial Masiva</value>
+  </data>
+  <data name="Initial inventory setup - Bulk import" xml:space="preserve">
+    <value>Configuración inicial de inventario - Importación masiva</value>
+  </data>
+  <data name="Error processing bulk initial inventory" xml:space="preserve">
+    <value>Error al procesar inventario inicial masivo</value>
+  </data>
+  <data name="Movement would exceed maximum stock" xml:space="preserve">
+    <value>El movimiento excedería el stock máximo</value>
+  </data>
+  <data name="Insufficient stock" xml:space="preserve">
+    <value>Stock insuficiente</value>
+  </data>
+  <data name="Movement would result in negative stock" xml:space="preserve">
+    <value>El movimiento resultaría en stock negativo</value>
+  </data>
+  <!-- Nuevos mensajes para ajustes de inventario -->
+  <data name="Concurrency error creating inventory adjustment" xml:space="preserve">
+    <value>Error de concurrencia al crear ajuste de inventario</value>
+  </data>
+  <data name="Error creating inventory adjustment" xml:space="preserve">
+    <value>Error al crear ajuste de inventario</value>
+  </data>
+</root>

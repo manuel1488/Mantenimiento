@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Discount Authorization Required" xml:space="preserve">
+    <value>Discount Authorization Required</value>
+  </data>
+  <data name="Authorizer Username" xml:space="preserve">
+    <value>Authorizer Username</value>
+  </data>
+  <data name="Username is required" xml:space="preserve">
+    <value>Username is required</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Password is required" xml:space="preserve">
+    <value>Password is required</value>
+  </data>
+  <data name="You are authorizing a discount that requires approval." xml:space="preserve">
+    <value>You are authorizing a discount that requires approval.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Verifying..." xml:space="preserve">
+    <value>Verifying...</value>
+  </data>
+  <data name="Authorize" xml:space="preserve">
+    <value>Authorize</value>
+  </data>
+  <data name="Invalid username or password" xml:space="preserve">
+    <value>Invalid username or password</value>
+  </data>
+  <data name="Your account does not have permission to authorize discounts" xml:space="preserve">
+    <value>Your account does not have permission to authorize discounts</value>
+  </data>
+  <data name="An error occurred during authorization validation" xml:space="preserve">
+    <value>An error occurred during authorization validation</value>
+  </data>
+</root>

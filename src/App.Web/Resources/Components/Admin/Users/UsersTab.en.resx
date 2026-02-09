@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Search and Filters -->
+  <data name="Search users" xml:space="preserve">
+    <value>Search users</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="New User" xml:space="preserve">
+    <value>New User</value>
+  </data>
+  
+  <!-- Table Headers -->
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Full Name" xml:space="preserve">
+    <value>Full Name</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Last Login" xml:space="preserve">
+    <value>Last Login</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  
+  <!-- Action Tooltips -->
+  <data name="Edit User" xml:space="preserve">
+    <value>Edit User</value>
+  </data>
+  <data name="Reset Password" xml:space="preserve">
+    <value>Reset Password</value>
+  </data>
+  <data name="Delete User" xml:space="preserve">
+    <value>Delete User</value>
+  </data>
+  
+  <!-- Table States -->
+  <data name="No users found" xml:space="preserve">
+    <value>No users found</value>
+  </data>
+  <data name="Loading users..." xml:space="preserve">
+    <value>Loading users...</value>
+  </data>
+  
+  <!-- Authorization Messages -->
+  <data name="You don't have permission to manage user permissions." xml:space="preserve">
+    <value>You don't have permission to manage user permissions.</value>
+  </data>
+  
+  <!-- Error Messages -->
+  <data name="Error loading roles" xml:space="preserve">
+    <value>Error loading roles</value>
+  </data>
+  <data name="Error loading users" xml:space="preserve">
+    <value>Error loading users</value>
+  </data>
+  <data name="Error creating user" xml:space="preserve">
+    <value>Error creating user</value>
+  </data>
+  <data name="Error creating user: {0}" xml:space="preserve">
+    <value>Error creating user: {0}</value>
+  </data>
+  <data name="Error loading user data" xml:space="preserve">
+    <value>Error loading user data</value>
+  </data>
+  <data name="Error updating user" xml:space="preserve">
+    <value>Error updating user</value>
+  </data>
+  <data name="Error updating user: {0}" xml:space="preserve">
+    <value>Error updating user: {0}</value>
+  </data>
+  <data name="Error loading user information" xml:space="preserve">
+    <value>Error loading user information</value>
+  </data>
+  <data name="Error deleting user" xml:space="preserve">
+    <value>Error deleting user</value>
+  </data>
+  <data name="Error deleting user: {0}" xml:space="preserve">
+    <value>Error deleting user: {0}</value>
+  </data>
+  <data name="Error resetting password" xml:space="preserve">
+    <value>Error resetting password</value>
+  </data>
+  <data name="An error occurred while processing the request" xml:space="preserve">
+    <value>An error occurred while processing the request</value>
+  </data>
+  
+  <!-- Success Messages -->
+  <data name="User created successfully" xml:space="preserve">
+    <value>User created successfully</value>
+  </data>
+  <data name="User updated successfully" xml:space="preserve">
+    <value>User updated successfully</value>
+  </data>
+  <data name="User deleted successfully" xml:space="preserve">
+    <value>User deleted successfully</value>
+  </data>
+  <data name="Password has been reset successfully" xml:space="preserve">
+    <value>Password has been reset successfully</value>
+  </data>
+  
+  <!-- Dialog Titles and Content -->
+  <data name="Delete User Confirmation" xml:space="preserve">
+    <value>Delete User Confirmation</value>
+  </data>
+  <data name="Are you sure you want to delete user:" xml:space="preserve">
+    <value>Are you sure you want to delete user:</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="This user and all associated data will be permanently deleted. This action cannot be undone." xml:space="preserve">
+    <value>This user and all associated data will be permanently deleted. This action cannot be undone.</value>
+  </data>
+  <data name="Reset Password for {0}" xml:space="preserve">
+    <value>Reset Password for {0}</value>
+  </data>
+</root>

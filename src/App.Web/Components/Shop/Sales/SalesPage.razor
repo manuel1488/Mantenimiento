@@ -1,0 +1,1273 @@
+﻿@page "/shop/sales"
+@using App.Core.Constants
+@using App.Core.DTOs.Shop
+@using App.Core.DTOs.Customer
+@using App.Core.DTOs.Product
+@using App.Core.DTOs.Warehouse
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Settings
+@using App.Core.Interfaces.Shop
+@using App.Services.Settings
+@using App.Shared.Services
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Components.Shop.Sales
+
+@using Microsoft.AspNetCore.Authorization
+
+@using MudBlazor
+
+@inject ISaleService SaleService
+@inject ICustomerService CustomerService
+@inject IProductService ProductService
+@inject IWarehouseService WarehouseService
+@inject ICompanySettingsService CompanySettingsService
+@inject ITaxSettingsService taxSettingsService
+@inject ITaxRateService TaxRateService
+@inject IDiscountSettingsService DiscountSettingsService
+@inject IDiscountAuthorizerService DiscountAuthorizerService
+@inject IRoundingSettingsService RoundingSettingsService
+@inject IPartialSaleFractionService PartialSaleFractionService
+@inject IProductPartialSurchargeService ProductPartialSurchargeService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SalesPage> L
+@inject ILogger<SalesPage> Logger
+@inject IServiceProvider ServiceProvider
+@inject IDateTime DateTimeService
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.CreateSale)]
+
+<PageTitle>@L["Sales Terminal"]</PageTitle>
+
+@if (!_configurationValid)
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-0">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="my-4">
+            @_configurationError
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/admin/settings" Class="da-button-rounded">
+            @L["Go to Settings"]
+        </MudButton>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-0">
+        <MudGrid>
+            <!-- Sale Type and Customer Selection -->
+            <MudItem xs="12">
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudGrid>
+                        <MudItem xs="12" md="4">
+                            <MudText Typo="Typo.h6">@L["Public Sale"]</MudText>
+                        </MudItem>
+
+                        <MudItem xs="12" md="4">
+                            <MudAutocomplete T="CustomerDto" Context="ath" Label="@L["Customer"]" @bind-Value="_selectedCustomer"
+                                SearchFunc="@SearchCustomers" 
+                                ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
+                                AdornmentIcon="@Icons.Material.Filled.Search" 
+                                AdornmentColor="Color.Primary"
+                                OnAdornmentClick="@((MouseEventArgs e) => SearchCustomers(_selectedCustomer?.Name ?? string.Empty, CancellationToken.None))"
+                                Required="true"
+                                RequiredError="@L["Customer is required"]"
+                                ResetValueOnEmptyText="true" 
+                                CoerceText="true" 
+                                CoerceValue="false"
+                                OnClearButtonClick="@(() => _selectedCustomer = null)"
+                                OnBlur="@(() => CustomerSelectedAsync(_selectedCustomer))">
+                                <MoreItemsTemplate>
+                                    <MudText Align="Align.Center">@L["Type to search more..."]</MudText>
+                                </MoreItemsTemplate>
+                                <NoItemsTemplate>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText>@L["No customer found"]</MudText>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                            OnClick="@OpenCreateCustomerDialog">
+                                            @L["Add Customer"]
+                                        </MudButton>
+                                    </MudStack>
+                                </NoItemsTemplate>
+                            </MudAutocomplete>
+                        </MudItem>
+
+                        <MudItem xs="12" md="4">
+                            <MudSelect @bind-Value="_model.PaymentMethod" Label="@L["Payment Method"]" Required="true">
+                                <MudSelectItem Value="@("Cash")">@L["Cash"]</MudSelectItem>
+                                <MudSelectItem Value="@("CreditCard")">@L["Credit Card"]</MudSelectItem>
+                                <MudSelectItem Value="@("DebitCard")">@L["Debit Card"]</MudSelectItem>
+                                <MudSelectItem Value="@("BankTransfer")">@L["Bank Transfer"]</MudSelectItem>
+                                <MudSelectItem Value="@("Other")">@L["Other"]</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            <!-- Product Search and Cart -->
+            <MudItem xs="12" md="8">
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Add Products"]</MudText>
+
+                    <MudAutocomplete T="ProductDto" Label="@L["Search Products"]"
+                        @ref="_productAutocomplete"
+                        Value="_selectedProduct"
+                        SearchFunc="@SearchProducts"
+                        ToStringFunc="@(p => p == null ? string.Empty : $"{p.Name} ({p.Code}) - {p.Brand} - {p.Description}{(p.Content > 0 ? $" ({p.Content}{p.UnitMeasureName})" : "")}")"
+                        AdornmentIcon="@Icons.Material.Filled.Search"
+                        AdornmentColor="Color.Primary"
+                        ResetValueOnEmptyText="true"
+                        CoerceText="true"
+                        CoerceValue="false"
+                        SelectOnActivation="true"
+                        Disabled="@(_isBusy || _selectedCustomer == null)"
+                        DebounceInterval="300"
+                        OnClearButtonClick="@(() => _selectedProduct = null)"
+                        SelectValueOnTab="true"
+                        ValueChanged="@(async (ProductDto product) => await ProductSelectedAsync(product))">
+                        <ItemTemplate Context="product">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div style="flex: 1;">
+                                    <span style="font-weight: 500;">@product.Name</span>
+                                    <span style="color: #666; font-size: 0.85em;"> (@product.Code)</span>
+                                    <span style="display: inline-block; margin-left: 8px; padding: 2px 6px; background-color: #e0e0e0; color: #333; border-radius: 4px; font-size: 0.7rem; font-weight: 500;">
+                                        @GetProductStock(product.Id)
+                                    </span>
+                                    <br />
+                                    <span style="color: #999; font-size: 0.75em;">
+                                        @product.Brand - @product.Description@(product.Content > 0 ? $" | {product.Content} {product.UnitMeasureName}" : "")
+                                    </span>
+                                </div>
+                            </div>
+                        </ItemTemplate>
+                        <NoItemsTemplate>
+                            <MudText>@L["No products found"]</MudText>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+
+                    @if (!_cart.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
+                            @L["Search and add products to the cart"]
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudTable Items="@_cart" Dense="true" Hover="true" Class="mt-4" T="CartItem">
+                            <HeaderContent>
+                                <MudTh Style="width: 38%">@L["Product"]</MudTh>
+                                <MudTh Style="width: 15%">@L["Price"]</MudTh>
+                                <MudTh Style="width: 23%">@L["Quantity"]</MudTh>
+                                <MudTh Style="width: 28%">@L["Total"]</MudTh>
+                                <MudTh Style="width: 1%"></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="@L["Product"]">
+                                    @context.ProductName (@context.ProductCode) - @context.Brand - @context.Description
+                                    @if (!string.IsNullOrEmpty(context.UnitMeasure))
+                                    {
+                                        <br />
+                                        <small class="text-muted">
+                                            @L["Unit"]: @context.UnitMeasure
+                                            @if (context.IsPartialSaleAllowed && context.Content > 0)
+                                            {
+                                                <span> | @L["Package"]: @context.Content @context.UnitMeasure</span>
+                                                <span> | @L["Available"]: @((context.AvailableStock / context.Content).ToString("N2")) (@context.AvailableStock.ToString("N2") @context.UnitMeasure)</span>
+                                            }
+                                            else
+                                            {
+                                                <span> | @L["Available"]: @context.AvailableStock.ToString("N2")</span>
+                                            }
+                                        </small>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="@L["Price"]">
+                                    @context.UnitPrice.ToString("C2")
+                                </MudTd>
+                                <MudTd DataLabel="@L["Quantity"]">
+                                    <div class="d-flex flex-column">
+                                        <div class="d-flex align-center">
+                                            <MudNumericField Value="context.Quantity"
+                                                Min="@(context.IsPartialSaleAllowed ? 0.001M : 1M)"
+                                                Step="@(context.IsPartialSaleAllowed ? 0.001M : 1M)" Immediate="true"
+                                                ValueChanged="@(async (decimal val) => await UpdateCartItemQuantityAsync(context, val))"
+                                                Style="flex: 1;" />
+                                            @if (!string.IsNullOrEmpty(context.UnitMeasure))
+                                            {
+                                                <small class="text-muted ml-2" style="font-size: 0.75em;">@context.UnitMeasure</small>
+                                            }
+                                        </div>
+                                        @if (context.IsPartialSaleAllowed && context.Content > 0 && _availableFractions.Count > 0)
+                                        {
+                                            <MudSelect T="int?" Value="context.PartialSaleFractionId"
+                                                ValueChanged="@((int? val) => OnFractionSelected(context, val))"
+                                                Label="@L["Fraction"]"
+                                                Margin="Margin.Dense"
+                                                Variant="Variant.Outlined"
+                                                Dense="true"
+                                                Class="mt-1">
+                                                <MudSelectItem T="int?" Value="null">@L["None (proportional)"]</MudSelectItem>
+                                                @foreach (var fraction in _availableFractions)
+                                                {
+                                                    <MudSelectItem T="int?" Value="@fraction.Id">
+                                                        @fraction.Name (@fraction.Code)
+                                                    </MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                            @if (context.SurchargePercentage > 0)
+                                            {
+                                                <small class="text-warning mt-1">
+                                                    @L["Surcharge"]: @context.SurchargePercentage.ToString("N1")% (+@context.SurchargeAmount.ToString("C2"))
+                                                </small>
+                                            }
+                                        }
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="@L["Total"]">
+                                    @if (context.AllowCustomPricing)
+                                    {
+                                        <MudNumericField Value="context.Total"
+                                            ValueChanged="@(async (decimal newTotal) => await OnTotalValueChangedAsync(context, newTotal))"
+                                            HideSpinButtons="true"
+                                            Format="C2"
+                                            Min="0.01M"
+                                            Step="0.01M"
+                                            Variant="Variant.Outlined"
+                                            Dense="true"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                            Class="mud-width-full"
+                                            Immediate="true"
+                                            OnBlur="@(() => OnTotalBlur(context))" />
+                                    }
+                                    else
+                                    {
+                                        <strong>@context.Total.ToString("C2")</strong>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="@L["Actions"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                        OnClick="@(async () => await RemoveCartItemAsync(context))" title="@L["Remove"]" />
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <!-- Totals and Checkout -->
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="2" Class="pa-4 mb-4">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Sale Summary"]</MudText>
+
+                    <MudList T="string" Clickable="false" DisablePadding="true">
+                        <MudListItem T="string">
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.subtitle2">@L["Subtotal"]:</MudText>
+                                <MudText><strong>@_subtotal.ToString("C2")</strong></MudText>
+                            </div>
+                        </MudListItem>
+
+                        <MudDivider Class="my-2" />
+
+                        <!-- Sale Discount -->
+                        <MudListItem>
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.subtitle2">@L["Discount"]:</MudText>
+                                <div class="d-flex align-center">
+                                    <MudNumericField Value="_model.DiscountPercentage" Min="0" Max="@_maxSaleDiscount"
+                                        Immediate="true" ValueChanged="@((decimal val) => UpdateSaleDiscountAsync(val))"
+                                        Adornment="Adornment.End" AdornmentText="%" Style="width: 120px;" />
+                                </div>
+                            </div>
+                        </MudListItem>
+
+                        @if (_model.DiscountPercentage > 0)
+                        {
+                            <MudListItem>
+                                <div class="d-flex justify-space-between">
+                                    <MudText Typo="Typo.caption">@L["Discount Amount"]:</MudText>
+                                    <MudText><strong>-@_discountAmount.ToString("C2")</strong></MudText>
+                                </div>
+                            </MudListItem>
+
+                            @if (_discountAuthorizerId != null && _model.DiscountAuthorizedBy != null)
+                            {
+                                <MudListItem>
+                                    <div class="d-flex justify-space-between align-center">
+                                        <MudText Typo="Typo.caption">@L["Authorized By"]:</MudText>
+                                        <MudChip Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.VerifiedUser">
+                                            @_model.DiscountAuthorizedBy
+                                        </MudChip>
+                                    </div>
+                                </MudListItem>
+                            }
+                            else
+                            {
+                                <MudListItem>
+                                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-1">
+                                        <div class="d-flex align-center">
+                                            <MudIcon Icon="@Icons.Material.Filled.Lock" Class="mr-2" />
+                                            @L["Authorization required to apply discount"]
+                                        </div>
+                                    </MudAlert>
+                                </MudListItem>
+                            }
+                        }
+
+                        <MudDivider Class="my-2" />
+
+                        <MudListItem>
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.subtitle2">@L["Tax"]:</MudText>
+                                <MudText><strong>@_taxAmount.ToString("C2")</strong></MudText>
+                            </div>
+                        </MudListItem>
+
+                        @if (_isRoundingEnabled && _roundingAmount != 0)
+                        {
+                            <MudListItem>
+                                <div class="d-flex justify-space-between">
+                                    <MudText Typo="Typo.subtitle2">@L["Rounding"]:</MudText>
+                                    <MudText><strong>@(_roundingAmount > 0 ? "+" : "")@_roundingAmount.ToString("C2")</strong></MudText>
+                                </div>
+                            </MudListItem>
+                        }
+
+                        <MudDivider Class="my-2" />
+
+                        <MudListItem>
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.h6">@L["Total"]:</MudText>
+                                <MudText Typo="Typo.h6" Color="Color.Primary"><strong>@_total.ToString("C2")</strong></MudText>
+                            </div>
+                        </MudListItem>
+                    </MudList>
+
+                    <MudButton Variant="Variant.Filled"
+                        Color="@(_model.DiscountPercentage > 0 && _discountAuthorizerId == null ? Color.Warning : Color.Success)"
+                        FullWidth="true" OnClick="ProcessSale" Disabled="@(_isBusy || !IsFormValid())"
+                        Class="mt-4 da-button-rounded">
+                        @if (_isBusy)
+                        {
+                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                            @L["Processing..."]
+                        }
+                        else if (_model.DiscountPercentage > 0 && _discountAuthorizerId == null)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.LockOpen" Class="mr-2" />
+                            @L["Authorize and Complete Sale"]
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2" />
+                            @L["Complete Sale"]
+                        }
+                    </MudButton>
+
+                    @if (_cart.Any())
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true" OnClick="ClearCartAsync"
+                            Disabled="@_isBusy" Class="mt-2 da-button-rounded">
+                            <MudIcon Icon="@Icons.Material.Filled.RemoveShoppingCart" Class="mr-2" />
+                            @L["Clear Cart"]
+                        </MudButton>
+                    }
+                </MudPaper>                
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+}
+
+@code {
+    private MudAutocomplete<ProductDto> _productAutocomplete = null!;
+    // Form model and validation
+    private CreateSaleDto _model = new()
+    {
+        SaleType = SaleType.Public,
+        PaymentMethod = "Cash",
+        DiscountPercentage = 0,
+        Details = new List<CreateSaleDetailDto>()
+    };
+
+    // Customer selection
+    private CustomerDto? _selectedCustomer;
+
+    private ProductDto? __selectedProduct;
+    private ProductDto? _selectedProduct
+    {
+        get => __selectedProduct;
+        set
+        {
+            __selectedProduct = value;
+            if (value != null)
+            {
+                ProductSelectedAsync(value).ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        Logger.LogError(t.Exception, "Error selecting product");
+                        Snackbar.Add(L["Error selecting product"], Severity.Error);
+                    }
+                });
+            }
+        }
+    }
+
+    // Warehouse for inventory
+    private WarehouseDto? _warehouse;
+
+    // Cart for products
+    private List<CartItem> _cart = new();
+
+    // Available fractions for partial sales
+    private List<PartialSaleFractionDto> _availableFractions = new();
+
+    // Product stock cache
+    private Dictionary<long, decimal> _productStockCache = new();
+
+    // Sale totals
+    private decimal _subtotal = 0;
+    private decimal _discountAmount = 0;
+    private decimal _taxAmount = 0;
+    private decimal _roundingAmount = 0;
+    private decimal _total = 0;
+    private bool _isRoundingEnabled = false;
+
+    // Discount settings
+    private decimal _maxItemDiscount = 0;
+    private decimal _maxSaleDiscount = 0;
+    private bool _canApplyDiscount = false;
+    private bool _needsDiscountAuthorization = false;
+    private bool _configurationValid = true;
+    private string _configurationError = string.Empty;
+    private TimeZoneInfo? _companyTimeZone;
+
+    // Autorización de descuentos
+    private string? _discountAuthorizerId;
+    private DateTime? _discountAuthorizedAt;
+
+    // Recent sales
+    private List<SaleDto> _recentSales = new();
+
+    // State
+    private bool _isBusy = false;
+    private decimal _taxRate = 16; // Default tax rate
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Check company settings
+            var companySettings = await CompanySettingsService.GetSettingsAsync();
+            if (companySettings == null)
+            {
+                _configurationValid = false;
+                _configurationError = L["Company settings not configured. Please configure company settings before creating sales."];
+                return;
+            }
+
+            // Check tax settings
+            var taxSettings = await taxSettingsService.GetSettingsAsync();
+            if (taxSettings == null)
+            {
+                _configurationValid = false;
+                _configurationError = L["Tax settings not configured. Please configure tax settings before creating sales."];
+                return;
+            }
+
+            // Check effective tax rate
+            try
+            {
+                var taxRate = await TaxRateService.GetEffectiveRateAsync(companySettings.CountryCode);
+                if (taxRate == 0)
+                {
+                    _configurationValid = false;
+                    _configurationError = L["No effective tax rate found. Please configure at least one active tax rate."];
+                    return;
+                }
+                _taxRate = taxRate;
+            }
+            catch (Exception ex)
+            {
+                _configurationValid = false;
+                _configurationError = L["Error getting tax rate. Please ensure tax rates are properly configured."];
+                Logger.LogError(ex, "Error getting tax rate");
+                return;
+            }
+
+            // Get company timezone
+            _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+
+            await LoadWarehouse();
+            await LoadAvailableFractions();
+            await InitializeDiscountSettings();
+            await LoadRoundingSettings();
+            await LoadRecentSales();
+        }
+        catch (Exception ex)
+        {
+            _configurationValid = false;
+            _configurationError = L["Error initializing sales page: {0}", ex.Message];
+            Logger.LogError(ex, "Error initializing sales page");
+        }
+    }
+
+    private async Task LoadWarehouse()
+    {
+        var result = await WarehouseService.GetPublicSalesWarehouseAsync();
+        if (result.IsSuccess && result.Value != null)
+        {
+            _warehouse = result.Value;
+        }
+        else
+        {
+            Snackbar.Add(L["No public sales warehouse configured"], Severity.Warning);
+        }
+    }
+
+    private async Task LoadAvailableFractions()
+    {
+        var result = await PartialSaleFractionService.GetActiveFractionsAsync();
+        if (result.IsSuccess)
+        {
+            _availableFractions = result.Value?.ToList() ?? new List<PartialSaleFractionDto>();
+        }
+    }
+
+    private async Task InitializeDiscountSettings()
+    {
+        try
+        {
+            // Obtener la configuración de descuentos
+            var settingsResult = await DiscountSettingsService.GetSettingsAsync();
+            if (!settingsResult.IsSuccess)
+            {
+                Logger.LogError("Error retrieving discount settings: {Error}", settingsResult.Error);
+                Snackbar.Add(L["Error loading discount settings"], Severity.Error);
+                return;
+            }
+
+            var settings = settingsResult.Value!;
+
+            _maxItemDiscount = settings.MaximumPublicDiscount;
+            _maxSaleDiscount = settings.MaximumPublicDiscount;
+            _model.DiscountPercentage = 0;
+
+            // Verificar si cualquier descuento requiere autorización
+            _needsDiscountAuthorization = settings.RequireAuthorizationForPublicDiscount;
+
+            _canApplyDiscount = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing discount settings");
+            Snackbar.Add(L["Error loading discount settings"], Severity.Error);
+        }
+    }
+
+    private async Task LoadRoundingSettings()
+    {
+        try
+        {
+            var result = await RoundingSettingsService.GetSettingsAsync();
+            if (result.IsSuccess && result.Value != null)
+            {
+                _isRoundingEnabled = result.Value.IsEnabled;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading rounding settings");
+            // Non-critical, continue without rounding
+            _isRoundingEnabled = false;
+        }
+    }
+
+    private async Task LoadRecentSales()
+    {
+        try
+        {
+            var (_, sales) = await SaleService.GetSalesAsync(
+            page: 1,
+            pageSize: 5,
+            status: "Completed");
+
+            _recentSales = sales.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading recent sales");
+            // Don't show error to user, this is not critical
+        }
+    }
+
+    private async Task<IEnumerable<CustomerDto>> SearchCustomers(string searchText, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return Array.Empty<CustomerDto>();
+
+        try
+        {
+            var (_, customers) = await CustomerService.GetCustomersAsync(
+            searchString: searchText,
+            page: 1,
+            pageSize: 10);
+
+            return customers;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching customers");
+            Snackbar.Add(L["Error searching customers"], Severity.Error);
+            return Array.Empty<CustomerDto>();
+        }
+    }
+
+    private async Task<IEnumerable<ProductDto>> SearchProducts(string searchText, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return Array.Empty<ProductDto>();
+
+        try
+        {
+            IEnumerable<ProductDto> products;
+
+            // Primero, intentar buscar por código de barras exacto si el texto parece ser un código de barras
+            if (IsLikelyBarcode(searchText))
+            {
+                var productByBarcode = await ProductService.GetProductByBarcodeAsync(searchText);
+                if (productByBarcode != null)
+                {
+                    products = new[] { productByBarcode };
+                }
+                else
+                {
+                    // Si no se encuentra por código de barras, hacer búsqueda normal
+                    var result = await ProductService.GetProductsAsync(
+                        searchString: searchText,
+                        isActive: true,
+                        page: 1,
+                        pageSize: 10);
+                    products = result.Item2;
+                }
+            }
+            else
+            {
+                // Búsqueda normal
+                var result = await ProductService.GetProductsAsync(
+                    searchString: searchText,
+                    isActive: true,
+                    page: 1,
+                    pageSize: 10);
+                products = result.Item2;
+            }
+
+            // Cargar stock para cada producto
+            var inventoryService = ServiceProvider.GetRequiredService<IInventoryQueryService>();
+            foreach (var product in products)
+            {
+                var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _warehouse?.Id);
+                if (stockInfo != null)
+                {
+                    var warehouseStock = stockInfo.WarehouseStock.FirstOrDefault();
+                    _productStockCache[product.Id] = warehouseStock?.Quantity ?? 0;
+                }
+                else
+                {
+                    _productStockCache[product.Id] = 0;
+                }
+            }
+
+            return products;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching products");
+            Snackbar.Add(L["Error searching products"], Severity.Error);
+            return Array.Empty<ProductDto>();
+        }
+    }
+
+    private Task CustomerSelectedAsync(CustomerDto? customer)
+    {
+        _model.CustomerId = customer?.Id ?? 0;
+        return Task.CompletedTask;
+    }
+
+    private async Task ProductSelectedAsync(ProductDto? product)
+    {
+        if (product == null) return;
+
+        try
+        {
+            // Check product stock in the warehouse
+            var inventoryService = ServiceProvider.GetRequiredService<IInventoryQueryService>();
+            var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _warehouse?.Id);
+
+            if (stockInfo == null || stockInfo.TotalStock <= 0)
+            {
+                Snackbar.Add(L["Product {0} is out of stock", product.Name], Severity.Warning);
+                _selectedProduct = null;
+                return;
+            }
+
+            var warehouseStock = stockInfo.WarehouseStock.FirstOrDefault();
+            if (warehouseStock == null || warehouseStock.Quantity <= 0)
+            {
+                Snackbar.Add(L["Product {0} is not available in the selected warehouse", product.Name], Severity.Warning);                
+                return;
+            }
+
+            // Verificar si es una búsqueda por código de barras
+            var searchText = _productAutocomplete?.Text ?? "";
+            bool isBarcodeScan = IsLikelyBarcode(searchText) && product.Barcode == searchText;
+
+            // Check if product is already in cart
+            var existingItem = _cart.FirstOrDefault(i => i.ProductId == product.Id);
+            if (existingItem != null)
+            {
+                // Increment quantity instead of adding new item
+                decimal quantityToAdd = isBarcodeScan ? 1 : 1; // Siempre agregar 1 cuando es escaneo de código de barras
+                
+                if (existingItem.Quantity + quantityToAdd <= warehouseStock.Quantity)
+                {
+                    existingItem.Quantity += quantityToAdd;
+                    await UpdateCartItemAsync(existingItem);
+                    
+                    // Mostrar confirmación solo para escaneo de código de barras
+                    if (isBarcodeScan)
+                    {
+                        Snackbar.Add(L["Added 1 unit of {0}. Total: {1}", product.Name, existingItem.Quantity], Severity.Success);
+                    }
+                }
+                else
+                {
+                    Snackbar.Add(L["Cannot add more of this product, insufficient stock"], Severity.Warning);
+                }
+
+                await ClearProductAutotocomplete();
+                return;
+            }
+
+            // Calculate effective unit price for partial sales
+            decimal effectiveUnitPrice;
+            if (product.IsPartialSaleAllowed && product.Content > 0)
+            {
+                // For partial sales, show price per individual unit
+                effectiveUnitPrice = product.Price / product.Content;
+            }
+            else
+            {
+                // For regular sales, use the full product price
+                effectiveUnitPrice = product.Price;
+            }
+
+            // Add to cart
+            var item = new CartItem
+            {
+                ProductId = product.Id,
+                ProductCode = product.Code,
+                ProductName = product.Name,
+                Brand = product.Brand,
+                Description = product.Description,
+                UnitPrice = effectiveUnitPrice,
+                OriginalPrice = effectiveUnitPrice,
+                UnitMeasure = product.UnitMeasureName,
+                Content = product.Content,
+                IsPartialSaleAllowed = product.IsPartialSaleAllowed,
+                AllowCustomPricing = product.AllowCustomPricing,
+                Quantity = product.IsPartialSaleAllowed ? 1 : Math.Ceiling(1.0M),
+                AvailableStock = warehouseStock.Quantity,
+                IsTaxable = product.IsTaxable,
+                DiscountPercentage = 0
+            };
+
+            _cart.Add(item);
+            await UpdateCartItemAsync(item);
+
+            // Mostrar confirmación para escaneo de código de barras
+            if (isBarcodeScan)
+            {
+                Snackbar.Add(L["Product {0} added to cart", product.Name], Severity.Success);
+            }
+
+            // Clear selection to allow continuous adding
+            await ClearProductAutotocomplete();
+            
+            // Optionally, force focus back to autocomplete
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error adding product to cart");
+            Snackbar.Add(L["Error adding product to cart"], Severity.Error);
+            _selectedProduct = null;
+        }
+    }
+
+    private async Task ClearProductAutotocomplete()
+    {
+        _selectedProduct = null;
+        await _productAutocomplete.ClearAsync();        
+        await _productAutocomplete.ResetAsync();
+        await _productAutocomplete.BlurAsync();
+        await _productAutocomplete.FocusAsync();
+    }
+
+    private async Task UpdateCartItemAsync(CartItem item)
+    {
+        // Calcular totales sin descuento a nivel de producto
+        item.DiscountPercentage = 0; // Siempre cero, ya que el descuento se maneja a nivel de venta
+
+        // Calculate base price before surcharge
+        decimal basePrice = item.UnitPrice * item.Quantity;
+        item.BasePriceBeforeSurcharge = basePrice;
+
+        // Calculate surcharge amount if a fraction is selected
+        decimal surchargeAmount = basePrice * (item.SurchargePercentage / 100);
+        item.SurchargeAmount = surchargeAmount;
+
+        // Calculate item totals (without tax at item level)
+        decimal itemSubtotal = basePrice + surchargeAmount;
+
+        // Only recalculate total if it hasn't been set manually
+        if (!item.HasCustomTotal)
+        {
+            item.Subtotal = itemSubtotal;
+            item.Total = itemSubtotal; // Total equals subtotal at item level
+        }
+        // If has custom total, keep the current values
+
+        item.DiscountAmount = 0; // No hay descuento a nivel de producto
+        item.TaxAmount = 0; // No hay impuesto a nivel de producto
+
+        await UpdateTotalsAsync();
+    }
+
+    private async Task UpdateCartItemQuantityAsync(CartItem item, decimal quantity)
+    {
+        if (quantity <= 0)
+        {
+            await RemoveCartItemAsync(item);
+        }
+        else
+        {
+            item.Quantity = quantity;
+            item.HasCustomTotal = false; // Reset custom total flag when quantity changes
+            await UpdateCartItemAsync(item);
+        }
+    }
+
+    private async Task OnFractionSelected(CartItem item, int? fractionId)
+    {
+        item.PartialSaleFractionId = fractionId;
+
+        if (fractionId.HasValue)
+        {
+            // Get surcharge percentage for this product-fraction combination
+            var surchargeResult = await ProductPartialSurchargeService.GetSurchargePercentageAsync(item.ProductId, fractionId.Value);
+            if (surchargeResult.IsSuccess)
+            {
+                item.SurchargePercentage = surchargeResult.Value;
+            }
+            else
+            {
+                item.SurchargePercentage = 0;
+            }
+
+            // Get fraction code for display
+            var fraction = _availableFractions.FirstOrDefault(f => f.Id == fractionId.Value);
+            item.PartialSaleFractionCode = fraction?.Code;
+
+            // Update quantity based on fraction if desired
+            if (fraction != null && item.Content > 0)
+            {
+                item.Quantity = item.Content * fraction.FractionValue;
+            }
+        }
+        else
+        {
+            item.SurchargePercentage = 0;
+            item.SurchargeAmount = 0;
+            item.PartialSaleFractionCode = null;
+        }
+
+        item.HasCustomTotal = false;
+        await UpdateCartItemAsync(item);
+        StateHasChanged();
+    }
+
+    private async Task OnTotalValueChangedAsync(CartItem item, decimal newTotal)
+    {
+        // This method is called immediately when the total value changes (for immediate UI updates)
+        if (newTotal < 0.01M)
+        {
+            return; // Don't process invalid values
+        }
+
+        if (item.Quantity <= 0)
+        {
+            return; // Don't process if quantity is invalid
+        }
+
+        // Update the total and recalculate unit price for immediate feedback
+        item.Total = newTotal;
+        item.UnitPrice = newTotal / item.Quantity;
+        item.Subtotal = newTotal;
+
+        // Update the sale totals for immediate feedback, but don't mark as custom total yet
+        await UpdateTotalsAsync();
+        StateHasChanged();
+    }
+
+    private void OnTotalBlur(CartItem item)
+    {
+        // This method is called when the user finishes editing the total field (OnBlur)
+        // Only mark as custom total if the total is different from what would be calculated
+        decimal calculatedTotal = item.UnitPrice * item.Quantity;
+
+        if (Math.Abs(item.Total - calculatedTotal) > 0.001M) // If total is different from calculated
+        {
+            // Mark as custom total since user manually set a different value
+            item.HasCustomTotal = true;
+        }
+    }
+
+    private async Task OnTotalChangedAsync(CartItem item, decimal newTotal)
+    {
+        if (newTotal < 0.01M)
+        {
+            Snackbar.Add(L["Total must be greater than 0"], Severity.Warning);
+            return;
+        }
+
+        if (item.Quantity <= 0)
+        {
+            Snackbar.Add(L["Cannot calculate unit price: quantity must be greater than 0"], Severity.Warning);
+            return;
+        }
+
+        // Calculate the new unit price based on the total and quantity
+        // Tax is calculated only in the sale summary, not at item level
+        decimal newUnitPrice = newTotal / item.Quantity;
+
+        item.UnitPrice = newUnitPrice;
+
+        // Update the item's subtotal manually without recalculating total
+        // Tax is calculated only at sale level, not at item level
+        item.Subtotal = newTotal; // The total set by user becomes the subtotal
+        item.TaxAmount = 0; // No tax at item level
+        item.HasCustomTotal = true; // Mark that this item has a custom total
+        // Keep the total as set by the user
+
+        // Update the general sale totals
+        await UpdateTotalsAsync();
+        StateHasChanged();
+    }
+
+    private async Task RemoveCartItemAsync(CartItem item)
+    {
+        _cart.Remove(item);
+        await UpdateTotalsAsync();
+    }
+
+    private async Task UpdateTotalsAsync()
+    {
+        // Calculate sale totals
+        _subtotal = _cart.Sum(i => i.Subtotal);
+
+        // Descuento general
+        _discountAmount = _subtotal * (_model.DiscountPercentage / 100);
+
+        // Recalcular impuestos después de descuento
+        decimal baseImponible = _subtotal - _discountAmount;
+        _taxAmount = _cart.Sum(i =>
+        {
+            if (i.IsTaxable)
+            {
+                decimal itemSubtotalPortion = i.Subtotal / (_subtotal > 0 ? _subtotal : 1);
+                decimal itemDiscountedSubtotal = baseImponible * itemSubtotalPortion;
+                return itemDiscountedSubtotal * (_taxRate / 100);
+            }
+            return 0m;
+        });
+
+        // Pre-rounding total
+        decimal preRoundingTotal = _subtotal - _discountAmount + _taxAmount;
+
+        // Apply rounding if enabled
+        if (_isRoundingEnabled)
+        {
+            var roundingResult = await RoundingSettingsService.ApplyRoundingAsync(preRoundingTotal);
+            if (roundingResult.IsSuccess)
+            {
+                _roundingAmount = roundingResult.Value.RoundingAmount;
+                _total = roundingResult.Value.RoundedTotal;
+            }
+            else
+            {
+                _roundingAmount = 0;
+                _total = preRoundingTotal;
+            }
+        }
+        else
+        {
+            _roundingAmount = 0;
+            _total = preRoundingTotal;
+        }
+
+        // Forzar actualización de la UI
+        StateHasChanged();
+    }
+
+    private async Task UpdateSaleDiscountAsync(decimal discountValue)
+    {
+        // Verificar que no exceda el máximo
+        if (discountValue > _maxSaleDiscount)
+        {
+            discountValue = _maxSaleDiscount;
+            Snackbar.Add(L["Discount reduced to maximum allowed value: {0}%", _maxSaleDiscount], Severity.Warning);
+        }
+
+        // Guardar el valor anterior para restaurarlo si es necesario
+        decimal previousValue = _model.DiscountPercentage;
+        _model.DiscountPercentage = discountValue;
+
+        // Solo marcar que requiere autorización si el descuento > 0, pero no solicitar autorización aquí
+        if (discountValue > 0)
+        {
+            _needsDiscountAuthorization = true;
+
+            // Si ya estaba autorizado y cambió el valor, invalidar la autorización anterior
+            if (_discountAuthorizerId != null && previousValue != discountValue)
+            {
+                _discountAuthorizerId = null;
+                _model.DiscountAuthorizedBy = null;
+                _discountAuthorizedAt = null;
+                Snackbar.Add(L["Discount amount changed. Authorization required."], Severity.Info);
+            }
+        }
+        else
+        {
+            // Si el descuento es 0, no requiere autorización
+            _needsDiscountAuthorization = false;
+            _discountAuthorizerId = null;
+            _model.DiscountAuthorizedBy = null;
+            _discountAuthorizedAt = null;
+        }
+
+        await UpdateTotalsAsync();
+    }
+
+    private async Task ClearCartAsync()
+    {
+        _cart.Clear();
+        await UpdateTotalsAsync();
+    }
+
+    private bool IsFormValid()
+    {
+        return _selectedCustomer != null && _cart.Any();
+    }
+
+    private async Task OpenCreateCustomerDialog()
+    {
+        var dialog = await DialogService.ShowAsync<CustomerDialog>(L["New Customer"]);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            // Refresh customer list after creating a new one
+            var searchText = _selectedCustomer?.Name ?? "";
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                var customers = await SearchCustomers(searchText, CancellationToken.None);
+                _selectedCustomer = customers.FirstOrDefault();
+                await CustomerSelectedAsync(_selectedCustomer);
+            }
+        }
+    }
+
+    private async Task ProcessSale()
+    {
+        // Verificar si hay un descuento sin autorizar
+        if (_model.DiscountPercentage > 0 && _discountAuthorizerId == null)
+        {
+            // Mostrar diálogo de autorización
+            var dialog = await DialogService.ShowAsync<DiscountAuthorizationDialog>(L["Discount Authorization"]);
+            var result = await dialog.Result;
+
+            if (result != null && result.Canceled)
+            {
+                Snackbar.Add(L["Discount authorization was canceled. Sale cannot be completed."], Severity.Warning);
+                return; // Salir sin procesar la venta
+            }
+            else if (result != null && !result.Canceled && result.Data != null)
+            {
+                // Guardar información de autorización
+                var authorization = (DiscountAuthorizationDialog.DiscountAuthorization)result.Data;
+                _discountAuthorizerId = authorization.AuthorizerId;
+                _model.DiscountAuthorizedBy = authorization.AuthorizerName;
+                _discountAuthorizedAt = authorization.AuthorizedAt;
+
+                Snackbar.Add(L["Discount authorized successfully"], Severity.Success);
+            }
+        }
+
+        if (!IsFormValid())
+        {
+            Snackbar.Add(L["Please complete all required fields"], Severity.Warning);
+            return;
+        }
+
+        // Continuar con el resto de la lógica de procesamiento de venta...
+        _isBusy = true;
+        StateHasChanged();
+
+        try
+        {
+            // Prepare sale details
+            _model.CustomerId = _selectedCustomer!.Id;
+            _model.SaleDate = DateTimeService.Now;
+
+            // Información de autorización para la venta completa
+            _model.DiscountAuthorizerId = _discountAuthorizerId;
+            _model.DiscountAuthorizedAt = _discountAuthorizedAt;
+
+            // Detalles sin información de autorización a nivel de producto
+            _model.Details = _cart.Select(item => new CreateSaleDetailDto
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                DiscountPercentage = 0, // No hay descuento a nivel de producto
+                IsDiscountAuthorized = false,
+                DiscountAuthorizerId = null,
+                DiscountAuthorizedBy = null,
+                DiscountAuthorizedAt = null,
+                IsCustomPrice = item.AllowCustomPricing && Math.Abs(item.UnitPrice - item.OriginalPrice) > 0.001M,
+                PartialSaleFractionId = item.PartialSaleFractionId
+            }).ToList();
+
+            // Create the sale
+            var result = await SaleService.CreateSaleAsync(_model);
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Sale completed successfully"], Severity.Success);
+
+                // Show receipt dialog or navigate to sale details
+                await DialogService.ShowAsync<SaleReceiptDialog>(
+                L["Sale Receipt"],
+                new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, result.Value!.Id } });
+
+                // Clear form for next sale
+                await ClearCartAndFormAsync();
+
+                // Reload recent sales
+                await LoadRecentSales();
+            }
+            else
+            {
+                Snackbar.Add(result.Error!, Severity.Error);
+                Logger.LogError("Error creating sale: {Error}", result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing sale");
+            Snackbar.Add(L["Error processing sale: {0}", ex.Message], Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ClearCartAndFormAsync()
+    {
+        _cart.Clear();
+        _discountAuthorizerId = null;
+        _model = new CreateSaleDto
+        {
+            SaleType = SaleType.Public,
+            PaymentMethod = "Cash",
+            DiscountPercentage = 0,
+            Details = new List<CreateSaleDetailDto>()
+        };
+
+        _model.CustomerId = _selectedCustomer?.Id ?? 0;
+
+        await UpdateTotalsAsync();
+    }
+
+    private string FormatToCompanyTimezone(DateTime utcDate)
+    {
+        try
+        {
+            if (_companyTimeZone == null)
+                return utcDate.ToLocalTime().ToString("g");
+
+            return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error converting date to company timezone");
+            return utcDate.ToLocalTime().ToString("g");
+        }
+    }
+
+    private bool IsLikelyBarcode(string text)
+    {
+        return !string.IsNullOrWhiteSpace(text) && 
+            text.Length >= 8 && 
+            text.All(char.IsDigit);
+    }
+
+    private Color GetSaleTypeColor(SaleType saleType) => Color.Default;
+
+    private string GetSaleTypeIcon(SaleType saleType) => Icons.Material.Filled.ShoppingCart;
+
+    private string GetProductStock(long productId)
+    {
+        if (_productStockCache.TryGetValue(productId, out var stock))
+        {
+            return stock.ToString("N2");
+        }
+        return "...";
+    }
+
+    public class CartItem
+    {
+        public long ProductId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public string Brand { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
+        public string ProductCode { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
+        public decimal OriginalPrice { get; set; }
+        public string UnitMeasure { get; set; } = string.Empty;
+        public decimal Quantity { get; set; }
+        public decimal Content { get; set; }
+        public bool IsPartialSaleAllowed { get; set; }
+        public bool AllowCustomPricing { get; set; }
+        public decimal AvailableStock { get; set; }
+        public bool IsTaxable { get; set; }
+        public decimal DiscountPercentage { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal Total { get; set; }
+        public bool HasCustomTotal { get; set; } = false;
+
+        // Partial sale fraction and surcharge
+        public int? PartialSaleFractionId { get; set; }
+        public string? PartialSaleFractionCode { get; set; }
+        public decimal SurchargePercentage { get; set; }
+        public decimal SurchargeAmount { get; set; }
+        public decimal BasePriceBeforeSurcharge { get; set; }
+    }
+}

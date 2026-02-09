@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Company Information" xml:space="preserve">
+        <value>Información de la Compañía</value>
+    </data>
+    <data name="Company Name" xml:space="preserve">
+        <value>Nombre de la Compañía</value>
+    </data>
+    <data name="Company name is required" xml:space="preserve">
+        <value>El nombre de la compañía es requerido</value>
+    </data>
+    <data name="Country" xml:space="preserve">
+        <value>País</value>
+    </data>
+    <data name="Country is required" xml:space="preserve">
+        <value>El país es requerido</value>
+    </data>
+    <data name="Currency" xml:space="preserve">
+        <value>Moneda</value>
+    </data>
+    <data name="Currency is required" xml:space="preserve">
+        <value>La moneda es requerida</value>
+    </data>
+    <data name="Saving" xml:space="preserve">
+        <value>Guardando</value>
+    </data>
+    <data name="Save Changes" xml:space="preserve">
+        <value>Guardar Cambios</value>
+    </data>
+    <data name="Error loading settings" xml:space="preserve">
+        <value>Error al cargar la configuración</value>
+    </data>
+    <data name="Settings updated successfully" xml:space="preserve">
+        <value>Configuración actualizada exitosamente</value>
+    </data>
+    <data name="Error saving settings" xml:space="preserve">
+        <value>Error al guardar la configuración</value>
+    </data>
+    <data name="Time Zone" xml:space="preserve">
+        <value>Zona Horaria</value>
+    </data>
+    <data name="Time zone is required" xml:space="preserve">
+        <value>La zona horaria es requerida</value>
+    </data>
+</root>

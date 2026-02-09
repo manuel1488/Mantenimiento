@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Import Results" xml:space="preserve">
+    <value>Import Results</value>
+    <comment>Title of the Excel worksheet</comment>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+    <comment>Product code column header</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+    <comment>Product name column header</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Quantity column header</comment>
+  </data>
+  <data name="Min Stock" xml:space="preserve">
+    <value>Min Stock</value>
+    <comment>Minimum stock column header</comment>
+  </data>
+  <data name="Max Stock" xml:space="preserve">
+    <value>Max Stock</value>
+    <comment>Maximum stock column header</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>Status column header</comment>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+    <comment>Error column header</comment>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Success</value>
+    <comment>Success status text</comment>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Failed</value>
+    <comment>Failed status text</comment>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Summary section header</comment>
+  </data>
+  <data name="Total Records" xml:space="preserve">
+    <value>Total Records</value>
+    <comment>Total records count label</comment>
+  </data>
+  <data name="Successful" xml:space="preserve">
+    <value>Successful</value>
+    <comment>Successful records count label</comment>
+  </data>
+</root>

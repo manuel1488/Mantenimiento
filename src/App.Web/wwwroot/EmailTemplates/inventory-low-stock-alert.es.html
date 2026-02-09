@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Alerta de Stock Bajo - DA Pintura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #E53935;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        .alert-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .alert-icon {
+            color: #856404;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .product-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .stock-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .footer {
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .btn {
+            background-color: #E53935;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚠️ Alerta de Stock Bajo</h1>
+        <p>{{ app_name }} - Nivel de Inventario Crítico</p>
+    </div>
+    
+    <div class="content">
+        <div class="alert-box">
+            <span class="alert-icon">⚠️</span>
+            <strong>Atención Requerida:</strong> El nivel de stock de uno de sus productos ha caído por debajo del mínimo establecido.
+        </div>
+
+        <div class="product-info">
+            <h3>Información del Producto</h3>
+            <p><strong>Producto:</strong> {{ product_name }}</p>
+            <p><strong>Almacén:</strong> {{ warehouse_name }}</p>
+            
+            <div class="stock-info">
+                <span><strong>Stock Actual:</strong> {{ current_stock | math.format "N2" }}</span>
+                <span><strong>Stock Mínimo:</strong> {{ threshold | math.format "N2" }}</span>
+            </div>
+            
+            <p><strong>Alerta Generada:</strong> {{ alert_date | date.to_string "g" }}</p>
+        </div>
+
+        <h3>Acciones Recomendadas</h3>
+        <ul>
+            <li>Revisar la demanda actual de este producto</li>
+            <li>Verificar órdenes de compra pendientes</li>
+            <li>Considerar realizar un nuevo pedido con su proveedor</li>
+            <li>Actualizar los niveles de stock mínimo si es necesario</li>
+        </ul>
+
+        <p style="text-align: center;">
+            <a href="{{ inventory_url }}" class="btn">Ver Panel de Inventario</a>
+            <a href="{{ alerts_url }}" class="btn" style="background-color: #FF9800; margin-left: 10px;">Ver Todas las Alertas</a>
+        </p>
+
+        <p><strong>Nota:</strong> Esta alerta fue generada automáticamente cuando ocurrió un movimiento de stock. 
+        Por favor tome las acciones apropiadas para mantener niveles de inventario adecuados.</p>
+    </div>
+
+    <div class="footer">
+        <p>© {{ app_name }}. Todos los derechos reservados.</p>
+        <p>Este es un mensaje automático. Por favor no responda a este correo.</p>
+        <p style="margin-top: 10px;">
+            <a href="{{ base_url }}" style="color: #777; text-decoration: none;">Visitar {{ app_name }}</a>
+        </p>
+    </div>
+</body>
+</html>

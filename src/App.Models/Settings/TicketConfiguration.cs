@@ -1,0 +1,36 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using App.Core.Base;
+
+namespace App.Models.Settings;
+
+[Table("stg_ticket_configuration")]
+public class TicketConfiguration : BaseEntity<int>
+{
+    [Required]
+    [StringLength(100)]
+    public string CompanyName { get; set; } = string.Empty;
+    
+    public string? CompanyLogoBase64 { get; set; }
+    
+    [StringLength(200)]
+    public string? CompanyAddress { get; set; }
+    
+    [StringLength(20)]
+    public string? CompanyPhone { get; set; }
+    
+    [StringLength(20)]
+    public string? CompanyTaxId { get; set; }
+    
+    public bool ShowQRCode { get; set; } = true;
+    
+    public bool ShowCompanyLogo { get; set; } = true;
+    
+    public string? CustomHeader { get; set; }
+    
+    public string? CustomFooter { get; set; }
+    
+    public int TicketWidth { get; set; } = 80; // Ancho en mm
+    
+    public int DefaultCopies { get; set; } = 1;
+}

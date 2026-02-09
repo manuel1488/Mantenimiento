@@ -1,0 +1,336 @@
+﻿@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Web.Services
+
+@inject IEmailSettingsService EmailSettingsService
+@inject IEmailService EmailService
+@inject IStringLocalizer<EmailSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<EmailSettingsTab> Logger
+@inject IPermissionCheckService PermissionService
+@inject IDialogService DialogService
+
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewEmailSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <!-- SMTP Server Settings -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["SMTP Server Settings"]</MudText>
+                    <MudGrid>
+                        <!-- SMTP Host -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.SmtpHost"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Label="@L["SMTP Host"]"
+                                        HelperText="@L["e.g., smtp.gmail.com"]"/>
+                        </MudItem>
+
+                        <!-- SMTP Port -->
+                        <MudItem xs="12" md="6">
+                            <MudNumericField @bind-Value="_model.SmtpPort"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Label="@L["SMTP Port"]"
+                                        Min="1"
+                                        Max="65535"
+                                        HelperText="@L["e.g., 587 for TLS, 465 for SSL"]"/>
+                        </MudItem>
+
+                        <!-- SMTP User -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.SmtpUser"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Label="@L["SMTP Username"]"/>
+                        </MudItem>
+
+                        <!-- SMTP Password -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.SmtpPassword"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Label="@L["SMTP Password"]"
+                                        InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                                        Adornment="Adornment.End"
+                                        AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                        OnAdornmentClick="() => _showPassword = !_showPassword"/>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+
+                <!-- Email Settings -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Email Settings"]</MudText>
+                    <MudGrid>
+                        <!-- From Email -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.FromEmail"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Label="@L["From Email"]"
+                                        InputType="InputType.Email"/>
+                        </MudItem>
+
+                        <!-- From Name -->
+                        <MudItem xs="12" md="6">
+                            <MudTextField @bind-Value="_model.FromName"
+                                        ReadOnly="@(!_hasWriteAccess)"
+                                        Label="@L["From Name"]"/>
+                        </MudItem>
+
+                        <!-- Use SSL -->
+                        <MudItem xs="12">
+                            <MudCheckBox @bind-Value="_model.UseSsl"
+                                    ReadOnly="@(!_hasWriteAccess)"
+                                    Label="@L["Use SSL/TLS"]"
+                                    Color="Color.Primary"/>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+
+                <!-- Test Connection and Save Buttons -->
+                <MudItem xs="12" Class="d-flex justify-end gap-4">
+                    <!-- Test Connection Button -->
+                    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                        <MudButton OnClick="TestConnectionAsync"
+                                StartIcon="@Icons.Material.Filled.NetworkCheck"
+                                Disabled="@(_processing || !CanTestConnection())"
+                                Class="da-button-rounded">
+                            @L["Test Connection"]
+                        </MudButton>
+                        <MudButton OnClick="OpenTestEmailDialogAsync"
+                                StartIcon="@Icons.Material.Filled.Send"
+                                Disabled="@(_processing || !CanTestConnection())"
+                                Class="da-button-rounded">
+                            @L["Send Test Email"]
+                        </MudButton>
+                    </MudButtonGroup>
+
+                    <AuthorizeView Context="authAcctions" Policy="@ApplicationClaims.Admin.ManageEmailSettings">
+                        <!-- Save Button -->
+                        <MudButton OnClick="SaveChangesAsync"
+                                Variant="Variant.Filled"
+                                Color="Color.Error"
+                                StartIcon="@Icons.Material.Filled.Save"
+                                Disabled="@_processing"
+                                Class="da-button-rounded">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                                <MudText Class="ms-2">@L["Saving"]</MudText>
+                            }
+                            else
+                            {
+                                @L["Save Changes"]
+                            }
+                        </MudButton>
+                    </AuthorizeView>                    
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _showPassword;
+    private bool _hasWriteAccess;
+    private UpdateEmailSettingsDto _model = new();
+    private EmailSettingsDto? _settings;
+    private bool _hasChanges;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check permissions
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageEmailSettings);
+
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            _settings = await EmailSettingsService.GetSettingsAsync();
+            if (_settings != null)
+            {
+                _model = new UpdateEmailSettingsDto
+                {
+                    SmtpHost = _settings.SmtpHost,
+                    SmtpPort = _settings.SmtpPort,
+                    SmtpUser = _settings.SmtpUser,
+                    SmtpPassword = _settings.SmtpPassword,
+                    FromEmail = _settings.FromEmail,
+                    FromName = _settings.FromName,
+                    UseSsl = _settings.UseSsl
+                };
+            }
+            _hasChanges = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading email settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task TestConnectionAsync()
+    {
+        if (!CanTestConnection()) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            // Save changes first if needed
+            if (_hasChanges)
+            {
+                var saveResult = await SaveChangesAsync();
+                if (!saveResult) return;
+            }
+
+            // Test connection
+            var result = await EmailService.ValidateConfigurationAsync();
+            
+            if (result.Success)
+            {
+                Snackbar.Add(L["Connection test successful"], Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? L["Connection test failed"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error testing SMTP connection");
+            Snackbar.Add(L["Error testing connection"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenTestEmailDialogAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", L["Enter the email address to send a test message:"].ToString() },
+            { "ButtonText", L["Send Test Email"].ToString() },
+            { "Color", Color.Error }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true,
+            BackdropClick = true
+        };
+
+        var dialog = await DialogService.ShowAsync<TestEmailDialog>(L["Send Test Email"], parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is string email)
+        {
+            await SendTestEmailAsync(email);
+        }
+    }
+
+    private async Task SendTestEmailAsync(string testEmail)
+    {
+        if (string.IsNullOrWhiteSpace(testEmail))
+        {
+            Snackbar.Add(L["Please enter a valid email address"], Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            // Save changes first if needed
+            if (_hasChanges)
+            {
+                var saveResult = await SaveChangesAsync();
+                if (!saveResult) return;
+            }
+
+            // Send test email
+            var result = await EmailService.SendTestEmailAsync(testEmail);
+            
+            if (result.Success)
+            {
+                Snackbar.Add(L["Test email sent successfully"], Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? L["Error sending test email"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error sending test email");
+            Snackbar.Add(L["Error sending test email"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<bool> SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                await EmailSettingsService.UpdateSettingsAsync(_model);
+                Snackbar.Add(L["Settings updated successfully"], Severity.Success);
+                _hasChanges = false;
+                await LoadSettings();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving email settings");
+                Snackbar.Add(L["Error saving settings"], Severity.Error);
+                return false;
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+        return false;
+    }
+
+    private bool CanTestConnection()
+    {
+        return !string.IsNullOrEmpty(_model.SmtpHost) &&
+               _model.SmtpPort.HasValue &&
+               !string.IsNullOrEmpty(_model.SmtpUser) &&
+               !string.IsNullOrEmpty(_model.SmtpPassword);
+    }
+
+    protected override void OnParametersSet()
+    {
+        _hasChanges = true;
+        base.OnParametersSet();
+    }
+}

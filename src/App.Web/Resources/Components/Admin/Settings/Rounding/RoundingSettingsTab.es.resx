@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Rounding Settings" xml:space="preserve">
+    <value>Configuracion de Redondeo</value>
+  </data>
+  <data name="Enable Rounding" xml:space="preserve">
+    <value>Habilitar Redondeo</value>
+  </data>
+  <data name="When enabled, sale totals will be rounded according to the settings below" xml:space="preserve">
+    <value>Cuando esta habilitado, los totales de venta se redondearan segun la configuracion</value>
+  </data>
+  <data name="Rounding Method" xml:space="preserve">
+    <value>Metodo de Redondeo</value>
+  </data>
+  <data name="Round Up (Ceiling)" xml:space="preserve">
+    <value>Redondear Hacia Arriba</value>
+  </data>
+  <data name="Round Down (Floor)" xml:space="preserve">
+    <value>Redondear Hacia Abajo</value>
+  </data>
+  <data name="Round to Nearest" xml:space="preserve">
+    <value>Redondear al Mas Cercano</value>
+  </data>
+  <data name="Decimal Places" xml:space="preserve">
+    <value>Decimales</value>
+  </data>
+  <data name="Whole numbers (e.g., $100)" xml:space="preserve">
+    <value>Numeros enteros (ej., $100)</value>
+  </data>
+  <data name="One decimal (e.g., $99.5)" xml:space="preserve">
+    <value>Un decimal (ej., $99.5)</value>
+  </data>
+  <data name="Two decimals (e.g., $99.99)" xml:space="preserve">
+    <value>Dos decimales (ej., $99.99)</value>
+  </data>
+  <data name="Minimum Threshold" xml:space="preserve">
+    <value>Monto Minimo</value>
+  </data>
+  <data name="Sales below this amount will not be rounded" xml:space="preserve">
+    <value>Ventas por debajo de este monto no se redondearan</value>
+  </data>
+  <data name="Preview Example" xml:space="preserve">
+    <value>Vista Previa</value>
+  </data>
+  <data name="A sale of $99.47 would be rounded to" xml:space="preserve">
+    <value>Una venta de $99.47 se redondearia a</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta pagina</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error al cargar configuracion</value>
+  </data>
+  <data name="Rounding settings updated successfully" xml:space="preserve">
+    <value>Configuracion de redondeo actualizada exitosamente</value>
+  </data>
+  <data name="Error updating settings" xml:space="preserve">
+    <value>Error al actualizar configuracion</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar configuracion</value>
+  </data>
+  <data name="Always rounds up to the next value" xml:space="preserve">
+    <value>Siempre redondea hacia el valor superior</value>
+  </data>
+  <data name="Always rounds down to the previous value" xml:space="preserve">
+    <value>Siempre redondea hacia el valor inferior</value>
+  </data>
+  <data name="Rounds to the nearest value (0.5 rounds up)" xml:space="preserve">
+    <value>Redondea al valor mas cercano (0.5 redondea hacia arriba)</value>
+  </data>
+</root>

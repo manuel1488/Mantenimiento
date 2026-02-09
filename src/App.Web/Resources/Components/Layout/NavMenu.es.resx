@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Panel de Control</value>
+  </data>
+  <data name="Shop" xml:space="preserve">
+    <value>Tienda</value>
+  </data>
+  <data name="Sales" xml:space="preserve">
+    <value>Ventas</value>
+  </data>
+  <data name="View sales history" xml:space="preserve">
+    <value>Historial de ventas</value>
+  </data>
+  <data name="Daily Sales Summary" xml:space="preserve">
+    <value>Resumen Diario de Ventas</value>
+  </data>
+  <data name="Sales Reports" xml:space="preserve">
+    <value>Reporte de ventas</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventario</value>
+  </data>
+  <data name="Management" xml:space="preserve">
+    <value>Gestión</value>
+  </data>
+  <data name="Customers" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="Administration" xml:space="preserve">
+    <value>Administración</value>
+  </data>
+  <data name="Users &amp; Roles" xml:space="preserve">
+    <value>Usuarios y Roles</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="Initial Setup" xml:space="preserve">
+    <value>Configuración Inicial</value>
+  </data>
+</root>

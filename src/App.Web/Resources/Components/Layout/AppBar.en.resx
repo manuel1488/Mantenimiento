@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Profile" xml:space="preserve">
+        <value>Profile</value>
+        <comment>Navigation menu item for user profile</comment>
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value>Logout</value>
+        <comment>Button text for logging out</comment>
+    </data>
+    <data name="LanguageSelection" xml:space="preserve">
+        <value>Language Selection</value>
+        <comment>Tooltip for language selection button</comment>
+    </data>
+    <data name="UserMenu" xml:space="preserve">
+        <value>User Menu</value>
+        <comment>Tooltip for user menu button</comment>
+    </data>
+    <data name="MenuToggle" xml:space="preserve">
+        <value>Toggle Navigation Menu</value>
+        <comment>Tooltip for menu toggle button</comment>
+    </data>
+</root>

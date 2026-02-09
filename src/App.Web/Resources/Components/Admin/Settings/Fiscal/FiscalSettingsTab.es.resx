@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="Base Information" xml:space="preserve">
+        <value>Información Base</value>
+    </data>
+    <data name="Country" xml:space="preserve">
+        <value>País</value>
+    </data>
+    <data name="Country is required" xml:space="preserve">
+        <value>El país es requerido</value>
+    </data>
+    <data name="Business Name" xml:space="preserve">
+        <value>Razón Social</value>
+    </data>
+    <data name="Business name is required" xml:space="preserve">
+        <value>La razón social es requerida</value>
+    </data>
+    <data name="Tax ID" xml:space="preserve">
+        <value>RFC</value>
+    </data>
+    <data name="Tax ID is required" xml:space="preserve">
+        <value>El RFC es requerido</value>
+    </data>
+    <data name="Fiscal Regime" xml:space="preserve">
+        <value>Régimen Fiscal</value>
+    </data>
+    <data name="Fiscal regime is required" xml:space="preserve">
+        <value>El régimen fiscal es requerido</value>
+    </data>
+    <data name="Address" xml:space="preserve">
+        <value>Dirección</value>
+    </data>
+    <data name="Postal Code" xml:space="preserve">
+        <value>Código Postal</value>
+    </data>
+    <data name="Mexico Settings" xml:space="preserve">
+        <value>Configuración de México</value>
+    </data>
+    <data name="Default CFDI Use" xml:space="preserve">
+        <value>Uso de CFDI Predeterminado</value>
+    </data>
+    <data name="CFDI use is required" xml:space="preserve">
+        <value>El uso de CFDI es requerido</value>
+    </data>
+    <data name="Default Payment Method" xml:space="preserve">
+        <value>Método de Pago Predeterminado</value>
+    </data>
+    <data name="Payment method is required" xml:space="preserve">
+        <value>El método de pago es requerido</value>
+    </data>
+    <data name="Default Payment Type" xml:space="preserve">
+        <value>Forma de Pago Predeterminada</value>
+    </data>
+    <data name="Payment type is required" xml:space="preserve">
+        <value>La forma de pago es requerida</value>
+    </data>
+    <data name="Canada Settings" xml:space="preserve">
+        <value>Configuración de Canadá</value>
+    </data>
+    <data name="GST Number" xml:space="preserve">
+        <value>Número GST</value>
+    </data>
+    <data name="GST number is required" xml:space="preserve">
+        <value>El número GST es requerido</value>
+    </data>
+    <data name="PST Number" xml:space="preserve">
+        <value>Número PST</value>
+    </data>
+    <data name="HST Number" xml:space="preserve">
+        <value>Número HST</value>
+    </data>
+    <data name="QST Number" xml:space="preserve">
+        <value>Número QST</value>
+    </data>
+    <data name="Saving" xml:space="preserve">
+        <value>Guardando</value>
+    </data>
+    <data name="Save Changes" xml:space="preserve">
+        <value>Guardar Cambios</value>
+    </data>
+    <data name="Error loading settings" xml:space="preserve">
+        <value>Error al cargar la configuración</value>
+    </data>
+    <data name="Error validating settings" xml:space="preserve">
+        <value>Error al validar la configuración</value>
+    </data>
+    <data name="Settings updated successfully" xml:space="preserve">
+        <value>Configuración actualizada exitosamente</value>
+    </data>
+    <data name="Error saving settings" xml:space="preserve">
+        <value>Error al guardar la configuración</value>
+    </data>
+</root>

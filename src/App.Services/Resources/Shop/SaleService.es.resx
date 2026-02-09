@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error processing inventory: {0}" xml:space="preserve">
+    <value>Error al procesar inventario: {0}</value>
+  </data>
+  <data name="An error occurred while creating the sale: {0}" xml:space="preserve">
+    <value>Ocurrió un error al crear la venta: {0}</value>
+  </data>
+  <data name="Sale not found with ID: {0}" xml:space="preserve">
+    <value>Venta no encontrada con ID: {0}</value>
+  </data>
+  <data name="Cannot update a cancelled sale" xml:space="preserve">
+    <value>No se puede actualizar una venta cancelada</value>
+  </data>
+  <data name="An error occurred while updating the sale: {0}" xml:space="preserve">
+    <value>Ocurrió un error al actualizar la venta: {0}</value>
+  </data>
+  <data name="Error returning inventory: {0}" xml:space="preserve">
+    <value>Error al devolver inventario: {0}</value>
+  </data>
+  <data name="An error occurred while cancelling the sale: {0}" xml:space="preserve">
+    <value>Ocurrió un error al cancelar la venta: {0}</value>
+  </data>
+  <data name="Error retrieving discount settings" xml:space="preserve">
+    <value>Error al recuperar la configuración de descuentos</value>
+  </data>
+  <data name="The specified user is not authorized to approve discounts" xml:space="preserve">
+    <value>El usuario especificado no está autorizado para aprobar descuentos</value>
+  </data>
+  <data name="Public discount cannot exceed {0}%" xml:space="preserve">
+    <value>El descuento público no puede exceder {0}%</value>
+  </data>
+  <data name="Authorization required for any public discount" xml:space="preserve">
+    <value>Se requiere autorización para cualquier descuento público</value>
+  </data>
+  <data name="An error occurred while validating the discount" xml:space="preserve">
+    <value>Ocurrió un error al validar el descuento</value>
+  </data>
+  <data name="An error occurred while retrieving the public sales warehouse" xml:space="preserve">
+    <value>Ocurrió un error al recuperar el almacén de ventas públicas</value>
+  </data>
+  <data name="Warehouse not found or not active" xml:space="preserve">
+    <value>Almacén no encontrado o no activo</value>
+  </data>
+  <data name="An error occurred while setting the public sales warehouse" xml:space="preserve">
+    <value>Ocurrió un error al establecer el almacén de ventas públicas</value>
+  </data>
+  <data name="Sale must have at least one product" xml:space="preserve">
+    <value>La venta debe tener al menos un producto</value>
+  </data>
+  <data name="Customer not found with ID: {0}" xml:space="preserve">
+    <value>Cliente no encontrado con ID: {0}</value>
+  </data>
+  <data name="No public sales warehouse has been configured" xml:space="preserve">
+    <value>No se ha configurado ningún almacén de ventas públicas</value>
+  </data>
+  <data name="Invalid status transition from {0} to {1}" xml:space="preserve">
+    <value>Transición de estado inválida de {0} a {1}</value>
+  </data>
+  <data name="One or more products not found: {0}" xml:space="preserve">
+    <value>Uno o más productos no encontrados: {0}</value>
+  </data>
+  <data name="Insufficient stock for products: {0}" xml:space="preserve">
+    <value>Stock insuficiente para productos: {0}</value>
+  </data>
+  <data name="Error calculating sale: {0}" xml:space="preserve">
+    <value>Error al calcular la venta: {0}</value>
+  </data>
+  <data name="Company settings not configured. Please configure company settings before creating sales." xml:space="preserve">
+    <value>La configuración de la empresa no está configurada. Por favor, configure los ajustes de la empresa antes de crear ventas.</value>
+  </data>
+  <data name="Tax settings not configured. Please configure tax settings before creating sales." xml:space="preserve">
+    <value>La configuración de impuestos no está configurada. Por favor, configure los ajustes de impuestos antes de crear ventas.</value>
+  </data>
+  <data name="No effective tax rate found. Please configure at least one active tax rate." xml:space="preserve">
+    <value>No se encontró una tasa de impuesto efectiva. Por favor, configure al menos una tasa de impuesto activa.</value>
+  </data>
+  <data name="Error getting tax rate. Please ensure tax rates are properly configured." xml:space="preserve">
+    <value>Error al obtener la tasa de impuesto. Por favor, asegúrese de que las tasas de impuesto estén correctamente configuradas.</value>
+  </data>
+</root>

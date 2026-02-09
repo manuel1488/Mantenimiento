@@ -1,0 +1,12 @@
+@inject IStringLocalizer<NotAuthorizedView> L
+
+<MudContainer Class="d-flex flex-column align-center justify-center" Style="height: 100vh;">
+    <MudIcon Icon="@Icons.Material.Filled.Lock" Color="Color.Error" Size="Size.Large" />
+    <MudText Typo="Typo.h4" Class="mt-4">@L["Access Denied"]</MudText>
+    <MudText Typo="Typo.body1" Class="mt-2">
+        @L["You don't have permission to access this resource"]
+    </MudText>
+    <MudButton Href="/" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4">
+        @L["Go to Home"]
+    </MudButton>
+</MudContainer>

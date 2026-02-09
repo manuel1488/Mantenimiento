@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error exporting inventory" xml:space="preserve">
+    <value>Error exportando inventario</value>
+  </data>
+  <data name="Error exporting movement history" xml:space="preserve">
+    <value>Error exportando historial de movimientos</value>
+  </data>
+  <data name="Error printing inventory" xml:space="preserve">
+    <value>Error imprimiendo inventario</value>
+  </data>
+  <data name="Error printing movement history" xml:space="preserve">
+    <value>Error imprimiendo historial de movimientos</value>
+  </data>
+  <!-- Report Common -->
+  <data name="Generated on {0}" xml:space="preserve">
+    <value>Generado el {0}</value>
+  </data>
+  <data name="Page {0} of {1}" xml:space="preserve">
+    <value>Página {0} de {1}</value>
+  </data>
+  <!-- Inventory Status Report -->
+  <data name="Inventory Status Report" xml:space="preserve">
+    <value>Reporte de Estado de Inventario</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Almacén</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Existencia</value>
+  </data>
+  <data name="Min Stock" xml:space="preserve">
+    <value>Stock Mínimo</value>
+  </data>
+  <data name="Max Stock" xml:space="preserve">
+    <value>Stock Máximo</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Out of Stock" xml:space="preserve">
+    <value>Sin Existencia</value>
+  </data>
+  <data name="Low Stock" xml:space="preserve">
+    <value>Stock Bajo</value>
+  </data>
+  <data name="Over Stock" xml:space="preserve">
+    <value>Sobre Stock</value>
+  </data>
+  <data name="In Stock" xml:space="preserve">
+    <value>En Stock</value>
+  </data>
+  <!-- Movement History Report -->
+  <data name="Inventory Movement History Report" xml:space="preserve">
+    <value>Reporte de Historial de Movimientos de Inventario</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="Destination" xml:space="preserve">
+    <value>Destino</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Previous Balance" xml:space="preserve">
+    <value>Saldo Anterior</value>
+  </data>
+  <data name="New Balance" xml:space="preserve">
+    <value>Nuevo Saldo</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referencia</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <!-- Movement Types -->
+  <data name="Stock In" xml:space="preserve">
+    <value>Entrada</value>
+  </data>
+  <data name="Return" xml:space="preserve">
+    <value>Devolución</value>
+  </data>
+  <data name="Stock Out" xml:space="preserve">
+    <value>Salida</value>
+  </data>
+  <data name="Sale" xml:space="preserve">
+    <value>Venta</value>
+  </data>
+  <data name="TRANSFER" xml:space="preserve">
+    <value>Transferencia</value>
+  </data>
+  <!-- Existing translations remain the same -->
+
+<!-- Movement Types -->
+<data name="STOCK_IN" xml:space="preserve">
+    <value>Entrada</value>
+</data>
+<data name="PURCHASE" xml:space="preserve">
+    <value>Compra</value>
+</data>
+<data name="STOCK_OUT" xml:space="preserve">
+    <value>Salida</value>
+</data>
+<data name="RETURN_SUPPLIER" xml:space="preserve">
+    <value>Devolución a Proveedor</value>
+</data>
+<data name="ADJUSTMENT" xml:space="preserve">
+    <value>Ajuste</value>
+</data>
+<data name="INITIAL_LOAD" xml:space="preserve">
+    <value>Carga Inicial</value>
+</data>
+
+<!-- Movement Subtypes -->
+<!-- Stock In Subtypes -->
+<data name="NEW_PRODUCT" xml:space="preserve">
+    <value>Producto Nuevo</value>
+</data>
+<data name="SYSTEM_MIGRATION" xml:space="preserve">
+    <value>Migración de Sistema</value>
+</data>
+<data name="INITIAL_COUNT" xml:space="preserve">
+    <value>Conteo Inicial</value>
+</data>
+<data name="OPENING_BALANCE" xml:space="preserve">
+    <value>Saldo Inicial</value>
+</data>
+
+<!-- Stock Out Subtypes -->
+<data name="CUSTOMER_ORDER" xml:space="preserve">
+    <value>Orden de Cliente</value>
+</data>
+<data name="DIRECT_SALE" xml:space="preserve">
+    <value>Venta Directa</value>
+</data>
+<data name="PRODUCTION_USE" xml:space="preserve">
+    <value>Uso en Producción</value>
+</data>
+<data name="CONSUMPTION" xml:space="preserve">
+    <value>Consumo</value>
+</data>
+<data name="DAMAGE" xml:space="preserve">
+    <value>Daño</value>
+</data>
+<data name="EXPIRY" xml:space="preserve">
+    <value>Caducidad</value>
+</data>
+
+<!-- Transfer Subtypes -->
+<data name="STANDARD" xml:space="preserve">
+    <value>Transferencia Estándar</value>
+</data>
+<data name="RUSH" xml:space="preserve">
+    <value>Transferencia Urgente</value>
+</data>
+<data name="REBALANCING" xml:space="preserve">
+    <value>Rebalanceo</value>
+</data>
+</root>

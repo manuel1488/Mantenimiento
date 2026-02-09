@@ -1,0 +1,188 @@
+﻿@page "/Account/Login"
+@layout EmptyLayout
+@using App.Web.Components.Layout
+@using App.Web.Services
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Login> L
+@inject CurrentThemeService ThemeService
+
+<PageTitle>@L["PageTitle"]</PageTitle>
+<MudThemeProvider Theme="ThemeService.Theme"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudMainContent Class="pt-0">
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="height: 100vh;">
+            <MudPaper Elevation="3" Class="pa-8" Style="width: 500px;">
+                <MudStack Spacing="4">
+                    <!-- Logo & Title -->
+                    <MudPaper Class="d-flex justify-center align-center pa-4" Style="background-color: #000000; border-radius: 8px;">
+                        <MudImage Src="/images/logo.webp" Alt="@L["LogoAlt"]" Height="80" ObjectFit="ObjectFit.Contain" />
+                    </MudPaper>
+                    <MudText Typo="Typo.h5" Align="Align.Center" Class="mt-4">@L["SignIn"]</MudText>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="mud-alert mud-alert-filled-error mud-elevation-0 my-2">
+                            <div class="mud-alert-message">
+                                <p class="mud-typography mud-typography-body1">@errorMessage</p>
+                            </div>
+                        </div>
+                    }
+
+                    <EditForm Model="Input" method="post" Action="/api/Auth/Login">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="mud-alert mud-alert-filled-error my-2" />
+
+                        <MudText GutterBottom="true" Typo="Typo.body1">@L["UseLocalAccount"]</MudText>
+
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudStaticTextField For="@(() => Input.UserName)" @bind-Value="Input.UserName" 
+                                    Label="@L["Username"]" Placeholder="@L["UsernamePlaceholder"]" 
+                                    Class="@(hasError ? "mud-input-error" : "")"
+                                    UserAttributes="@(new() { { "aria-required", "true" }, { "autocomplete", "username" } })" />
+                            </MudItem>
+                            
+                            <MudItem xs="12">
+                                <MudStaticTextField For="@(() => Input.Password)" 
+                                    @bind-Value="Input.Password"
+                                    InputType="InputType.Password"
+                                    Label="@L["Password"]"                                     
+                                    Placeholder="@L["PasswordPlaceholder"]" 
+                                    Class="@(hasError ? "mud-input-error" : "")"
+                                    UserAttributes="@(new() { { "aria-required", "true" }, { "autocomplete", "current-password" } })"
+                                    Adornment="Adornment.End"
+                                    AdornmentIcon="@Icons.Material.Outlined.VisibilityOff"
+                                    AdornmentClickFunction="showPassword" />
+                            </MudItem>
+                            
+                            <MudItem xs="12">
+                                <MudStaticCheckBox For="@(() => Input.RememberMe)" @bind-Value="Input.RememberMe">@L["RememberMe"]</MudStaticCheckBox>
+                            </MudItem>
+                            
+                            <MudItem xs="12">
+                                <MudStaticButton id="login-submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" 
+                                    FormAction="FormAction.Submit" Disabled="@_isProcessing">
+                                    @if (_isProcessing)
+                                    {
+                                        <div class="d-flex align-center justify-center">
+                                            <span class="mud-progress-circular mud-progress-small mud-progress-indeterminate mud-primary">
+                                                <svg class="mud-progress-circular-svg" viewBox="22 22 44 44">
+                                                    <circle class="mud-progress-circular-circle" cx="44" cy="44" r="20" fill="none" stroke-width="4"></circle>
+                                                </svg>
+                                            </span>
+                                            <span class="ms-2">@L["Processing"]</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @L["SignIn"]
+                                    }
+                                </MudStaticButton>
+                            </MudItem>
+                        </MudGrid>
+                    </EditForm>
+
+                    <!-- Links adicionales -->
+                    <div class="mt-4">
+                        <MudLink Href="/Account/ForgotPassword" Class="d-block text-center">@L["ForgotPassword"]</MudLink>
+                    </div>
+                </MudStack>
+            </MudPaper>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private string? errorMessage;
+    private bool _isProcessing;
+    private bool hasError => !string.IsNullOrEmpty(errorMessage);
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+    
+    [SupplyParameterFromQuery]
+    private string? error { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpContext is not null && HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Limpiar cualquier mensaje de error previo al cargar la página
+            errorMessage = null;
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            
+            // Manejar errores de autenticación enviados desde el controlador
+            if (error == "invalid")
+            {
+                errorMessage = L["InvalidCredentials"];
+            }
+            else if (error == "failed")
+            {
+                errorMessage = L["InvalidLoginAttempt"];
+            }
+        }
+    }
+
+    private class InputModel
+    {
+        [Required(ErrorMessageResourceType = typeof(Login), ErrorMessageResourceName = "UserNameRequired")]
+        public string UserName { get; set; } = "";
+
+        [Required(ErrorMessageResourceType = typeof(Login), ErrorMessageResourceName = "PasswordRequired")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(ResourceType = typeof(Login), Name = "RememberMe")]
+        public bool RememberMe { get; set; }
+    }
+}
+
+<style>
+    .mud-input-error .mud-input-outlined-border {
+        border-color: var(--mud-palette-error) !important;
+    }
+
+    .mud-alert.mud-alert-filled-error {
+        background-color: var(--mud-palette-error);
+        color: var(--mud-palette-error-text);
+    }
+
+    .validation-message {
+        color: var(--mud-palette-error);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>
+
+<script>
+    let timeoutId;
+
+    function showPassword(inputElement, button) {
+        if (inputElement.type === 'password') {
+            inputElement.type = 'text';
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(function () {
+                inputElement.type = 'password';
+            }, 5000);
+        } else {
+            inputElement.type = 'password';
+            clearTimeout(timeoutId);
+        }
+    }
+</script>

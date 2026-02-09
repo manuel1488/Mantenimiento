@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- General Information -->
+  <data name="Trade Name" xml:space="preserve">
+    <value>Trade Name</value>
+  </data>
+  <data name="Trade name is required" xml:space="preserve">
+    <value>Trade name is required</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Legal Name</value>
+  </data>
+  <data name="Legal name is required" xml:space="preserve">
+    <value>Legal name is required</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>Tax ID</value>
+  </data>
+  
+  <!-- Contact Information -->
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="example@domain.com" xml:space="preserve">
+    <value>example@domain.com</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Phone is required" xml:space="preserve">
+    <value>Phone is required</value>
+  </data>
+  
+  <!-- Address Information -->
+  <data name="Street" xml:space="preserve">
+    <value>Street</value>
+  </data>
+  <data name="Exterior Number" xml:space="preserve">
+    <value>Exterior Number</value>
+  </data>
+  <data name="Interior Number" xml:space="preserve">
+    <value>Interior Number</value>
+  </data>
+  <data name="Neighborhood" xml:space="preserve">
+    <value>Neighborhood</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Postal Code</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="Country is required" xml:space="preserve">
+    <value>Country is required</value>
+  </data>
+  
+  <!-- Canadian Tax Numbers -->
+  <data name="Canadian Tax Numbers" xml:space="preserve">
+    <value>Canadian Tax Numbers</value>
+  </data>
+  <data name="GST Number" xml:space="preserve">
+    <value>GST Number</value>
+  </data>
+  <data name="PST Number" xml:space="preserve">
+    <value>PST Number</value>
+  </data>
+  <data name="HST Number" xml:space="preserve">
+    <value>HST Number</value>
+  </data>
+  <data name="QST Number" xml:space="preserve">
+    <value>QST Number</value>
+  </data>
+  
+  <!-- Dialog Actions -->
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Cancel editing" xml:space="preserve">
+    <value>Cancel editing</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Save customer data" xml:space="preserve">
+    <value>Save customer data</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  
+  <!-- Success Messages -->
+  <data name="Customer created successfully" xml:space="preserve">
+    <value>Customer created successfully</value>
+  </data>
+  <data name="Customer updated successfully" xml:space="preserve">
+    <value>Customer updated successfully</value>
+  </data>
+  
+  <!-- Error Messages -->
+  <data name="Error loading customer" xml:space="preserve">
+    <value>Error loading customer</value>
+  </data>
+  <data name="Error saving customer" xml:space="preserve">
+    <value>Error saving customer</value>
+  </data>
+  
+  <!-- Validation Messages -->
+  <data name="Phone number must contain only numbers, spaces, hyphens, parentheses, and plus signs" xml:space="preserve">
+    <value>Phone number must contain only numbers, spaces, hyphens, parentheses, and plus signs</value>
+  </data>
+  <data name="Phone number must have exactly 10 digits" xml:space="preserve">
+    <value>Phone number must have exactly 10 digits</value>
+  </data>
+  <data name="Please enter a valid email address" xml:space="preserve">
+    <value>Please enter a valid email address</value>
+  </data>
+</root>

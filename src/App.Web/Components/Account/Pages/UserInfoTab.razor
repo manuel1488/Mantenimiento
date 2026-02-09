@@ -1,0 +1,158 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using App.Core.DTOs.Identity
+@using App.Core.Identity.Interfaces
+@using App.Core.Common
+
+@inject IStringLocalizer<UserInfoTab> L
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IIdentityService IdentityService
+@inject ILogger<UserInfoTab> Logger
+
+
+<AuthorizeView>
+    <Authorized>
+        <MudCard Elevation="0">
+            <MudCardContent>
+                @if (_loading)
+                {
+                    <MudGrid>
+                        <MudItem xs="12" Class="d-flex justify-center">
+                            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                        </MudItem>
+                    </MudGrid>
+                }
+                else if (_error)
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">
+                        @_errorMessage
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudField Label="@L["Username"]" Variant="Variant.Outlined">
+                                @_userInfo?.UserName
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudField Label="@L["Email"]" Variant="Variant.Outlined">
+                                @_userInfo?.Email
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudField Label="@L["Full Name"]" Variant="Variant.Outlined">
+                                @_userInfo?.FullName
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudField Label="@L["Roles"]" Variant="Variant.Outlined">
+                                @string.Join(", ", _roles)
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudField Label="@L["Last Login"]" Variant="Variant.Outlined">
+                                @(_userInfo?.LastLogin?.ToLocalTime().ToString("g") ?? "-")
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudField Label="@L["Status"]" Variant="Variant.Outlined">
+                                <MudChip T="string" Color="@(_userInfo?.IsActive == true ? Color.Success : Color.Error)"
+                                    Size="Size.Small">
+                                    @(_userInfo?.IsActive == true ? L["Active"] : L["Inactive"])
+                                </MudChip>
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudField Label="@L["Account Created"]" Variant="Variant.Outlined">
+                                @_userInfo?.CreatedAt.ToLocalTime().ToString("g")
+                            </MudField>
+                        </MudItem>
+                    </MudGrid>
+                }
+            </MudCardContent>
+        </MudCard>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            @L["You do not have permission to view this information."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+    private bool _loading = true;
+    private bool _error = false;
+    private string _errorMessage = string.Empty;
+    private string _userId = string.Empty;
+    private UserDto? _userInfo;
+    private List<string> _roles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                _userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+                if (!string.IsNullOrEmpty(_userId))
+                {
+                    await LoadUserInfoAsync();
+                }
+                else
+                {
+                    SetError(L["Unable to determine user ID"]);
+                }
+            }
+            else
+            {
+                SetError(L["User is not authenticated"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing user profile tab");
+            SetError(L["An error occurred while loading profile information"]);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadUserInfoAsync()
+    {
+        try
+        {
+            var userResult = await IdentityService.GetUserByIdAsync(_userId);
+
+            if (userResult.IsSuccess && userResult.Value != null)
+            {
+                _userInfo = userResult.Value;
+
+                _roles = (await IdentityService.GetUserRolesAsync(_userId)).ToList();
+            }
+            else
+            {
+                SetError(userResult.Error ?? L["Unable to load user information"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading user details for ID: {UserId}", _userId);
+            SetError(L["An error occurred while loading user details"]);
+        }
+    }
+
+    private void SetError(string message)
+    {
+        _error = true;
+        _errorMessage = message;
+    }
+}

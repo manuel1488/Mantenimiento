@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Manuel Alfaro/Documents/Desarrollos/Inventario/**)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet ef database update:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
