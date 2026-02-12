@@ -18,6 +18,8 @@
 @inject IProductCodeGeneratorService CodeGeneratorService
 @inject IPartialSaleFractionService PartialSaleFractionService
 @inject IProductPartialSurchargeService ProductPartialSurchargeService
+@inject IWholesaleTierService WholesaleTierService
+@inject IProductWholesalePriceService ProductWholesalePriceService
 
 <AuthorizeView Policy="@ApplicationClaims.Shop.ManageProducts">
     <Authorized>
@@ -238,6 +240,74 @@
                                         Color="Color.Primary" />
                             </MudItem>
 
+                            <!-- Wholesale Pricing Section -->
+                            <MudItem xs="12">
+                                <MudPaper Class="pa-3" Elevation="0" Style="background-color: var(--mud-palette-background-grey);">
+                                    <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Wholesale Pricing"]</MudText>
+                                    <MudText Typo="Typo.caption" Class="mb-3" Color="Color.Secondary">
+                                        @L["Configure discount percentage for each wholesale tier. Min quantity is in the product's unit of measure."]
+                                    </MudText>
+
+                                    @if (_loadingWholesalePrices)
+                                    {
+                                        <MudProgressLinear Indeterminate="true" />
+                                    }
+                                    else if (_wholesalePriceConfigs.Count > 0)
+                                    {
+                                        <MudSimpleTable Dense="true" Hover="true" Bordered="true">
+                                            <thead>
+                                                <tr>
+                                                    <th>@L["Tier"]</th>
+                                                    <th style="width: 150px;">@L["Min Quantity"]</th>
+                                                    <th style="width: 150px;">@L["Discount %"]</th>
+                                                    <th style="width: 100px;">@L["Active"]</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var config in _wholesalePriceConfigs)
+                                                {
+                                                    <tr>
+                                                        <td>@config.TierName</td>
+                                                        <td>
+                                                            <MudNumericField T="decimal"
+                                                                @bind-Value="config.MinQuantity"
+                                                                Min="0" Step="1M"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense"
+                                                                HideSpinButtons="true"
+                                                                Adornment="Adornment.End"
+                                                                AdornmentText="@GetSelectedUnitMeasureName()" />
+                                                        </td>
+                                                        <td>
+                                                            <MudNumericField T="decimal"
+                                                                @bind-Value="config.DiscountPercentage"
+                                                                Min="0" Max="100" Step="0.5M"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense"
+                                                                HideSpinButtons="true"
+                                                                Adornment="Adornment.End"
+                                                                AdornmentText="%" />
+                                                        </td>
+                                                        <td>
+                                                            <MudCheckBox T="bool"
+                                                                @bind-Value="config.IsActive"
+                                                                Color="Color.Primary"
+                                                                Dense="true" />
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </MudSimpleTable>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                            @L["No wholesale tiers configured. Add tiers in Settings."]
+                                        </MudText>
+                                    }
+                                </MudPaper>
+                            </MudItem>
+
                             <!-- Unit of Measure -->
                             <MudItem xs="12" md="6">
                                 <MudSelect @bind-Value="_model.UnitMeasureId" 
@@ -419,6 +489,21 @@
         public bool IsActive { get; set; } = true;
     }
 
+    // Wholesale Pricing
+    private bool _loadingWholesalePrices;
+    private List<WholesaleTierDto> _availableTiers = new();
+    private List<WholesalePriceConfigModel> _wholesalePriceConfigs = new();
+
+    // Helper class for wholesale price configuration
+    private class WholesalePriceConfigModel
+    {
+        public int WholesaleTierId { get; set; }
+        public string TierName { get; set; } = null!;
+        public decimal MinQuantity { get; set; }
+        public decimal DiscountPercentage { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await LoadUnitMeasures();
@@ -445,6 +530,9 @@
             }
         }
         
+        // Load wholesale tier configs (always shown)
+        await LoadWholesalePriceConfigs();
+
         if (ProductId.HasValue)
         {
             await LoadProduct();
@@ -547,6 +635,9 @@
                 {
                     await LoadSurchargeConfigs();
                 }
+
+                // Reload wholesale price configs with existing product data
+                await LoadWholesalePriceConfigs();
             }
         }
         catch (Exception ex)
@@ -677,6 +768,9 @@
                     // Save partial sale surcharges
                     await SaveSurcharges(updatedProduct.Id);
 
+                    // Save wholesale prices
+                    await SaveWholesalePrices(updatedProduct.Id);
+
                     Snackbar.Add(L["Product updated successfully"], Severity.Success);
                 }
                 else
@@ -697,6 +791,9 @@
 
                     // Save partial sale surcharges
                     await SaveSurcharges(newProduct.Id);
+
+                    // Save wholesale prices
+                    await SaveWholesalePrices(newProduct.Id);
 
                     Snackbar.Add(L["Product created successfully"], Severity.Success);
                 }
@@ -909,6 +1006,98 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error saving surcharges for product {ProductId}", productId);
+        }
+    }
+
+    private async Task LoadWholesalePriceConfigs()
+    {
+        _loadingWholesalePrices = true;
+        StateHasChanged();
+
+        try
+        {
+            // Load available tiers
+            var tiersResult = await WholesaleTierService.GetActiveTiersAsync();
+            if (!tiersResult.IsSuccess)
+            {
+                Snackbar.Add(L["Error loading wholesale tiers"], Severity.Error);
+                return;
+            }
+
+            _availableTiers = tiersResult.Value?.ToList() ?? new List<WholesaleTierDto>();
+
+            // Load existing wholesale prices for this product (if editing)
+            IList<ProductWholesalePriceDto> existingPrices = new List<ProductWholesalePriceDto>();
+            if (ProductId.HasValue)
+            {
+                var pricesResult = await ProductWholesalePriceService.GetWholesalePricesForProductAsync(ProductId.Value);
+                if (pricesResult.IsSuccess)
+                {
+                    existingPrices = pricesResult.Value ?? new List<ProductWholesalePriceDto>();
+                }
+            }
+
+            // Build config list combining tiers with existing prices
+            _wholesalePriceConfigs = _availableTiers.Select(t =>
+            {
+                var existing = existingPrices.FirstOrDefault(p => p.WholesaleTierId == t.Id);
+                return new WholesalePriceConfigModel
+                {
+                    WholesaleTierId = t.Id,
+                    TierName = t.Name,
+                    MinQuantity = existing?.MinQuantity ?? 0,
+                    DiscountPercentage = existing?.DiscountPercentage ?? 0,
+                    IsActive = existing?.IsActive ?? true
+                };
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading wholesale price configurations");
+        }
+        finally
+        {
+            _loadingWholesalePrices = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveWholesalePrices(long productId)
+    {
+        if (_wholesalePriceConfigs.Count == 0)
+            return;
+
+        // Only save configs that have meaningful data (discount > 0 and minQuantity > 0)
+        var validConfigs = _wholesalePriceConfigs
+            .Where(c => c.DiscountPercentage > 0 && c.MinQuantity > 0)
+            .ToList();
+
+        if (validConfigs.Count == 0)
+            return;
+
+        try
+        {
+            var dto = new UpdateProductWholesalePricesDto
+            {
+                ProductId = productId,
+                WholesalePrices = validConfigs.Select(c => new CreateProductWholesalePriceDto
+                {
+                    WholesaleTierId = c.WholesaleTierId,
+                    MinQuantity = c.MinQuantity,
+                    DiscountPercentage = c.DiscountPercentage,
+                    IsActive = c.IsActive
+                }).ToList()
+            };
+
+            var result = await ProductWholesalePriceService.UpdateProductWholesalePricesAsync(dto);
+            if (!result.IsSuccess)
+            {
+                Logger.LogWarning("Failed to save wholesale prices: {Error}", result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving wholesale prices for product {ProductId}", productId);
         }
     }
 

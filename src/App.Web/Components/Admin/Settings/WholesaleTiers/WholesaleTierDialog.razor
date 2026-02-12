@@ -1,0 +1,220 @@
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces.Shop
+
+@inject IWholesaleTierService TierService
+@inject IStringLocalizer<WholesaleTierDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<WholesaleTierDialog> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ManageSettings">
+    <Authorized>
+        <MudDialog>
+            <DialogContent>
+                <MudContainer Style="max-width: 500px;" Class="pa-4">
+                    <MudForm Model="@_model" @ref="@_form">
+                        <MudGrid>
+                            <!-- Name -->
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Name"
+                                            Label="@L["Name"]"
+                                            Required="true"
+                                            HelperText="@L["e.g., Medio Mayoreo, Mayoreo"]"
+                                            RequiredError="@L["Name is required"]"
+                                            Error="@_nameError"
+                                            ErrorText="@_nameErrorText"
+                                            OnBlur="@ValidateName" />
+                            </MudItem>
+
+                            <!-- Display Order -->
+                            <MudItem xs="6">
+                                <MudNumericField @bind-Value="_model.DisplayOrder"
+                                                Label="@L["Display Order"]"
+                                                Min="0"
+                                                Max="100"
+                                                HelperText="@L["Lower numbers appear first"]" />
+                            </MudItem>
+
+                            <!-- Is Active -->
+                            <MudItem xs="6" Class="d-flex align-center">
+                                <MudSwitch @bind-Value="_model.IsActive"
+                                          Label="@L["Active"]"
+                                          Color="Color.Success" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudForm>
+                </MudContainer>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel"
+                        Class="da-button-rounded"
+                        title="@L["Cancel"]">
+                    @L["Cancel"]
+                </MudButton>
+                <MudButton Color="Color.Error"
+                        OnClick="Submit"
+                        Variant="Variant.Filled"
+                        Disabled="@(_processing || !_isValid)"
+                        title="@L["Save"]"
+                        Class="da-button-rounded">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">@L["Saving"]</MudText>
+                    }
+                    else
+                    {
+                        @L["Save"]
+                    }
+                </MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to perform this action"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? TierId { get; set; }
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _isValid = true;
+    private bool _nameError;
+    private string _nameErrorText = string.Empty;
+    private bool IsNew => !TierId.HasValue;
+
+    private UpdateWholesaleTierDto _model = new()
+    {
+        Name = "",
+        DisplayOrder = 0,
+        IsActive = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TierId.HasValue)
+        {
+            await LoadTier();
+        }
+    }
+
+    private async Task LoadTier()
+    {
+        try
+        {
+            var result = await TierService.GetTierByIdAsync(TierId!.Value);
+            if (result.IsSuccess && result.Value != null)
+            {
+                var tier = result.Value;
+                _model = new UpdateWholesaleTierDto
+                {
+                    Name = tier.Name,
+                    DisplayOrder = tier.DisplayOrder,
+                    IsActive = tier.IsActive
+                };
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? L["Error loading tier"], Severity.Error);
+                MudDialog.Cancel();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading tier");
+            Snackbar.Add(L["Error loading tier"], Severity.Error);
+            MudDialog.Cancel();
+        }
+    }
+
+    private async Task ValidateName()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Name))
+            return;
+
+        try
+        {
+            var result = await TierService.ValidateUniqueNameAsync(_model.Name, TierId);
+            if (result.IsSuccess)
+            {
+                _nameError = !result.Value;
+                _nameErrorText = result.Value ? string.Empty : L["Name already exists"];
+                _isValid = result.Value;
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error validating name");
+            Snackbar.Add(L["Error validating name"], Severity.Error);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        await ValidateName();
+
+        if (_form.IsValid && _isValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                if (TierId.HasValue)
+                {
+                    var result = await TierService.UpdateTierAsync(TierId.Value, _model);
+                    if (result.IsSuccess)
+                    {
+                        Snackbar.Add(L["Tier updated successfully"], Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(true));
+                    }
+                    else
+                    {
+                        Snackbar.Add(result.Error ?? L["Error updating tier"], Severity.Error);
+                    }
+                }
+                else
+                {
+                    var createDto = new CreateWholesaleTierDto
+                    {
+                        Name = _model.Name,
+                        DisplayOrder = _model.DisplayOrder,
+                        IsActive = _model.IsActive
+                    };
+
+                    var result = await TierService.CreateTierAsync(createDto);
+                    if (result.IsSuccess)
+                    {
+                        Snackbar.Add(L["Tier created successfully"], Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(true));
+                    }
+                    else
+                    {
+                        Snackbar.Add(result.Error ?? L["Error creating tier"], Severity.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving tier");
+                Snackbar.Add(L["Error saving tier"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

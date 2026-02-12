@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving tiers" xml:space="preserve">
+    <value>Error retrieving tiers</value>
+  </data>
+  <data name="Tier not found" xml:space="preserve">
+    <value>Tier not found</value>
+  </data>
+  <data name="Error retrieving tier" xml:space="preserve">
+    <value>Error retrieving tier</value>
+  </data>
+  <data name="Tier name already exists" xml:space="preserve">
+    <value>Tier name already exists</value>
+  </data>
+  <data name="Error creating tier" xml:space="preserve">
+    <value>Error creating tier</value>
+  </data>
+  <data name="Error updating tier" xml:space="preserve">
+    <value>Error updating tier</value>
+  </data>
+  <data name="Cannot delete tier that is in use by products" xml:space="preserve">
+    <value>Cannot delete tier that is in use by products</value>
+  </data>
+  <data name="Error deleting tier" xml:space="preserve">
+    <value>Error deleting tier</value>
+  </data>
+  <data name="Error updating tier status" xml:space="preserve">
+    <value>Error updating tier status</value>
+  </data>
+  <data name="Error validating tier name" xml:space="preserve">
+    <value>Error validating tier name</value>
+  </data>
+</root>

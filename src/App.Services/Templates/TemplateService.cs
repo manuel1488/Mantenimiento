@@ -4,6 +4,7 @@ using System.Text;
 using App.Core.Constants;
 using App.Core.DTOs.UnitMeasure;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Shop;
 
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -21,18 +22,21 @@ public class TemplateService : ITemplateService
     private readonly IUnitMeasureService _unitMeasureService;
     private readonly ICompanySettingsService _companySettingsService;
     private readonly IInventoryColumnMappingService _columnMappingService;
+    private readonly IWholesaleTierService _wholesaleTierService;
 
     public TemplateService(IStringLocalizer<TemplateService> localizer,
         ILogger<TemplateService> logger,
         IUnitMeasureService unitMeasureService,
         ICompanySettingsService companySettingsService,
-        IInventoryColumnMappingService columnMappingService)
+        IInventoryColumnMappingService columnMappingService,
+        IWholesaleTierService wholesaleTierService)
     {
         _localizer = localizer;
         _logger = logger;
         _unitMeasureService = unitMeasureService;
         _companySettingsService = companySettingsService;
         _columnMappingService = columnMappingService;
+        _wholesaleTierService = wholesaleTierService;
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     }
 
@@ -158,6 +162,45 @@ public class TemplateService : ITemplateService
             worksheet.Cells[row, 12].Value = "false";
             worksheet.Cells[row, 13].Value = "false";
 
+            // Add wholesale tier columns dynamically
+            var tiersResult = await _wholesaleTierService.GetActiveTiersAsync();
+            var activeTiers = tiersResult.IsSuccess ? tiersResult.Value?.ToList() ?? new() : new();
+            var baseColumnCount = headers.Length;
+
+            for (int t = 0; t < activeTiers.Count; t++)
+            {
+                var tier = activeTiers[t];
+                var minQtyCol = baseColumnCount + (t * 2) + 1; // 1-indexed
+                var discountCol = minQtyCol + 1;
+
+                // Set headers with green background
+                var minQtyHeaderCell = worksheet.Cells[1, minQtyCol];
+                minQtyHeaderCell.Value = $"{_localizer["Min Qty"]} {tier.Name}";
+                minQtyHeaderCell.Style.Font.Bold = true;
+                minQtyHeaderCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                minQtyHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
+                minQtyHeaderCell.Style.Font.Color.SetColor(Color.White);
+
+                var discountHeaderCell = worksheet.Cells[1, discountCol];
+                discountHeaderCell.Value = $"{_localizer["Discount %"]} {tier.Name}";
+                discountHeaderCell.Style.Font.Bold = true;
+                discountHeaderCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                discountHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
+                discountHeaderCell.Style.Font.Color.SetColor(Color.White);
+
+                // Set example values
+                worksheet.Cells[row, minQtyCol].Value = (t + 1) * 10; // 10, 20, etc.
+                worksheet.Cells[row, discountCol].Value = (t + 1) * 5; // 5%, 10%, etc.
+
+                // Add comments
+                worksheet.Cells[1, minQtyCol].AddComment(
+                    _localizer["Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip.", tier.Name], "System");
+                worksheet.Cells[1, discountCol].AddComment(
+                    _localizer["Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.", tier.Name], "System");
+            }
+
+            var totalColumnCount = baseColumnCount + (activeTiers.Count * 2);
+
             // Add comments/notes for guidance using localized text
             worksheet.Cells[1, 1].AddComment(_localizer["Optional. Leave empty to auto-generate product code."], "System");
 
@@ -177,8 +220,8 @@ public class TemplateService : ITemplateService
             // Auto-fit columns
             worksheet.Cells.AutoFitColumns();
 
-            // Set minimum column width
-            for (int i = 1; i <= headers.Length; i++)
+            // Set minimum column width for all columns including wholesale
+            for (int i = 1; i <= totalColumnCount; i++)
             {
                 if (worksheet.Column(i).Width < 15)
                     worksheet.Column(i).Width = 15;

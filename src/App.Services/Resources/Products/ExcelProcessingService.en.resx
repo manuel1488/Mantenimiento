@@ -102,4 +102,14 @@
     <value>Error processing row {0}: {1}</value>
     <comment>Error message when processing a specific row fails</comment>
   </data>
+
+  <!-- Wholesale Tier Column Detection -->
+  <data name="Min Qty" xml:space="preserve">
+    <value>Min Qty</value>
+    <comment>Wholesale tier column prefix for minimum quantity</comment>
+  </data>
+  <data name="Discount %" xml:space="preserve">
+    <value>Discount %</value>
+    <comment>Wholesale tier column prefix for discount percentage</comment>
+  </data>
 </root>

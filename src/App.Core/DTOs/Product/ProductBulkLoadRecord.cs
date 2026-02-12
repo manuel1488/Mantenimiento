@@ -15,4 +15,10 @@ public class ProductBulkLoadRecord
     public string? MexicoProductServiceCode { get; set; }
     public bool AllowPartialSale { get; set; } = false;
     public bool AllowCustomPricing { get; set; } = false;
+
+    /// <summary>
+    /// Wholesale pricing data parsed from dynamic columns.
+    /// Key: Tier name, Value: (MinQuantity, DiscountPercentage)
+    /// </summary>
+    public Dictionary<string, (decimal MinQuantity, decimal DiscountPercentage)> WholesalePrices { get; set; } = new();
 }

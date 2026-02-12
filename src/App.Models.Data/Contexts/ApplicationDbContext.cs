@@ -46,6 +46,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TicketConfiguration> TicketConfigurations { get; set; } = null!;
     public DbSet<PartialSaleFraction> PartialSaleFractions { get; set; } = null!;
     public DbSet<ProductPartialSurcharge> ProductPartialSurcharges { get; set; } = null!;
+    public DbSet<WholesaleTier> WholesaleTiers { get; set; } = null!;
+    public DbSet<ProductWholesalePrice> ProductWholesalePrices { get; set; } = null!;
     #endregion
 
     #region Billing México

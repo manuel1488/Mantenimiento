@@ -576,6 +576,13 @@ public class ProductService : IProductService
                 .Where(x => x.CountryCode == settings!.CountryCode)
                 .ToListAsync(cancellationToken);
 
+            // Pre-load active wholesale tiers for bulk import
+            var wholesaleTiers = await _context.WholesaleTiers
+                .AsNoTracking()
+                .Where(t => t.IsActive && t.IsDeleted == 0)
+                .ToListAsync(cancellationToken);
+            var tiersByName = wholesaleTiers.ToDictionary(t => t.Name, t => t.Id, StringComparer.OrdinalIgnoreCase);
+
             // Pre-load existing codes for validation
             var existingCodes = await _context.Products
                 .AsNoTracking()
@@ -685,6 +692,30 @@ public class ProductService : IProductService
 
                     _context.Products.Add(product);
                     await _context.SaveChangesAsync(cancellationToken);
+
+                    // Create wholesale prices if provided in the import data
+                    if (item.WholesalePrices.Count > 0)
+                    {
+                        foreach (var (tierName, wholesaleData) in item.WholesalePrices)
+                        {
+                            if (tiersByName.TryGetValue(tierName, out var tierId) &&
+                                wholesaleData.MinQuantity > 0 && wholesaleData.DiscountPercentage > 0)
+                            {
+                                var wholesalePrice = new ProductWholesalePrice
+                                {
+                                    ProductId = product.Id,
+                                    WholesaleTierId = tierId,
+                                    MinQuantity = wholesaleData.MinQuantity,
+                                    DiscountPercentage = wholesaleData.DiscountPercentage,
+                                    IsActive = true,
+                                    CreatedBy = _currentUserService.FullName ?? "System",
+                                    CreatedAt = _dateTime.Now
+                                };
+                                _context.ProductWholesalePrices.Add(wholesalePrice);
+                            }
+                        }
+                        await _context.SaveChangesAsync(cancellationToken);
+                    }
 
                     // Update validation sets for next iterations
                     existingCodes.Add(item.Code.ToUpper());
@@ -953,10 +984,44 @@ public class ProductService : IProductService
                 .ToListAsync();
         }
 
+        // Get active wholesale tiers for column headers
+        var wholesaleTiers = await context.WholesaleTiers
+            .AsNoTracking()
+            .Where(t => t.IsActive && t.IsDeleted == 0)
+            .OrderBy(t => t.DisplayOrder)
+            .Select(t => new WholesaleTierColumnDto
+            {
+                Id = t.Id,
+                Name = t.Name,
+                DisplayOrder = t.DisplayOrder
+            })
+            .ToListAsync();
+
+        // Get wholesale prices for all products
+        var allProductIds = products.Select(p => p.Id).ToList();
+        var wholesalePrices = new List<ProductWholesaleExportDto>();
+        if (allProductIds.Count > 0 && wholesaleTiers.Count > 0)
+        {
+            wholesalePrices = await context.ProductWholesalePrices
+                .AsNoTracking()
+                .Include(wp => wp.WholesaleTier)
+                .Where(wp => allProductIds.Contains(wp.ProductId) && wp.IsDeleted == 0 && wp.IsActive)
+                .Select(wp => new ProductWholesaleExportDto
+                {
+                    ProductId = wp.ProductId,
+                    TierName = wp.WholesaleTier.Name,
+                    MinQuantity = wp.MinQuantity,
+                    DiscountPercentage = wp.DiscountPercentage,
+                    IsActive = wp.IsActive
+                })
+                .ToListAsync();
+        }
+
         // Use the ExcelExportService for consistent formatting and localization
         var excelService = _serviceProvider.GetRequiredService<IExcelExportService>();
         var culture = CultureInfo.CurrentCulture;
 
-        return await excelService.ExportProductCatalogToExcelAsync(products, culture, fractions, surcharges);
+        return await excelService.ExportProductCatalogToExcelAsync(
+            products, culture, fractions, surcharges, wholesaleTiers, wholesalePrices);
     }
 }

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Wholesale Tiers" xml:space="preserve">
+    <value>Wholesale Tiers</value>
+  </data>
+  <data name="New Tier" xml:space="preserve">
+    <value>New Tier</value>
+  </data>
+  <data name="Configure the wholesale pricing tiers for bulk discounts (e.g., Medio Mayoreo, Mayoreo)." xml:space="preserve">
+    <value>Configure the wholesale pricing tiers for bulk discounts (e.g., Medio Mayoreo, Mayoreo).</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Activate</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Deactivate</value>
+  </data>
+  <data name="No wholesale tiers found" xml:space="preserve">
+    <value>No wholesale tiers found</value>
+  </data>
+  <data name="Error loading wholesale tiers" xml:space="preserve">
+    <value>Error loading wholesale tiers</value>
+  </data>
+  <data name="Edit Tier" xml:space="preserve">
+    <value>Edit Tier</value>
+  </data>
+  <data name="Delete Tier" xml:space="preserve">
+    <value>Delete Tier</value>
+  </data>
+  <data name="Are you sure you want to delete this wholesale tier?" xml:space="preserve">
+    <value>Are you sure you want to delete this wholesale tier?</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>This action cannot be undone.</value>
+  </data>
+  <data name="Tier deleted successfully" xml:space="preserve">
+    <value>Tier deleted successfully</value>
+  </data>
+  <data name="Error deleting tier" xml:space="preserve">
+    <value>Error deleting tier</value>
+  </data>
+  <data name="Tier activated" xml:space="preserve">
+    <value>Tier activated</value>
+  </data>
+  <data name="Tier deactivated" xml:space="preserve">
+    <value>Tier deactivated</value>
+  </data>
+  <data name="Error updating tier status" xml:space="preserve">
+    <value>Error updating tier status</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+</root>

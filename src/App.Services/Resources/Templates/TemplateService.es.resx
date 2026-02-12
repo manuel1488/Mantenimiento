@@ -143,4 +143,22 @@
     <value>Booleano: true/false, 1/0, yes/no, y/n. Indica si el precio del producto puede personalizarse durante la venta (útil para productos líquidos).</value>
     <comment>Instrucción de plantilla de producto</comment>
   </data>
+
+  <!-- Columnas de Niveles de Mayoreo -->
+  <data name="Min Qty" xml:space="preserve">
+    <value>Cant. Min.</value>
+    <comment>Prefijo de encabezado de columna de nivel de mayoreo</comment>
+  </data>
+  <data name="Discount %" xml:space="preserve">
+    <value>Descuento %</value>
+    <comment>Prefijo de encabezado de columna de nivel de mayoreo</comment>
+  </data>
+  <data name="Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip." xml:space="preserve">
+    <value>Cantidad mínima para calificar para precio de {0}. Dejar vacío o 0 para omitir.</value>
+    <comment>Comentario de plantilla de nivel de mayoreo</comment>
+  </data>
+  <data name="Discount percentage for {0} tier (0-100). Leave empty or 0 to skip." xml:space="preserve">
+    <value>Porcentaje de descuento para nivel {0} (0-100). Dejar vacío o 0 para omitir.</value>
+    <comment>Comentario de plantilla de nivel de mayoreo</comment>
+  </data>
 </root>

@@ -138,7 +138,7 @@ public class ExcelProcessingService : IExcelProcessingService
     /// Processes the worksheet data and converts it to our domain objects
     /// </summary>
     private ExcelProcessingResult ProcessWorksheet(
-        ExcelWorksheet worksheet, 
+        ExcelWorksheet worksheet,
         CancellationToken cancellationToken)
     {
         var result = new ExcelProcessingResult
@@ -153,6 +153,9 @@ public class ExcelProcessingService : IExcelProcessingService
 
         var columnMapping = BuildColumnMapping(worksheet);
 
+        // Detect wholesale tier columns (dynamic columns beyond the standard ones)
+        var wholesaleTierColumns = DetectWholesaleTierColumns(worksheet);
+
         // Process data rows (starting from row 2, as row 1 contains headers)
         if (worksheet.Dimension != null)
         {
@@ -163,6 +166,8 @@ public class ExcelProcessingService : IExcelProcessingService
                     var product = ProcessDataRow(worksheet, row, columnMapping, result.Errors);
                     if (product != null)
                     {
+                        // Process wholesale tier columns for this row
+                        ProcessWholesaleTierColumns(worksheet, row, wholesaleTierColumns, product);
                         result.Request.Items.Add(product);
                         result.ProcessedRows++;
                     }
@@ -176,6 +181,88 @@ public class ExcelProcessingService : IExcelProcessingService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Detects wholesale tier columns by looking for paired "Min Qty [TierName]" and "Discount % [TierName]" headers.
+    /// Returns a dictionary mapping tier name to (minQtyColumnIndex, discountColumnIndex).
+    /// </summary>
+    private Dictionary<string, (int MinQtyCol, int DiscountCol)> DetectWholesaleTierColumns(ExcelWorksheet worksheet)
+    {
+        var tierColumns = new Dictionary<string, (int MinQtyCol, int DiscountCol)>();
+        if (worksheet.Dimension == null) return tierColumns;
+
+        var minQtyPrefixStr = (string)_localizer["Min Qty"];
+        var discountPrefixStr = (string)_localizer["Discount %"];
+        var minQtyPrefix = NormalizeColumnHeader(minQtyPrefixStr);
+        var discountPrefix = NormalizeColumnHeader(discountPrefixStr);
+
+        // Collect all min qty and discount columns with their tier names
+        var minQtyCols = new Dictionary<string, int>(); // tierName -> colIndex
+        var discountCols = new Dictionary<string, int>(); // tierName -> colIndex
+
+        for (int col = 1; col <= worksheet.Dimension.Columns; col++)
+        {
+            var headerValue = worksheet.Cells[1, col].Text?.Trim();
+            if (string.IsNullOrEmpty(headerValue)) continue;
+
+            var normalizedHeader = NormalizeColumnHeader(headerValue);
+
+            if (normalizedHeader.StartsWith(minQtyPrefix) && normalizedHeader.Length > minQtyPrefix.Length)
+            {
+                var tierName = headerValue.Substring(minQtyPrefixStr.Length).Trim();
+                if (!string.IsNullOrEmpty(tierName))
+                    minQtyCols[tierName] = col;
+            }
+            else if (normalizedHeader.StartsWith(discountPrefix) && normalizedHeader.Length > discountPrefix.Length)
+            {
+                var tierName = headerValue.Substring(discountPrefixStr.Length).Trim();
+                if (!string.IsNullOrEmpty(tierName))
+                    discountCols[tierName] = col;
+            }
+        }
+
+        // Match pairs: only include tiers that have BOTH min qty and discount columns
+        foreach (var tierName in minQtyCols.Keys)
+        {
+            if (discountCols.TryGetValue(tierName, out var discountCol))
+            {
+                tierColumns[tierName] = (minQtyCols[tierName], discountCol);
+            }
+        }
+
+        if (tierColumns.Count > 0)
+        {
+            _logger.LogInformation("Detected {Count} wholesale tier columns: {Tiers}",
+                tierColumns.Count, string.Join(", ", tierColumns.Keys));
+        }
+
+        return tierColumns;
+    }
+
+    /// <summary>
+    /// Processes wholesale tier columns for a single product row.
+    /// </summary>
+    private void ProcessWholesaleTierColumns(
+        ExcelWorksheet worksheet,
+        int row,
+        Dictionary<string, (int MinQtyCol, int DiscountCol)> tierColumns,
+        ProductBulkLoadDto product)
+    {
+        foreach (var (tierName, cols) in tierColumns)
+        {
+            var minQtyResult = GetCellValueAsDecimal(worksheet, row, cols.MinQtyCol, $"Min Qty {tierName}");
+            var discountResult = GetCellValueAsDecimal(worksheet, row, cols.DiscountCol, $"Discount % {tierName}");
+
+            var minQty = minQtyResult.IsSuccess ? minQtyResult.Value : 0m;
+            var discount = discountResult.IsSuccess ? discountResult.Value : 0m;
+
+            // Only add if at least one value is meaningful
+            if (minQty > 0 || discount > 0)
+            {
+                product.WholesalePrices[tierName] = (minQty, discount);
+            }
+        }
     }
 
     /// <summary>

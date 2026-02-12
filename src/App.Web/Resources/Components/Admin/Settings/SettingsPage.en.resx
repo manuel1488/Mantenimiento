@@ -44,6 +44,10 @@
     <value>Partial Fractions</value>
     <comment>Partial sale fractions settings tab</comment>
   </data>
+  <data name="Wholesale Tiers" xml:space="preserve">
+    <value>Wholesale Tiers</value>
+    <comment>Wholesale tiers settings tab</comment>
+  </data>
   <data name="Rounding" xml:space="preserve">
     <value>Rounding</value>
     <comment>Rounding settings tab</comment>

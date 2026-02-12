@@ -53,4 +53,6 @@ public class Product : BaseEntity<long>
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 
     public virtual ICollection<ProductPartialSurcharge> PartialSurcharges { get; set; } = new List<ProductPartialSurcharge>();
+
+    public virtual ICollection<ProductWholesalePrice> WholesalePrices { get; set; } = new List<ProductWholesalePrice>();
 }

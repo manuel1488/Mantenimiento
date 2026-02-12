@@ -186,4 +186,11 @@
   <data name="Surcharge" xml:space="preserve">
     <value>Recargo</value>
   </data>
+  <!-- Wholesale Tier Columns -->
+  <data name="Min Qty" xml:space="preserve">
+    <value>Cant. Min.</value>
+  </data>
+  <data name="Discount %" xml:space="preserve">
+    <value>Descuento %</value>
+  </data>
 </root>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving wholesale prices" xml:space="preserve">
+    <value>Error retrieving wholesale prices</value>
+  </data>
+  <data name="Error retrieving wholesale price" xml:space="preserve">
+    <value>Error retrieving wholesale price</value>
+  </data>
+  <data name="Error updating wholesale prices" xml:space="preserve">
+    <value>Error updating wholesale prices</value>
+  </data>
+</root>

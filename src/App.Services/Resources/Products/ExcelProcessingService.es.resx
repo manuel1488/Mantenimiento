@@ -103,4 +103,14 @@
     <value>Error procesando la fila {0}: {1}</value>
     <comment>Mensaje de error cuando el procesamiento de una fila específica falla</comment>
   </data>
+
+  <!-- Detección de Columnas de Niveles de Mayoreo -->
+  <data name="Min Qty" xml:space="preserve">
+    <value>Cant. Min.</value>
+    <comment>Prefijo de columna de nivel de mayoreo para cantidad mínima</comment>
+  </data>
+  <data name="Discount %" xml:space="preserve">
+    <value>Descuento %</value>
+    <comment>Prefijo de columna de nivel de mayoreo para porcentaje de descuento</comment>
+  </data>
 </root>

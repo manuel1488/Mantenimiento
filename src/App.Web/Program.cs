@@ -605,6 +605,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<ISaleService, SaleService>();
     services.AddScoped<IPartialSaleFractionService, PartialSaleFractionService>();
     services.AddScoped<IProductPartialSurchargeService, ProductPartialSurchargeService>();
+    services.AddScoped<IWholesaleTierService, WholesaleTierService>();
+    services.AddScoped<IProductWholesalePriceService, ProductWholesalePriceService>();
     services.AddScoped<ICustomerSeeder, CustomerSeeder>();
     builder.Services.AddScoped<IDiscountAuthorizerService, DiscountAuthorizerService>();
     builder.Services.AddScoped<ISalesReportService, SalesReportService>();

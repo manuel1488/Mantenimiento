@@ -159,4 +159,28 @@
   <data name="Error loading surcharge configurations" xml:space="preserve">
     <value>Error al cargar las configuraciones de recargo</value>
   </data>
+  <data name="Wholesale Pricing" xml:space="preserve">
+    <value>Precios de Mayoreo</value>
+  </data>
+  <data name="Configure discount percentage for each wholesale tier. Min quantity is in the product's unit of measure." xml:space="preserve">
+    <value>Configure el porcentaje de descuento para cada nivel de mayoreo. La cantidad mínima es en la unidad de medida del producto.</value>
+  </data>
+  <data name="Tier" xml:space="preserve">
+    <value>Nivel</value>
+  </data>
+  <data name="Min Quantity" xml:space="preserve">
+    <value>Cant. Mínima</value>
+  </data>
+  <data name="Discount %" xml:space="preserve">
+    <value>Descuento %</value>
+  </data>
+  <data name="No wholesale tiers configured. Add tiers in Settings." xml:space="preserve">
+    <value>No hay niveles de mayoreo configurados. Agregue niveles en Configuración.</value>
+  </data>
+  <data name="Error loading wholesale tiers" xml:space="preserve">
+    <value>Error al cargar los niveles de mayoreo</value>
+  </data>
+  <data name="Error searching SAT product services" xml:space="preserve">
+    <value>Error al buscar servicios de productos SAT</value>
+  </data>
 </root>

@@ -10,6 +10,7 @@
 @using App.Web.Components.Admin.Settings.Discount
 @using App.Web.Components.Admin.Settings.Ticket
 @using App.Web.Components.Admin.Settings.PartialSaleFractions
+@using App.Web.Components.Admin.Settings.WholesaleTiers
 @using App.Web.Components.Admin.Settings.Rounding
 
 @inject IStringLocalizer<SettingsPage> L
@@ -73,6 +74,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Partial Fractions"]" Icon="@Icons.Material.Filled.PieChart">
                         <PartialSaleFractionsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Wholesale Tiers"]" Icon="@Icons.Material.Filled.Layers">
+                        <WholesaleTiersTab />
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">

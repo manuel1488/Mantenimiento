@@ -143,4 +143,22 @@
     <value>Boolean: true/false, 1/0, yes/no, y/n. Indicates if product price can be customized during sales (useful for liquid products).</value>
     <comment>Product template instruction</comment>
   </data>
+
+  <!-- Wholesale Tier Columns -->
+  <data name="Min Qty" xml:space="preserve">
+    <value>Min Qty</value>
+    <comment>Wholesale tier column header prefix</comment>
+  </data>
+  <data name="Discount %" xml:space="preserve">
+    <value>Discount %</value>
+    <comment>Wholesale tier column header prefix</comment>
+  </data>
+  <data name="Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip." xml:space="preserve">
+    <value>Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip.</value>
+    <comment>Wholesale tier template comment</comment>
+  </data>
+  <data name="Discount percentage for {0} tier (0-100). Leave empty or 0 to skip." xml:space="preserve">
+    <value>Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.</value>
+    <comment>Wholesale tier template comment</comment>
+  </data>
 </root>

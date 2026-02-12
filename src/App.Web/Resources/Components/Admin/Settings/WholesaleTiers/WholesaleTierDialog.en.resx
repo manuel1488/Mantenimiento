@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="e.g., Medio Mayoreo, Mayoreo" xml:space="preserve">
+    <value>e.g., Medio Mayoreo, Mayoreo</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="Display Order" xml:space="preserve">
+    <value>Display Order</value>
+  </data>
+  <data name="Lower numbers appear first" xml:space="preserve">
+    <value>Lower numbers appear first</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Name already exists" xml:space="preserve">
+    <value>Name already exists</value>
+  </data>
+  <data name="Error validating name" xml:space="preserve">
+    <value>Error validating name</value>
+  </data>
+  <data name="Error loading tier" xml:space="preserve">
+    <value>Error loading tier</value>
+  </data>
+  <data name="Tier updated successfully" xml:space="preserve">
+    <value>Tier updated successfully</value>
+  </data>
+  <data name="Error updating tier" xml:space="preserve">
+    <value>Error updating tier</value>
+  </data>
+  <data name="Tier created successfully" xml:space="preserve">
+    <value>Tier created successfully</value>
+  </data>
+  <data name="Error creating tier" xml:space="preserve">
+    <value>Error creating tier</value>
+  </data>
+  <data name="Error saving tier" xml:space="preserve">
+    <value>Error saving tier</value>
+  </data>
+  <data name="You don't have permission to perform this action" xml:space="preserve">
+    <value>You don't have permission to perform this action</value>
+  </data>
+</root>

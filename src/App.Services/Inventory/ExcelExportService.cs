@@ -399,6 +399,8 @@ public class ExcelExportService : IExcelExportService
         CultureInfo culture,
         IList<FractionColumnDto>? fractions = null,
         IList<ProductSurchargeExportDto>? surcharges = null,
+        IList<WholesaleTierColumnDto>? wholesaleTiers = null,
+        IList<ProductWholesaleExportDto>? wholesalePrices = null,
         CancellationToken cancellationToken = default)
     {
         await Task.Delay(1, cancellationToken); // Allow cancellation check
@@ -418,6 +420,18 @@ public class ExcelExportService : IExcelExportService
                 if (!surchargeDict.ContainsKey(s.ProductId))
                     surchargeDict[s.ProductId] = new Dictionary<string, decimal>();
                 surchargeDict[s.ProductId][s.FractionCode] = s.SurchargePercentage;
+            }
+        }
+
+        // Build wholesale lookup dictionary: ProductId -> TierName -> (MinQuantity, DiscountPercentage)
+        var wholesaleDict = new Dictionary<long, Dictionary<string, (decimal MinQuantity, decimal DiscountPercentage)>>();
+        if (wholesalePrices != null)
+        {
+            foreach (var wp in wholesalePrices)
+            {
+                if (!wholesaleDict.ContainsKey(wp.ProductId))
+                    wholesaleDict[wp.ProductId] = new Dictionary<string, (decimal, decimal)>();
+                wholesaleDict[wp.ProductId][wp.TierName] = (wp.MinQuantity, wp.DiscountPercentage);
             }
         }
 
@@ -445,7 +459,17 @@ public class ExcelExportService : IExcelExportService
             baseHeaders.Add($"{L["Surcharge"]} {fraction.Code}");
         }
 
+        // Track where wholesale columns start
+        var wholesaleTierList = wholesaleTiers?.ToList() ?? new List<WholesaleTierColumnDto>();
+        var wholesaleColumnStartIndex = baseHeaders.Count; // 0-based index
+        foreach (var tier in wholesaleTierList)
+        {
+            baseHeaders.Add($"{L["Min Qty"]} {tier.Name}");
+            baseHeaders.Add($"{L["Discount %"]} {tier.Name}");
+        }
+
         var headers = baseHeaders.ToArray();
+        var surchargeColumnStartIndex = 12; // 0-based index where surcharge columns start
 
         // Set headers with styling
         for (int i = 0; i < headers.Length; i++)
@@ -455,14 +479,18 @@ public class ExcelExportService : IExcelExportService
             cell.Style.Font.Bold = true;
             cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
 
-            // Use different color for surcharge columns
-            if (i >= 12) // Surcharge columns start at index 12
+            // Use different colors for different column groups
+            if (i >= wholesaleColumnStartIndex)
             {
-                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(155, 89, 182)); // Purple
+                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96)); // Green for wholesale
+            }
+            else if (i >= surchargeColumnStartIndex)
+            {
+                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(155, 89, 182)); // Purple for surcharges
             }
             else
             {
-                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(79, 129, 189)); // Blue
+                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(79, 129, 189)); // Blue for base
             }
 
             cell.Style.Font.Color.SetColor(Color.White);
@@ -512,6 +540,33 @@ public class ExcelExportService : IExcelExportService
                 {
                     worksheet.Cells[row, colIndex].Value = "-";
                     worksheet.Cells[row, colIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                }
+            }
+
+            // Add wholesale values for each tier (2 columns per tier: MinQty and Discount%)
+            for (int t = 0; t < wholesaleTierList.Count; t++)
+            {
+                var minQtyColIndex = wholesaleColumnStartIndex + (t * 2) + 1; // 1-indexed
+                var discountColIndex = minQtyColIndex + 1;
+                var tier = wholesaleTierList[t];
+
+                if (wholesaleDict.TryGetValue(product.Id, out var productWholesale) &&
+                    productWholesale.TryGetValue(tier.Name, out var wholesaleData))
+                {
+                    var minQtyCell = worksheet.Cells[row, minQtyColIndex];
+                    minQtyCell.Value = wholesaleData.MinQuantity;
+                    minQtyCell.Style.Numberformat.Format = "0.##";
+
+                    var discountCell = worksheet.Cells[row, discountColIndex];
+                    discountCell.Value = wholesaleData.DiscountPercentage;
+                    discountCell.Style.Numberformat.Format = "0.00\"%\"";
+                }
+                else
+                {
+                    worksheet.Cells[row, minQtyColIndex].Value = "-";
+                    worksheet.Cells[row, minQtyColIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    worksheet.Cells[row, discountColIndex].Value = "-";
+                    worksheet.Cells[row, discountColIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                 }
             }
 

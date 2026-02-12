@@ -32,6 +32,8 @@ public interface IExcelExportService
         CultureInfo culture,
         IList<FractionColumnDto>? fractions = null,
         IList<ProductSurchargeExportDto>? surcharges = null,
+        IList<WholesaleTierColumnDto>? wholesaleTiers = null,
+        IList<ProductWholesaleExportDto>? wholesalePrices = null,
         CancellationToken cancellationToken = default);
 
     Task<Result<byte[]>> ExportProductCatalogToExcelAsync();
