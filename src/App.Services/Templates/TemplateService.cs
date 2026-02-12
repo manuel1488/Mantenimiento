@@ -192,11 +192,15 @@ public class TemplateService : ITemplateService
                 worksheet.Cells[row, minQtyCol].Value = (t + 1) * 10; // 10, 20, etc.
                 worksheet.Cells[row, discountCol].Value = (t + 1) * 5; // 5%, 10%, etc.
 
-                // Add comments
-                worksheet.Cells[1, minQtyCol].AddComment(
+                // Add comments with AutoFit and explicit black text (cell has white font)
+                var minQtyComment = worksheet.Cells[1, minQtyCol].AddComment(
                     _localizer["Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip.", tier.Name], "System");
-                worksheet.Cells[1, discountCol].AddComment(
+                minQtyComment.AutoFit = true;
+                minQtyComment.RichText[0].Color = Color.Black;
+                var discountComment = worksheet.Cells[1, discountCol].AddComment(
                     _localizer["Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.", tier.Name], "System");
+                discountComment.AutoFit = true;
+                discountComment.RichText[0].Color = Color.Black;
             }
 
             var totalColumnCount = baseColumnCount + (activeTiers.Count * 2);
