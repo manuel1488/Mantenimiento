@@ -4,14 +4,14 @@
   <data name="Follow these steps to import products:">
     <value>Follow these steps to import products:</value>
   </data>
-  <data name="1. Download the template CSV file">
-    <value>1. Download the template CSV file</value>
+  <data name="1. Download the Excel template file">
+    <value>1. Download the Excel template file</value>
   </data>
   <data name="2. Fill in your product data following the format">
     <value>2. Fill in your product data following the format</value>
   </data>
-  <data name="3. Upload the completed CSV file">
-    <value>3. Upload the completed CSV file</value>
+  <data name="3. Upload the completed Excel file">
+    <value>3. Upload the completed Excel file</value>
   </data>
   <data name="4. Review results and fix any errors">
     <value>4. Review results and fix any errors</value>
@@ -21,8 +21,8 @@
   <data name="Step 1: Download Template">
     <value>Step 1: Download Template</value>
   </data>
-  <data name="Download the CSV template with the correct format and example data">
-    <value>Download the CSV template with the correct format and example data</value>
+  <data name="Download the Excel template with the correct format and example data">
+    <value>Download the Excel template with the correct format and example data</value>
   </data>
   <data name="Download Template">
     <value>Download Template</value>
@@ -32,8 +32,8 @@
   <data name="Step 2: Upload XLSX File">
     <value>Step 2: Upload XLSX File</value>
   </data>
-  <data name="Select your completed CSV file to import products">
-    <value>Select your completed CSV file to import products</value>
+  <data name="Select your completed Excel file to import products">
+    <value>Select your completed Excel file to import products</value>
   </data>
   <data name="Select XLSX File">
     <value>Select XLSX File</value>

@@ -4,14 +4,14 @@
   <data name="Follow these steps to import products:">
     <value>Sigue estos pasos para importar productos:</value>
   </data>
-  <data name="1. Download the template CSV file">
-    <value>1. Descarga el archivo de plantilla CSV</value>
+  <data name="1. Download the Excel template file">
+    <value>1. Descarga el archivo de plantilla Excel</value>
   </data>
   <data name="2. Fill in your product data following the format">
     <value>2. Completa los datos de tus productos siguiendo el formato</value>
   </data>
-  <data name="3. Upload the completed CSV file">
-    <value>3. Sube el archivo CSV completado</value>
+  <data name="3. Upload the completed Excel file">
+    <value>3. Sube el archivo Excel completado</value>
   </data>
   <data name="4. Review results and fix any errors">
     <value>4. Revisa los resultados y corrige cualquier error</value>
@@ -21,8 +21,8 @@
   <data name="Step 1: Download Template">
     <value>Paso 1: Descargar Plantilla</value>
   </data>
-  <data name="Download the CSV template with the correct format and example data">
-    <value>Descarga la plantilla CSV con el formato correcto y datos de ejemplo</value>
+  <data name="Download the Excel template with the correct format and example data">
+    <value>Descarga la plantilla Excel con el formato correcto y datos de ejemplo</value>
   </data>
   <data name="Download Template">
     <value>Descargar Plantilla</value>
@@ -32,8 +32,8 @@
   <data name="Step 2: Upload XLSX File">
     <value>Paso 2: Subir Archivo XLSX</value>
   </data>
-  <data name="Select your completed CSV file to import products">
-    <value>Selecciona tu archivo CSV completado para importar productos</value>
+  <data name="Select your completed Excel file to import products">
+    <value>Selecciona tu archivo Excel completado para importar productos</value>
   </data>
   <data name="Select XLSX File">
     <value>Seleccionar Archivo XLSX</value>
