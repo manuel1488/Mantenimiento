@@ -378,8 +378,11 @@ public class ExcelProcessingService : IExcelProcessingService
                 case "UnitMeasureCode":
                     record.UnitMeasureCode = cellValue;
                     return ValidateRequiredString(cellValue, config, row, errors, cellReference);
+                case "Cost":
+                    return MapDecimalProperty(worksheet, row, columnIndex, config,
+                        value => record.Cost = value, errors, cellReference, validatePositive: false);
                 case "Price":
-                    return MapDecimalProperty(worksheet, row, columnIndex, config, 
+                    return MapDecimalProperty(worksheet, row, columnIndex, config,
                         value => record.Price = value, errors, cellReference, validatePositive: true);
                 case "IsTaxable":
                     return MapBooleanProperty(worksheet, row, columnIndex, config, 

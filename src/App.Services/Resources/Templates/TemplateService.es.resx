@@ -71,6 +71,18 @@
     <value>Código de Unidad de Medida</value>
     <comment>Product template header</comment>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Costo</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Cost must be greater than or equal to 0" xml:space="preserve">
+    <value>El costo debe ser mayor o igual a 0</value>
+    <comment>Product template validation</comment>
+  </data>
+  <data name="Optional. Product acquisition cost for profit analysis. Leave empty or 0 to skip." xml:space="preserve">
+    <value>Opcional. Costo de adquisición del producto para análisis de utilidad. Dejar vacío o 0 para omitir.</value>
+    <comment>Product template comment</comment>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Precio</value>
     <comment>Product template header</comment>

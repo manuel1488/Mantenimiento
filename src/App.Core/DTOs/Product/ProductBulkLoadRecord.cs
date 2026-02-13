@@ -9,6 +9,7 @@ public class ProductBulkLoadRecord
     public string? Barcode { get; set; }
     public decimal Content { get; set; } = 1;
     public string UnitMeasureCode { get; set; } = string.Empty;
+    public decimal Cost { get; set; }
     public decimal Price { get; set; }
     public bool IsTaxable { get; set; }
     public bool IsActive { get; set; } = true;

@@ -154,13 +154,14 @@ public class TemplateService : ITemplateService
             var exampleUnitCode = unitMeasures.FirstOrDefault()?.Code ?? "PZA";
             worksheet.Cells[row, 7].Value = exampleUnitCode;
 
-            worksheet.Cells[row, 8].Value = 100.00;
-            worksheet.Cells[row, 9].Value = "true";
+            worksheet.Cells[row, 8].Value = 50.00;  // Cost
+            worksheet.Cells[row, 9].Value = 100.00;  // Price
             worksheet.Cells[row, 10].Value = "true";
-            worksheet.Columns[11].Style.Numberformat.Format = "@";
-            worksheet.Cells[row, 11].Value = "01010101"; // Example SAT code
-            worksheet.Cells[row, 12].Value = "false";
+            worksheet.Cells[row, 11].Value = "true";
+            worksheet.Columns[12].Style.Numberformat.Format = "@";
+            worksheet.Cells[row, 12].Value = "01010101"; // Example SAT code
             worksheet.Cells[row, 13].Value = "false";
+            worksheet.Cells[row, 14].Value = "false";
 
             // Add wholesale tier columns dynamically
             var tiersResult = await _wholesaleTierService.GetActiveTiersAsync();
@@ -213,13 +214,14 @@ public class TemplateService : ITemplateService
             var unitComment = worksheet.Cells[1, 7].AddComment(unitCodesComment, "System");
 
             // Customize comment size and appearance
-            unitComment.AutoFit = true; // Disable auto-fit to set custom size
+            unitComment.AutoFit = true;
 
-            worksheet.Cells[1, 9].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n"], "System");
+            worksheet.Cells[1, 8].AddComment(_localizer["Optional. Product acquisition cost for profit analysis. Leave empty or 0 to skip."], "System");
             worksheet.Cells[1, 10].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n"], "System");
-            worksheet.Cells[1, 11].AddComment(_localizer["Required for Mexico. Use valid SAT product/service code."], "System");
-            worksheet.Cells[1, 12].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n. Indicates if product can be sold in partial quantities."], "System");
-            worksheet.Cells[1, 13].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n. Indicates if product price can be customized during sales (useful for liquid products)."], "System");
+            worksheet.Cells[1, 11].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n"], "System");
+            worksheet.Cells[1, 12].AddComment(_localizer["Required for Mexico. Use valid SAT product/service code."], "System");
+            worksheet.Cells[1, 13].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n. Indicates if product can be sold in partial quantities."], "System");
+            worksheet.Cells[1, 14].AddComment(_localizer["Boolean: true/false, 1/0, yes/no, y/n. Indicates if product price can be customized during sales (useful for liquid products)."], "System");
 
             // Auto-fit columns
             worksheet.Cells.AutoFitColumns();

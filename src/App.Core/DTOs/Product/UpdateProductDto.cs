@@ -33,6 +33,9 @@ public class UpdateProductDto
 
     public bool AllowCustomPricing { get; set; }
 
+    [Range(0, double.MaxValue)]
+    public decimal Cost { get; set; }
+
     [Required]
     [Range(0.01, double.MaxValue)]
     public decimal Price { get; set; }

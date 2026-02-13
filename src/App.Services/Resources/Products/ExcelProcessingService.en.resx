@@ -28,6 +28,10 @@
     <value>Unit Measure Code</value>
     <comment>Product template header</comment>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Product template header</comment>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Price</value>
     <comment>Product template header</comment>

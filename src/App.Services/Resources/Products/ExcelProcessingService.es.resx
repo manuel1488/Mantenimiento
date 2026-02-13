@@ -29,6 +29,10 @@
     <value>Código de Unidad de Medida</value>
     <comment>Product template header</comment>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Costo</value>
+    <comment>Product template header</comment>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Precio</value>
     <comment>Product template header</comment>

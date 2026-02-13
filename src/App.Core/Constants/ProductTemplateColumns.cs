@@ -65,7 +65,17 @@ public static class ProductTemplateColumns
                 DataType = typeof(string),
                 ExampleValue = "PZA" // Will be replaced with actual unit code
             },
-            new() { 
+            new() {
+                PropertyName = "Cost",
+                GetLocalizedName = () => _localizer["Cost"],
+                IsRequired = false,
+                DataType = typeof(decimal),
+                Validator = (value) => value is decimal d && d >= 0,
+                GetValidationError = () => _localizer["Cost must be greater than or equal to 0"],
+                DefaultValue = 0m,
+                ExampleValue = "50.00"
+            },
+            new() {
                 PropertyName = "Price",
                 GetLocalizedName = () => _localizer["Price"],
                 IsRequired = true,

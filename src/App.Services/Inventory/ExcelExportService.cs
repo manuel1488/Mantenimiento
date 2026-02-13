@@ -445,6 +445,7 @@ public class ExcelExportService : IExcelExportService
             L["Barcode"],
             L["Content"],
             L["Unit Measure"],
+            L["Cost"],
             L["Price"],
             L["Is Taxable"],
             L["Is Active"],
@@ -469,7 +470,7 @@ public class ExcelExportService : IExcelExportService
         }
 
         var headers = baseHeaders.ToArray();
-        var surchargeColumnStartIndex = 12; // 0-based index where surcharge columns start
+        var surchargeColumnStartIndex = 13; // 0-based index where surcharge columns start
 
         // Set headers with styling
         for (int i = 0; i < headers.Length; i++)
@@ -511,21 +512,26 @@ public class ExcelExportService : IExcelExportService
             worksheet.Cells[row, 6].Value = product.Content;
             worksheet.Cells[row, 7].Value = product.UnitMeasureName;
 
+            // Cost with currency formatting
+            var costCell = worksheet.Cells[row, 8];
+            costCell.Value = product.Cost;
+            costCell.Style.Numberformat.Format = GetCurrencyFormat(culture);
+
             // Price with currency formatting
-            var priceCell = worksheet.Cells[row, 8];
+            var priceCell = worksheet.Cells[row, 9];
             priceCell.Value = product.Price;
             priceCell.Style.Numberformat.Format = GetCurrencyFormat(culture);
 
             // Boolean values with localized text
-            worksheet.Cells[row, 9].Value = product.IsTaxable ? L["Yes"] : L["No"];
-            worksheet.Cells[row, 10].Value = product.IsActive ? L["Yes"] : L["No"];
-            worksheet.Cells[row, 11].Value = product.IsPartialSaleAllowed ? L["Yes"] : L["No"];
-            worksheet.Cells[row, 12].Value = product.AllowCustomPricing ? L["Yes"] : L["No"];
+            worksheet.Cells[row, 10].Value = product.IsTaxable ? L["Yes"] : L["No"];
+            worksheet.Cells[row, 11].Value = product.IsActive ? L["Yes"] : L["No"];
+            worksheet.Cells[row, 12].Value = product.IsPartialSaleAllowed ? L["Yes"] : L["No"];
+            worksheet.Cells[row, 13].Value = product.AllowCustomPricing ? L["Yes"] : L["No"];
 
             // Add surcharge values for each fraction column
             for (int f = 0; f < fractionList.Count; f++)
             {
-                var colIndex = 13 + f; // Start after base columns (12 columns, 1-indexed)
+                var colIndex = 14 + f; // Start after base columns (13 columns, 1-indexed)
                 var fraction = fractionList[f];
 
                 if (product.IsPartialSaleAllowed &&

@@ -30,6 +30,9 @@ public class Product : BaseEntity<long>
     public int UnitMeasureId { get; set; }
 
     [Column(TypeName = "decimal(10,2)")]
+    public decimal Cost { get; set; }
+
+    [Column(TypeName = "decimal(10,2)")]
     public decimal Price { get; set; }
 
     public bool IsTaxable { get; set; }

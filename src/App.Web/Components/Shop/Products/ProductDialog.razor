@@ -325,14 +325,24 @@
                                 </MudSelect>
                             </MudItem>
 
+                            <!-- Cost -->
+                            <MudItem xs="12" md="6">
+                                <MudNumericField @bind-Value="_model.Cost"
+                                            Label="@L["Cost"]"
+                                            Min="0M"
+                                            Format="N2"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                            </MudItem>
+
                             <!-- Price -->
                             <MudItem xs="12" md="6">
-                                <MudNumericField @bind-Value="_model.Price" 
-                                            Label="@L["Price"]" 
+                                <MudNumericField @bind-Value="_model.Price"
+                                            Label="@L["Price"]"
                                             Required="true"
-                                            RequiredError="@L["Price is required"]" 
-                                            Min="0.01M" 
-                                            Format="N2" 
+                                            RequiredError="@L["Price is required"]"
+                                            Min="0.01M"
+                                            Format="N2"
                                             Adornment="Adornment.Start"
                                             AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
                             </MudItem>
@@ -601,6 +611,7 @@
                     Description = _product.Description,
                     Brand = _product.Brand,
                     UnitMeasureId = _product.UnitMeasureId,
+                    Cost = _product.Cost,
                     Price = _product.Price,
                     IsTaxable = _product.IsTaxable,
                     IsActive = _product.IsActive,
@@ -742,6 +753,7 @@
                         Description = _model.Description,
                         Brand = _model.Brand,
                         UnitMeasureId = _model.UnitMeasureId,
+                        Cost = _model.Cost,
                         Price = _model.Price,
                         IsTaxable = _model.IsTaxable,
                         IsActive = _model.IsActive,

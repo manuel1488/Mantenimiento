@@ -33,6 +33,9 @@ public class CreateProductDto
     [Required]
     public int UnitMeasureId { get; set; }
 
+    [Range(0, double.MaxValue)]
+    public decimal Cost { get; set; }
+
     [Required]
     [Range(0.01, double.MaxValue)]
     public decimal Price { get; set; }

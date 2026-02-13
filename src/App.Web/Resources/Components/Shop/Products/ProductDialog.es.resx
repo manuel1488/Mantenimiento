@@ -96,6 +96,9 @@
   <data name="Name is required" xml:space="preserve">
     <value>El nombre es requerido</value>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Costo</value>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Precio</value>
   </data>

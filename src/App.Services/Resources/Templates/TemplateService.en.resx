@@ -71,6 +71,18 @@
     <value>Unit Measure Code</value>
     <comment>Product template header</comment>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Cost must be greater than or equal to 0" xml:space="preserve">
+    <value>Cost must be greater than or equal to 0</value>
+    <comment>Product template validation</comment>
+  </data>
+  <data name="Optional. Product acquisition cost for profit analysis. Leave empty or 0 to skip." xml:space="preserve">
+    <value>Optional. Product acquisition cost for profit analysis. Leave empty or 0 to skip.</value>
+    <comment>Product template comment</comment>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Price</value>
     <comment>Product template header</comment>

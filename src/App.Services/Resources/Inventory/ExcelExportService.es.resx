@@ -146,6 +146,9 @@
   <data name="Unit Measure" xml:space="preserve">
     <value>Unidad de Medida</value>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Costo</value>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Precio</value>
   </data>
