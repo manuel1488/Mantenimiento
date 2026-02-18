@@ -11,4 +11,5 @@ public class UserDialogModel
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public List<string> Permissions { get; set; } = new List<string>();
+    public IEnumerable<int> BranchIds { get; set; } = new List<int>();
 }

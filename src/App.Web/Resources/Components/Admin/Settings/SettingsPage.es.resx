@@ -20,6 +20,10 @@
     <value>Descuentos</value>
     <comment>Discounts settings tab</comment>
   </data>
+  <data name="Branches" xml:space="preserve">
+    <value>Sucursales</value>
+    <comment>Branches settings tab</comment>
+  </data>
   <data name="Warehouses" xml:space="preserve">
     <value>Almacenes</value>
     <comment>Warehouses settings tab</comment>

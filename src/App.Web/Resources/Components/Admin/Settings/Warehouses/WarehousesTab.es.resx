@@ -18,9 +18,6 @@
   <data name="Status" xml:space="preserve">
     <value>Estado</value>
   </data>
-  <data name="Public Sales" xml:space="preserve">
-    <value>Ventas Públicas</value>
-  </data>
   <data name="Actions" xml:space="preserve">
     <value>Acciones</value>
   </data>
@@ -36,9 +33,6 @@
   <data name="Delete Warehouse" xml:space="preserve">
     <value>Eliminar Almacén</value>
   </data>
-  <data name="Set as Public Sales Warehouse" xml:space="preserve">
-    <value>Establecer como Almacén de Ventas Público</value>
-  </data>
   <data name="No warehouses found" xml:space="preserve">
     <value>No se encontraron almacenes</value>
   </data>
@@ -47,9 +41,6 @@
   </data>
   <data name="Error loading warehouses" xml:space="preserve">
     <value>Error al cargar los almacenes</value>
-  </data>
-  <data name="Cannot delete the public sales warehouse" xml:space="preserve">
-    <value>No se puede eliminar el almacén de ventas público</value>
   </data>
   <data name="Are you sure you want to delete warehouse:" xml:space="preserve">
     <value>¿Estás seguro de que deseas eliminar el almacén:</value>
@@ -69,19 +60,7 @@
   <data name="Error deleting warehouse" xml:space="preserve">
     <value>Error al eliminar el almacén</value>
   </data>
-  <data name="Are you sure you want to set this warehouse as the public sales warehouse:" xml:space="preserve">
-    <value>¿Estás seguro de que deseas establecer este almacén como almacén de ventas público:</value>
-  </data>
-  <data name="Any existing public sales warehouse will be changed to a regular warehouse." xml:space="preserve">
-    <value>Cualquier almacén de ventas público existente se cambiará a un almacén regular.</value>
-  </data>
-  <data name="Set as Public" xml:space="preserve">
-    <value>Establecer como Público</value>
-  </data>
-  <data name="Warehouse set as public sales warehouse successfully" xml:space="preserve">
-    <value>Almacén establecido como almacén de ventas público con éxito</value>
-  </data>
-  <data name="Error setting warehouse as public sales" xml:space="preserve">
-    <value>Error al establecer el almacén como ventas públicas</value>
+  <data name="Branch" xml:space="preserve">
+    <value>Sucursal</value>
   </data>
 </root>

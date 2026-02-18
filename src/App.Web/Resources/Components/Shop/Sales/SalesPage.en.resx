@@ -129,8 +129,11 @@
   <data name="Error initializing sales page: {0}" xml:space="preserve">
     <value>Error initializing sales page: {0}</value>
   </data>
-  <data name="No public sales warehouse configured" xml:space="preserve">
-    <value>No public sales warehouse configured</value>
+  <data name="No active branch selected. Please select a branch to continue." xml:space="preserve">
+    <value>No active branch selected. Please select a branch to continue.</value>
+  </data>
+  <data name="No active warehouse found for the selected branch" xml:space="preserve">
+    <value>No active warehouse found for the selected branch</value>
   </data>
   <data name="Error loading discount settings" xml:space="preserve">
     <value>Error loading discount settings</value>

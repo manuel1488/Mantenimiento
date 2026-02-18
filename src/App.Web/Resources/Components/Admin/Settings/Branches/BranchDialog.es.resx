@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Branch name already exists" xml:space="preserve">
+    <value>El nombre de la sucursal ya existe</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Street" xml:space="preserve">
+    <value>Calle</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Zip Code" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="Contact" xml:space="preserve">
+    <value>Contacto</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Cancel editing" xml:space="preserve">
+    <value>Cancelar edición</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Save branch data" xml:space="preserve">
+    <value>Guardar datos de sucursal</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Branch updated successfully" xml:space="preserve">
+    <value>Sucursal actualizada exitosamente</value>
+  </data>
+  <data name="Branch created successfully" xml:space="preserve">
+    <value>Sucursal creada exitosamente</value>
+  </data>
+  <data name="Error updating branch" xml:space="preserve">
+    <value>Error al actualizar sucursal</value>
+  </data>
+  <data name="Error creating branch" xml:space="preserve">
+    <value>Error al crear sucursal</value>
+  </data>
+  <data name="Error loading branch" xml:space="preserve">
+    <value>Error al cargar sucursal</value>
+  </data>
+  <data name="Error saving branch" xml:space="preserve">
+    <value>Error al guardar sucursal</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+</root>

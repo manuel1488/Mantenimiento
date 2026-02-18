@@ -40,6 +40,14 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .HasForeignKey(e => e.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Branch relationship (optional - nullable for pre-branch sales)
+        builder.HasOne(e => e.Branch)
+            .WithMany()
+            .HasForeignKey(e => e.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => e.BranchId);
+
         // Check constraints
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_Sale_DiscountRange",

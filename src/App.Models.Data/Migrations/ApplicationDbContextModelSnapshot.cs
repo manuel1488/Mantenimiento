@@ -547,6 +547,21 @@ namespace App.Models.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("App.Models.Identity.UserBranch", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "BranchId");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("id_user_branches");
+                });
+
             modelBuilder.Entity("App.Models.Settings.CompanySettings", b =>
                 {
                     b.Property<int>("Id")
@@ -1361,6 +1376,89 @@ namespace App.Models.Data.Migrations
                     b.ToTable("shd_customers");
                 });
 
+            modelBuilder.Entity("App.Models.Shop.Branch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(3)
+                        .HasColumnType("varchar(3)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Street")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("ZipCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Name", "IsDeleted")
+                        .IsUnique()
+                        .HasFilter("IsDeleted = 0");
+
+                    b.ToTable("sh_branches");
+                });
+
             modelBuilder.Entity("App.Models.Shop.Inventory", b =>
                 {
                     b.Property<long>("Id")
@@ -1929,6 +2027,9 @@ namespace App.Models.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2003,6 +2104,8 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("CustomerId");
 
@@ -2182,6 +2285,9 @@ namespace App.Models.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2205,11 +2311,6 @@ namespace App.Models.Data.Migrations
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
 
-                    b.Property<bool>("IsPublicSalesWarehouse")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2223,11 +2324,9 @@ namespace App.Models.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("BranchId");
 
-                    b.HasIndex("IsPublicSalesWarehouse", "IsActive", "IsDeleted")
-                        .IsUnique()
-                        .HasFilter("IsPublicSalesWarehouse = 1 AND IsActive = 1 AND IsDeleted = 0");
+                    b.HasIndex("Name");
 
                     b.ToTable("sh_warehouses");
                 });
@@ -2460,6 +2559,25 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Invoice");
                 });
 
+            modelBuilder.Entity("App.Models.Identity.UserBranch", b =>
+                {
+                    b.HasOne("App.Models.Shop.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("App.Models.Identity.ApplicationUser", "User")
+                        .WithMany("UserBranches")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("App.Models.Settings.TaxSettings", b =>
                 {
                     b.HasOne("App.Models.Settings.Country", null)
@@ -2584,11 +2702,18 @@ namespace App.Models.Data.Migrations
 
             modelBuilder.Entity("App.Models.Shop.Sale", b =>
                 {
+                    b.HasOne("App.Models.Shop.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("App.Models.Shared.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Branch");
 
                     b.Navigation("Customer");
                 });
@@ -2617,6 +2742,16 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Sale");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.Warehouse", b =>
+                {
+                    b.HasOne("App.Models.Shop.Branch", "Branch")
+                        .WithMany("Warehouses")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2673,6 +2808,16 @@ namespace App.Models.Data.Migrations
             modelBuilder.Entity("App.Models.Billing.MexicoInvoice", b =>
                 {
                     b.Navigation("Files");
+                });
+
+            modelBuilder.Entity("App.Models.Identity.ApplicationUser", b =>
+                {
+                    b.Navigation("UserBranches");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.Branch", b =>
+                {
+                    b.Navigation("Warehouses");
                 });
 
             modelBuilder.Entity("App.Models.Shop.PartialSaleFraction", b =>

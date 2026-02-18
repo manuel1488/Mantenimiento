@@ -17,6 +17,8 @@
 @inject ILogger<SalesHistoryPage> Logger
 @inject IDateTime DateTimeService
 @inject ICompanySettingsService CompanySettingsService
+@inject ICurrentUserService CurrentUserService
+@inject IBranchService BranchService
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewHistorySales)]
 
@@ -66,7 +68,7 @@
 
                     <!-- Status Filter -->
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="string" 
+                        <MudSelect T="string"
                                   Label="@L["Status"]"
                                   ValueChanged="@(s => OnStatusFilterChange(s))"
                                   AnchorOrigin="Origin.BottomCenter"
@@ -76,6 +78,25 @@
                             <MudSelectItem T="string" Value="@SaleStatus.Cancelled">@L["Cancelled"]</MudSelectItem>
                         </MudSelect>
                     </MudItem>
+
+                    @if (_branches.Count > 0)
+                    {
+                        <!-- Branch Filter -->
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudSelect T="int?"
+                                      Label="@L["Branch"]"
+                                      Value="_selectedBranchId"
+                                      ValueChanged="@(b => OnBranchFilterChange(b))"
+                                      AnchorOrigin="Origin.BottomCenter"
+                                      FullWidth>
+                                <MudSelectItem T="int?" Value="@((int?)null)">@L["All"]</MudSelectItem>
+                                @foreach (var branch in _branches)
+                                {
+                                    <MudSelectItem T="int?" Value="@branch.Id">@branch.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    }
                 </MudGrid>
             </MudPaper>
         </MudItem>
@@ -98,6 +119,7 @@
                     <MudTh Style="text-align: right;">@L["Discount"]</MudTh>
                     <MudTh Style="text-align: right;">@L["Tax"]</MudTh>
                     <MudTh Style="text-align: right;">@L["Total"]</MudTh>
+                    <MudTh>@L["Branch"]</MudTh>
                     <MudTh>@L["Status"]</MudTh>
                     <MudTh Style="text-align: center; width: 140px;">@L["Actions"]</MudTh>
                 </HeaderContent>
@@ -119,6 +141,7 @@
                     </MudTd>
                     <MudTd DataLabel="@L["Tax"]" Style="text-align: right;">@context.TaxAmount.ToString("C")</MudTd>
                     <MudTd DataLabel="@L["Total"]" Style="text-align: right;">@context.Total.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Branch"]">@(context.BranchName ?? L["No branch"])</MudTd>
                     <MudTd DataLabel="@L["Status"]">
                         <MudChip Size="Size.Small" T="string" Color="@GetStatusColor(context.Status)">
                             @GetStatusDisplayText(context.Status)
@@ -181,8 +204,10 @@
     private DateRange _dateRange = new();
     private SaleType? _selectedSaleType;
     private string? _selectedStatus;
+    private int? _selectedBranchId;
     private string _cancellationReason = "";
     private TimeZoneInfo? _companyTimeZone;
+    private IList<App.Core.DTOs.Branch.BranchDto> _branches = new List<App.Core.DTOs.Branch.BranchDto>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -192,8 +217,34 @@
         var today = DateTime.Today;
         var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
         var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
-        
+
         _dateRange = new DateRange(firstDayOfMonth, lastDayOfMonth);
+
+        // Load branches for filter
+        await LoadBranches();
+
+        // Default to active branch if set
+        _selectedBranchId = CurrentUserService.ActiveBranchId;
+    }
+
+    private async Task LoadBranches()
+    {
+        if (CurrentUserService.IsGlobalAccess)
+        {
+            var result = await BranchService.GetActiveBranchesAsync();
+            if (result.IsSuccess)
+                _branches = result.Value!;
+        }
+        else
+        {
+            var userId = CurrentUserService.UserId;
+            if (userId != null)
+            {
+                var result = await BranchService.GetBranchesForUserAsync(userId);
+                if (result.IsSuccess)
+                    _branches = result.Value!;
+            }
+        }
     }
 
     private async Task<TableData<SaleDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
@@ -208,7 +259,8 @@
                 startDate: _dateRange.Start,
                 endDate: _dateRange.End,
                 status: _selectedStatus,
-                saleType: _selectedSaleType);
+                saleType: _selectedSaleType,
+                branchId: _selectedBranchId);
 
             return new TableData<SaleDto>() { TotalItems = totalItems, Items = items };
         }
@@ -244,6 +296,12 @@
     private async Task OnStatusFilterChange(string? status)
     {
         _selectedStatus = status;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnBranchFilterChange(int? branchId)
+    {
+        _selectedBranchId = branchId;
         await _table.ReloadServerData();
     }
 

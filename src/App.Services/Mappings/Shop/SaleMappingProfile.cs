@@ -12,6 +12,8 @@ public class SaleMappingProfile : Profile
         CreateMap<Sale, SaleDto>()
             .ForMember(dest => dest.CustomerName,
                 opt => opt.MapFrom(src => src.Customer.Name))
+            .ForMember(dest => dest.BranchName,
+                opt => opt.MapFrom(src => src.Branch != null ? src.Branch.Name : null))
             .ForMember(dest => dest.Details,
                 opt => opt.MapFrom(src => src.Details));
 

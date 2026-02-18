@@ -77,7 +77,8 @@ public class SaleService : ISaleService
         DateTime? startDate = null,
         DateTime? endDate = null,
         string? status = null,
-        SaleType? saleType = null)
+        SaleType? saleType = null,
+        int? branchId = null)
     {
         try
         {
@@ -86,6 +87,7 @@ public class SaleService : ISaleService
             IQueryable<Sale> query = context.Sales
                 .AsNoTracking()
                 .Include(s => s.Customer)
+                .Include(s => s.Branch)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product);
 
@@ -122,6 +124,11 @@ public class SaleService : ISaleService
                 query = query.Where(s => s.SaleType == saleType.Value);
             }
 
+            if (branchId.HasValue)
+            {
+                query = query.Where(s => s.BranchId == branchId.Value);
+            }
+
             // Get total count
             var totalCount = await query.CountAsync();
 
@@ -153,6 +160,7 @@ public class SaleService : ISaleService
             var sale = await context.Sales
                 .AsNoTracking()
                 .Include(s => s.Customer)
+                .Include(s => s.Branch)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                 .FirstOrDefaultAsync(s => s.Id == id);
@@ -439,65 +447,6 @@ public class SaleService : ISaleService
         }
     }
 
-    public async Task<Result<WarehouseDto?>> GetPublicSalesWarehouseAsync()
-    {
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            var warehouse = await context.Warehouses
-                .AsNoTracking()
-                .FirstOrDefaultAsync(w => w.IsPublicSalesWarehouse && w.IsActive);
-
-            return Result<WarehouseDto?>.Success(
-                warehouse != null ? _mapper.Map<WarehouseDto>(warehouse) : null);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting public sales warehouse");
-            return Result<WarehouseDto?>.Failure(L["An error occurred while retrieving the public sales warehouse"]);
-        }
-    }
-
-    public async Task<Result<bool>> SetPublicSalesWarehouseAsync(int warehouseId)
-    {
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            // Clear flag from all warehouses
-            var publicWarehouses = await context.Warehouses
-                .Where(w => w.IsPublicSalesWarehouse)
-                .ToListAsync();
-
-            foreach (var warehouse in publicWarehouses)
-            {
-                warehouse.IsPublicSalesWarehouse = false;
-                warehouse.ModifiedBy = _currentUserService.FullName;
-                warehouse.ModifiedAt = _dateTime.Now;
-            }
-
-            // Set flag for selected warehouse
-            var newPublicWarehouse = await context.Warehouses.FindAsync(warehouseId);
-            if (newPublicWarehouse == null || !newPublicWarehouse.IsActive)
-            {
-                return Result<bool>.Failure(L["Warehouse not found or not active"]);
-            }
-
-            newPublicWarehouse.IsPublicSalesWarehouse = true;
-            newPublicWarehouse.ModifiedBy = _currentUserService.FullName;
-            newPublicWarehouse.ModifiedAt = _dateTime.Now;
-
-            await context.SaveChangesAsync();
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting public sales warehouse");
-            return Result<bool>.Failure(L["An error occurred while setting the public sales warehouse"]);
-        }
-    }
-
     // Private helper methods
 
     private async Task<Result> ValidateSaleDataAsync(CreateSaleDto createDto)
@@ -522,12 +471,19 @@ public class SaleService : ISaleService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
+        // Get warehouse from active branch
+        var activeBranchId = _currentUserService.ActiveBranchId;
+        if (!activeBranchId.HasValue)
+        {
+            return Result<(Warehouse, int)>.Failure(L["No active branch selected. Please select a branch to continue."]);
+        }
+
         var warehouse = await context.Warehouses
-            .FirstOrDefaultAsync(w => w.IsPublicSalesWarehouse && w.IsActive);
+            .FirstOrDefaultAsync(w => w.BranchId == activeBranchId.Value && w.IsActive);
 
         if (warehouse == null)
         {
-            return Result<(Warehouse, int)>.Failure(L["No public sales warehouse has been configured"]);
+            return Result<(Warehouse, int)>.Failure(L["No active warehouse found for the selected branch"]);
         }
 
         return Result<(Warehouse, int)>.Success((warehouse, warehouse.Id));
@@ -565,6 +521,7 @@ public class SaleService : ISaleService
                 PaymentMethod = createDto.PaymentMethod,
                 Status = App.Core.Enums.Shop.SaleStatus.Created,
                 SaleType = createDto.SaleType,
+                BranchId = createDto.BranchId,
                 DiscountPercentage = createDto.DiscountPercentage,
                 DiscountAuthorizedBy = createDto.DiscountAuthorizedBy,
                 CreatedBy = _currentUserService.FullName,

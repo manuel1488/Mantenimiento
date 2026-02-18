@@ -9,14 +9,13 @@ public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
     public void Configure(EntityTypeBuilder<Warehouse> builder)
     {
         builder.HasIndex(e => e.Name);
-        
-        // Ensure only one active public sales warehouse
-        builder.HasIndex(e => new { e.IsPublicSalesWarehouse, e.IsActive, e.IsDeleted })
-            .HasFilter("IsPublicSalesWarehouse = 1 AND IsActive = 1 AND IsDeleted = 0")
-            .IsUnique();
-            
-        // Default value for the new flag
-        builder.Property(e => e.IsPublicSalesWarehouse)
-            .HasDefaultValue(false);
+
+        // Branch relationship (optional)
+        builder.HasOne(e => e.Branch)
+            .WithMany(b => b.Warehouses)
+            .HasForeignKey(e => e.BranchId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(e => e.BranchId);
     }
 }

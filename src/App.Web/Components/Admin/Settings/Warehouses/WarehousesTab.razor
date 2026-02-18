@@ -46,30 +46,28 @@
                         <HeaderContent>
                             <MudTh>@L["Name"]</MudTh>
                             <MudTh>@L["Description"]</MudTh>
+                            <MudTh>@L["Branch"]</MudTh>
                             <MudTh>@L["Status"]</MudTh>
-                            <MudTh>@L["Public Sales"]</MudTh>
                             <MudTh Style="width: 100px">@L["Actions"]</MudTh>
                         </HeaderContent>
                         <RowTemplate Context="warehouseContext">
                             <MudTd DataLabel="@L["Name"]">@warehouseContext.Name</MudTd>
                             <MudTd DataLabel="@L["Description"]">@warehouseContext.Description</MudTd>
-                            <MudTd DataLabel="@L["Status"]">
-                                <MudChip T="bool" Size="Size.Small" 
-                                        Color="@(warehouseContext.IsActive ? Color.Success : Color.Error)">
-                                    @(warehouseContext.IsActive ? L["Active"] : L["Inactive"])
-                                </MudChip>
-                            </MudTd>
-                            <MudTd DataLabel="@L["Public Sales"]">
-                                @if (warehouseContext.IsPublicSalesWarehouse)
+                            <MudTd DataLabel="@L["Branch"]">
+                                @if (!string.IsNullOrEmpty(warehouseContext.BranchName))
                                 {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
-                                        @L["Public Sales"]
-                                    </MudChip>
+                                    @warehouseContext.BranchName
                                 }
                                 else
                                 {
                                     <MudText>-</MudText>
                                 }
+                            </MudTd>
+                            <MudTd DataLabel="@L["Status"]">
+                                <MudChip T="bool" Size="Size.Small"
+                                        Color="@(warehouseContext.IsActive ? Color.Success : Color.Error)">
+                                    @(warehouseContext.IsActive ? L["Active"] : L["Inactive"])
+                                </MudChip>
                             </MudTd>
                             <MudTd>
                                 <AuthorizeView Context="authActions" Policy="@ApplicationClaims.Admin.ManageWarehouseSettings">
@@ -77,25 +75,13 @@
                                                 Size="Size.Small"
                                                 OnClick="@(() => OpenEditDialog(warehouseContext))"
                                                 title="@L["Edit Warehouse"]" />
-                                    
-                                    @if (!warehouseContext.IsPublicSalesWarehouse)
-                                    {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                    Size="Size.Small"
-                                                    Color="Color.Error"
-                                                    title="@L["Delete Warehouse"]"
-                                                    OnClick="@(() => OpenDeleteDialog(warehouseContext))" />
-                                    }
 
-                                    @if (!warehouseContext.IsPublicSalesWarehouse && warehouseContext.IsActive)
-                                    {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Store"
-                                                    Size="Size.Small"
-                                                    Color="Color.Info"
-                                                    title="@L["Set as Public Sales Warehouse"]"
-                                                    OnClick="@(() => SetAsPublicSalesWarehouse(warehouseContext))" />
-                                    }
-                                </AuthorizeView>                                
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                Size="Size.Small"
+                                                Color="Color.Error"
+                                                title="@L["Delete Warehouse"]"
+                                                OnClick="@(() => OpenDeleteDialog(warehouseContext))" />
+                                </AuthorizeView>
                             </MudTd>
                         </RowTemplate>
                         <PagerContent>
@@ -182,13 +168,6 @@
 
     private async Task OpenDeleteDialog(WarehouseDto warehouse)
     {
-        // No permitir eliminar el almacén de ventas públicas
-        if (warehouse.IsPublicSalesWarehouse)
-        {
-            Snackbar.Add(L["Cannot delete the public sales warehouse"], Severity.Warning);
-            return;
-        }
-        
         var parameters = new DialogParameters
         {
             { nameof(ConfirmDialog.Title), L["Delete Warehouse"].ToString() },
@@ -223,48 +202,6 @@
             {
                 Logger.LogError(ex, "Error deleting warehouse {WarehouseId}", warehouse.Id);
                 Snackbar.Add(L["Error deleting warehouse"], Severity.Error);
-            }
-        }
-    }
-    
-    private async Task SetAsPublicSalesWarehouse(WarehouseDto warehouse)
-    {
-        // Confirmar la acción
-        var parameters = new DialogParameters
-        {
-            { nameof(ConfirmDialog.Title), L["Set as Public Sales Warehouse"].ToString() },
-            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to set this warehouse as the public sales warehouse:"].ToString() },
-            { nameof(ConfirmDialog.HighlightedText), warehouse.Name },
-            { nameof(ConfirmDialog.WarningText), L["Any existing public sales warehouse will be changed to a regular warehouse."].ToString() },
-            { nameof(ConfirmDialog.ConfirmText), L["Set as Public"].ToString() },
-            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
-            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Warning },
-            { nameof(ConfirmDialog.Color), Color.Info }
-        };
-
-        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
-            L["Set as Public Sales Warehouse"], parameters);
-        var result = await dialog.Result;
-
-        if (result is not null && !result.Canceled)
-        {
-            try
-            {
-                var setResult = await WarehouseService.SetPublicSalesWarehouseAsync(warehouse.Id);
-                if (setResult.IsSuccess)
-                {
-                    Snackbar.Add(L["Warehouse set as public sales warehouse successfully"], Severity.Success);
-                    await _table.ReloadServerData();
-                }
-                else
-                {
-                    Snackbar.Add(setResult.Error ?? L["Error setting warehouse as public sales"], Severity.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error setting warehouse as public {WarehouseId}", warehouse.Id);
-                Snackbar.Add(L["Error setting warehouse as public sales"], Severity.Error);
             }
         }
     }

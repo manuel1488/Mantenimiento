@@ -31,6 +31,7 @@ using App.Services.Shop;
 using App.Services.Templates;
 using App.Services.Tickets;
 using App.Services.Warehouses;
+using App.Services.Branches;
 using App.Shared.Services;
 using App.Shared.Services.Implementation;
 using App.Web.Components;
@@ -231,6 +232,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
         options.AddPolicy(ApplicationClaims.Admin.ViewWarehouseSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewWarehouseSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageWarehouseSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageWarehouseSettings));
+
+        options.AddPolicy(ApplicationClaims.Admin.ViewBranchSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewBranchSettings));
+        options.AddPolicy(ApplicationClaims.Admin.ManageBranchSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageBranchSettings));
 
         options.AddPolicy(ApplicationClaims.Admin.ViewEmailSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewEmailSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageEmailSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageEmailSettings));
@@ -556,6 +560,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IUnitMeasureService, UnitMeasureService>();
     services.AddScoped<IUnitMeasureSeeder, UnitMeasureSeeder>();
     services.AddScoped<IWarehouseService, WarehouseService>();
+    services.AddScoped<IBranchService, BranchService>();
+    services.AddScoped<IUserBranchService, UserBranchService>();
     services.AddScoped<IInventoryQueryService, InventoryQueryService>();
     services.AddScoped<ITemplateService, TemplateService>();
     services.AddScoped<IInventoryService, InventoryService>();

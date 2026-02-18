@@ -77,6 +77,14 @@
     <value>Total</value>
     <comment>Encabezado de columna total</comment>
   </data>
+  <data name="Branch" xml:space="preserve">
+    <value>Sucursal</value>
+    <comment>Etiqueta del filtro y encabezado de columna sucursal</comment>
+  </data>
+  <data name="No branch" xml:space="preserve">
+    <value>Sin sucursal</value>
+    <comment>Se muestra cuando la venta no tiene sucursal asignada</comment>
+  </data>
   <data name="Actions" xml:space="preserve">
     <value>Acciones</value>
     <comment>Encabezado de columna acciones</comment>

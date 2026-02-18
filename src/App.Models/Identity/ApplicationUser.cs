@@ -10,6 +10,9 @@ public class ApplicationUser : IdentityUser, IAuditableEntity, ISoftDelete
     public bool IsActive { get; set; } = true;
     public DateTime? LastLogin { get; set; }
 
+    // Branch assignments
+    public virtual ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
+
     // Implementación de IAuditableEntity
     public string CreatedBy { get; set; } = null!;
     public DateTime CreatedAt { get; set; }

@@ -49,9 +49,15 @@ public class Sale : BaseEntity<long>
     public string? DiscountAuthorizerId { get; set; }
     public DateTime? DiscountAuthorizedAt { get; set; }
 
+    // Branch relationship (optional - nullable for pre-branch sales)
+    public int? BranchId { get; set; }
+
     // Navigation properties
     [ForeignKey(nameof(CustomerId))]
     public virtual Customer Customer { get; set; } = null!;
+
+    [ForeignKey(nameof(BranchId))]
+    public virtual Branch? Branch { get; set; }
 
     public virtual ICollection<SaleDetail> Details { get; set; } = new List<SaleDetail>();
 }

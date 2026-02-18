@@ -86,6 +86,10 @@ public static class ApplicationClaims
         // Warehouse Settings
         public const string ViewWarehouseSettings = "Admin.WarehouseSettings.View";
         public const string ManageWarehouseSettings = "Admin.WarehouseSettings.Manage";
+
+        // Branch Settings
+        public const string ViewBranchSettings = "Admin.BranchSettings.View";
+        public const string ManageBranchSettings = "Admin.BranchSettings.Manage";
         
         // Configuración de Email
         public const string ViewEmailSettings = "Admin.EmailSettings.View";

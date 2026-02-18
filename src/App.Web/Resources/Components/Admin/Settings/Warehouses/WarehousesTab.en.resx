@@ -18,9 +18,6 @@
   <data name="Status" xml:space="preserve">
     <value>Status</value>
   </data>
-  <data name="Public Sales" xml:space="preserve">
-    <value>Public Sales</value>
-  </data>
   <data name="Actions" xml:space="preserve">
     <value>Actions</value>
   </data>
@@ -36,9 +33,6 @@
   <data name="Delete Warehouse" xml:space="preserve">
     <value>Delete Warehouse</value>
   </data>
-  <data name="Set as Public Sales Warehouse" xml:space="preserve">
-    <value>Set as Public Sales Warehouse</value>
-  </data>
   <data name="No warehouses found" xml:space="preserve">
     <value>No warehouses found</value>
   </data>
@@ -47,9 +41,6 @@
   </data>
   <data name="Error loading warehouses" xml:space="preserve">
     <value>Error loading warehouses</value>
-  </data>
-  <data name="Cannot delete the public sales warehouse" xml:space="preserve">
-    <value>Cannot delete the public sales warehouse</value>
   </data>
   <data name="Are you sure you want to delete warehouse:" xml:space="preserve">
     <value>Are you sure you want to delete warehouse:</value>
@@ -69,19 +60,7 @@
   <data name="Error deleting warehouse" xml:space="preserve">
     <value>Error deleting warehouse</value>
   </data>
-  <data name="Are you sure you want to set this warehouse as the public sales warehouse:" xml:space="preserve">
-    <value>Are you sure you want to set this warehouse as the public sales warehouse:</value>
-  </data>
-  <data name="Any existing public sales warehouse will be changed to a regular warehouse." xml:space="preserve">
-    <value>Any existing public sales warehouse will be changed to a regular warehouse.</value>
-  </data>
-  <data name="Set as Public" xml:space="preserve">
-    <value>Set as Public</value>
-  </data>
-  <data name="Warehouse set as public sales warehouse successfully" xml:space="preserve">
-    <value>Warehouse set as public sales warehouse successfully</value>
-  </data>
-  <data name="Error setting warehouse as public sales" xml:space="preserve">
-    <value>Error setting warehouse as public sales</value>
+  <data name="Branch" xml:space="preserve">
+    <value>Branch</value>
   </data>
 </root>

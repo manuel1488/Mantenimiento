@@ -49,6 +49,7 @@ public class WarehouseService : IWarehouseService
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             IQueryable<Warehouse> query = _context.Warehouses
+                .Include(w => w.Branch)
                 .AsNoTracking();
 
             // Apply filters
@@ -91,6 +92,7 @@ public class WarehouseService : IWarehouseService
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var warehouse = await _context.Warehouses
+                .Include(w => w.Branch)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -117,19 +119,6 @@ public class WarehouseService : IWarehouseService
             {
                 throw new InvalidOperationException(
                     L["Warehouse with name {0} already exists", createDto.Name]);
-            }
-
-            // If this warehouse is marked as public sales warehouse, ensure no other warehouse is
-            if (createDto.IsPublicSalesWarehouse)
-            {
-                var existingPublicWarehouse = await _context.Warehouses
-                    .FirstOrDefaultAsync(w => w.IsPublicSalesWarehouse && w.IsActive && w.IsDeleted == 0);
-
-                if (existingPublicWarehouse != null)
-                {
-                    throw new InvalidOperationException(
-                        L["A public sales warehouse already exists: {0}", existingPublicWarehouse.Name]);
-                }
             }
 
             var warehouse = _mapper.Map<Warehouse>(createDto);
@@ -178,24 +167,6 @@ public class WarehouseService : IWarehouseService
                 }
             }
 
-            // Handle changes to public sales warehouse flag
-            if (updateDto.IsPublicSalesWarehouse && !warehouse.IsPublicSalesWarehouse)
-            {
-                // If setting as public sales, check if another one exists
-                var existingPublicWarehouse = await _context.Warehouses
-                    .FirstOrDefaultAsync(w =>
-                        w.Id != id &&
-                        w.IsPublicSalesWarehouse &&
-                        w.IsActive &&
-                        w.IsDeleted == 0);
-
-                if (existingPublicWarehouse != null)
-                {
-                    throw new InvalidOperationException(
-                        L["A public sales warehouse already exists: {0}", existingPublicWarehouse.Name]);
-                }
-            }
-
             // Update properties
             _mapper.Map(updateDto, warehouse);
 
@@ -238,13 +209,6 @@ public class WarehouseService : IWarehouseService
                     L["Cannot delete warehouse because it has inventory records"]);
             }
 
-            // Check if it's the public sales warehouse
-            if (warehouse.IsPublicSalesWarehouse)
-            {
-                throw new InvalidOperationException(
-                    L["Cannot delete the public sales warehouse. Please designate another warehouse for public sales first."]);
-            }
-
             warehouse.DeletedBy = _currentUserService.FullName ?? "Unknown";
             warehouse.DeletedAt = _dateTime.Now;
             warehouse.IsDeleted = 1;
@@ -279,82 +243,6 @@ public class WarehouseService : IWarehouseService
         {
             _logger.LogError(ex, "Error validating warehouse name uniqueness");
             throw;
-        }
-    }
-
-    public async Task<Result<bool>> SetPublicSalesWarehouseAsync(int warehouseId)
-    {
-        try
-        {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-
-            // First ensure the warehouse exists and is active
-            var newPublicWarehouse = await _context.Warehouses
-                .FirstOrDefaultAsync(w => w.Id == warehouseId);
-
-            if (newPublicWarehouse == null)
-            {
-                return Result<bool>.Failure(L["Warehouse not found with ID {0}", warehouseId]);
-            }
-
-            if (!newPublicWarehouse.IsActive)
-            {
-                return Result<bool>.Failure(L["Cannot set inactive warehouse as public sales warehouse"]);
-            }
-
-            // If it's already the public warehouse, nothing to do
-            if (newPublicWarehouse.IsPublicSalesWarehouse)
-            {
-                return Result<bool>.Success(true);
-            }
-
-            // First, clear the flag from all warehouses
-            var currentPublicWarehouses = await _context.Warehouses
-                .Where(w => w.IsPublicSalesWarehouse && w.IsActive)
-                .ToListAsync();
-
-            foreach (var warehouse in currentPublicWarehouses)
-            {
-                warehouse.IsPublicSalesWarehouse = false;
-                warehouse.ModifiedBy = _currentUserService.FullName ?? "Unknown";
-                warehouse.ModifiedAt = _dateTime.Now;
-            }
-
-            // Set the flag for the specified warehouse
-            newPublicWarehouse.IsPublicSalesWarehouse = true;
-            newPublicWarehouse.ModifiedBy = _currentUserService.FullName ?? "Unknown";
-            newPublicWarehouse.ModifiedAt = _dateTime.Now;
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting public sales warehouse");
-            return Result<bool>.Failure(L["An error occurred while setting the public sales warehouse: {0}", ex.Message]);
-        }
-    }
-
-    public async Task<Result<WarehouseDto?>> GetPublicSalesWarehouseAsync()
-    {
-        try
-        {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
-
-            var warehouse = await _context.Warehouses
-                .AsNoTracking()
-                .FirstOrDefaultAsync(w => w.IsPublicSalesWarehouse && w.IsActive);
-
-            return Result<WarehouseDto?>.Success(
-                warehouse != null ? _mapper.Map<WarehouseDto>(warehouse) : null);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting public sales warehouse");
-            return Result<WarehouseDto?>.Failure(L["An error occurred while retrieving the public sales warehouse"]);
         }
     }
 }

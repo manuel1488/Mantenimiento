@@ -1,0 +1,82 @@
+@using App.Core.DTOs.Branch
+@using App.Core.Interfaces
+
+@inject IBranchService BranchService
+@inject IStringLocalizer<BranchSelector> L
+@inject ILogger<BranchSelector> Logger
+
+@if (_branches.Any())
+{
+    <MudSelect T="int?" Value="_selectedBranchId"
+               ValueChanged="OnBranchChanged"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               Class="ml-4"
+               Style="min-width: 180px; max-width: 250px; color: white;"
+               Placeholder="@L["All Branches"]">
+        @if (_currentUserService.IsGlobalAccess)
+        {
+            <MudSelectItem T="int?" Value="@((int?)null)">@L["All Branches"]</MudSelectItem>
+        }
+        @foreach (var branch in _branches)
+        {
+            <MudSelectItem T="int?" Value="@branch.Id">@branch.Name</MudSelectItem>
+        }
+    </MudSelect>
+}
+
+@code {
+    [Inject] private App.Shared.Services.ICurrentUserService _currentUserService { get; set; } = null!;
+
+    [Parameter] public EventCallback<int?> OnBranchSelected { get; set; }
+
+    private IList<BranchDto> _branches = new List<BranchDto>();
+    private int? _selectedBranchId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBranches();
+        _selectedBranchId = _currentUserService.ActiveBranchId;
+    }
+
+    private async Task LoadBranches()
+    {
+        try
+        {
+            if (_currentUserService.IsGlobalAccess)
+            {
+                var result = await BranchService.GetActiveBranchesAsync();
+                if (result.IsSuccess)
+                {
+                    _branches = result.Value;
+                }
+            }
+            else
+            {
+                var result = await BranchService.GetBranchesForUserAsync(_currentUserService.UserId);
+                if (result.IsSuccess)
+                {
+                    _branches = result.Value;
+
+                    // Auto-select first branch if user has only one and none is selected
+                    if (_branches.Count == 1 && _currentUserService.ActiveBranchId == null)
+                    {
+                        await OnBranchChanged(_branches[0].Id);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading branches for selector");
+        }
+    }
+
+    private async Task OnBranchChanged(int? branchId)
+    {
+        _selectedBranchId = branchId;
+        await _currentUserService.SetActiveBranchAsync(branchId);
+        await OnBranchSelected.InvokeAsync(branchId);
+    }
+}

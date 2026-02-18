@@ -12,5 +12,5 @@ public class CreateWarehouseDto
     public string? Description { get; set; }
 
     public bool IsActive { get; set; } = true;
-    public bool IsPublicSalesWarehouse { get; set; } = false;
+    public int? BranchId { get; set; }
 }

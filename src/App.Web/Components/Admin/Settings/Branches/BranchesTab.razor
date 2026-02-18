@@ -1,0 +1,207 @@
+@using App.Core.DTOs.Branch
+@using App.Core.Interfaces
+@using App.Web.Components.Shared.Dialogs
+
+@inject IBranchService BranchService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<BranchesTab> L
+@inject ILogger<BranchesTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewBranchSettings">
+    <Authorized>
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex justify-space-between align-center">
+                    <MudText Typo="Typo.h6">@L["Branches"]</MudText>
+
+                    <div class="d-flex gap-4">
+                        <MudTextField T="string"
+                                    ValueChanged="@(s => OnSearch(s))"
+                                    Placeholder="@L["Search branches"]"
+                                    Adornment="Adornment.Start"
+                                    AdornmentIcon="@Icons.Material.Filled.Search"
+                                    Style="width: 300px" />
+
+                        <AuthorizeView Context="authNew" Policy="@ApplicationClaims.Admin.ManageBranchSettings">
+                            <MudButton Variant="Variant.Filled"
+                                    Color="Color.Error"
+                                    StartIcon="@Icons.Material.Filled.Add"
+                                    OnClick="OpenCreateDialog"
+                                    Class="da-button-rounded">
+                                @L["New Branch"]
+                            </MudButton>
+                        </AuthorizeView>
+                    </div>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTable T="BranchDto"
+                            ServerData="@LoadServerData"
+                            Dense="true"
+                            Hover="true"
+                            Loading="@_loading"
+                            @ref="_table">
+                        <HeaderContent>
+                            <MudTh>@L["Name"]</MudTh>
+                            <MudTh>@L["City"]</MudTh>
+                            <MudTh>@L["Phone"]</MudTh>
+                            <MudTh>@L["Status"]</MudTh>
+                            <MudTh Style="width: 100px">@L["Actions"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="branchContext">
+                            <MudTd DataLabel="@L["Name"]">@branchContext.Name</MudTd>
+                            <MudTd DataLabel="@L["City"]">@(branchContext.City ?? "-")</MudTd>
+                            <MudTd DataLabel="@L["Phone"]">@(branchContext.Phone ?? "-")</MudTd>
+                            <MudTd DataLabel="@L["Status"]">
+                                <MudChip T="bool" Size="Size.Small"
+                                        Color="@(branchContext.IsActive ? Color.Success : Color.Error)">
+                                    @(branchContext.IsActive ? L["Active"] : L["Inactive"])
+                                </MudChip>
+                            </MudTd>
+                            <MudTd>
+                                <AuthorizeView Context="authActions" Policy="@ApplicationClaims.Admin.ManageBranchSettings">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                Size="Size.Small"
+                                                OnClick="@(() => OpenEditDialog(branchContext))"
+                                                title="@L["Edit Branch"]" />
+
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                Size="Size.Small"
+                                                Color="Color.Error"
+                                                title="@L["Delete Branch"]"
+                                                OnClick="@(() => OpenDeleteDialog(branchContext))" />
+                                </AuthorizeView>
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager />
+                        </PagerContent>
+                        <NoRecordsContent>
+                            <MudText>@L["No branches found"]</MudText>
+                        </NoRecordsContent>
+                    </MudTable>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudTable<BranchDto> _table = null!;
+    private bool _loading;
+    private string _searchString = "";
+
+    private async Task<TableData<BranchDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _loading = true;
+            var result = await BranchService.GetBranchesAsync(
+                page: state.Page + 1,
+                pageSize: state.PageSize,
+                searchString: _searchString);
+
+            if (result.IsSuccess)
+            {
+                return new TableData<BranchDto>()
+                {
+                    TotalItems = result.Value.TotalCount,
+                    Items = result.Value.Items
+                };
+            }
+
+            Snackbar.Add(result.Error ?? L["Error loading branches"], Severity.Error);
+            return new TableData<BranchDto>() { TotalItems = 0, Items = Enumerable.Empty<BranchDto>() };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading branches");
+            Snackbar.Add(L["Error loading branches"], Severity.Error);
+            return new TableData<BranchDto>() { TotalItems = 0, Items = Enumerable.Empty<BranchDto>() };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = await DialogService.ShowAsync<BranchDialog>(L["New Branch"]);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenEditDialog(BranchDto branch)
+    {
+        var parameters = new DialogParameters<BranchDialog>
+        {
+            { x => x.BranchId, branch.Id }
+        };
+
+        var dialog = await DialogService.ShowAsync<BranchDialog>(
+            L["Edit Branch"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenDeleteDialog(BranchDto branch)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Branch"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete branch:"].ToString() },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), branch.Name },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            L["Delete Branch"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            try
+            {
+                var deleteResult = await BranchService.DeleteBranchAsync(branch.Id);
+                if (deleteResult.IsSuccess)
+                {
+                    Snackbar.Add(L["Branch deleted successfully"], Severity.Success);
+                    await _table.ReloadServerData();
+                }
+                else
+                {
+                    Snackbar.Add(deleteResult.Error ?? L["Error deleting branch"], Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error deleting branch {BranchId}", branch.Id);
+                Snackbar.Add(L["Error deleting branch"], Severity.Error);
+            }
+        }
+    }
+}

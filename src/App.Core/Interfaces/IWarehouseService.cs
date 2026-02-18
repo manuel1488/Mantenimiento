@@ -38,14 +38,4 @@ public interface IWarehouseService
     /// Validates that a warehouse name is unique
     /// </summary>
     Task<bool> ValidateUniqueNameAsync(string name, int? excludeId = null);
-
-    /// <summary>
-    /// Sets a warehouse as the public sales warehouse
-    /// </summary>
-    Task<Result<bool>> SetPublicSalesWarehouseAsync(int warehouseId);
-
-    /// <summary>
-    /// Gets the warehouse designated for public sales
-    /// </summary>
-    Task<Result<WarehouseDto?>> GetPublicSalesWarehouseAsync();
 }

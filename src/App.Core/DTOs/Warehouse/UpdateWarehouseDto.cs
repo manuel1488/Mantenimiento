@@ -10,7 +10,7 @@ public class UpdateWarehouseDto
 
     [StringLength(200)]
     public string? Description { get; set; }
-    
+
     public bool IsActive { get; set; }
-    public bool IsPublicSalesWarehouse { get; set; }
+    public int? BranchId { get; set; }
 }

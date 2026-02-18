@@ -77,6 +77,14 @@
     <value>Total</value>
     <comment>Total column header</comment>
   </data>
+  <data name="Branch" xml:space="preserve">
+    <value>Branch</value>
+    <comment>Branch filter label and column header</comment>
+  </data>
+  <data name="No branch" xml:space="preserve">
+    <value>No branch</value>
+    <comment>Displayed when sale has no branch assigned</comment>
+  </data>
   <data name="Actions" xml:space="preserve">
     <value>Actions</value>
     <comment>Actions column header</comment>

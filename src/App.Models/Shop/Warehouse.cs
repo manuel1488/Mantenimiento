@@ -16,8 +16,12 @@ public class Warehouse : BaseEntity<int>
     [StringLength(200)]
     public string? Description { get; set; }
 
-    public bool IsPublicSalesWarehouse { get; set; } = false;
-
     [Required]
     public bool IsActive { get; set; }
+
+    // Branch relationship (optional)
+    public int? BranchId { get; set; }
+
+    [ForeignKey(nameof(BranchId))]
+    public virtual Branch? Branch { get; set; }
 }

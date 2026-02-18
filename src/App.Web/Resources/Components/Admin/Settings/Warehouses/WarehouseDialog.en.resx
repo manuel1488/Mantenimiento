@@ -15,12 +15,6 @@
   <data name="Active" xml:space="preserve">
     <value>Active</value>
   </data>
-  <data name="Public Sales Warehouse" xml:space="preserve">
-    <value>Public Sales Warehouse</value>
-  </data>
-  <data name="Another warehouse is currently set as the public sales warehouse. Setting this warehouse as public will remove that designation from the other warehouse." xml:space="preserve">
-    <value>Another warehouse is currently set as the public sales warehouse. Setting this warehouse as public will remove that designation from the other warehouse.</value>
-  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -42,21 +36,6 @@
   <data name="Error loading warehouse" xml:space="preserve">
     <value>Error loading warehouse</value>
   </data>
-  <data name="Confirm Change" xml:space="preserve">
-    <value>Confirm Change</value>
-  </data>
-  <data name="Another warehouse is currently set as the public sales warehouse:" xml:space="preserve">
-    <value>Another warehouse is currently set as the public sales warehouse:</value>
-  </data>
-  <data name="Setting this warehouse as public will remove that designation from the other warehouse." xml:space="preserve">
-    <value>Setting this warehouse as public will remove that designation from the other warehouse.</value>
-  </data>
-  <data name="Continue" xml:space="preserve">
-    <value>Continue</value>
-  </data>
-  <data name="Change Public Sales Warehouse" xml:space="preserve">
-    <value>Change Public Sales Warehouse</value>
-  </data>
   <data name="Warehouse updated successfully" xml:space="preserve">
     <value>Warehouse updated successfully</value>
   </data>
@@ -68,5 +47,11 @@
   </data>
   <data name="Error validating warehouse name" xml:space="preserve">
     <value>Error validating warehouse name</value>
+  </data>
+  <data name="Branch" xml:space="preserve">
+    <value>Branch</value>
+  </data>
+  <data name="No branch assigned" xml:space="preserve">
+    <value>No branch assigned</value>
   </data>
 </root>

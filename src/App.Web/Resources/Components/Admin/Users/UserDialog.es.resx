@@ -93,4 +93,13 @@
   <data name="Passwords do not match" xml:space="preserve">
     <value>Las contraseñas no coinciden</value>
   </data>
+  <data name="Assigned Branches" xml:space="preserve">
+    <value>Sucursales Asignadas</value>
+  </data>
+  <data name="No branches assigned" xml:space="preserve">
+    <value>Sin sucursales asignadas</value>
+  </data>
+  <data name="Select the branches this user can access. Leave empty for no branch restriction." xml:space="preserve">
+    <value>Selecciona las sucursales a las que este usuario puede acceder. Deja vacío para no restringir por sucursal.</value>
+  </data>
 </root>

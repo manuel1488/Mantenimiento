@@ -93,4 +93,13 @@
   <data name="Passwords do not match" xml:space="preserve">
     <value>Passwords do not match</value>
   </data>
+  <data name="Assigned Branches" xml:space="preserve">
+    <value>Assigned Branches</value>
+  </data>
+  <data name="No branches assigned" xml:space="preserve">
+    <value>No branches assigned</value>
+  </data>
+  <data name="Select the branches this user can access. Leave empty for no branch restriction." xml:space="preserve">
+    <value>Select the branches this user can access. Leave empty for no branch restriction.</value>
+  </data>
 </root>

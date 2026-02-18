@@ -4,9 +4,12 @@
 @using MudBlazor.Services
 @using App.Core.Constants
 
+@using App.Core.DTOs.Branch
+@using App.Core.Interfaces
 @inject IStringLocalizer<UserDialog> L
 @inject IIdentityService IdentityService
 @inject IRoleService RoleService
+@inject IBranchService BranchService
 @inject IDialogService DialogService
 @inject RoleTranslationService RoleTranslationService
 
@@ -154,6 +157,27 @@
                             </MudAlert>
                         </MudItem>
                     }
+
+                    <!-- Branch Assignment -->
+                    @if (_branches.Any())
+                    {
+                        <MudItem xs="12" Class="mt-3">
+                            <MudSelect T="int" Label="@L["Assigned Branches"]"
+                                      MultiSelection="true"
+                                      @bind-SelectedValues="Model.BranchIds"
+                                      MultiSelectionTextFunc="@(new Func<List<string>, string>(GetBranchSelectionText))"
+                                      AnchorOrigin="Origin.BottomCenter"
+                                      AdornmentIcon="@Icons.Material.Filled.Business">
+                                @foreach (var branch in _branches)
+                                {
+                                    <MudSelectItem T="int" Value="@branch.Id">@branch.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary">
+                                @L["Select the branches this user can access. Leave empty for no branch restriction."]
+                            </MudText>
+                        </MudItem>
+                    }
                 </MudGrid>
             </MudForm>
         </MudContainer>
@@ -178,6 +202,7 @@
     private string _originalRole = string.Empty;
     private bool _roleChanged = false;
     private Dictionary<string, IEnumerable<string>> _rolePermissions = new();
+    private IList<BranchDto> _branches = new List<BranchDto>();
     
     // Password visibility variables
     private bool _passwordVisible = false;
@@ -188,10 +213,15 @@
     {
         // Cargar roles disponibles
         Roles = (await RoleService.GetAvailableRolesAsync()).ToList();
-        
+
         // Cargar los permisos por rol para referencia
         await LoadRolePermissionsAsync();
-        
+
+        // Cargar sucursales activas
+        var branchResult = await BranchService.GetActiveBranchesAsync();
+        if (branchResult.IsSuccess)
+            _branches = branchResult.Value!;
+
         // Guardar el rol original para comparación
         _originalRole = Model.Role;
     }
@@ -229,6 +259,17 @@
                 Model.Permissions = rolePermissions.ToList();
             }
         }
+    }
+
+    private string GetBranchSelectionText(List<string> selectedValues)
+    {
+        if (!selectedValues.Any())
+            return L["No branches assigned"];
+
+        var names = selectedValues
+            .Select(v => int.TryParse(v, out var id) ? _branches.FirstOrDefault(b => b.Id == id)?.Name : null)
+            .Where(n => n != null);
+        return string.Join(", ", names);
     }
 
     private void Cancel()

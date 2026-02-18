@@ -1,8 +1,10 @@
-﻿@using App.Core.DTOs.Warehouse
+﻿@using App.Core.DTOs.Branch
+@using App.Core.DTOs.Warehouse
 @using App.Core.Interfaces
 @using App.Web.Components.Shared.Dialogs
 
 @inject IWarehouseService WarehouseService
+@inject IBranchService BranchService
 @inject IStringLocalizer<WarehouseDialog> L
 @inject ISnackbar Snackbar
 @inject ILogger<WarehouseDialog> Logger
@@ -26,6 +28,19 @@
                                             ErrorText="@(_nameError ? L["Warehouse name already exists"]?.ToString() : null)" />
                             </MudItem>
 
+                            <!-- Branch -->
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="int?" @bind-Value="_model.BranchId"
+                                          Label="@L["Branch"]"
+                                          Clearable="true"
+                                          Placeholder="@L["No branch assigned"]">
+                                    @foreach (var branch in _branches)
+                                    {
+                                        <MudSelectItem T="int?" Value="@branch.Id">@branch.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+
                             <!-- Description -->
                             <MudItem xs="12">
                                 <MudTextField @bind-Value="_model.Description"
@@ -33,32 +48,14 @@
                                             Lines="2" />
                             </MudItem>
 
-                            <MudItem xs="12" Class="d-flex gap-4 align-center">
+                            <MudItem xs="12">
                                 <!-- Active status -->
-                                <MudCheckBox T="bool" 
-                                        @bind-Value="_model.IsActive" 
+                                <MudCheckBox T="bool"
+                                        @bind-Value="_model.IsActive"
                                         Label="@L["Active"]"
                                         Color="Color.Primary"
                                         Dense="true" />
-                                
-                                <!-- Public Sales Warehouse -->
-                                <MudCheckBox T="bool" 
-                                        Value="_model.IsPublicSalesWarehouse" 
-                                        Label="@L["Public Sales Warehouse"]"
-                                        Color="Color.Primary"
-                                        Dense="true"
-                                        Disabled="@(!_model.IsActive)"
-                                        ValueChanged = "@(async (bool value) => await OnPublicSalesWarehouseChanged(value))" />
                             </MudItem>
-
-                            @if (_model.IsPublicSalesWarehouse && _existingPublicWarehouse && !_isExistingPublicWarehouse)
-                            {
-                                <MudItem xs="12">
-                                    <MudAlert Severity="Severity.Warning" Class="mt-3">
-                                        @L["Another warehouse is currently set as the public sales warehouse. Setting this warehouse as public will remove that designation from the other warehouse."]
-                                    </MudAlert>
-                                </MudItem>
-                            }
                         </MudGrid>
                     </MudForm>
                 </MudContainer>
@@ -106,36 +103,33 @@
     private bool _nameError;
     private WarehouseDto? _warehouse;
     private bool IsNew => !WarehouseId.HasValue;
-    private bool _existingPublicWarehouse = false;
-    private bool _isExistingPublicWarehouse = false;
+    private IList<BranchDto> _branches = new List<BranchDto>();
 
     private CreateWarehouseDto _model = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await CheckForExistingPublicWarehouse();
-        
+        await LoadBranches();
+
         if (WarehouseId.HasValue)
         {
             await LoadWarehouse();
         }
     }
 
-    private async Task CheckForExistingPublicWarehouse()
+    private async Task LoadBranches()
     {
         try
         {
-            var result = await WarehouseService.GetPublicSalesWarehouseAsync();
-            _existingPublicWarehouse = result.IsSuccess && result.Value != null;
-            
-            if (_existingPublicWarehouse && WarehouseId.HasValue && result.Value?.Id == WarehouseId.Value)
+            var result = await BranchService.GetActiveBranchesAsync();
+            if (result.IsSuccess)
             {
-                _isExistingPublicWarehouse = true;
+                _branches = result.Value;
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error checking for existing public warehouse");
+            Logger.LogError(ex, "Error loading branches");
         }
     }
 
@@ -151,10 +145,8 @@
                     Name = _warehouse.Name,
                     Description = _warehouse.Description,
                     IsActive = _warehouse.IsActive,
-                    IsPublicSalesWarehouse = _warehouse.IsPublicSalesWarehouse
+                    BranchId = _warehouse.BranchId
                 };
-                
-                _isExistingPublicWarehouse = _warehouse.IsPublicSalesWarehouse;
             }
         }
         catch (Exception ex)
@@ -163,51 +155,6 @@
             Snackbar.Add(L["Error loading warehouse"], Severity.Error);
             MudDialog.Cancel();
         }
-    }
-
-    private async Task OnPublicSalesWarehouseChanged(bool value)
-    {
-        _model.IsPublicSalesWarehouse = value;
-        
-        if (value)
-        {
-            // Si se está activando como almacén público
-            if (!_isExistingPublicWarehouse)
-            {
-                // Verificar si ya existe un almacén público diferente
-                var result = await WarehouseService.GetPublicSalesWarehouseAsync();
-                _existingPublicWarehouse = result.IsSuccess && result.Value != null && 
-                                        (WarehouseId == null || result.Value.Id != WarehouseId.Value);
-                
-                if (_existingPublicWarehouse)
-                {
-                    // Confirmar con el usuario si desea realizar el cambio
-                    var parameters = new DialogParameters
-                    {
-                        { nameof(ConfirmDialog.Title), L["Confirm Change"].ToString() },
-                        { nameof(ConfirmDialog.ContentText), L["Another warehouse is currently set as the public sales warehouse:"].ToString() },
-                        { nameof(ConfirmDialog.HighlightedText), result.Value?.Name },
-                        { nameof(ConfirmDialog.WarningText), L["Setting this warehouse as public will remove that designation from the other warehouse."].ToString() },
-                        { nameof(ConfirmDialog.ConfirmText), L["Continue"].ToString() },
-                        { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
-                        { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Warning },
-                        { nameof(ConfirmDialog.Color), Color.Warning }
-                    };
-
-                    var dialog = await DialogService.ShowAsync<ConfirmDialog>(
-                        L["Change Public Sales Warehouse"], parameters);
-                    var dialogResult = await dialog.Result;
-
-                    if (dialogResult != null && dialogResult.Canceled)
-                    {
-                        // Si el usuario cancela, revertir el cambio
-                        _model.IsPublicSalesWarehouse = false;
-                    }
-                }
-            }
-        }
-        
-        StateHasChanged();
     }
 
     private void Cancel()
@@ -232,17 +179,10 @@
                         Name = _model.Name,
                         Description = _model.Description,
                         IsActive = _model.IsActive,
-                        IsPublicSalesWarehouse = _model.IsPublicSalesWarehouse
+                        BranchId = _model.BranchId
                     };
 
                     await WarehouseService.UpdateWarehouseAsync(WarehouseId.Value, updateDto);
-                    
-                    // Si se ha activado como almacén público, configurarlo
-                    if (_model.IsPublicSalesWarehouse && (!_isExistingPublicWarehouse || !_warehouse?.IsPublicSalesWarehouse == true))
-                    {
-                        await WarehouseService.SetPublicSalesWarehouseAsync(WarehouseId.Value);
-                    }
-                    
                     Snackbar.Add(L["Warehouse updated successfully"], Severity.Success);
                 }
                 else
@@ -259,13 +199,6 @@
                     }
 
                     var createdWarehouse = await WarehouseService.CreateWarehouseAsync(_model);
-                    
-                    // Si se ha creado como almacén público, configurarlo
-                    if (_model.IsPublicSalesWarehouse)
-                    {
-                        await WarehouseService.SetPublicSalesWarehouseAsync(createdWarehouse.Id);
-                    }
-                    
                     Snackbar.Add(L["Warehouse created successfully"], Severity.Success);
                 }
 

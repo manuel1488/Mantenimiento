@@ -18,7 +18,8 @@ public interface ISaleService
         DateTime? startDate = null,
         DateTime? endDate = null,
         string? status = null,
-        SaleType? saleType = null);
+        SaleType? saleType = null,
+        int? branchId = null);
 
     /// <summary>
     /// Gets a sale by ID with all details
@@ -46,14 +47,4 @@ public interface ISaleService
     Task<Result<bool>> ValidateDiscountAsync(
         decimal discountPercentage,
         string? authorizedBy = null);
-
-    /// <summary>
-    /// Gets the warehouse designated for public sales
-    /// </summary>
-    Task<Result<WarehouseDto?>> GetPublicSalesWarehouseAsync();
-
-    /// <summary>
-    /// Sets a warehouse as the public sales warehouse
-    /// </summary>
-    Task<Result<bool>> SetPublicSalesWarehouseAsync(int warehouseId);
 }

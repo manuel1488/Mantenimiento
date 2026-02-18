@@ -4,6 +4,7 @@
 @using App.Web.Components.Shared
 @using App.Web.Components.Shared.Dialogs
 @using App.Web.Services
+@using App.Core.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 
@@ -17,6 +18,7 @@
 @inject IRoleService RoleService
 @inject ILogger<UsersTab> Logger
 @inject RoleTranslationService RoleTranslationService
+@inject IUserBranchService UserBranchService
 
 
 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUsers">
@@ -247,11 +249,17 @@
                     {
                         // Cargar los permisos del rol
                         var rolePermissions = await RoleService.GetRoleClaimsAsync(model.Role);
-                        
+
                         // Actualizar los permisos del usuario con los del rol
                         await IdentityService.UpdateUserPermissionsAsync(userId, rolePermissions);
                     }
-                    
+
+                    // Asignar sucursales
+                    if (model.BranchIds.Any())
+                    {
+                        await UserBranchService.AssignBranchesToUserAsync(userId, model.BranchIds.ToList());
+                    }
+
                     Snackbar.Add(L["User created successfully"], Severity.Success);
                     await _table.ReloadServerData();
                 }
@@ -289,6 +297,12 @@
             // Actualizar con la información más reciente
             var userInfo = userResult.Value;
 
+            // Obtener sucursales asignadas
+            var userBranchesResult = await UserBranchService.GetUserBranchesAsync(user.Id);
+            var userBranchIds = userBranchesResult.IsSuccess
+                ? userBranchesResult.Value!.Select(b => b.Id).ToList()
+                : new List<int>();
+
             var parameters = new DialogParameters<UserDialog>
             {
                 { x => x.IsNew, false },
@@ -299,7 +313,8 @@
                         Email = userInfo.Email,
                         FullName = userInfo.FullName,
                         IsActive = userInfo.IsActive,
-                        Role = currentRole
+                        Role = currentRole,
+                        BranchIds = userBranchIds
                     }
                 }
             };
@@ -329,11 +344,14 @@
                         {
                             // Cargar permisos del nuevo rol
                             var rolePermissions = await RoleService.GetRoleClaimsAsync(model.Role);
-                            
+
                             // Actualizar permisos del usuario
                             await IdentityService.UpdateUserPermissionsAsync(model.Id!, rolePermissions);
                         }
-                        
+
+                        // Actualizar sucursales asignadas
+                        await UserBranchService.AssignBranchesToUserAsync(model.Id!, model.BranchIds.ToList());
+
                         Snackbar.Add(L["User updated successfully"], Severity.Success);
                         await _table.ReloadServerData();
                     }

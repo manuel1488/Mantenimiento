@@ -1,6 +1,7 @@
 ﻿@page "/admin/settings"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
+@using App.Web.Components.Admin.Settings.Branches
 @using App.Web.Components.Admin.Settings.Warehouses
 @using App.Web.Components.Admin.Settings.General
 @using App.Web.Components.Admin.Settings.Fiscal
@@ -44,6 +45,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewDisccounts">
                     <MudTabPanel Text="@L["Discounts"]" Icon="@Icons.Material.Filled.Discount">
                         <DiscountSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBranchSettings">
+                    <MudTabPanel Text="@L["Branches"]" Icon="@Icons.Material.Filled.Business">
+                        <BranchesTab />
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewWarehouseSettings">
