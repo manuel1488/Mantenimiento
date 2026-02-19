@@ -26,9 +26,9 @@ public class InventoryMovementConfiguration : IEntityTypeConfiguration<Inventory
 
         // Resctriction for valid origin and destination be different for transfer
         builder.ToTable(t => t.HasCheckConstraint(
-            "CK_InventoryMovement_DifferentWarehouses",
+            "CK_InventoryMovement_DifferentLocations",
             "(`MovementType` != 'TRANSFER') OR " +
-            "(`MovementType` = 'TRANSFER' AND `WarehouseId` != `DestinationWarehouseId`)"));
+            "(`MovementType` = 'TRANSFER' AND `LocationId` != `DestinationLocationId`)"));
 
         // Resctriction for valiadate positive quantity
          builder.ToTable(t => t.HasCheckConstraint(
@@ -41,7 +41,7 @@ public class InventoryMovementConfiguration : IEntityTypeConfiguration<Inventory
             "`NewBalance` >= 0"));
 
         // Index for performance
-        builder.HasIndex(e => new { e.ProductId, e.WarehouseId, e.MovementDate });
+        builder.HasIndex(e => new { e.ProductId, e.LocationId, e.MovementDate });
 
         // Relations
         builder.HasOne(e => e.Product)
@@ -50,15 +50,15 @@ public class InventoryMovementConfiguration : IEntityTypeConfiguration<Inventory
             .OnDelete(DeleteBehavior.Restrict);
 
         // Relations
-        builder.HasOne(e => e.Warehouse)
+        builder.HasOne(e => e.Location)
             .WithMany()
-            .HasForeignKey(e => e.WarehouseId)
+            .HasForeignKey(e => e.LocationId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Relations
-        builder.HasOne(e => e.DestinationWarehouse)
+        builder.HasOne(e => e.DestinationLocation)
             .WithMany()
-            .HasForeignKey(e => e.DestinationWarehouseId)
+            .HasForeignKey(e => e.DestinationLocationId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

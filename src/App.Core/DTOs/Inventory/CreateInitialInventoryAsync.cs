@@ -2,6 +2,6 @@
 
 public class BulkInitialLoadRequestDto
 {
-    public int WarehouseId { get; set; }
+    public int LocationId { get; set; }
     public List<BulkInventoryLoadDto> Items { get; set; } = new();
 }

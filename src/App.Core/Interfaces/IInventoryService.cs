@@ -5,8 +5,8 @@ namespace App.Core.Interfaces;
 public interface IInventoryService
 {
     Task<bool> ValidateStockAvailabilityAsync(
-        long productId, 
-        int warehouseId, 
+        long productId,
+        int locationId,
         decimal quantity,
         CancellationToken cancellationToken = default);
 
@@ -34,34 +34,34 @@ public interface IInventoryService
         int page = 1,
         int pageSize = 10,
         long? productId = null,
-        int? warehouseId = null,
+        int? locationId = null,
         string? movementType = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
         CancellationToken cancellationToken = default);
 
     Task<IList<InventoryAlertDto>> GetStockAlertsAsync(
-        int? warehouseId = null,
+        int? locationId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates inventory settings like minimum and maximum stock levels
     /// </summary>
     Task<InventoryDto> UpdateInventorySettingsAsync(
-        long productId, 
-        int warehouseId, 
+        long productId,
+        int locationId,
         UpdateInventoryDto updateDto,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates initial inventory for a product in a warehouse
+    /// Creates initial inventory for a product in a location
     /// </summary>
     Task<InventoryOperationResult<InventoryMovementDto>> CreateInitialInventoryAsync(
         InitialInventoryLoadDto loadDto,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates initial inventory for multiple products in a warehouse
+    /// Creates initial inventory for multiple products in a location
     /// </summary>
     Task<InventoryOperationResult<List<BulkInventoryLoadResultDto>>> CreateBulkInitialInventoryAsync(
         BulkInitialLoadRequestDto request,

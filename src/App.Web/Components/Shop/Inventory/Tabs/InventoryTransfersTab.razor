@@ -155,9 +155,9 @@
                             <MudTd DataLabel="@L["Description"]">
                                 @contextMovement.ProductDescription
                             </MudTd>
-                            <MudTd DataLabel="@L["Source"]">@contextMovement.WarehouseName</MudTd>
+                            <MudTd DataLabel="@L["Source"]">@contextMovement.LocationName</MudTd>
                             <MudTd DataLabel="@L["Destination"]">
-                                @contextMovement.DestinationWarehouseName
+                                @contextMovement.DestinationLocationName
                             </MudTd>
                             <MudTd DataLabel="@L["Quantity"]" Style="text-align: right">
                                 @contextMovement.Quantity.ToString("N2")
@@ -358,10 +358,10 @@
             };
                     
             if (_selectedSourceWarehouse.HasValue)
-                queryParams.Add($"sourceWarehouseId={_selectedSourceWarehouse.Value}");
-                        
+                queryParams.Add($"sourceLocationId={_selectedSourceWarehouse.Value}");
+
             if (_selectedDestinationWarehouse.HasValue)
-                queryParams.Add($"destinationWarehouseId={_selectedDestinationWarehouse.Value}");
+                queryParams.Add($"destinationLocationId={_selectedDestinationWarehouse.Value}");
                         
             if (_dateRange.Start.HasValue)
                 queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");

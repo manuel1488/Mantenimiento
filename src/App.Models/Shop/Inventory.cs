@@ -10,7 +10,11 @@ namespace App.Models.Shop;
 public class Inventory : BaseEntity<long>
 {
     public long ProductId { get; set; }
-    public int WarehouseId { get; set; }
+
+    /// <summary>
+    /// Storage location ID (Warehouse or Branch)
+    /// </summary>
+    public int LocationId { get; set; }
 
     /// <summary>
     /// Container/Package units (e.g., 100 containers or 1.5 containers for partial)
@@ -36,6 +40,6 @@ public class Inventory : BaseEntity<long>
     [ForeignKey(nameof(ProductId))]
     public virtual Product Product { get; set; } = null!;
 
-    [ForeignKey(nameof(WarehouseId))]
-    public virtual Warehouse Warehouse { get; set; } = null!;
+    [ForeignKey(nameof(LocationId))]
+    public virtual Location Location { get; set; } = null!;
 }

@@ -43,7 +43,7 @@ public class InventoryService : IInventoryService
 
     public async Task<bool> ValidateStockAvailabilityAsync(
         long productId,
-        int warehouseId,
+        int locationId,
         decimal quantity,
         CancellationToken cancellationToken = default)
     {
@@ -51,11 +51,11 @@ public class InventoryService : IInventoryService
 
         var inventory = await _context.Inventory
             .Include(x => x.Product)
-            .Include(x => x.Warehouse)
+            .Include(x => x.Location)
             .Where(x => x.ProductId == productId &&
-                       x.WarehouseId == warehouseId &&
+                       x.LocationId == locationId &&
                        x.Product.IsActive &&
-                       x.Warehouse.IsActive)
+                       x.Location.IsActive)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (inventory == null)
@@ -81,15 +81,15 @@ public class InventoryService : IInventoryService
             // Obtener inventario con sus relaciones
             var inventory = await _context.Inventory
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .Where(x => x.ProductId == createDto.ProductId &&
-                        x.WarehouseId == createDto.WarehouseId &&
+                        x.LocationId == createDto.LocationId &&
                         x.Product.IsActive &&
-                        x.Warehouse.IsActive)
+                        x.Location.IsActive)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (inventory == null)
-                return MovementOperationResult.Failure(L["Invalid product or warehouse"]);
+                return MovementOperationResult.Failure(L["Invalid product or location"]);
 
             // Determinar si es adición o sustracción de inventario
             var isAddition = createDto.MovementType is
@@ -154,7 +154,7 @@ public class InventoryService : IInventoryService
             var movement = new InventoryMovement
             {
                 ProductId = createDto.ProductId,
-                WarehouseId = createDto.WarehouseId,
+                LocationId = createDto.LocationId,
                 MovementType = createDto.MovementType,
                 MovementSubType = createDto.MovementSubType,
 
@@ -195,7 +195,7 @@ public class InventoryService : IInventoryService
             {
                 alertInfo = InventoryAlertInfo.LowStock(
                     inventory.Product.Name,
-                    inventory.Warehouse.Name,
+                    inventory.Location.Name,
                     newQuantityBalance,
                     inventory.MinStock.Value);
             }
@@ -203,7 +203,7 @@ public class InventoryService : IInventoryService
             {
                 alertInfo = InventoryAlertInfo.OverStock(
                     inventory.Product.Name,
-                    inventory.Warehouse.Name,
+                    inventory.Location.Name,
                     newQuantityBalance,
                     inventory.MaxStock.Value);
             }
@@ -220,8 +220,8 @@ public class InventoryService : IInventoryService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in warehouse {WarehouseName}", 
-                            alertInfo.ProductName, alertInfo.WarehouseName);
+                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in location {LocationName}",
+                            alertInfo.ProductName, alertInfo.LocationName);
                     }
                 }, cancellationToken);
             }
@@ -252,26 +252,26 @@ public class InventoryService : IInventoryService
 
         try
         {
-            if (transferDto.WarehouseId == transferDto.DestinationWarehouseId)
+            if (transferDto.LocationId == transferDto.DestinationLocationId)
             {
-                return MovementOperationResult.Failure(L["Source and destination warehouses must be different"]);
+                return MovementOperationResult.Failure(L["Source and destination locations must be different"]);
             }
 
             var inventories = await _context.Inventory
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
-                .Where(x => x.Product.IsActive && x.Warehouse.IsActive &&
+                .Include(x => x.Location)
+                .Where(x => x.Product.IsActive && x.Location.IsActive &&
                     (
-                        (x.ProductId == transferDto.ProductId && x.WarehouseId == transferDto.WarehouseId) ||
-                        (x.ProductId == transferDto.ProductId && x.WarehouseId == transferDto.DestinationWarehouseId)
+                        (x.ProductId == transferDto.ProductId && x.LocationId == transferDto.LocationId) ||
+                        (x.ProductId == transferDto.ProductId && x.LocationId == transferDto.DestinationLocationId)
                     ))
                 .ToListAsync(cancellationToken);
 
-            var sourceInventory = inventories.FirstOrDefault(x => x.WarehouseId == transferDto.WarehouseId);
-            
+            var sourceInventory = inventories.FirstOrDefault(x => x.LocationId == transferDto.LocationId);
+
             if (sourceInventory == null)
             {
-                return MovementOperationResult.Failure(L["Invalid product or warehouse"]);
+                return MovementOperationResult.Failure(L["Invalid product or location"]);
             }
 
             // Verificar si hay suficiente stock para la transferencia
@@ -280,14 +280,14 @@ public class InventoryService : IInventoryService
                 return MovementOperationResult.Failure(L["Insufficient stock"]);
             }
 
-            var destinationInventory = inventories.FirstOrDefault(x => x.WarehouseId == transferDto.DestinationWarehouseId);
+            var destinationInventory = inventories.FirstOrDefault(x => x.LocationId == transferDto.DestinationLocationId);
 
             if (destinationInventory == null)
             {
                 destinationInventory = new App.Models.Shop.Inventory
                 {
                     ProductId = transferDto.ProductId,
-                    WarehouseId = transferDto.DestinationWarehouseId,
+                    LocationId = transferDto.DestinationLocationId,
                     Quantity = 0,
                     IndividualUnits = 0,
                     CreatedBy = _currentUserService.FullName ?? "Unknown",
@@ -300,8 +300,8 @@ public class InventoryService : IInventoryService
             var movement = new InventoryMovement
             {
                 ProductId = transferDto.ProductId,
-                WarehouseId = transferDto.WarehouseId,
-                DestinationWarehouseId = transferDto.DestinationWarehouseId,
+                LocationId = transferDto.LocationId,
+                DestinationLocationId = transferDto.DestinationLocationId,
                 MovementType = InventoryMovementType.Transfer,
                 MovementSubType = transferDto.TransferType,
                 Quantity = transferDto.Quantity,
@@ -334,22 +334,22 @@ public class InventoryService : IInventoryService
             // Verificar si se generaron alertas después de la operación
             InventoryAlertInfo? alertInfo = null;
             
-            // Alerta en almacén de origen
+            // Alerta en ubicación de origen
             if (sourceInventory.MinStock.HasValue && newSourceStock < sourceInventory.MinStock.Value)
             {
                 alertInfo = InventoryAlertInfo.LowStock(
                     sourceInventory.Product.Name,
-                    sourceInventory.Warehouse.Name,
+                    sourceInventory.Location.Name,
                     newSourceStock,
                     sourceInventory.MinStock.Value);
             }
-            
-            // Alerta en almacén de destino
+
+            // Alerta en ubicación de destino
             else if (destinationInventory.MaxStock.HasValue && newDestinationStock > destinationInventory.MaxStock.Value)
             {
                 alertInfo = InventoryAlertInfo.OverStock(
                     destinationInventory.Product.Name,
-                    destinationInventory.Warehouse.Name,
+                    destinationInventory.Location.Name,
                     newDestinationStock,
                     destinationInventory.MaxStock.Value);
             }
@@ -366,8 +366,8 @@ public class InventoryService : IInventoryService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in warehouse {WarehouseName}", 
-                            alertInfo.ProductName, alertInfo.WarehouseName);
+                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in location {LocationName}",
+                            alertInfo.ProductName, alertInfo.LocationName);
                     }
                 }, cancellationToken);
             }
@@ -395,14 +395,14 @@ public class InventoryService : IInventoryService
         string movementSubType,
         decimal previousBalance,
         decimal newBalance,
-        int? destinationWarehouseId = null,
+        int? destinationLocationId = null,
         CancellationToken cancellationToken = default)
     {
         var movement = new InventoryMovement
         {
             ProductId = dto.ProductId,
-            WarehouseId = dto.WarehouseId,
-            DestinationWarehouseId = destinationWarehouseId,
+            LocationId = dto.LocationId,
+            DestinationLocationId = destinationLocationId,
             MovementType = movementType,
             MovementSubType = movementSubType,
             Quantity = dto.Quantity,
@@ -429,7 +429,7 @@ public class InventoryService : IInventoryService
         int page = 1,
         int pageSize = 10,
         long? productId = null,
-        int? warehouseId = null,
+        int? locationId = null,
         string? movementType = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
@@ -441,8 +441,8 @@ public class InventoryService : IInventoryService
 
             IQueryable<InventoryMovement> query = _context.InventoryMovements
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
-                .Include(x => x.DestinationWarehouse)
+                .Include(x => x.Location)
+                .Include(x => x.DestinationLocation)
                 .OrderByDescending(x => x.CreatedAt);
 
             // Apply filters
@@ -451,10 +451,10 @@ public class InventoryService : IInventoryService
                 query = query.Where(x => x.ProductId == productId.Value);
             }
 
-            if (warehouseId.HasValue)
+            if (locationId.HasValue)
             {
-                query = query.Where(x => x.WarehouseId == warehouseId.Value ||
-                                       x.DestinationWarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == locationId.Value ||
+                                       x.DestinationLocationId == locationId.Value);
             }
 
             if (!string.IsNullOrEmpty(movementType))
@@ -492,7 +492,7 @@ public class InventoryService : IInventoryService
     }
 
     public async Task<IList<InventoryAlertDto>> GetStockAlertsAsync(
-        int? warehouseId = null,
+        int? locationId = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -501,16 +501,16 @@ public class InventoryService : IInventoryService
 
             var query = _context.Inventory
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .Where(x =>
                     x.Product.IsActive &&
-                    x.Warehouse.IsActive &&
+                    x.Location.IsActive &&
                     ((x.MinStock.HasValue && x.Quantity < x.MinStock.Value) ||
                      (x.MaxStock.HasValue && x.Quantity > x.MaxStock.Value)));
 
-            if (warehouseId.HasValue)
+            if (locationId.HasValue)
             {
-                query = query.Where(x => x.WarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == locationId.Value);
             }
 
             var alerts = await query
@@ -528,7 +528,7 @@ public class InventoryService : IInventoryService
 
     public async Task<InventoryDto> UpdateInventorySettingsAsync(
         long productId,
-        int warehouseId,
+        int locationId,
         UpdateInventoryDto updateDto,
         CancellationToken cancellationToken = default)
     {
@@ -540,19 +540,19 @@ public class InventoryService : IInventoryService
             var inventory = await _context.Inventory
                 .Include(x => x.Product)
                     .ThenInclude(x => x.UnitMeasure)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .FirstOrDefaultAsync(x =>
                     x.ProductId == productId &&
-                    x.WarehouseId == warehouseId &&
+                    x.LocationId == locationId &&
                     x.Product.IsActive &&
-                    x.Warehouse.IsActive,
+                    x.Location.IsActive,
                     cancellationToken);
 
             if (inventory == null)
             {
                 throw new InvalidOperationException(
-                    L["Inventory not found for product {0} in warehouse {1}",
-                        productId, warehouseId]);
+                    L["Inventory not found for product {0} in location {1}",
+                        productId, locationId]);
             }
 
             // Validate max stock vs min stock
@@ -585,8 +585,8 @@ public class InventoryService : IInventoryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating inventory settings for product {ProductId} in warehouse {WarehouseId}",
-                productId, warehouseId);
+            _logger.LogError(ex, "Error updating inventory settings for product {ProductId} in location {LocationId}",
+                productId, locationId);
             throw;
         }
     }
@@ -627,27 +627,27 @@ public class InventoryService : IInventoryService
                         L["Product not found or inactive"]);
                 }
 
-                var warehouse = await context.Warehouses
+                var location = await context.Locations
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == loadDto.WarehouseId && x.IsActive,
+                    .FirstOrDefaultAsync(x => x.Id == loadDto.LocationId && x.IsActive,
                         cancellationToken);
 
-                if (warehouse == null)
+                if (location == null)
                 {
                     return InventoryOperationResult<InventoryMovementDto>.Error(
-                        L["Warehouse not found or inactive"]);
+                        L["Location not found or inactive"]);
                 }
 
                 // Check if inventory already exists
                 var existingInventory = await context.Inventory
                     .AnyAsync(x => x.ProductId == loadDto.ProductId &&
-                                x.WarehouseId == loadDto.WarehouseId,
+                                x.LocationId == loadDto.LocationId,
                         cancellationToken);
 
                 if (existingInventory)
                 {
                     return InventoryOperationResult<InventoryMovementDto>.Error(
-                        L["Product already has inventory in this warehouse"]);
+                        L["Product already has inventory in this location"]);
                 }
 
                 // Calculate initial individual units
@@ -659,7 +659,7 @@ public class InventoryService : IInventoryService
                 var inventory = new App.Models.Shop.Inventory
                 {
                     ProductId = loadDto.ProductId,
-                    WarehouseId = loadDto.WarehouseId,
+                    LocationId = loadDto.LocationId,
                     Quantity = loadDto.Quantity,
                     IndividualUnits = individualUnits,
                     MinStock = loadDto.MinStock,
@@ -696,8 +696,8 @@ public class InventoryService : IInventoryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating initial inventory for product {ProductId} in warehouse {WarehouseId}",
-                loadDto.ProductId, loadDto.WarehouseId);
+            _logger.LogError(ex, "Error creating initial inventory for product {ProductId} in location {LocationId}",
+                loadDto.ProductId, loadDto.LocationId);
             return InventoryOperationResult<InventoryMovementDto>.Error(
                 L["Error creating initial inventory"]);
         }
@@ -714,15 +714,15 @@ public class InventoryService : IInventoryService
         {
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
-            // Validate warehouse
-            var warehouse = await _context.Warehouses
-                .FirstOrDefaultAsync(x => x.Id == request.WarehouseId && x.IsActive,
+            // Validate location
+            var location = await _context.Locations
+                .FirstOrDefaultAsync(x => x.Id == request.LocationId && x.IsActive,
                     cancellationToken);
 
-            if (warehouse == null)
+            if (location == null)
             {
                 return InventoryOperationResult<List<BulkInventoryLoadResultDto>>.Error(
-                    L["Invalid or inactive warehouse"]);
+                    L["Invalid or inactive location"]);
             }
 
             // Initial validations
@@ -781,7 +781,7 @@ public class InventoryService : IInventoryService
                     var existingInventory = await _context.Inventory
                         .AnyAsync(x =>
                             x.ProductId == product.Id &&
-                            x.WarehouseId == request.WarehouseId,
+                            x.LocationId == request.LocationId,
                             cancellationToken);
 
                     if (existingInventory)
@@ -791,7 +791,7 @@ public class InventoryService : IInventoryService
                             ProductCode = item.ProductCode,
                             ProductName = product.Name,
                             Success = false,
-                            Error = L["Product already has inventory in this warehouse"]
+                            Error = L["Product already has inventory in this location"]
                         });
                         continue;
                     }
@@ -832,7 +832,7 @@ public class InventoryService : IInventoryService
                     var inventory = new Models.Shop.Inventory
                     {
                         ProductId = product.Id,
-                        WarehouseId = request.WarehouseId,
+                        LocationId = request.LocationId,
                         Quantity = item.Quantity,
                         IndividualUnits = individualUnits,
                         MinStock = item.MinStock,
@@ -848,7 +848,7 @@ public class InventoryService : IInventoryService
                     var movement = new InventoryMovement
                     {
                         ProductId = product.Id,
-                        WarehouseId = request.WarehouseId,
+                        LocationId = request.LocationId,
                         MovementType = InventoryMovementType.InitialLoad,
                         MovementSubType = InventoryMovementSubType.InitialCount,
                         MovementDate = _dateTime.Now,
@@ -905,7 +905,7 @@ public class InventoryService : IInventoryService
         decimal newBalance,
         decimal previousIndividualBalance,
         decimal newIndividualBalance,
-        int? destinationWarehouseId = null,
+        int? destinationLocationId = null,
         CancellationToken cancellationToken = default)
     {
         // Calculate individual units for the movement quantity
@@ -928,8 +928,8 @@ public class InventoryService : IInventoryService
         var movement = new InventoryMovement
         {
             ProductId = dto.ProductId,
-            WarehouseId = dto.WarehouseId,
-            DestinationWarehouseId = destinationWarehouseId,
+            LocationId = dto.LocationId,
+            DestinationLocationId = destinationLocationId,
             MovementType = movementType,
             MovementSubType = movementSubType,
             Quantity = dto.Quantity,
@@ -956,22 +956,22 @@ public class InventoryService : IInventoryService
 
     private async Task<App.Models.Shop.Inventory> ValidateAndGetInventoryAsync(
         long productId,
-        int warehouseId,
+        int locationId,
         CancellationToken cancellationToken = default)
     {
         await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
         var inventory = await _context.Inventory
             .Include(x => x.Product)
-            .Include(x => x.Warehouse)
+            .Include(x => x.Location)
             .Where(x => x.ProductId == productId &&
-                       x.WarehouseId == warehouseId &&
+                       x.LocationId == locationId &&
                        x.Product.IsActive &&
-                       x.Warehouse.IsActive)
+                       x.Location.IsActive)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (inventory == null)
-            throw new InvalidOperationException(L["Invalid product or warehouse"]);
+            throw new InvalidOperationException(L["Invalid product or location"]);
 
         return inventory;
     }
@@ -1010,15 +1010,15 @@ public class InventoryService : IInventoryService
         {
             var inventory = await _context.Inventory
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .Where(x => x.ProductId == adjustmentDto.ProductId &&
-                        x.WarehouseId == adjustmentDto.WarehouseId &&
+                        x.LocationId == adjustmentDto.LocationId &&
                         x.Product.IsActive &&
-                        x.Warehouse.IsActive)
+                        x.Location.IsActive)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (inventory == null)
-                return MovementOperationResult.Failure(L["Invalid product or warehouse"]);
+                return MovementOperationResult.Failure(L["Invalid product or location"]);
 
             // Verificar que la nueva cantidad no sea negativa
             if (adjustmentDto.NewQuantity < 0)
@@ -1029,12 +1029,12 @@ public class InventoryService : IInventoryService
             // Calcular el ajuste (positivo o negativo)
             var adjustment = adjustmentDto.NewQuantity - inventory.Quantity;
             var previousBalance = inventory.Quantity;
-            
+
             // Crear el registro de movimiento
             var movement = new InventoryMovement
             {
                 ProductId = adjustmentDto.ProductId,
-                WarehouseId = adjustmentDto.WarehouseId,
+                LocationId = adjustmentDto.LocationId,
                 MovementType = InventoryMovementType.Adjustment,
                 MovementSubType = adjustmentDto.AdjustmentType,
                 Quantity = Math.Abs(adjustment), // Almacenar valor absoluto del ajuste
@@ -1064,7 +1064,7 @@ public class InventoryService : IInventoryService
             {
                 alertInfo = InventoryAlertInfo.LowStock(
                     inventory.Product.Name,
-                    inventory.Warehouse.Name,
+                    inventory.Location.Name,
                     adjustmentDto.NewQuantity,
                     inventory.MinStock.Value);
             }
@@ -1072,7 +1072,7 @@ public class InventoryService : IInventoryService
             {
                 alertInfo = InventoryAlertInfo.OverStock(
                     inventory.Product.Name,
-                    inventory.Warehouse.Name,
+                    inventory.Location.Name,
                     adjustmentDto.NewQuantity,
                     inventory.MaxStock.Value);
             }
@@ -1089,8 +1089,8 @@ public class InventoryService : IInventoryService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in warehouse {WarehouseName}", 
-                            alertInfo.ProductName, alertInfo.WarehouseName);
+                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in location {LocationName}",
+                            alertInfo.ProductName, alertInfo.LocationName);
                     }
                 }, cancellationToken);
             }

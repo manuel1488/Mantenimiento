@@ -153,9 +153,9 @@
                                     </MudText>
                                 }
                             </MudTd>
-                            <MudTd DataLabel="@L["Source"]">@contextHistory.WarehouseName</MudTd>
+                            <MudTd DataLabel="@L["Source"]">@contextHistory.LocationName</MudTd>
                             <MudTd DataLabel="@L["Destination"]">
-                                @contextHistory.DestinationWarehouseName
+                                @contextHistory.DestinationLocationName
                             </MudTd>
                             <MudTd DataLabel="@L["Quantity"]" Style="text-align: right">
                                 @contextHistory.Quantity.ToString("N2")
@@ -320,7 +320,7 @@
             };
                 
             if (_selectedWarehouse.HasValue)
-                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                queryParams.Add($"locationId={_selectedWarehouse.Value}");
                     
             if (_dateRange.Start.HasValue)
                 queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
@@ -358,7 +358,7 @@
             };
                 
             if (_selectedWarehouse.HasValue)
-                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                queryParams.Add($"locationId={_selectedWarehouse.Value}");
                     
             if (_dateRange.Start.HasValue)
                 queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");

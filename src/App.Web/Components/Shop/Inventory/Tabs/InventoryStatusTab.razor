@@ -121,7 +121,7 @@
                                     <MudText Typo="Typo.caption" Color="Color.Secondary">@L["No description"]</MudText>
                                 }
                             </MudTd>
-                            <MudTd DataLabel="@L["Warehouse"]">@contextInventory.WarehouseName</MudTd>
+                            <MudTd DataLabel="@L["Warehouse"]">@contextInventory.LocationName</MudTd>
                             <MudTd DataLabel="@L["Stock"]" Style="text-align: right">
                                 @contextInventory.Quantity.ToString("N2")
                             </MudTd>
@@ -234,7 +234,7 @@
                 page: state.Page + 1,
                 pageSize: state.PageSize,
                 searchString: _searchString,
-                warehouseId: _selectedWarehouse,
+                locationId: _selectedWarehouse,
                 hasStock: _hasStock,
                 belowMinStock: _belowMinStock,
                 aboveMaxStock: _aboveMaxStock);
@@ -311,7 +311,7 @@
                 queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
                 
             if (_selectedWarehouse.HasValue)
-                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                queryParams.Add($"locationId={_selectedWarehouse.Value}");
                 
             if (_hasStock.HasValue)
                 queryParams.Add($"hasStock={_hasStock.Value}");
@@ -349,7 +349,7 @@
                 queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
                 
             if (_selectedWarehouse.HasValue)
-                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                queryParams.Add($"locationId={_selectedWarehouse.Value}");
                 
             if (_hasStock.HasValue)
                 queryParams.Add($"hasStock={_hasStock.Value}");

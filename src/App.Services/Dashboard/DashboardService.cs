@@ -123,7 +123,7 @@ public class DashboardService : IDashboardService
             // Obtener productos con stock bajo o sin stock
             var lowStockItems = await context.Inventory
                 .Include(i => i.Product)
-                .Include(i => i.Warehouse)
+                .Include(i => i.Location)
                 .Where(i => (i.MinStock.HasValue && i.Quantity < i.MinStock.Value) || i.Quantity == 0)
                 .OrderBy(i => i.Quantity)
                 .Take(maxItems)
@@ -135,7 +135,7 @@ public class DashboardService : IDashboardService
                     CurrentStock = i.Quantity,
                     MinStock = i.MinStock,
                     AlertType = i.Quantity == 0 ? "OUT_OF_STOCK" : "LOW_STOCK",
-                    WarehouseName = i.Warehouse.Name
+                    WarehouseName = i.Location.Name
                 })
                 .ToListAsync(cancellationToken);
 

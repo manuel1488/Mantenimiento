@@ -85,7 +85,7 @@ public class ExcelExportService : IExcelExportService
             worksheet.Cells[row, 2].Value = item.ProductName;
             worksheet.Cells[row, 3].Value = item.ProductBrand;
             worksheet.Cells[row, 4].Value = item.ProductDescription;
-            worksheet.Cells[row, 5].Value = item.WarehouseName;
+            worksheet.Cells[row, 5].Value = item.LocationName;
             worksheet.Cells[row, 6].Value = item.Quantity;
             worksheet.Cells[row, 7].Value = item.MinStock;
             worksheet.Cells[row, 8].Value = item.MaxStock;
@@ -204,8 +204,8 @@ public class ExcelExportService : IExcelExportService
             }
 
             worksheet.Cells[row, 7].Value = item.MovementType;
-            worksheet.Cells[row, 8].Value = item.WarehouseName;
-            worksheet.Cells[row, 9].Value = item.DestinationWarehouseName;
+            worksheet.Cells[row, 8].Value = item.LocationName;
+            worksheet.Cells[row, 9].Value = item.DestinationLocationName;
             worksheet.Cells[row, 10].Value = item.Quantity;
             worksheet.Cells[row, 11].Value = item.PreviousBalance;
             worksheet.Cells[row, 12].Value = item.NewBalance;
@@ -275,7 +275,7 @@ public class ExcelExportService : IExcelExportService
             worksheet.Cells[row, 2].Value = item.ProductName;
             worksheet.Cells[row, 3].Value = item.ProductBrand;
             worksheet.Cells[row, 4].Value = item.ProductDescription ?? L["N/A"];
-            worksheet.Cells[row, 5].Value = item.WarehouseName;
+            worksheet.Cells[row, 5].Value = item.LocationName;
 
             // Alert type with localization
             worksheet.Cells[row, 6].Value = item.AlertType == InventoryAlertType.LowStock ? 

@@ -122,7 +122,7 @@
                                     <MudText Typo="Typo.caption">@contextAlert.ProductCode</MudText>
                                 </div>
                             </MudTd>
-                            <MudTd DataLabel="@L["Warehouse"]">@contextAlert.WarehouseName</MudTd>
+                            <MudTd DataLabel="@L["Warehouse"]">@contextAlert.LocationName</MudTd>
                             <MudTd DataLabel="@L["Alert Type"]">
                                 @if (contextAlert.AlertType == InventoryAlertType.LowStock)
                                 {
@@ -233,7 +233,7 @@
         // Apply warehouse filter if selected
         if (_selectedWarehouse.HasValue)
         {
-            filteredAlerts = filteredAlerts.Where(x => x.WarehouseId == _selectedWarehouse.Value);
+            filteredAlerts = filteredAlerts.Where(x => x.LocationId == _selectedWarehouse.Value);
         }
 
         // Apply alert type filter if selected
@@ -248,7 +248,7 @@
             filteredAlerts = filteredAlerts.Where(x =>
                 x.ProductName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
                 x.ProductCode.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                x.WarehouseName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+                x.LocationName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
         }
 
         _filteredAlerts = filteredAlerts.ToList();
@@ -283,7 +283,7 @@
             };
             
             if (_selectedWarehouse.HasValue)
-                queryParams.Add($"warehouseId={_selectedWarehouse.Value}");
+                queryParams.Add($"locationId={_selectedWarehouse.Value}");
                 
             if (!string.IsNullOrEmpty(_selectedAlertType))
                 queryParams.Add($"alertType={Uri.EscapeDataString(_selectedAlertType)}");

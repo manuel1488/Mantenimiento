@@ -10,8 +10,8 @@ namespace App.Models.Shop;
 public class InventoryMovement : BaseEntity<long>
 {
     public long ProductId { get; set; }
-    public int WarehouseId { get; set; }
-    public int? DestinationWarehouseId { get; set; }
+    public int LocationId { get; set; }
+    public int? DestinationLocationId { get; set; }
 
     [Required]
     [StringLength(20)]
@@ -78,9 +78,9 @@ public class InventoryMovement : BaseEntity<long>
     [ForeignKey(nameof(ProductId))]
     public virtual Product Product { get; set; } = null!;
 
-    [ForeignKey(nameof(WarehouseId))]
-    public virtual Warehouse Warehouse { get; set; } = null!;
+    [ForeignKey(nameof(LocationId))]
+    public virtual Location Location { get; set; } = null!;
 
-    [ForeignKey(nameof(DestinationWarehouseId))]
-    public virtual Warehouse? DestinationWarehouse { get; set; }
+    [ForeignKey(nameof(DestinationLocationId))]
+    public virtual Location? DestinationLocation { get; set; }
 }

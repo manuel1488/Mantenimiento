@@ -7,8 +7,8 @@ public class InventoryAlertDto
     public string ProductCode { get; set; } = null!;
     public string ProductBrand { get; set; } = null!;
     public string? ProductDescription { get; set; }
-    public int WarehouseId { get; set; }
-    public string WarehouseName { get; set; } = null!;
+    public int LocationId { get; set; }
+    public string LocationName { get; set; } = null!;
     public decimal CurrentStock { get; set; }
     public decimal? MinStock { get; set; }
     public decimal? MaxStock { get; set; }

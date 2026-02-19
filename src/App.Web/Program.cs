@@ -22,6 +22,7 @@ using App.Services.Identity;
 using App.Services.Images;
 using App.Services.inventory;
 using App.Services.Inventory;
+using App.Services.Locations;
 using App.Services.Mappings;
 using App.Services.Products;
 using App.Services.Reports;
@@ -559,6 +560,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IProductService, ProductService>();
     services.AddScoped<IUnitMeasureService, UnitMeasureService>();
     services.AddScoped<IUnitMeasureSeeder, UnitMeasureSeeder>();
+    services.AddScoped<ILocationService, LocationService>();
     services.AddScoped<IWarehouseService, WarehouseService>();
     services.AddScoped<IBranchService, BranchService>();
     services.AddScoped<IUserBranchService, UserBranchService>();

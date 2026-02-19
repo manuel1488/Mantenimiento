@@ -1,5 +1,6 @@
 ﻿@using CsvHelper
 @using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Branch
 @using App.Core.DTOs.Product
 @using App.Core.DTOs.Inventory
 @using App.Core.Constants
@@ -11,6 +12,7 @@
 @using OfficeOpenXml
 
 @inject IStringLocalizer<InventoryLoadTab> L
+@inject IBranchService BranchService
 @inject IWarehouseService WarehouseService
 @inject IProductService ProductService
 @inject IInventoryService InventoryService
@@ -25,7 +27,26 @@
     <Authorized>
         <MudGrid>
             <MudItem xs="12" Class="d-flex gap-4">
-                <MudSelect T="int?" Label="@L["Warehouse"]" @bind-Value="_selectedWarehouseId" Dense="true" Class="flex-1">
+                <MudSelect T="int?"
+                          Label="@L["Branch"]"
+                          Value="_selectedBranchId"
+                          ValueChanged="@(async (int? value) => await OnBranchSelected(value))"
+                          Dense="true"
+                          Class="flex-1"
+                          Clearable="true">
+                    @foreach (var branch in _branches)
+                    {
+                        <MudSelectItem T="int?" Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="int?"
+                          Label="@L["Warehouse"]"
+                          Value="_selectedWarehouseId"
+                          ValueChanged="@(async (int? value) => await OnWarehouseSelected(value))"
+                          Dense="true"
+                          Class="flex-1"
+                          Clearable="true">
                     @foreach (var warehouse in _warehouses)
                     {
                         <MudSelectItem T="int?" Value="@warehouse.Id">@warehouse.Name</MudSelectItem>
@@ -183,7 +204,9 @@
         public const string Bulk = "BULK";
     }
 
+    private List<BranchDto> _branches = new();
     private List<WarehouseDto> _warehouses = new();
+    private int? _selectedBranchId;
     private int? _selectedWarehouseId;
     private string _loadType = LoadType.Individual;
     private bool _processing;
@@ -204,7 +227,27 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadBranches();
         await LoadWarehouses();
+    }
+
+    private async Task LoadBranches()
+    {
+        try
+        {
+            var result = await BranchService.GetBranchesAsync(
+                pageSize: 100,
+                isActive: true);
+            if (result.IsSuccess)
+            {
+                _branches = result.Value.Items.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading branches");
+            Snackbar.Add(L["Error loading branches"], Severity.Error);
+        }
     }
 
     private async Task LoadWarehouses()
@@ -212,8 +255,8 @@
         try
         {
             var (_, items) = await WarehouseService.GetWarehousesAsync(
-            pageSize: 100,
-            isActive: true);
+                pageSize: 100,
+                isActive: true);
             _warehouses = items.ToList();
         }
         catch (Exception ex)
@@ -221,6 +264,19 @@
             Logger.LogError(ex, "Error loading warehouses");
             Snackbar.Add(L["Error loading warehouses"], Severity.Error);
         }
+    }
+
+    private async Task OnBranchSelected(int? branchId)
+    {
+        _selectedBranchId = branchId;
+        _selectedWarehouseId = null;
+        await LoadWarehouses();
+    }
+
+    private Task OnWarehouseSelected(int? warehouseId)
+    {
+        _selectedWarehouseId = warehouseId;
+        return Task.CompletedTask;
     }
 
     private async Task<IEnumerable<ProductDto>> SearchProducts(string value, CancellationToken token)
@@ -279,7 +335,7 @@
                 new InitialInventoryLoadDto
                 {
                     ProductId = _selectedProduct!.Id,
-                    WarehouseId = _selectedWarehouseId!.Value,
+                    LocationId = _selectedWarehouseId!.Value,
                     Quantity = _quantity,
                     MinStock = _minStock,
                     MaxStock = _maxStock,
@@ -380,7 +436,7 @@
 
         try
         {
-            var warehouse = await InventoryQueryService.GetWarehouseStockAsync(
+            var warehouse = await InventoryQueryService.GetLocationStockAsync(
             _selectedWarehouseId.Value);
 
             _loadedItems = warehouse.ProductStock
@@ -389,8 +445,9 @@
                     ProductId = p.ProductId,
                     ProductName = p.ProductName,
                     ProductCode = p.ProductCode,
-                    WarehouseId = warehouse.WarehouseId,
-                    WarehouseName = warehouse.WarehouseName,
+                    LocationId = warehouse.LocationId,
+                    LocationName = warehouse.LocationName,
+                    LocationType = warehouse.LocationType,
                     Quantity = p.Quantity,
                     MinStock = p.MinStock,
                     MaxStock = p.MaxStock,
@@ -417,7 +474,7 @@
 
             var request = new BulkInitialLoadRequestDto
             {
-                WarehouseId = _selectedWarehouseId!.Value,
+                LocationId = _selectedWarehouseId!.Value,
                 Items = new List<BulkInventoryLoadDto>()
             };
 

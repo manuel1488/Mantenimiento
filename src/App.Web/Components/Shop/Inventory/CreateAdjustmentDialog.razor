@@ -36,7 +36,7 @@
                     <!-- Almacén -->
                     <MudSelect T="int"
                             Label="@L["Warehouse"]"
-                            Value="_model.WarehouseId"
+                            Value="_model.LocationId"
                             Required="true"
                             RequiredError="@L["Warehouse is required"]"
                             ValueChanged="OnWarehouseChanged"
@@ -155,7 +155,7 @@
         try
         {
             // If no warehouse is selected, return an empty list
-            if (_model.WarehouseId == 0)
+            if (_model.LocationId == 0)
             {
                 return Array.Empty<ProductDto>();
             }
@@ -169,8 +169,8 @@
             var validProducts = new List<ProductDto>();
             foreach (var product in products)
             {
-                var stock = await InventoryQueryService.GetProductStockAsync(product.Id, _model.WarehouseId);
-                if (stock != null && stock.WarehouseStock.Any(w => w.WarehouseId == _model.WarehouseId))
+                var stock = await InventoryQueryService.GetProductStockAsync(product.Id, _model.LocationId);
+                if (stock != null && stock.LocationStock.Any(w => w.LocationId == _model.LocationId))
                 {
                     validProducts.Add(product);
                 }
@@ -187,7 +187,7 @@
 
     private void OnWarehouseChanged(int warehouseId)
     {
-        _model.WarehouseId = warehouseId;
+        _model.LocationId = warehouseId;
         // Reset product selection when warehouse changes
         _selectedProduct = null;
         _currentStock = null;
@@ -198,15 +198,15 @@
     {
         _selectedProduct = product;
         
-        if (product != null && _model.WarehouseId != 0)
+        if (product != null && _model.LocationId != 0)
         {
             try
             {
                 var stock = await InventoryQueryService.GetProductStockAsync(
                     product.Id, 
-                    _model.WarehouseId);
+                    _model.LocationId);
 
-                if (stock == null || !stock.WarehouseStock.Any(w => w.WarehouseId == _model.WarehouseId))
+                if (stock == null || !stock.LocationStock.Any(w => w.LocationId == _model.LocationId))
                 {
                     // The product is not initialized in the inventory
                     Snackbar.Add(L["Product not found in this warehouse"], Severity.Warning);
@@ -216,8 +216,8 @@
                     return;
                 }
 
-                _currentStock = stock.WarehouseStock
-                    .FirstOrDefault(w => w.WarehouseId == _model.WarehouseId)?.Quantity ?? 0;
+                _currentStock = stock.LocationStock
+                    .FirstOrDefault(w => w.LocationId == _model.LocationId)?.Quantity ?? 0;
                 _model.ProductId = product.Id;
                 
                 // Set initial new quantity to current stock

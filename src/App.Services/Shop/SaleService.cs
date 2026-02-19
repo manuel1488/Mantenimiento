@@ -232,7 +232,7 @@ public class SaleService : ISaleService
                 var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
                 {
                     ProductId = detail.ProductId,
-                    WarehouseId = warehouse.Id,
+                    LocationId = warehouse.Id,
                     Quantity = detail.Quantity,
                     MovementType = InventoryMovementType.Sale,
                     MovementSubType = InventoryMovementSubType.DirectSale,
@@ -367,7 +367,7 @@ public class SaleService : ISaleService
                 var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
                 {
                     ProductId = detail.ProductId,
-                    WarehouseId = warehouse.Id,
+                    LocationId = warehouse.Id,
                     Quantity = detail.Quantity,
                     MovementType = InventoryMovementType.Return,
                     MovementSubType = InventoryMovementSubType.DirectSale,

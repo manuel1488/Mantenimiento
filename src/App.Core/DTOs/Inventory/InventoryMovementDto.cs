@@ -10,10 +10,10 @@ public class InventoryMovementDto : AuditableDto
     public string BrandName { get; set; } = null!;
     public string? ProductDescription { get; set; }
     public string ProductCode { get; set; } = null!;
-    public int WarehouseId { get; set; }
-    public string WarehouseName { get; set; } = null!;
-    public int? DestinationWarehouseId { get; set; }
-    public string? DestinationWarehouseName { get; set; }
+    public int LocationId { get; set; }
+    public string LocationName { get; set; } = null!;
+    public int? DestinationLocationId { get; set; }
+    public string? DestinationLocationName { get; set; }
     public string MovementType { get; set; } = null!;
     public string MovementSubType { get; set; } = null!;
     public decimal Quantity { get; set; }

@@ -1,4 +1,5 @@
 ﻿using App.Core.DTOs.Shared;
+using App.Core.Enums.Shop;
 
 namespace App.Core.DTOs.Inventory;
 
@@ -10,8 +11,9 @@ public class InventoryDto : AuditableDto
     public string ProductBrand { get; set; } = null!;
     public string? ProductDescription { get; set; }
     public string ProductCode { get; set; } = null!;
-    public int WarehouseId { get; set; }
-    public string WarehouseName { get; set; } = null!;
+    public int LocationId { get; set; }
+    public string LocationName { get; set; } = null!;
+    public LocationType LocationType { get; set; }
     public decimal Quantity { get; set; }
     public decimal IndividualUnits { get; set; }
     public decimal? MinStock { get; set; }

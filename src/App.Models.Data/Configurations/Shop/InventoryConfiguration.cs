@@ -10,10 +10,11 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
 {
     public void Configure(EntityTypeBuilder<Inventory> builder)
     {
-        // Primary Key
-        builder.HasIndex(e => new { e.ProductId, e.WarehouseId }).IsUnique();
+        // Unique constraint: Product can exist only once per location
+        builder.HasIndex(e => new { e.ProductId, e.LocationId })
+            .IsUnique();
 
-        // Tocken for optimistic concurrency
+        // Token for optimistic concurrency
         builder.Property(e => e.Version)
             .IsRowVersion()
             .HasDefaultValueSql("('')")
@@ -26,19 +27,18 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
             .HasColumnType("decimal(10,2)")
             .HasDefaultValue(0);
 
-        // Resctriction for valiadate positive quantity
+        // Check constraint: Positive quantity
         builder.ToTable(t => t.HasCheckConstraint("CK_Inventory_Quantity", "`Quantity` >= 0"));
 
-        // Index for performance
+        // Relations
         builder.HasOne(e => e.Product)
             .WithMany()
             .HasForeignKey(e => e.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Relations
-        builder.HasOne(e => e.Warehouse)
+        builder.HasOne(e => e.Location)
             .WithMany()
-            .HasForeignKey(e => e.WarehouseId) 
+            .HasForeignKey(e => e.LocationId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

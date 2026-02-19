@@ -35,11 +35,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     #endregion
 
     #region Shop
-    public DbSet<Branch> Branches { get; set; } = null!;
+    public DbSet<Location> Locations { get; set; } = null!;
+    public DbSet<Branch> Branches { get; set; } = null!; // TODO: Migrate to Location with Type=Branch
+    public DbSet<Warehouse> Warehouses { get; set; } = null!; // TODO: Remove after migration to Location
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
     public DbSet<UnitMeasure> UnitMeasures { get; set; } = null!;
-    public DbSet<Warehouse> Warehouses { get; set; } = null!;
     public DbSet<Inventory> Inventory { get; set; } = null!;
     public DbSet<InventoryMovement> InventoryMovements { get; set; } = null!;
     public DbSet<Sale> Sales { get; set; } = null!;

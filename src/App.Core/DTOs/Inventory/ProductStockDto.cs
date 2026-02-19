@@ -7,5 +7,5 @@ public class ProductStockDto
     public string ProductCode { get; set; } = null!;
     public string UnitMeasureName { get; set; } = null!;
     public decimal TotalStock { get; set; }
-    public List<ProductWarehouseStockDto> WarehouseStock { get; set; } = new();
+    public List<ProductWarehouseStockDto> LocationStock { get; set; } = new();
 }

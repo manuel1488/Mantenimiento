@@ -6,9 +6,9 @@ public class CreateInventoryAdjustmentDto
 {
     [Required]
     public long ProductId { get; set; }
-    
+
     [Required]
-    public int WarehouseId { get; set; }
+    public int LocationId { get; set; }
     
     [Range(0, double.MaxValue, ErrorMessage = "New quantity must be greater than or equal to 0")]
     public decimal NewQuantity { get; set; }

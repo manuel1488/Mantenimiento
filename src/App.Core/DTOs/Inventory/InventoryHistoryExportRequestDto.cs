@@ -3,7 +3,7 @@
 public class InventoryHistoryExportRequestDto
 {
     public string? SearchString { get; set; }
-    public int? WarehouseId { get; set; }
+    public int? LocationId { get; set; }
     public string? MovementType { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }

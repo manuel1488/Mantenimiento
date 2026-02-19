@@ -47,8 +47,8 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             var query = _context.InventoryMovements
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
-                .Include(x => x.DestinationWarehouse)
+                .Include(x => x.Location)
+                .Include(x => x.DestinationLocation)
                 .Where(x => x.ProductId == productId)
                 .AsNoTracking();
 
@@ -101,15 +101,15 @@ public class InventoryHistoryService : IInventoryHistoryService
             var query = _context.InventoryMovements
                 .Include(x => x.Product)
                 .ThenInclude(x => x.UnitMeasure)
-                .Include(x => x.Warehouse)
-                .Include(x => x.DestinationWarehouse)
+                .Include(x => x.Location)
+                .Include(x => x.DestinationLocation)
                 .AsNoTracking();
 
             // Filtro de almacén
             if (warehouseId.HasValue && warehouseId.Value > 0)
             {
-                query = query.Where(x => x.WarehouseId == warehouseId.Value || 
-                    x.DestinationWarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == warehouseId.Value ||
+                    x.DestinationLocationId == warehouseId.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(movementSubType))
@@ -185,10 +185,10 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             var transferEntities = await _context.InventoryMovements
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
-                .Include(x => x.DestinationWarehouse)
-                .Where(x => (x.WarehouseId == warehouseId || 
-                            x.DestinationWarehouseId == warehouseId) &&
+                .Include(x => x.Location)
+                .Include(x => x.DestinationLocation)
+                .Where(x => (x.LocationId == warehouseId ||
+                            x.DestinationLocationId == warehouseId) &&
                         x.MovementType == InventoryMovementType.Transfer)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync(cancellationToken);
@@ -222,21 +222,21 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             var query = _context.InventoryMovements
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
-                .Include(x => x.DestinationWarehouse)
+                .Include(x => x.Location)
+                .Include(x => x.DestinationLocation)
                 .Where(x => x.MovementType == InventoryMovementType.Transfer)
                 .AsNoTracking();
 
-            // Filtro de almacén origen
+            // Filtro de ubicación origen
             if (sourceWarehouseId.HasValue && sourceWarehouseId.Value > 0)
             {
-                query = query.Where(x => x.WarehouseId == sourceWarehouseId.Value);
+                query = query.Where(x => x.LocationId == sourceWarehouseId.Value);
             }
 
-            // Filtro de almacén destino
+            // Filtro de ubicación destino
             if (destinationWarehouseId.HasValue && destinationWarehouseId.Value > 0)
             {
-                query = query.Where(x => x.DestinationWarehouseId == destinationWarehouseId.Value);
+                query = query.Where(x => x.DestinationLocationId == destinationWarehouseId.Value);
             }
 
             // Filtros de fecha
@@ -302,16 +302,16 @@ public class InventoryHistoryService : IInventoryHistoryService
             var query = _context.Inventory
                 .Include(x => x.Product)
                 .ThenInclude(x => x.UnitMeasure)
-                .Include(x => x.Warehouse)
-                .Where(x => 
-                    x.Product.IsActive && 
-                    x.Warehouse.IsActive &&
+                .Include(x => x.Location)
+                .Where(x =>
+                    x.Product.IsActive &&
+                    x.Location.IsActive &&
                     ((x.MinStock.HasValue && x.Quantity < x.MinStock.Value) ||
                     (x.MaxStock.HasValue && x.Quantity > x.MaxStock.Value)))
                 .AsNoTracking();
 
             if (warehouseId.HasValue)
-                query = query.Where(x => x.WarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == warehouseId.Value);
 
             var alertEntities = await query
                 .ToListAsync(cancellationToken);
@@ -341,12 +341,12 @@ public class InventoryHistoryService : IInventoryHistoryService
             // situaciones de stock mínimo o máximo
             var query = _context.InventoryMovements
                 .Include(x => x.Product)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .Where(x => x.CreatedAt >= startDate && x.CreatedAt <= endDate)
                 .AsNoTracking();
 
             if (warehouseId.HasValue)
-                query = query.Where(x => x.WarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == warehouseId.Value);
 
             var movements = await query.ToListAsync(cancellationToken);
 
@@ -356,10 +356,10 @@ public class InventoryHistoryService : IInventoryHistoryService
             {
                 var inventory = await _context.Inventory
                     .Include(x => x.Product)
-                    .Include(x => x.Warehouse)
-                    .FirstOrDefaultAsync(x => 
-                        x.ProductId == movement.ProductId && 
-                        x.WarehouseId == movement.WarehouseId,
+                    .Include(x => x.Location)
+                    .FirstOrDefaultAsync(x =>
+                        x.ProductId == movement.ProductId &&
+                        x.LocationId == movement.LocationId,
                         cancellationToken);
 
                 if (inventory == null) continue;
@@ -371,8 +371,8 @@ public class InventoryHistoryService : IInventoryHistoryService
                         ProductId = inventory.ProductId,
                         ProductName = inventory.Product.Name,
                         ProductCode = inventory.Product.Code,
-                        WarehouseId = inventory.WarehouseId,
-                        WarehouseName = inventory.Warehouse.Name,
+                        LocationId = inventory.LocationId,
+                        LocationName = inventory.Location.Name,
                         CurrentStock = movement.NewBalance,
                         MinStock = inventory.MinStock,
                         MaxStock = inventory.MaxStock,
@@ -387,8 +387,8 @@ public class InventoryHistoryService : IInventoryHistoryService
                         ProductId = inventory.ProductId,
                         ProductName = inventory.Product.Name,
                         ProductCode = inventory.Product.Code,
-                        WarehouseId = inventory.WarehouseId,
-                        WarehouseName = inventory.Warehouse.Name,
+                        LocationId = inventory.LocationId,
+                        LocationName = inventory.Location.Name,
                         CurrentStock = movement.NewBalance,
                         MinStock = inventory.MinStock,
                         MaxStock = inventory.MaxStock,
@@ -427,15 +427,15 @@ public class InventoryHistoryService : IInventoryHistoryService
             var query = _context.InventoryMovements
                 .Include(x => x.Product)
                 .ThenInclude(x => x.UnitMeasure)
-                .Include(x => x.Warehouse)
-                .Include(x => x.DestinationWarehouse)
+                .Include(x => x.Location)
+                .Include(x => x.DestinationLocation)
                 .AsNoTracking();
 
             // Filtro de almacén
             if (warehouseId.HasValue && warehouseId.Value > 0)
             {
-                query = query.Where(x => x.WarehouseId == warehouseId.Value || 
-                    x.DestinationWarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == warehouseId.Value ||
+                    x.DestinationLocationId == warehouseId.Value);
             }
 
             // Filtro de tipos de movimiento - Solución para evitar el error de Contains()
@@ -534,7 +534,7 @@ public class InventoryHistoryService : IInventoryHistoryService
                 .AsNoTracking()
                 .Where(x =>
                     x.Product.IsActive &&
-                    x.Warehouse.IsActive &&
+                    x.Location.IsActive &&
                     ((x.MinStock.HasValue && x.Quantity < x.MinStock.Value) ||
                      (x.MaxStock.HasValue && x.Quantity > x.MaxStock.Value)))
                 .CountAsync(cancellationToken);

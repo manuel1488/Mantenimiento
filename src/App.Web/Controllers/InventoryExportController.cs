@@ -182,8 +182,8 @@ public class InventoryExportController : ControllerBase
     /// </summary>
     [HttpGet("exportTransfers")]
     public async Task<IActionResult> ExportTransfersToExcel(
-        [FromQuery] int? sourceWarehouseId,
-        [FromQuery] int? destinationWarehouseId, 
+        [FromQuery] int? sourceLocationId,
+        [FromQuery] int? destinationLocationId, 
         [FromQuery] string? searchString,
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate,
@@ -206,7 +206,7 @@ public class InventoryExportController : ControllerBase
             var request = new InventoryHistoryExportRequestDto
             {
                 SearchString = searchString,
-                WarehouseId = sourceWarehouseId,
+                LocationId = sourceLocationId,
                 StartDate = startDate,
                 EndDate = endDate,
                 PageSize = pageSize,
@@ -234,7 +234,7 @@ public class InventoryExportController : ControllerBase
     /// </summary>
     [HttpGet("exportAlerts")]
     public async Task<IActionResult> ExportAlertsToExcel(
-        [FromQuery] int? warehouseId,
+        [FromQuery] int? locationId,
         [FromQuery] string? alertType,
         [FromQuery] string? searchString,
         [FromQuery] int pageSize,
@@ -256,7 +256,7 @@ public class InventoryExportController : ControllerBase
             var request = new InventoryExportRequestDto
             {
                 SearchString = searchString,
-                WarehouseId = warehouseId,
+                LocationId = locationId,
                 PageSize = pageSize,
                 // Usamos un campo existente para pasar alertType
                 MovementType = alertType

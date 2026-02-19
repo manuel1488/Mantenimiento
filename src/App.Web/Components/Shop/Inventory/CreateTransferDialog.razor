@@ -20,11 +20,11 @@
                     <!-- Almacén Origen -->
                     <MudSelect T="int" 
                             Label="@L["Source Warehouse"]"
-                            @bind-Value="_model.WarehouseId"
+                            @bind-Value="_model.LocationId"
                             Required="true"
                             RequiredError="@L["Source warehouse is required"]"
                             Class="mb-4">
-                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.DestinationWarehouseId))
+                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.DestinationLocationId))
                         {
                             <MudSelectItem T="int" Value="@warehouse.Id">
                                 @warehouse.Name
@@ -35,11 +35,11 @@
                     <!-- Almacén Destino -->
                     <MudSelect T="int" 
                             Label="@L["Destination Warehouse"]"
-                            @bind-Value="_model.DestinationWarehouseId"
+                            @bind-Value="_model.DestinationLocationId"
                             Required="true"
                             RequiredError="@L["Destination warehouse is required"]"
                             Class="mb-4">
-                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.WarehouseId))
+                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.LocationId))
                         {
                             <MudSelectItem T="int" Value="@warehouse.Id">
                                 @warehouse.Name
@@ -187,17 +187,17 @@
     {
         _selectedProduct = product; // Actualizar primero el producto seleccionado
         
-        if (product != null && _model.WarehouseId != 0)
+        if (product != null && _model.LocationId != 0)
         {
             try
             {
                 var stock = await InventoryQueryService.GetProductStockAsync(
-                    product.Id, 
-                    _model.WarehouseId);
+                    product.Id,
+                    _model.LocationId);
 
                 if (stock != null)
                 {
-                    _availableStock = stock.WarehouseStock
+                    _availableStock = stock.LocationStock
                         .FirstOrDefault()?.Quantity ?? 0;
                 }
 

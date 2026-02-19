@@ -29,7 +29,7 @@ public class InventoryQueryService : IInventoryQueryService
         int page = 1,
         int pageSize = 10,
         string? searchString = null,
-        int? warehouseId = null,
+        int? locationId = null,
         bool? hasStock = null,
         bool? belowMinStock = null,
         bool? aboveMaxStock = null,
@@ -43,7 +43,7 @@ public class InventoryQueryService : IInventoryQueryService
             IQueryable<App.Models.Shop.Inventory> query = _context.Inventory
                 .Include(x => x.Product)
                 .ThenInclude(p => p.UnitMeasure)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .AsNoTracking();
 
             // Apply filters
@@ -55,9 +55,9 @@ public class InventoryQueryService : IInventoryQueryService
                     x.Product.Brand.Contains(searchString));
             }
 
-            if (warehouseId.HasValue)
+            if (locationId.HasValue)
             {
-                query = query.Where(x => x.WarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == locationId.Value);
             }
 
             if (hasStock.HasValue)
@@ -85,7 +85,7 @@ public class InventoryQueryService : IInventoryQueryService
             {
                 query = query.Where(x =>
                     x.Product.IsActive &&
-                    x.Warehouse.IsActive);
+                    x.Location.IsActive);
             }
 
             // Get total count
@@ -110,7 +110,7 @@ public class InventoryQueryService : IInventoryQueryService
 
     public async Task<ProductStockDto?>  GetProductStockAsync(
         long productId,
-        int? warehouseId = null,
+        int? locationId = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -120,22 +120,22 @@ public class InventoryQueryService : IInventoryQueryService
             var query = _context.Inventory
                 .Include(x => x.Product)
                 .ThenInclude(x => x.UnitMeasure)
-                .Include(x => x.Warehouse)
+                .Include(x => x.Location)
                 .Where(x => x.ProductId == productId)
                 .AsNoTracking();
 
-            if (warehouseId.HasValue)
+            if (locationId.HasValue)
             {
-                query = query.Where(x => x.WarehouseId == warehouseId.Value);
+                query = query.Where(x => x.LocationId == locationId.Value);
             }
 
             var inventoryItems = await query.ToListAsync(cancellationToken);
-            
+
             if (!inventoryItems.Any())
                 return null;
 
             var firstItem = inventoryItems.First();
-            
+
             return new ProductStockDto
             {
                 ProductId = firstItem.ProductId,
@@ -143,10 +143,11 @@ public class InventoryQueryService : IInventoryQueryService
                 ProductCode = firstItem.Product.Code,
                 UnitMeasureName = firstItem.Product.UnitMeasure.Name,
                 TotalStock = inventoryItems.Sum(x => GetAvailableIndividualUnits(x)),
-                WarehouseStock = inventoryItems.Select(x => new ProductWarehouseStockDto
+                LocationStock = inventoryItems.Select(x => new ProductWarehouseStockDto
                 {
-                    WarehouseId = x.WarehouseId,
-                    WarehouseName = x.Warehouse.Name,
+                    LocationId = x.LocationId,
+                    LocationName = x.Location.Name,
+                    LocationType = x.Location.Type,
                     Quantity = GetAvailableIndividualUnits(x),
                     MinStock = x.MinStock.HasValue ? GetIndividualUnitsFromContainer(x.Product, x.MinStock.Value) : null,
                     MaxStock = x.MaxStock.HasValue ? GetIndividualUnitsFromContainer(x.Product, x.MaxStock.Value) : null
@@ -160,32 +161,33 @@ public class InventoryQueryService : IInventoryQueryService
         }
     }
 
-    public async Task<WarehouseStockDto> GetWarehouseStockAsync(
-        int warehouseId,
+    public async Task<WarehouseStockDto> GetLocationStockAsync(
+        int locationId,
         CancellationToken cancellationToken = default)
     {
         try
         {
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
-            var warehouse = await _context.Warehouses
+            var location = await _context.Locations
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == warehouseId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == locationId, cancellationToken);
 
-            if (warehouse == null)
-                throw new InvalidOperationException($"Warehouse not found: {warehouseId}");
+            if (location == null)
+                throw new InvalidOperationException($"Location not found: {locationId}");
 
             var inventory = await _context.Inventory
                 .Include(x => x.Product)
                 .ThenInclude(x => x.UnitMeasure)
-                .Where(x => x.WarehouseId == warehouseId)
+                .Where(x => x.LocationId == locationId)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             var dto = new WarehouseStockDto
             {
-                WarehouseId = warehouse.Id,
-                WarehouseName = warehouse.Name,
+                LocationId = location.Id,
+                LocationName = location.Name,
+                LocationType = location.Type,
                 TotalProducts = inventory.Count,
                 ProductsWithStock = inventory.Count(x => x.Quantity > 0),
                 ProductsBelowMinStock = inventory.Count(x =>
@@ -210,7 +212,7 @@ public class InventoryQueryService : IInventoryQueryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting warehouse stock for warehouse {WarehouseId}", warehouseId);
+            _logger.LogError(ex, "Error getting location stock for location {LocationId}", locationId);
             throw;
         }
     }

@@ -11,7 +11,7 @@ public interface IInventoryQueryService
         int page = 1,
         int pageSize = 10,
         string? searchString = null,
-        int? warehouseId = null,
+        int? locationId = null,
         bool? hasStock = null,
         bool? belowMinStock = null,
         bool? aboveMaxStock = null,
@@ -19,17 +19,17 @@ public interface IInventoryQueryService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets product stock across all warehouses or a specific one
+    /// Gets product stock across all locations or a specific one
     /// </summary>
     Task<ProductStockDto?> GetProductStockAsync(
         long productId,
-        int? warehouseId = null,
+        int? locationId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets warehouse stock summary
+    /// Gets location stock summary
     /// </summary>
-    Task<WarehouseStockDto> GetWarehouseStockAsync(
-        int warehouseId,
+    Task<WarehouseStockDto> GetLocationStockAsync(
+        int locationId,
         CancellationToken cancellationToken = default);
 }

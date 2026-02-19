@@ -87,7 +87,7 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
                 { "culture", CultureInfo.CurrentUICulture.Name },
                 { "alert_type", alertInfo.AlertType },
                 { "product_name", alertInfo.ProductName },
-                { "warehouse_name", alertInfo.WarehouseName },
+                { "location_name", alertInfo.LocationName },
                 { "current_stock", alertInfo.CurrentStock },
                 { "threshold", alertInfo.Threshold ?? 0 },
                 { "alert_date", DateTime.UtcNow },
@@ -131,7 +131,7 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
                         {
                             { "X-App-Alert-Type", alertInfo.AlertType },
                             { "X-App-Product", alertInfo.ProductName },
-                            { "X-App-Warehouse", alertInfo.WarehouseName }
+                            { "X-App-Location", alertInfo.LocationName }
                         }
                     };
 
@@ -156,13 +156,13 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
 
             await Task.WhenAll(emailTasks);
 
-            _logger.LogInformation("Inventory alert processing completed for {AlertType} alert on product {ProductName} in warehouse {WarehouseName}. Sent to {RecipientCount} recipients.",
-                alertInfo.AlertType, alertInfo.ProductName, alertInfo.WarehouseName, recipients.Count);
+            _logger.LogInformation("Inventory alert processing completed for {AlertType} alert on product {ProductName} in location {LocationName}. Sent to {RecipientCount} recipients.",
+                alertInfo.AlertType, alertInfo.ProductName, alertInfo.LocationName, recipients.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending inventory alerts for product {ProductName} in warehouse {WarehouseName}",
-                alertInfo.ProductName, alertInfo.WarehouseName);
+            _logger.LogError(ex, "Error sending inventory alerts for product {ProductName} in location {LocationName}",
+                alertInfo.ProductName, alertInfo.LocationName);
         }
     }
 

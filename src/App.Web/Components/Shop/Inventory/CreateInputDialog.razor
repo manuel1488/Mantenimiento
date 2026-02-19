@@ -46,7 +46,7 @@
                     <!-- Almacén -->
                     <MudSelect T="int"
                             Label="@L["Warehouse"]"
-                            @bind-Value="_model.WarehouseId"
+                            @bind-Value="_model.LocationId"
                             Required="true"
                             RequiredError="@L["Warehouse is required"]"
                             Class="mb-4">
@@ -195,13 +195,13 @@
                 : (await ProductService.GetProductsAsync(searchString: value, pageSize: 50, isActive: true)).Items;
 
             // Luego filtramos solo los que están en el almacén seleccionado
-            if (_model.WarehouseId != 0)
+            if (_model.LocationId != 0)
             {
                 var validProducts = new List<ProductDto>();
                 foreach (var product in products)
                 {
-                    var stock = await InventoryQueryService.GetProductStockAsync(product.Id, _model.WarehouseId);
-                    if (stock != null && stock.WarehouseStock.Any())
+                    var stock = await InventoryQueryService.GetProductStockAsync(product.Id, _model.LocationId);
+                    if (stock != null && stock.LocationStock.Any())
                     {
                         validProducts.Add(product);
                     }
@@ -223,15 +223,15 @@
     {
         _selectedProduct = product;
         
-        if (product != null && _model.WarehouseId != 0)
+        if (product != null && _model.LocationId != 0)
         {
             try
             {
                 var stock = await InventoryQueryService.GetProductStockAsync(
-                    product.Id, 
-                    _model.WarehouseId);
+                    product.Id,
+                    _model.LocationId);
 
-                if (stock == null || !stock.WarehouseStock.Any())
+                if (stock == null || !stock.LocationStock.Any())
                 {
                     // El producto no está inicializado en el inventario
                     Snackbar.Add(L["Product not initialized in inventory. Please initialize it first."], Severity.Warning);
@@ -241,7 +241,7 @@
                     return;
                 }
 
-                _currentStock = stock.WarehouseStock.FirstOrDefault()?.Quantity ?? 0;
+                _currentStock = stock.LocationStock.FirstOrDefault()?.Quantity ?? 0;
                 _model.ProductId = product.Id;
             }
             catch (Exception ex)

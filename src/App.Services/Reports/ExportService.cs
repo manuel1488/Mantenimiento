@@ -50,11 +50,11 @@ public class ExportService : IExportService
                     $"Export request exceeds maximum allowed records ({_exportOptions.MaxExportRecords})");
             }
 
-            var (_, items) = await _inventoryQueryService.GetInventoryStatusAsync(
+            (int _, IList<InventoryDto> items) = await _inventoryQueryService.GetInventoryStatusAsync(
                 page: 1,
                 pageSize: request.PageSize,
                 searchString: request.SearchString,
-                warehouseId: request.WarehouseId,
+                locationId: request.LocationId,
                 hasStock: request.HasStock,
                 belowMinStock: request.BelowMinStock,
                 aboveMaxStock: request.AboveMaxStock,
@@ -92,7 +92,7 @@ public class ExportService : IExportService
 
             // Usar el nuevo método paginado que aplica filtros en la base de datos
             var (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryAsync(
-                warehouseId: request.WarehouseId,
+                warehouseId: request.LocationId,
                 startDate: request.StartDate,
                 endDate: request.EndDate,
                 searchString: request.SearchString,
@@ -130,11 +130,11 @@ public class ExportService : IExportService
                     $"PDF request exceeds maximum allowed records ({_exportOptions.MaxPdfRecords})");
             }
 
-            var (_, items) = await _inventoryQueryService.GetInventoryStatusAsync(
+            (int _, IList<InventoryDto> items) = await _inventoryQueryService.GetInventoryStatusAsync(
                 page: 1,
                 pageSize: request.PageSize,
                 searchString: request.SearchString,
-                warehouseId: request.WarehouseId,
+                locationId: request.LocationId,
                 hasStock: request.HasStock,
                 belowMinStock: request.BelowMinStock,
                 aboveMaxStock: request.AboveMaxStock,
@@ -178,7 +178,7 @@ public class ExportService : IExportService
 
             // Usar el nuevo método paginado que aplica filtros en la base de datos
             var (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryAsync(
-                warehouseId: request.WarehouseId,
+                warehouseId: request.LocationId,
                 startDate: request.StartDate,
                 endDate: request.EndDate,
                 searchString: request.SearchString,
@@ -223,7 +223,7 @@ public class ExportService : IExportService
             
             // Obtener las alertas
             var alerts = await _inventoryHistoryService.GetCurrentAlertsAsync(
-                request.WarehouseId,
+                request.LocationId,
                 cancellationToken);
 
             // Aplicar filtros adicionales
@@ -234,7 +234,7 @@ public class ExportService : IExportService
                 filteredAlerts = filteredAlerts.Where(x =>
                     x.ProductName.Contains(request.SearchString, StringComparison.OrdinalIgnoreCase) ||
                     x.ProductCode.Contains(request.SearchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.WarehouseName.Contains(request.SearchString, StringComparison.OrdinalIgnoreCase));
+                    x.LocationName.Contains(request.SearchString, StringComparison.OrdinalIgnoreCase));
             }
             
             // Si se pasa un tipo de alerta específico, filtrar por ese tipo

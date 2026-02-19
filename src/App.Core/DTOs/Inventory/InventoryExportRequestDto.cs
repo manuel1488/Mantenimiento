@@ -3,7 +3,7 @@
 public class InventoryExportRequestDto
 {
     public string? SearchString { get; set; }
-    public int? WarehouseId { get; set; }
+    public int? LocationId { get; set; }
     public bool? HasStock { get; set; }
     public bool? BelowMinStock { get; set; }
     public bool? AboveMaxStock { get; set; }

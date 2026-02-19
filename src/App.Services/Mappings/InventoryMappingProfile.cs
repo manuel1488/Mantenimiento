@@ -19,8 +19,10 @@ public class InventoryMappingProfile : Profile
                 opt => opt.MapFrom(src => src.Product.Brand))
             .ForMember(dest => dest.ProductDescription,
                 opt => opt.MapFrom(src => src.Product.Description))
-            .ForMember(dest => dest.WarehouseName,
-                opt => opt.MapFrom(src => src.Warehouse.Name))
+            .ForMember(dest => dest.LocationName,
+                opt => opt.MapFrom(src => src.Location.Name))
+            .ForMember(dest => dest.LocationType,
+                opt => opt.MapFrom(src => src.Location.Type))
             .ForMember(dest => dest.UnitMeasureName,
                 opt => opt.MapFrom(src => src.Product.UnitMeasure.Name))
             .ForMember(dest => dest.ProductContent,
@@ -35,11 +37,11 @@ public class InventoryMappingProfile : Profile
                 opt => opt.MapFrom(src => src.Product.Description))
             .ForMember(dest => dest.ProductCode, 
                 opt => opt.MapFrom(src => src.Product.Code))
-            .ForMember(dest => dest.WarehouseName, 
-                opt => opt.MapFrom(src => src.Warehouse.Name))
-            .ForMember(dest => dest.DestinationWarehouseName,
-                opt => opt.MapFrom(src => src.DestinationWarehouse != null ?
-                    src.DestinationWarehouse.Name : null))
+            .ForMember(dest => dest.LocationName,
+                opt => opt.MapFrom(src => src.Location.Name))
+            .ForMember(dest => dest.DestinationLocationName,
+                opt => opt.MapFrom(src => src.DestinationLocation != null ?
+                    src.DestinationLocation.Name : null))
             .ForMember(dest => dest.UnitMeasureName,
                 opt => opt.MapFrom(src => src.Product.UnitMeasure.Name))
             .ForMember(dest => dest.ProductContent,
@@ -54,8 +56,8 @@ public class InventoryMappingProfile : Profile
                 opt => opt.MapFrom(src => src.Product.Brand))
             .ForMember(dest => dest.ProductDescription,
                 opt => opt.MapFrom(src => src.Product.Description))
-            .ForMember(dest => dest.WarehouseName,
-                opt => opt.MapFrom(src => src.Warehouse.Name))
+            .ForMember(dest => dest.LocationName,
+                opt => opt.MapFrom(src => src.Location.Name))
             .ForMember(dest => dest.UnitMeasureName, 
                 opt => opt.MapFrom(src => src.Product.UnitMeasure.Name))
             .ForMember(dest => dest.AlertType, 

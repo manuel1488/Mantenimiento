@@ -201,7 +201,7 @@ public class WarehouseService : IWarehouseService
 
             // Check if warehouse has related records
             var hasInventory = await _context.Inventory
-                .AnyAsync(x => x.WarehouseId == id);
+                .AnyAsync(x => x.LocationId == id);
 
             if (hasInventory)
             {

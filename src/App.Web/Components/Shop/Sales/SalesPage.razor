@@ -687,7 +687,7 @@ else
                 var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _warehouse?.Id);
                 if (stockInfo != null)
                 {
-                    var warehouseStock = stockInfo.WarehouseStock.FirstOrDefault();
+                    var warehouseStock = stockInfo.LocationStock.FirstOrDefault();
                     _productStockCache[product.Id] = warehouseStock?.Quantity ?? 0;
                 }
                 else
@@ -729,7 +729,7 @@ else
                 return;
             }
 
-            var warehouseStock = stockInfo.WarehouseStock.FirstOrDefault();
+            var warehouseStock = stockInfo.LocationStock.FirstOrDefault();
             if (warehouseStock == null || warehouseStock.Quantity <= 0)
             {
                 Snackbar.Add(L["Product {0} is not available in the selected warehouse", product.Name], Severity.Warning);                
