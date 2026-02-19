@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Branch" xml:space="preserve">
+    <value>Sucursal</value>
+    <comment>Branch selector label</comment>
+  </data>
   <data name="Warehouse" xml:space="preserve">
     <value>Almacén</value>
     <comment>Warehouse selector label</comment>
@@ -72,6 +76,10 @@
     <value>Estado</value>
     <comment>Status column header</comment>
   </data>
+  <data name="Error loading branches" xml:space="preserve">
+    <value>Error al cargar sucursales</value>
+    <comment>Error message for branch loading</comment>
+  </data>
   <data name="Error loading warehouses" xml:space="preserve">
     <value>Error al cargar almacenes</value>
     <comment>Error message for warehouse loading</comment>
@@ -115,5 +123,9 @@
   <data name="Import Results" xml:space="preserve">
     <value>Resultados de Importación</value>
     <comment>Import results dialog title</comment>
+  </data>
+  <data name="You don't have permission to manage initial inventory." xml:space="preserve">
+    <value>No tienes permiso para gestionar el inventario inicial.</value>
+    <comment>Authorization error message</comment>
   </data>
 </root>
