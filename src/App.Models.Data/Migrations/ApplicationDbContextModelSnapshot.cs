@@ -1486,6 +1486,9 @@ namespace App.Models.Data.Migrations
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
 
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("MaxStock")
                         .HasColumnType("decimal(15,6)");
 
@@ -1513,14 +1516,11 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("binary(8)")
                         .HasDefaultValueSql("('')");
 
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("WarehouseId");
+                    b.HasIndex("LocationId");
 
-                    b.HasIndex("ProductId", "WarehouseId")
+                    b.HasIndex("ProductId", "LocationId")
                         .IsUnique();
 
                     b.ToTable("sh_inventory", t =>
@@ -1550,7 +1550,7 @@ namespace App.Models.Data.Migrations
                     b.Property<string>("DeletedBy")
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("DestinationWarehouseId")
+                    b.Property<int?>("DestinationLocationId")
                         .HasColumnType("int");
 
                     b.Property<string>("Document")
@@ -1562,6 +1562,9 @@ namespace App.Models.Data.Migrations
 
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime(6)");
@@ -1616,25 +1619,88 @@ namespace App.Models.Data.Migrations
                     b.Property<decimal?>("UnitCost")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("DestinationWarehouseId");
+                    b.HasIndex("DestinationLocationId");
 
-                    b.HasIndex("WarehouseId");
+                    b.HasIndex("LocationId");
 
-                    b.HasIndex("ProductId", "WarehouseId", "MovementDate");
+                    b.HasIndex("ProductId", "LocationId", "MovementDate");
 
                     b.ToTable("sh_inventory_movements", t =>
                         {
-                            t.HasCheckConstraint("CK_InventoryMovement_DifferentWarehouses", "(`MovementType` != 'TRANSFER') OR (`MovementType` = 'TRANSFER' AND `WarehouseId` != `DestinationWarehouseId`)");
+                            t.HasCheckConstraint("CK_InventoryMovement_DifferentLocations", "(`MovementType` != 'TRANSFER') OR (`MovementType` = 'TRANSFER' AND `LocationId` != `DestinationLocationId`)");
 
                             t.HasCheckConstraint("CK_InventoryMovement_PositiveQuantity", "`Quantity` > 0");
 
                             t.HasCheckConstraint("CK_InventoryMovement_ValidBalance", "`NewBalance` >= 0");
                         });
+                });
+
+            modelBuilder.Entity("App.Models.Shop.Location", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("sh_locations");
                 });
 
             modelBuilder.Entity("App.Models.Shop.PartialSaleFraction", b =>
@@ -2590,29 +2656,35 @@ namespace App.Models.Data.Migrations
 
             modelBuilder.Entity("App.Models.Shop.Inventory", b =>
                 {
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("App.Models.Shop.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("App.Models.Shop.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("Location");
 
                     b.Navigation("Product");
-
-                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("App.Models.Shop.InventoryMovement", b =>
                 {
-                    b.HasOne("App.Models.Shop.Warehouse", "DestinationWarehouse")
+                    b.HasOne("App.Models.Shop.Location", "DestinationLocation")
                         .WithMany()
-                        .HasForeignKey("DestinationWarehouseId")
+                        .HasForeignKey("DestinationLocationId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("App.Models.Shop.Product", "Product")
                         .WithMany()
@@ -2620,17 +2692,11 @@ namespace App.Models.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("App.Models.Shop.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Navigation("DestinationLocation");
 
-                    b.Navigation("DestinationWarehouse");
+                    b.Navigation("Location");
 
                     b.Navigation("Product");
-
-                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("App.Models.Shop.Product", b =>
