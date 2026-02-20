@@ -367,3 +367,246 @@ Standard structure for Blazor components:
 - Replace `AlignItems="Center"` with `AlignItems="AlignItems.Center"`
 - Add `T="string"` parameter to MudChip components
 - Use `@` prefix for all icon references in Razor markup
+
+## Figma Design System Integration Rules
+
+### Technology Stack
+- **.NET 9** Blazor Server (Interactive Server rendering)
+- **MudBlazor 8.15.0** — primary UI component library (Material Design 3)
+- **C# / Razor** — component language
+- **Google Fonts** — Roboto typeface + Material Icons (CDN)
+- **Bootstrap** — available but minimal use; prefer MudBlazor grid
+
+### Design Tokens
+
+#### Color Palette
+
+| Token | Light Mode | Dark Mode | Usage |
+|-------|-----------|-----------|-------|
+| `Primary` | `#E53935` | `#E53935` | Primary actions, CTA, headers |
+| `Secondary` | `#757575` | `#757575` | Secondary text, subtle UI |
+| `Background` | `#F5F5F5` | `#121212` | Page background |
+| `Surface` | `#FFFFFF` | `#1E1E1E` | Cards, paper, drawer, AppBar |
+| `Success` | `#4CAF50` | `#4CAF50` | Confirmations, active states |
+| `Warning` | `#FF9800` | `#FF9800` | Cautions, alerts |
+| `Error` | `#E53935` | `#E53935` | Error states (same as Primary) |
+| `Info` | `#2196F3` | `#2196F3` | Informational messages |
+
+Custom CSS variables (from `wwwroot/css/admin.css`):
+```css
+--da-primary:    #E53935;
+--da-secondary:  #757575;
+--da-surface:    #FFFFFF;
+--da-background: #F5F5F5;
+```
+
+#### Typography
+
+| Style | Size | Weight | Line Height |
+|-------|------|--------|-------------|
+| H1 | 24px | 400 | 1.167 |
+| H2 | 20px | 300 | 1.2 |
+| Body1 | 14px | 400 | 1.5 |
+| Caption | 12px | 400 | 1.66 |
+| Default | 14px | 400 | 1.43 |
+
+- **Font Family**: `Roboto, sans-serif`
+- **Letter Spacing**: `.01071em` (default)
+
+#### Spacing
+MudBlazor uses a **4px base unit**. Utility classes: `pa-0` → `pa-4` (0–16px in steps of 4px).
+
+#### Border Radius
+
+| Class | Value | Usage |
+|-------|-------|-------|
+| `.da-card` | `8px` | Cards, paper components |
+| `.da-button-rounded` | `20px` | Pill-style action buttons |
+
+### Responsive Breakpoints
+
+| Breakpoint | Width | Use Case |
+|-----------|-------|----------|
+| `xs` | < 600px | Mobile phones — full width |
+| `sm` | 600–960px | Tablets — half width |
+| `md` | 960–1280px | Small desktop — drawer collapse threshold |
+| `lg` | 1280–1920px | Desktop |
+| `xl` | > 1920px | Large/ultra-wide desktop |
+
+**Drawer behavior**: Collapses to temporary overlay below `Breakpoint.Md` (960px).
+
+### Icon System
+
+**Source**: Google Material Icons loaded via CDN in `Components/AppRoot.razor`.
+
+```html
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+```
+
+**Always use the `@` prefix in Razor markup:**
+```razor
+<!-- ✅ Correct -->
+<MudButton StartIcon="@Icons.Material.Filled.Add" />
+<MudIconButton Icon="@Icons.Material.Filled.Edit" />
+
+<!-- ❌ Wrong — missing @ prefix -->
+<MudButton StartIcon="Icons.Material.Filled.Add" />
+```
+
+**Common icons used in this codebase:**
+```
+Icons.Material.Filled.Dashboard             → Dashboard
+Icons.Material.Filled.Store                 → Shop/Sales
+Icons.Material.Filled.People                → Customers
+Icons.Material.Filled.AdminPanelSettings    → Admin
+Icons.Material.Filled.Add                   → Create
+Icons.Material.Filled.Edit                  → Edit
+Icons.Material.Filled.Delete                → Delete
+Icons.Material.Filled.Search                → Search
+Icons.Material.Filled.Download              → Export
+Icons.Material.Filled.Upload                → Import
+Icons.Material.Filled.Print                 → Print
+Icons.Material.Filled.Refresh               → Reload
+Icons.Material.Filled.Warning               → Destructive confirm
+Icons.Material.Filled.CheckCircle           → Success confirm
+```
+
+### Figma Component → MudBlazor Mapping
+
+| Figma Component | MudBlazor Component | Notes |
+|-----------------|--------------------|----|
+| Button (filled) | `<MudButton Variant="Variant.Filled" Color="Color.Primary">` | |
+| Button (outlined) | `<MudButton Variant="Variant.Outlined">` | |
+| Icon button | `<MudIconButton Icon="@Icons.Material.Filled.X" />` | |
+| Text field | `<MudTextField Variant="Variant.Outlined">` | Use Outlined for forms |
+| Select / Dropdown | `<MudSelect>` or `<MudAutocomplete>` | |
+| Card / Surface | `<MudPaper Elevation="2" Class="pa-4">` | |
+| Data table | `<MudDataGrid T="Type">` | Use `SortMode`, not `Sortable` |
+| Dialog / Modal | `<MudDialog>` + `IDialogService` | |
+| Snackbar / Toast | `ISnackbar.Add(msg, Severity.X)` | Bottom-right, 5s duration |
+| Navigation drawer | `<MudDrawer>` | Responsive, clips at `Breakpoint.Md` |
+| Chips / Tags | `<MudChip T="string">` | Always specify `T="string"` |
+| Toggle | `<MudSwitch>` | |
+| Progress / Spinner | `<MudProgressCircular Indeterminate="true">` | |
+| Alert / Banner | `<MudAlert Severity="Severity.Warning">` | |
+| Avatar / Image | `<MudAvatar>` / `<MudImage>` | |
+| Divider | `<MudDivider>` | |
+| Tooltip | `<MudTooltip Text="...">` | Use lowercase `title=""` for native HTML |
+
+### Grid System
+
+**12-column responsive grid:**
+```razor
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4" lg="3">
+        <!-- xs: full width on mobile -->
+        <!-- sm: 1/2 width on tablets -->
+        <!-- md: 1/3 width on small desktop -->
+        <!-- lg: 1/4 width on desktop -->
+    </MudItem>
+</MudGrid>
+```
+
+**Container max width:** `MaxWidth.ExtraLarge` on all page-level layouts.
+
+### Asset Management
+
+| Asset Type | Location | Format | Notes |
+|-----------|---------|--------|-------|
+| Application logo | `wwwroot/images/logo.webp` | WebP | 7.9 KB |
+| Product images | `wwwroot/uploads/` | JPEG/PNG/WebP | Max 5 MB, 75% JPEG quality |
+| Thumbnails | `wwwroot/uploads/thumb_*` | JPEG | Max 300×300 px |
+| Favicon | `wwwroot/favicon.ico` / `.png` | ICO/PNG | |
+| Email templates | `wwwroot/EmailTemplates/` | HTML | Runtime generated |
+
+### Styling Approach
+
+1. **MudBlazor theme** (`Services/CurrentThemeService.cs`) — single source of truth for colors and typography.
+2. **Scoped CSS** (`.razor.css` files) — component-local overrides.
+3. **Global utility CSS** (`wwwroot/app.css`) — Blazor/form validation overrides only.
+4. **Admin utilities** (`wwwroot/css/admin.css`) — custom classes `.da-card`, `.da-button-rounded`.
+5. **No CSS Modules, Tailwind, or SCSS** — plain CSS only.
+
+**Attribute naming critical rule:**
+```razor
+<!-- ✅ HTML attributes = lowercase -->
+<MudIconButton title="Edit" tabindex="0" />
+
+<!-- ✅ Blazor/MudBlazor component properties = PascalCase -->
+<MudIconButton Color="Color.Primary" OnClick="@HandleClick" />
+```
+
+### Standard Page Component Template (from Figma screen)
+
+```razor
+@page "/area/feature"
+@using App.Core.DTOs.Domain
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IService Service
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<FeaturePage> L
+@inject IDialogService DialogService
+
+@attribute [Authorize(Policy = ApplicationClaims.Area.Permission)]
+
+<PageTitle>@L["Page Title"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Heading"]</MudText>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            @if (_loading)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else
+            {
+                <!-- Content -->
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private bool _loading = false;
+    private List<ItemDto> _items = [];
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    #endregion
+
+    #region Methods
+    private async Task LoadData()
+    {
+        _loading = true;
+        var result = await Service.GetAllAsync();
+        if (result.IsSuccess)
+            _items = result.Value;
+        else
+            Snackbar.Add(result.Error, Severity.Error);
+        _loading = false;
+    }
+    #endregion
+}
+```
+
+### MudBlazor v8 API — Known Gotchas
+
+| Wrong | Correct | Reason |
+|-------|---------|--------|
+| `Sortable="true"` | `SortMode="SortMode.Multiple"` | Property renamed in v8 |
+| `Pageable="true"` | *(removed)* — automatic | Not needed in v8 |
+| `PageSize="10"` | `RowsPerPage="10"` | Property renamed in v8 |
+| `DisableBackdropClick="true"` | `BackdropClick="false"` | API change |
+| `AlignItems="Center"` | `AlignItems="AlignItems.Center"` | Enum, not string |
+| `<MudChip>` | `<MudChip T="string">` | Generic type required |
+| `MudDialogInstance` | `IMudDialogInstance` | Use interface, not class |
+| `Title="..."` on HTML attrs | `title="..."` | MUD0002 warning |
