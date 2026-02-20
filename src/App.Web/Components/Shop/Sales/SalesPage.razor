@@ -450,9 +450,6 @@ else
     private string? _discountAuthorizerId;
     private DateTime? _discountAuthorizedAt;
 
-    // Recent sales
-    private List<SaleDto> _recentSales = new();
-
     // State
     private bool _isBusy = false;
     private decimal _taxRate = 16; // Default tax rate
@@ -461,6 +458,9 @@ else
     {
         try
         {
+            // Initialize current user service to avoid deadlock when accessing ActiveLocationId synchronously
+            await CurrentUserService.EnsureInitializedAsync();
+
             // Check company settings
             var companySettings = await CompanySettingsService.GetSettingsAsync();
             if (companySettings == null)
@@ -506,7 +506,6 @@ else
             await LoadAvailableFractions();
             await InitializeDiscountSettings();
             await LoadRoundingSettings();
-            await LoadRecentSales();
         }
         catch (Exception ex)
         {
@@ -559,12 +558,15 @@ else
     {
         try
         {
-            // Obtener la configuración de descuentos
             var settingsResult = await DiscountSettingsService.GetSettingsAsync();
             if (!settingsResult.IsSuccess)
             {
-                Logger.LogError("Error retrieving discount settings: {Error}", settingsResult.Error);
-                Snackbar.Add(L["Error loading discount settings"], Severity.Error);
+                // No settings configured — use safe defaults (no discount allowed)
+                Logger.LogWarning("Discount settings not found, using defaults: {Error}", settingsResult.Error);
+                _maxItemDiscount = 0;
+                _maxSaleDiscount = 0;
+                _needsDiscountAuthorization = false;
+                _canApplyDiscount = false;
                 return;
             }
 
@@ -573,10 +575,7 @@ else
             _maxItemDiscount = settings.MaximumPublicDiscount;
             _maxSaleDiscount = settings.MaximumPublicDiscount;
             _model.DiscountPercentage = 0;
-
-            // Verificar si cualquier descuento requiere autorización
             _needsDiscountAuthorization = settings.RequireAuthorizationForPublicDiscount;
-
             _canApplyDiscount = true;
         }
         catch (Exception ex)
@@ -601,24 +600,6 @@ else
             Logger.LogError(ex, "Error loading rounding settings");
             // Non-critical, continue without rounding
             _isRoundingEnabled = false;
-        }
-    }
-
-    private async Task LoadRecentSales()
-    {
-        try
-        {
-            var (_, sales) = await SaleService.GetSalesAsync(
-            page: 1,
-            pageSize: 5,
-            status: "Completed");
-
-            _recentSales = sales.ToList();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error loading recent sales");
-            // Don't show error to user, this is not critical
         }
     }
 
@@ -1184,9 +1165,6 @@ else
 
                 // Clear form for next sale
                 await ClearCartAndFormAsync();
-
-                // Reload recent sales
-                await LoadRecentSales();
             }
             else
             {

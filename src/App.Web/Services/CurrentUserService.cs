@@ -153,6 +153,8 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
+    public Task EnsureInitializedAsync() => InitializeActiveLocationAsync();
+
     public async Task SetActiveLocationAsync(int? locationId)
     {
         if (locationId.HasValue)
