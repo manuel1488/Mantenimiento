@@ -17,9 +17,40 @@ public class CreateLocationDto
 
     public bool IsActive { get; set; } = true;
 
+    // Structured address fields
+    [StringLength(200)]
+    public string? Street { get; set; }
+
+    [StringLength(20)]
+    public string? ExteriorNumber { get; set; }
+
+    [StringLength(20)]
+    public string? InteriorNumber { get; set; }
+
+    [StringLength(100)]
+    public string? Neighborhood { get; set; }
+
+    [StringLength(100)]
+    public string? City { get; set; }
+
+    [StringLength(100)]
+    public string? State { get; set; }
+
+    [StringLength(10)]
+    public string? PostalCode { get; set; }
+
+    [StringLength(2)]
+    public string Country { get; set; } = "MX";
+
+    // Geographic coordinates
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+
+    // Legacy address (optional, for backward compatibility)
     [StringLength(200)]
     public string? Address { get; set; }
 
+    // Contact information
     [StringLength(50)]
     public string? Phone { get; set; }
 

@@ -1,6 +1,6 @@
 using App.Core.DTOs.Location;
-using App.Models.Shop;
 using AutoMapper;
+using LocationModel = App.Models.Shop.Location;
 
 namespace App.Services.Mappings;
 
@@ -8,8 +8,8 @@ public class LocationMappingProfile : Profile
 {
     public LocationMappingProfile()
     {
-        CreateMap<Location, LocationDto>();
-        CreateMap<CreateLocationDto, Location>();
-        CreateMap<UpdateLocationDto, Location>();
+        CreateMap<LocationModel, LocationDto>();
+        CreateMap<CreateLocationDto, LocationModel>();
+        CreateMap<UpdateLocationDto, LocationModel>();
     }
 }

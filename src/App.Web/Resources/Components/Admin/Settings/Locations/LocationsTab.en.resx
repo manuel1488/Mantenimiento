@@ -45,6 +45,9 @@
   <data name="Edit Location" xml:space="preserve">
     <value>Edit Location</value>
   </data>
+  <data name="Ticket Settings" xml:space="preserve">
+    <value>Ticket Settings</value>
+  </data>
   <data name="Delete Location" xml:space="preserve">
     <value>Delete Location</value>
   </data>

@@ -70,7 +70,7 @@
                                     @L[locationContext.TypeName]
                                 </MudChip>
                             </MudTd>
-                            <MudTd DataLabel="@L["Address"]">@(locationContext.Address ?? "-")</MudTd>
+                            <MudTd DataLabel="@L["Address"]">@GetFormattedAddress(locationContext)</MudTd>
                             <MudTd DataLabel="@L["Phone"]">@(locationContext.Phone ?? "-")</MudTd>
                             <MudTd DataLabel="@L["Status"]">
                                 <MudChip T="bool" Size="Size.Small"
@@ -84,6 +84,12 @@
                                                 Size="Size.Small"
                                                 OnClick="@(() => OpenEditDialog(locationContext))"
                                                 title="@L["Edit Location"]" />
+
+                                    <MudIconButton Icon="@Icons.Material.Filled.Receipt"
+                                                Size="Size.Small"
+                                                Color="Color.Primary"
+                                                title="@L["Ticket Settings"]"
+                                                OnClick="@(() => OpenTicketSettingsDialog(locationContext))" />
 
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                 Size="Size.Small"
@@ -146,6 +152,36 @@
         }
     }
 
+    private string GetFormattedAddress(LocationDto location)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(location.Street))
+        {
+            var street = location.Street;
+            if (!string.IsNullOrWhiteSpace(location.ExteriorNumber))
+                street += $" {location.ExteriorNumber}";
+            if (!string.IsNullOrWhiteSpace(location.InteriorNumber))
+                street += $" Int. {location.InteriorNumber}";
+            parts.Add(street);
+        }
+
+        if (!string.IsNullOrWhiteSpace(location.Neighborhood))
+            parts.Add(location.Neighborhood);
+
+        if (!string.IsNullOrWhiteSpace(location.City))
+        {
+            var cityState = location.City;
+            if (!string.IsNullOrWhiteSpace(location.State))
+                cityState += $", {location.State}";
+            if (!string.IsNullOrWhiteSpace(location.PostalCode))
+                cityState += $" {location.PostalCode}";
+            parts.Add(cityState);
+        }
+
+        return parts.Any() ? string.Join(", ", parts) : "-";
+    }
+
     private async Task OnSearch(string value)
     {
         _searchString = value;
@@ -172,6 +208,29 @@
 
         var dialog = await DialogService.ShowAsync<LocationDialog>(
             L["Edit Location"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenTicketSettingsDialog(LocationDto location)
+    {
+        var parameters = new DialogParameters<LocationTicketSettingsDialog>
+        {
+            { x => x.LocationId, location.Id }
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<LocationTicketSettingsDialog>(
+            L["Ticket Settings"], parameters, options);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)

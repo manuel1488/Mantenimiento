@@ -3,6 +3,9 @@
   <data name="Ticket Configuration" xml:space="preserve">
     <value>Configuración de Tickets</value>
   </data>
+  <data name="This is the default ticket configuration. It applies to all locations that don't have specific settings." xml:space="preserve">
+    <value>Esta es la configuración de tickets predeterminada. Se aplica a todas las ubicaciones que no tienen configuración específica.</value>
+  </data>
   <data name="Company Information" xml:space="preserve">
     <value>Información de la Empresa</value>
   </data>

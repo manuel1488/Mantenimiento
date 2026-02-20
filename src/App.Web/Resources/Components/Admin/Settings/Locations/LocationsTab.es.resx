@@ -45,6 +45,9 @@
   <data name="Edit Location" xml:space="preserve">
     <value>Editar Ubicación</value>
   </data>
+  <data name="Ticket Settings" xml:space="preserve">
+    <value>Configuración de Tickets</value>
+  </data>
   <data name="Delete Location" xml:space="preserve">
     <value>Eliminar Ubicación</value>
   </data>

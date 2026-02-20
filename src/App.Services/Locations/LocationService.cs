@@ -3,11 +3,11 @@ using App.Core.DTOs.Location;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Models.Data.Contexts;
-using App.Models.Shop;
 using App.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using LocationModel = App.Models.Shop.Location;
 
 namespace App.Services.Locations;
 
@@ -47,7 +47,7 @@ public class LocationService : ILocationService
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            IQueryable<Location> query = context.Locations.AsNoTracking();
+            IQueryable<LocationModel> query = context.Locations.AsNoTracking();
 
             // Apply filters
             if (!string.IsNullOrWhiteSpace(searchString))
@@ -94,7 +94,7 @@ public class LocationService : ILocationService
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            IQueryable<Location> query = context.Locations
+            IQueryable<LocationModel> query = context.Locations
                 .AsNoTracking()
                 .Where(x => x.IsActive);
 
@@ -152,7 +152,7 @@ public class LocationService : ILocationService
                     _localizer["Location with name {0} already exists", createDto.Name]);
             }
 
-            var location = _mapper.Map<Location>(createDto);
+            var location = _mapper.Map<LocationModel>(createDto);
 
             // Set audit fields
             location.CreatedBy = _currentUserService.FullName ?? "Unknown";

@@ -22,6 +22,7 @@ using App.Services.Identity;
 using App.Services.Images;
 using App.Services.inventory;
 using App.Services.Inventory;
+using App.Services.Location;
 using App.Services.Locations;
 using App.Services.Mappings;
 using App.Services.Products;
@@ -560,6 +561,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IUnitMeasureSeeder, UnitMeasureSeeder>();
     services.AddScoped<ILocationService, LocationService>();
     services.AddScoped<IUserLocationService, UserLocationService>();
+    services.AddScoped<ILocationTicketSettingsService, LocationTicketSettingsService>();
     services.AddScoped<IInventoryQueryService, InventoryQueryService>();
     services.AddScoped<ITemplateService, TemplateService>();
     services.AddScoped<IInventoryService, InventoryService>();

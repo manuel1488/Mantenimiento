@@ -30,11 +30,80 @@
   <data name="Address" xml:space="preserve">
     <value>Address</value>
   </data>
+  <data name="Street" xml:space="preserve">
+    <value>Street</value>
+  </data>
+  <data name="Street name" xml:space="preserve">
+    <value>Street name</value>
+  </data>
+  <data name="Ext. Number" xml:space="preserve">
+    <value>Ext. Number</value>
+  </data>
+  <data name="Int. Number" xml:space="preserve">
+    <value>Int. Number</value>
+  </data>
+  <data name="123" xml:space="preserve">
+    <value>123</value>
+  </data>
+  <data name="A" xml:space="preserve">
+    <value>A</value>
+  </data>
+  <data name="Neighborhood" xml:space="preserve">
+    <value>Neighborhood</value>
+  </data>
+  <data name="Colonia" xml:space="preserve">
+    <value>Neighborhood</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Ciudad/Municipio" xml:space="preserve">
+    <value>City/Municipality</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Estado" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Postal Code</value>
+  </data>
+  <data name="12345" xml:space="preserve">
+    <value>12345</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="MX" xml:space="preserve">
+    <value>MX</value>
+  </data>
+  <data name="Geographic Coordinates (Optional)" xml:space="preserve">
+    <value>Geographic Coordinates (Optional)</value>
+  </data>
+  <data name="Latitude" xml:space="preserve">
+    <value>Latitude</value>
+  </data>
+  <data name="19.4326" xml:space="preserve">
+    <value>19.4326</value>
+  </data>
+  <data name="Longitude" xml:space="preserve">
+    <value>Longitude</value>
+  </data>
+  <data name="-99.1332" xml:space="preserve">
+    <value>-99.1332</value>
+  </data>
   <data name="Phone" xml:space="preserve">
     <value>Phone</value>
   </data>
+  <data name="(123) 456-7890" xml:space="preserve">
+    <value>(123) 456-7890</value>
+  </data>
   <data name="Email" xml:space="preserve">
     <value>Email</value>
+  </data>
+  <data name="email@example.com" xml:space="preserve">
+    <value>email@example.com</value>
   </data>
   <data name="Cancel editing" xml:space="preserve">
     <value>Cancel editing</value>

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Configuring ticket settings for" xml:space="preserve">
+    <value>Configuring ticket settings for</value>
+  </data>
+  <data name="Currently using GLOBAL ticket settings" xml:space="preserve">
+    <value>Currently using GLOBAL ticket settings</value>
+  </data>
+  <data name="Create specific settings for this location to override the global configuration." xml:space="preserve">
+    <value>Create specific settings for this location to override the global configuration.</value>
+  </data>
+  <data name="This location has SPECIFIC ticket settings (overriding global)" xml:space="preserve">
+    <value>This location has SPECIFIC ticket settings (overriding global)</value>
+  </data>
+  <data name="Copy from Global" xml:space="preserve">
+    <value>Copy from Global</value>
+  </data>
+  <data name="Printer Configuration" xml:space="preserve">
+    <value>Printer Configuration</value>
+  </data>
+  <data name="Printer Name" xml:space="preserve">
+    <value>Printer Name</value>
+  </data>
+  <data name="Default printer" xml:space="preserve">
+    <value>Default printer</value>
+  </data>
+  <data name="Paper Width (mm)" xml:space="preserve">
+    <value>Paper Width (mm)</value>
+  </data>
+  <data name="Copies" xml:space="preserve">
+    <value>Copies</value>
+  </data>
+  <data name="Auto-print on sale" xml:space="preserve">
+    <value>Auto-print on sale</value>
+  </data>
+  <data name="Content Customization" xml:space="preserve">
+    <value>Content Customization</value>
+  </data>
+  <data name="Header Text" xml:space="preserve">
+    <value>Header Text</value>
+  </data>
+  <data name="Custom header message" xml:space="preserve">
+    <value>Custom header message</value>
+  </data>
+  <data name="Footer Text" xml:space="preserve">
+    <value>Footer Text</value>
+  </data>
+  <data name="Thank you for your purchase!" xml:space="preserve">
+    <value>Thank you for your purchase!</value>
+  </data>
+  <data name="Company Logo" xml:space="preserve">
+    <value>Company Logo</value>
+  </data>
+  <data name="Upload Logo" xml:space="preserve">
+    <value>Upload Logo</value>
+  </data>
+  <data name="Remove Logo" xml:space="preserve">
+    <value>Remove Logo</value>
+  </data>
+  <data name="Logo file is too large (max 1MB)" xml:space="preserve">
+    <value>Logo file is too large (max 1MB)</value>
+  </data>
+  <data name="Only image files are allowed" xml:space="preserve">
+    <value>Only image files are allowed</value>
+  </data>
+  <data name="Error processing logo file" xml:space="preserve">
+    <value>Error processing logo file</value>
+  </data>
+  <data name="Show Logo" xml:space="preserve">
+    <value>Show Logo</value>
+  </data>
+  <data name="Fiscal Information" xml:space="preserve">
+    <value>Fiscal Information</value>
+  </data>
+  <data name="Tax ID (RFC)" xml:space="preserve">
+    <value>Tax ID (RFC)</value>
+  </data>
+  <data name="XAXX010101000" xml:space="preserve">
+    <value>XAXX010101000</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Legal Name</value>
+  </data>
+  <data name="Company legal name" xml:space="preserve">
+    <value>Company legal name</value>
+  </data>
+  <data name="Display Options" xml:space="preserve">
+    <value>Display Options</value>
+  </data>
+  <data name="Show Full Address" xml:space="preserve">
+    <value>Show Full Address</value>
+  </data>
+  <data name="Show Prices" xml:space="preserve">
+    <value>Show Prices</value>
+  </data>
+  <data name="Show Tax Breakdown" xml:space="preserve">
+    <value>Show Tax Breakdown</value>
+  </data>
+  <data name="QR Code" xml:space="preserve">
+    <value>QR Code</value>
+  </data>
+  <data name="Show QR Code" xml:space="preserve">
+    <value>Show QR Code</value>
+  </data>
+  <data name="QR Code Content" xml:space="preserve">
+    <value>QR Code Content</value>
+  </data>
+  <data name="https://mywebsite.com" xml:space="preserve">
+    <value>https://mywebsite.com</value>
+  </data>
+  <data name="Cancel editing" xml:space="preserve">
+    <value>Cancel editing</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Delete specific settings and use global" xml:space="preserve">
+    <value>Delete specific settings and use global</value>
+  </data>
+  <data name="Use Global Settings" xml:space="preserve">
+    <value>Use Global Settings</value>
+  </data>
+  <data name="Save ticket settings" xml:space="preserve">
+    <value>Save ticket settings</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Settings copied from global configuration" xml:space="preserve">
+    <value>Settings copied from global configuration</value>
+  </data>
+  <data name="Error copying global settings" xml:space="preserve">
+    <value>Error copying global settings</value>
+  </data>
+  <data name="Specific settings removed. Will use global settings." xml:space="preserve">
+    <value>Specific settings removed. Will use global settings.</value>
+  </data>
+  <data name="Error deleting settings" xml:space="preserve">
+    <value>Error deleting settings</value>
+  </data>
+  <data name="Settings updated successfully" xml:space="preserve">
+    <value>Settings updated successfully</value>
+  </data>
+  <data name="Error updating settings" xml:space="preserve">
+    <value>Error updating settings</value>
+  </data>
+  <data name="Settings created successfully" xml:space="preserve">
+    <value>Settings created successfully</value>
+  </data>
+  <data name="Error creating settings" xml:space="preserve">
+    <value>Error creating settings</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+</root>

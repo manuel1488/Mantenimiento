@@ -24,6 +24,10 @@
                     <MudPaper Class="pa-4">
                         <MudText Typo="Typo.h5" Class="mb-4">@L["Ticket Configuration"]</MudText>
 
+                        <MudAlert Severity="Severity.Info" Dense="false" Class="mb-4">
+                            @L["This is the default ticket configuration. It applies to all locations that don't have specific settings."]
+                        </MudAlert>
+
                         @if (_loading)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" />

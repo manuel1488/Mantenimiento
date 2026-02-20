@@ -36,6 +36,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     #region Shop
     public DbSet<Location> Locations { get; set; } = null!;
+    public DbSet<LocationTicketSettings> LocationTicketSettings { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
     public DbSet<UnitMeasure> UnitMeasures { get; set; } = null!;
