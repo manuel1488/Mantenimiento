@@ -1,27 +1,28 @@
-@using App.Core.DTOs.Branch
+@using App.Core.DTOs.Location
 @using App.Core.Interfaces
 
-@inject IBranchService BranchService
+@inject ILocationService LocationService
+@inject IUserLocationService UserLocationService
 @inject IStringLocalizer<BranchSelector> L
 @inject ILogger<BranchSelector> Logger
 
-@if (_branches.Any())
+@if (_locations.Any())
 {
-    <MudSelect T="int?" Value="_selectedBranchId"
-               ValueChanged="OnBranchChanged"
+    <MudSelect T="int?" Value="_selectedLocationId"
+               ValueChanged="OnLocationChanged"
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
                Class="ml-4"
                Style="min-width: 180px; max-width: 250px; color: white;"
-               Placeholder="@L["All Branches"]">
+               Placeholder="@L["All Locations"]">
         @if (_currentUserService.IsGlobalAccess)
         {
-            <MudSelectItem T="int?" Value="@((int?)null)">@L["All Branches"]</MudSelectItem>
+            <MudSelectItem T="int?" Value="@((int?)null)">@L["All Locations"]</MudSelectItem>
         }
-        @foreach (var branch in _branches)
+        @foreach (var location in _locations)
         {
-            <MudSelectItem T="int?" Value="@branch.Id">@branch.Name</MudSelectItem>
+            <MudSelectItem T="int?" Value="@location.Id">@location.Name</MudSelectItem>
         }
     </MudSelect>
 }
@@ -29,54 +30,50 @@
 @code {
     [Inject] private App.Shared.Services.ICurrentUserService _currentUserService { get; set; } = null!;
 
-    [Parameter] public EventCallback<int?> OnBranchSelected { get; set; }
+    [Parameter] public EventCallback<int?> OnLocationSelected { get; set; }
 
-    private IList<BranchDto> _branches = new List<BranchDto>();
-    private int? _selectedBranchId;
+    private IList<LocationDto> _locations = new List<LocationDto>();
+    private int? _selectedLocationId;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadBranches();
-        _selectedBranchId = _currentUserService.ActiveBranchId;
+        await LoadLocations();
+        _selectedLocationId = _currentUserService.ActiveLocationId;
     }
 
-    private async Task LoadBranches()
+    private async Task LoadLocations()
     {
         try
         {
             if (_currentUserService.IsGlobalAccess)
             {
-                var result = await BranchService.GetActiveBranchesAsync();
-                if (result.IsSuccess)
-                {
-                    _branches = result.Value;
-                }
+                _locations = await LocationService.GetActiveLocationsAsync();
             }
             else
             {
-                var result = await BranchService.GetBranchesForUserAsync(_currentUserService.UserId);
+                var result = await UserLocationService.GetUserLocationsAsync(_currentUserService.UserId);
                 if (result.IsSuccess)
                 {
-                    _branches = result.Value;
+                    _locations = result.Value;
 
-                    // Auto-select first branch if user has only one and none is selected
-                    if (_branches.Count == 1 && _currentUserService.ActiveBranchId == null)
+                    // Auto-select first location if user has only one and none is selected
+                    if (_locations.Count == 1 && _currentUserService.ActiveLocationId == null)
                     {
-                        await OnBranchChanged(_branches[0].Id);
+                        await OnLocationChanged(_locations[0].Id);
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading branches for selector");
+            Logger.LogError(ex, "Error loading locations for selector");
         }
     }
 
-    private async Task OnBranchChanged(int? branchId)
+    private async Task OnLocationChanged(int? locationId)
     {
-        _selectedBranchId = branchId;
-        await _currentUserService.SetActiveBranchAsync(branchId);
-        await OnBranchSelected.InvokeAsync(branchId);
+        _selectedLocationId = locationId;
+        await _currentUserService.SetActiveLocationAsync(locationId);
+        await OnLocationSelected.InvokeAsync(locationId);
     }
 }

@@ -1,5 +1,5 @@
 ﻿@using App.Core.DTOs.Inventory
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Constants
 @using App.Core.Interfaces
 @using App.Core.Options
@@ -10,7 +10,7 @@
 @inject IStringLocalizer<InventoryTransfersTab> L
 @inject IInventoryHistoryService InventoryHistoryService
 @inject IInventoryService InventoryService
-@inject IWarehouseService WarehouseService
+@inject ILocationService LocationService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject IDateTime DateTimeService
@@ -46,34 +46,34 @@
                     PickerVariant="PickerVariant.Dialog"
                     Style="min-width: 250px;" />
 
-                <!-- Filtro Almacén Origen -->
-                <MudSelect T="int?" 
-                        Label="@L["Source Warehouse"]"
-                        @bind-Value="_selectedSourceWarehouse"
-                        @bind-Value:after="OnSourceWarehouseFilterChange"
+                <!-- Filtro Ubicación Origen -->
+                <MudSelect T="int?"
+                        Label="@L["Source Location"]"
+                        @bind-Value="_selectedSourceLocation"
+                        @bind-Value:after="OnSourceLocationFilterChange"
                         AnchorOrigin="Origin.BottomCenter"
                         Style="min-width: 200px;">
                     <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
-                    @foreach(var warehouse in _warehouses)
+                    @foreach(var location in _locations)
                     {
-                        <MudSelectItem T="int?" Value="@warehouse.Id">
-                            @warehouse.Name
+                        <MudSelectItem T="int?" Value="@location.Id">
+                            @location.Name (@L[location.TypeName])
                         </MudSelectItem>
                     }
                 </MudSelect>
 
-                <!-- Filtro Almacén Destino -->
-                <MudSelect T="int?" 
-                        Label="@L["Destination Warehouse"]"
-                        @bind-Value="_selectedDestinationWarehouse"
-                        @bind-Value:after="OnDestinationWarehouseFilterChange"
+                <!-- Filtro Ubicación Destino -->
+                <MudSelect T="int?"
+                        Label="@L["Destination Location"]"
+                        @bind-Value="_selectedDestinationLocation"
+                        @bind-Value:after="OnDestinationLocationFilterChange"
                         AnchorOrigin="Origin.BottomCenter"
                         Style="min-width: 200px;">
                     <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
-                    @foreach(var warehouse in _warehouses)
+                    @foreach(var location in _locations)
                     {
-                        <MudSelectItem T="int?" Value="@warehouse.Id">
-                            @warehouse.Name
+                        <MudSelectItem T="int?" Value="@location.Id">
+                            @location.Name (@L[location.TypeName])
                         </MudSelectItem>
                     }
                 </MudSelect>
@@ -212,20 +212,20 @@
 
 @code {
     private MudTable<InventoryMovementDto> _table = null!;
-    private List<WarehouseDto> _warehouses = new();
+    private List<LocationDto> _locations = new();
     private TimeZoneInfo? _companyTimeZone;
     private bool _loading = true;
     private bool _initialized = false;
     private string _searchString = "";
-    private int? _selectedSourceWarehouse;
-    private int? _selectedDestinationWarehouse;
+    private int? _selectedSourceLocation;
+    private int? _selectedDestinationLocation;
     private DateRange _dateRange = new(DateTime.Today.AddDays(-30), DateTime.Today);
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            await LoadWarehouses();
+            await LoadLocations();
             _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
             _initialized = true;
         }
@@ -240,19 +240,16 @@
         }
     }
 
-    private async Task LoadWarehouses()
+    private async Task LoadLocations()
     {
         try
         {
-            var (_, items) = await WarehouseService.GetWarehousesAsync(
-                pageSize: 100, 
-                isActive: true);
-            _warehouses = items.ToList();
+            _locations = (await LocationService.GetActiveLocationsAsync()).ToList();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading warehouses");
-            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+            Logger.LogError(ex, "Error loading locations");
+            Snackbar.Add(L["Error loading locations"], Severity.Error);
         }
     }
 
@@ -272,8 +269,8 @@
             _loading = true;
 
             var (transfers, totalCount) = await InventoryHistoryService.GetTransferHistoryAsync(
-                _selectedSourceWarehouse,
-                _selectedDestinationWarehouse,
+                _selectedSourceLocation,
+                _selectedDestinationLocation,
                 _dateRange.Start,
                 _dateRange.End,
                 _searchString,
@@ -318,7 +315,7 @@
         {
             var parameters = new DialogParameters
             {
-                { "Warehouses", _warehouses }
+                { "Warehouses", _locations }
             };
 
             var dialog = await DialogService.ShowAsync<CreateTransferDialog>(
@@ -357,11 +354,11 @@
                 $"pageSize={ExportOptions.Value.MaxExportRecords}"
             };
                     
-            if (_selectedSourceWarehouse.HasValue)
-                queryParams.Add($"sourceLocationId={_selectedSourceWarehouse.Value}");
+            if (_selectedSourceLocation.HasValue)
+                queryParams.Add($"sourceLocationId={_selectedSourceLocation.Value}");
 
-            if (_selectedDestinationWarehouse.HasValue)
-                queryParams.Add($"destinationLocationId={_selectedDestinationWarehouse.Value}");
+            if (_selectedDestinationLocation.HasValue)
+                queryParams.Add($"destinationLocationId={_selectedDestinationLocation.Value}");
                         
             if (_dateRange.Start.HasValue)
                 queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
@@ -390,12 +387,12 @@
         await _table.ReloadServerData();
     }
 
-    private async Task OnSourceWarehouseFilterChange()
+    private async Task OnSourceLocationFilterChange()
     {
         await _table.ReloadServerData();
     }
 
-    private async Task OnDestinationWarehouseFilterChange()
+    private async Task OnDestinationLocationFilterChange()
     {
         await _table.ReloadServerData();
     }

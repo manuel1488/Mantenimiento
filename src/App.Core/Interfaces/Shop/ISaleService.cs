@@ -1,7 +1,6 @@
 ﻿using App.Core.Constants;
 using App.Core.Common;
 using App.Core.DTOs.Shop;
-using App.Core.DTOs.Warehouse;
 
 namespace App.Core.Interfaces.Shop;
 
@@ -19,7 +18,7 @@ public interface ISaleService
         DateTime? endDate = null,
         string? status = null,
         SaleType? saleType = null,
-        int? branchId = null);
+        int? locationId = null);
 
     /// <summary>
     /// Gets a sale by ID with all details

@@ -18,11 +18,11 @@ public class CurrentUserService : ICurrentUserService
     private readonly IServiceProvider _serviceProvider;
     private readonly IMemoryCache _cache;
     private const string USER_CACHE_KEY_PREFIX = "CurrentUser_";
-    private const string BRANCH_CACHE_KEY_PREFIX = "UserBranches_";
+    private const string LOCATION_CACHE_KEY_PREFIX = "UserLocations_";
     private static readonly TimeSpan CACHE_DURATION = TimeSpan.FromMinutes(5);
 
-    private int? _activeBranchId;
-    private bool _branchInitialized;
+    private int? _activeLocationId;
+    private bool _locationInitialized;
 
     public CurrentUserService(
         AuthenticationStateProvider? authenticationStateProvider = null,
@@ -85,15 +85,15 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
-    public int? ActiveBranchId
+    public int? ActiveLocationId
     {
         get
         {
-            if (!_branchInitialized)
+            if (!_locationInitialized)
             {
-                InitializeActiveBranchAsync().GetAwaiter().GetResult();
+                InitializeActiveLocationAsync().GetAwaiter().GetResult();
             }
-            return _activeBranchId;
+            return _activeLocationId;
         }
     }
 
@@ -118,25 +118,25 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
-    public async Task<IReadOnlyList<int>> GetAssignedBranchIdsAsync()
+    public async Task<IReadOnlyList<int>> GetAssignedLocationIdsAsync()
     {
         try
         {
             var userId = UserId;
-            var cacheKey = $"{BRANCH_CACHE_KEY_PREFIX}{userId}";
+            var cacheKey = $"{LOCATION_CACHE_KEY_PREFIX}{userId}";
 
-            var branchIds = _cache.Get<IReadOnlyList<int>>(cacheKey);
-            if (branchIds != null)
-                return branchIds;
+            var locationIds = _cache.Get<IReadOnlyList<int>>(cacheKey);
+            if (locationIds != null)
+                return locationIds;
 
             using var scope = _serviceProvider.CreateScope();
             var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
             await using var context = await contextFactory.CreateDbContextAsync();
 
-            var ids = await context.UserBranches
+            var ids = await context.UserLocations
                 .AsNoTracking()
-                .Where(ub => ub.UserId == userId)
-                .Select(ub => ub.BranchId)
+                .Where(ul => ul.UserId == userId)
+                .Select(ul => ul.LocationId)
                 .ToListAsync();
 
             _cache.Set(cacheKey, (IReadOnlyList<int>)ids, new MemoryCacheEntryOptions
@@ -153,61 +153,61 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
-    public async Task SetActiveBranchAsync(int? branchId)
+    public async Task SetActiveLocationAsync(int? locationId)
     {
-        if (branchId.HasValue)
+        if (locationId.HasValue)
         {
-            var hasAccess = await HasAccessToBranchAsync(branchId.Value);
+            var hasAccess = await HasAccessToLocationAsync(locationId.Value);
             if (!hasAccess)
                 return;
         }
 
-        _activeBranchId = branchId;
+        _activeLocationId = locationId;
     }
 
-    public async Task<bool> HasAccessToBranchAsync(int branchId)
+    public async Task<bool> HasAccessToLocationAsync(int locationId)
     {
         if (IsGlobalAccess)
             return true;
 
-        var assignedIds = await GetAssignedBranchIdsAsync();
-        return assignedIds.Contains(branchId);
+        var assignedIds = await GetAssignedLocationIdsAsync();
+        return assignedIds.Contains(locationId);
     }
 
-    private async Task InitializeActiveBranchAsync()
+    private async Task InitializeActiveLocationAsync()
     {
-        if (_branchInitialized)
+        if (_locationInitialized)
             return;
 
-        _branchInitialized = true;
+        _locationInitialized = true;
 
         try
         {
-            // Get user's assigned branches
-            var assignedBranchIds = await GetAssignedBranchIdsAsync();
+            // Get user's assigned locations
+            var assignedLocationIds = await GetAssignedLocationIdsAsync();
 
-            if (assignedBranchIds.Count == 1)
+            if (assignedLocationIds.Count == 1)
             {
-                // User has exactly one branch assigned - use it automatically
-                _activeBranchId = assignedBranchIds.First();
+                // User has exactly one location assigned - use it automatically
+                _activeLocationId = assignedLocationIds.First();
             }
-            else if (assignedBranchIds.Count > 1)
+            else if (assignedLocationIds.Count > 1)
             {
-                // User has multiple branches assigned - use the first one
-                // This can be enhanced later to remember user's last selected branch
-                _activeBranchId = assignedBranchIds.First();
+                // User has multiple locations assigned - use the first one
+                // This can be enhanced later to remember user's last selected location
+                _activeLocationId = assignedLocationIds.First();
             }
             else
             {
-                // User has no branches assigned
+                // User has no locations assigned
                 // For global access users (admins), leave it null so they can see all data
                 // For regular users, this is an error condition
-                _activeBranchId = null;
+                _activeLocationId = null;
             }
         }
         catch
         {
-            _activeBranchId = null;
+            _activeLocationId = null;
         }
     }
 

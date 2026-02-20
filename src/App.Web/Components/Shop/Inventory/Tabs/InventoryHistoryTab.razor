@@ -1,5 +1,5 @@
 ﻿@using App.Core.DTOs.Inventory
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Constants
 @using App.Core.Interfaces
 @using App.Core.Options
@@ -9,7 +9,7 @@
 
 @inject IStringLocalizer<InventoryHistoryTab> L
 @inject IInventoryHistoryService InventoryHistoryService
-@inject IWarehouseService WarehouseService
+@inject ILocationService LocationService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject ILogger<InventoryHistoryTab> Logger
@@ -32,18 +32,18 @@
                     PickerVariant="PickerVariant.Dialog"
                     Style="min-width: 300px;" />
 
-                <!-- Filtro de Almacén -->
-                <MudSelect T="int?" 
-                        Label="@L["Warehouse"]"
-                        @bind-Value="_selectedWarehouse"
-                        @bind-Value:after="OnWarehouseFilterChange"
+                <!-- Filtro de Ubicación -->
+                <MudSelect T="int?"
+                        Label="@L["Location"]"
+                        @bind-Value="_selectedLocation"
+                        @bind-Value:after="OnLocationFilterChange"
                         AnchorOrigin="Origin.BottomCenter"
                         Style="min-width: 200px;">
-                    <MudSelectItem T="int?" Value="@null">@L["All Warehouses"]</MudSelectItem>
-                    @foreach(var warehouse in _warehouses)
+                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
+                    @foreach(var location in _locations)
                     {
-                        <MudSelectItem T="int?" Value="@warehouse.Id">
-                            @warehouse.Name
+                        <MudSelectItem T="int?" Value="@location.Id">
+                            @location.Name (@L[location.TypeName])
                         </MudSelectItem>
                     }
                 </MudSelect>
@@ -215,36 +215,33 @@
 
 @code {
     private MudTable<InventoryMovementDto> _table = null!;
-    private List<WarehouseDto> _warehouses = new();
+    private List<LocationDto> _locations = new();
     private TimeZoneInfo? _companyTimeZone;
     private bool _loading = true;
     private bool _initialized = false;
     private string _searchString = "";
-    private int? _selectedWarehouse;
+    private int? _selectedLocation;
     private string? _selectedMovementType;
     private DateRange _dateRange = new(DateTime.Today.AddDays(-30), DateTime.Today);
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadWarehouses();
+        await LoadLocations();
         _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
         _initialized = true;
         _loading = false;
     }
 
-    private async Task LoadWarehouses()
+    private async Task LoadLocations()
     {
         try
         {
-            var (_, items) = await WarehouseService.GetWarehousesAsync(
-                pageSize: 100, 
-                isActive: true);
-            _warehouses = items.ToList();
+            _locations = (await LocationService.GetActiveLocationsAsync()).ToList();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading warehouses");
-            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+            Logger.LogError(ex, "Error loading locations");
+            Snackbar.Add(L["Error loading locations"], Severity.Error);
         }
     }
 
@@ -264,7 +261,7 @@
             _loading = true;
 
             var (movements, totalCount) = await InventoryHistoryService.GetWarehouseMovementHistoryAsync(
-                _selectedWarehouse,
+                _selectedLocation,
                 _dateRange.Start,
                 _dateRange.End,
                 _searchString,
@@ -312,15 +309,15 @@
     private void ExportToExcel()
     {
         try
-        {            
+        {
             // Build query parameters
             var queryParams = new List<string>
             {
                 $"pageSize={ExportOptions.Value.MaxExportRecords}"
             };
-                
-            if (_selectedWarehouse.HasValue)
-                queryParams.Add($"locationId={_selectedWarehouse.Value}");
+
+            if (_selectedLocation.HasValue)
+                queryParams.Add($"locationId={_selectedLocation.Value}");
                     
             if (_dateRange.Start.HasValue)
                 queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
@@ -356,9 +353,9 @@
             {
                 $"pageSize={ExportOptions.Value.MaxPdfRecords}"
             };
-                
-            if (_selectedWarehouse.HasValue)
-                queryParams.Add($"locationId={_selectedWarehouse.Value}");
+
+            if (_selectedLocation.HasValue)
+                queryParams.Add($"locationId={_selectedLocation.Value}");
                     
             if (_dateRange.Start.HasValue)
                 queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
@@ -390,7 +387,7 @@
         await _table.ReloadServerData();
     }
 
-    private async Task OnWarehouseFilterChange()
+    private async Task OnLocationFilterChange()
     {
         await _table.ReloadServerData();
     }

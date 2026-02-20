@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260219024816_Initial")]
+    [Migration("20260220031451_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -550,19 +550,19 @@ namespace App.Models.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("App.Models.Identity.UserBranch", b =>
+            modelBuilder.Entity("App.Models.Identity.UserLocation", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<int>("BranchId")
+                    b.Property<int>("LocationId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "BranchId");
+                    b.HasKey("UserId", "LocationId");
 
-                    b.HasIndex("BranchId");
+                    b.HasIndex("LocationId");
 
-                    b.ToTable("id_user_branches");
+                    b.ToTable("id_user_locations");
                 });
 
             modelBuilder.Entity("App.Models.Settings.CompanySettings", b =>
@@ -1379,89 +1379,6 @@ namespace App.Models.Data.Migrations
                     b.ToTable("shd_customers");
                 });
 
-            modelBuilder.Entity("App.Models.Shop.Branch", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Country")
-                        .HasMaxLength(3)
-                        .HasColumnType("varchar(3)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true);
-
-                    b.Property<uint>("IsDeleted")
-                        .HasColumnType("int unsigned");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("State")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Street")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("ZipCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name");
-
-                    b.HasIndex("Name", "IsDeleted")
-                        .IsUnique()
-                        .HasFilter("IsDeleted = 0");
-
-                    b.ToTable("sh_branches");
-                });
-
             modelBuilder.Entity("App.Models.Shop.Inventory", b =>
                 {
                     b.Property<long>("Id")
@@ -2096,9 +2013,6 @@ namespace App.Models.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int?>("BranchId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2138,6 +2052,9 @@ namespace App.Models.Data.Migrations
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
 
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2174,9 +2091,9 @@ namespace App.Models.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("SaleDate");
 
@@ -2344,60 +2261,6 @@ namespace App.Models.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("sh_unit_measures");
-                });
-
-            modelBuilder.Entity("App.Models.Shop.Warehouse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BranchId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<uint>("IsDeleted")
-                        .HasColumnType("int unsigned");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("Name");
-
-                    b.ToTable("sh_warehouses");
                 });
 
             modelBuilder.Entity("App.Models.Shop.WholesaleTier", b =>
@@ -2628,21 +2491,21 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Invoice");
                 });
 
-            modelBuilder.Entity("App.Models.Identity.UserBranch", b =>
+            modelBuilder.Entity("App.Models.Identity.UserLocation", b =>
                 {
-                    b.HasOne("App.Models.Shop.Branch", "Branch")
+                    b.HasOne("App.Models.Shop.Location", "Location")
                         .WithMany()
-                        .HasForeignKey("BranchId")
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("App.Models.Identity.ApplicationUser", "User")
-                        .WithMany("UserBranches")
+                        .WithMany("UserLocations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Branch");
+                    b.Navigation("Location");
 
                     b.Navigation("User");
                 });
@@ -2771,20 +2634,20 @@ namespace App.Models.Data.Migrations
 
             modelBuilder.Entity("App.Models.Shop.Sale", b =>
                 {
-                    b.HasOne("App.Models.Shop.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("App.Models.Shared.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Branch");
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("App.Models.Shop.SaleDetail", b =>
@@ -2811,16 +2674,6 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Sale");
-                });
-
-            modelBuilder.Entity("App.Models.Shop.Warehouse", b =>
-                {
-                    b.HasOne("App.Models.Shop.Branch", "Branch")
-                        .WithMany("Warehouses")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2881,12 +2734,7 @@ namespace App.Models.Data.Migrations
 
             modelBuilder.Entity("App.Models.Identity.ApplicationUser", b =>
                 {
-                    b.Navigation("UserBranches");
-                });
-
-            modelBuilder.Entity("App.Models.Shop.Branch", b =>
-                {
-                    b.Navigation("Warehouses");
+                    b.Navigation("UserLocations");
                 });
 
             modelBuilder.Entity("App.Models.Shop.PartialSaleFraction", b =>

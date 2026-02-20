@@ -1,5 +1,5 @@
 ﻿@using App.Core.DTOs.Inventory
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Constants
 @using App.Core.Interfaces
 @using App.Core.Options
@@ -9,7 +9,7 @@
 
 @inject IStringLocalizer<InventoryAlertsTab> L
 @inject IInventoryHistoryService InventoryHistoryService
-@inject IWarehouseService WarehouseService
+@inject ILocationService LocationService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject ICompanySettingsService CompanySettingsService
@@ -22,16 +22,16 @@
     <Authorized>
         <MudGrid>
             <MudItem xs="12" Class="d-flex gap-4 flex-grow-1">
-                <!-- Filtro de Almacén -->
+                <!-- Filtro de Ubicación -->
                 <MudSelect T="int?"
-                        Label="@L["Warehouse"]"
-                        @bind-Value="_selectedWarehouse"
+                        Label="@L["Location"]"
+                        @bind-Value="_selectedLocation"
                         AnchorOrigin="Origin.BottomCenter"
                         Style="min-width: 200px;">
-                    <MudSelectItem T="int?" Value="@null">@L["All Warehouses"]</MudSelectItem>
-                    @foreach (var warehouse in _warehouses)
+                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
+                    @foreach (var location in _locations)
                     {
-                        <MudSelectItem T="int?" Value="@warehouse.Id">@warehouse.Name</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@location.Id">@location.Name (@L[location.TypeName])</MudSelectItem>
                     }
                 </MudSelect>
 
@@ -108,7 +108,7 @@
                             Elevation="0">
                         <HeaderContent>
                             <MudTh>@L["Product"]</MudTh>
-                            <MudTh>@L["Warehouse"]</MudTh>
+                            <MudTh>@L["Location"]</MudTh>
                             <MudTh>@L["Alert Type"]</MudTh>
                             <MudTh Style="text-align: right">@L["Current Stock"]</MudTh>
                             <MudTh Style="text-align: right">@L["Min Stock"]</MudTh>
@@ -122,7 +122,7 @@
                                     <MudText Typo="Typo.caption">@contextAlert.ProductCode</MudText>
                                 </div>
                             </MudTd>
-                            <MudTd DataLabel="@L["Warehouse"]">@contextAlert.LocationName</MudTd>
+                            <MudTd DataLabel="@L["Location"]">@contextAlert.LocationName</MudTd>
                             <MudTd DataLabel="@L["Alert Type"]">
                                 @if (contextAlert.AlertType == InventoryAlertType.LowStock)
                                 {
@@ -172,37 +172,34 @@
 @code {
     [Parameter]
     public EventCallback<int> AlertsCountChanged { get; set; }
-    
-    private List<WarehouseDto> _warehouses = new();
+
+    private List<LocationDto> _locations = new();
     private List<InventoryAlertDto> _currentAlerts = new();
     private List<InventoryAlertDto> _filteredAlerts = new();
     private bool _loading = true;
     private string _searchString = "";
-    private int? _selectedWarehouse;
+    private int? _selectedLocation;
     private string? _selectedAlertType;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadWarehouses();
+        await LoadLocations();
         await LoadCurrentAlerts();
-        
+
         // Notify parent component that alerts count has changed
         await InvokeAsync(() => AlertsCountChanged.InvokeAsync(_currentAlerts.Count));
     }
 
-    private async Task LoadWarehouses()
+    private async Task LoadLocations()
     {
         try
         {
-            var (_, items) = await WarehouseService.GetWarehousesAsync(
-                pageSize: 100,
-                isActive: true);
-            _warehouses = items.ToList();
+            _locations = (await LocationService.GetActiveLocationsAsync()).ToList();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading warehouses");
-            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+            Logger.LogError(ex, "Error loading locations");
+            Snackbar.Add(L["Error loading locations"], Severity.Error);
         }
     }
 
@@ -211,7 +208,7 @@
         try
         {
             _loading = true;
-            _currentAlerts = (await InventoryHistoryService.GetCurrentAlertsAsync(_selectedWarehouse)).ToList();
+            _currentAlerts = (await InventoryHistoryService.GetCurrentAlertsAsync(_selectedLocation)).ToList();
             ApplyFilters();
         }
         catch (Exception ex)
@@ -230,10 +227,10 @@
     {
         var filteredAlerts = _currentAlerts.AsEnumerable();
 
-        // Apply warehouse filter if selected
-        if (_selectedWarehouse.HasValue)
+        // Apply location filter if selected
+        if (_selectedLocation.HasValue)
         {
-            filteredAlerts = filteredAlerts.Where(x => x.LocationId == _selectedWarehouse.Value);
+            filteredAlerts = filteredAlerts.Where(x => x.LocationId == _selectedLocation.Value);
         }
 
         // Apply alert type filter if selected
@@ -282,8 +279,8 @@
                 $"pageSize={ExportOptions.Value.MaxExportRecords}"
             };
             
-            if (_selectedWarehouse.HasValue)
-                queryParams.Add($"locationId={_selectedWarehouse.Value}");
+            if (_selectedLocation.HasValue)
+                queryParams.Add($"locationId={_selectedLocation.Value}");
                 
             if (!string.IsNullOrEmpty(_selectedAlertType))
                 queryParams.Add($"alertType={Uri.EscapeDataString(_selectedAlertType)}");
@@ -312,9 +309,9 @@
         ApplyFilters();
     }
 
-    private async Task OnWarehouseFilterChanged(int? value)
+    private async Task OnLocationFilterChanged(int? value)
     {
-        _selectedWarehouse = value;
+        _selectedLocation = value;
         await LoadCurrentAlerts();
     }
 

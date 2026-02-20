@@ -4,12 +4,13 @@
 @using MudBlazor.Services
 @using App.Core.Constants
 
-@using App.Core.DTOs.Branch
+@using App.Core.DTOs.Location
 @using App.Core.Interfaces
 @inject IStringLocalizer<UserDialog> L
 @inject IIdentityService IdentityService
 @inject IRoleService RoleService
-@inject IBranchService BranchService
+@inject ILocationService LocationService
+@inject IUserLocationService UserLocationService
 @inject IDialogService DialogService
 @inject RoleTranslationService RoleTranslationService
 
@@ -158,23 +159,23 @@
                         </MudItem>
                     }
 
-                    <!-- Branch Assignment -->
-                    @if (_branches.Any())
+                    <!-- Location Assignment -->
+                    @if (_locations.Any())
                     {
                         <MudItem xs="12" Class="mt-3">
-                            <MudSelect T="int" Label="@L["Assigned Branches"]"
+                            <MudSelect T="int" Label="@L["Assigned Locations"]"
                                       MultiSelection="true"
-                                      @bind-SelectedValues="Model.BranchIds"
-                                      MultiSelectionTextFunc="@(new Func<List<string>, string>(GetBranchSelectionText))"
+                                      @bind-SelectedValues="Model.LocationIds"
+                                      MultiSelectionTextFunc="@(new Func<List<string>, string>(GetLocationSelectionText))"
                                       AnchorOrigin="Origin.BottomCenter"
-                                      AdornmentIcon="@Icons.Material.Filled.Business">
-                                @foreach (var branch in _branches)
+                                      AdornmentIcon="@Icons.Material.Filled.LocationOn">
+                                @foreach (var location in _locations)
                                 {
-                                    <MudSelectItem T="int" Value="@branch.Id">@branch.Name</MudSelectItem>
+                                    <MudSelectItem T="int" Value="@location.Id">@location.Name</MudSelectItem>
                                 }
                             </MudSelect>
                             <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary">
-                                @L["Select the branches this user can access. Leave empty for no branch restriction."]
+                                @L["Select the locations this user can access. Leave empty for no location restriction."]
                             </MudText>
                         </MudItem>
                     }
@@ -202,7 +203,7 @@
     private string _originalRole = string.Empty;
     private bool _roleChanged = false;
     private Dictionary<string, IEnumerable<string>> _rolePermissions = new();
-    private IList<BranchDto> _branches = new List<BranchDto>();
+    private IList<LocationDto> _locations = new List<LocationDto>();
     
     // Password visibility variables
     private bool _passwordVisible = false;
@@ -217,10 +218,8 @@
         // Cargar los permisos por rol para referencia
         await LoadRolePermissionsAsync();
 
-        // Cargar sucursales activas
-        var branchResult = await BranchService.GetActiveBranchesAsync();
-        if (branchResult.IsSuccess)
-            _branches = branchResult.Value!;
+        // Cargar ubicaciones activas
+        _locations = await LocationService.GetActiveLocationsAsync();
 
         // Guardar el rol original para comparación
         _originalRole = Model.Role;
@@ -261,13 +260,13 @@
         }
     }
 
-    private string GetBranchSelectionText(List<string> selectedValues)
+    private string GetLocationSelectionText(List<string> selectedValues)
     {
         if (!selectedValues.Any())
-            return L["No branches assigned"];
+            return L["No locations assigned"];
 
         var names = selectedValues
-            .Select(v => int.TryParse(v, out var id) ? _branches.FirstOrDefault(b => b.Id == id)?.Name : null)
+            .Select(v => int.TryParse(v, out var id) ? _locations.FirstOrDefault(l => l.Id == id)?.Name : null)
             .Where(n => n != null);
         return string.Join(", ", names);
     }

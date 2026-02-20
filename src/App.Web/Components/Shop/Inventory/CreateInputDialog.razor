@@ -1,6 +1,6 @@
 ﻿@using App.Core.DTOs.Inventory
 @using App.Core.DTOs.Product
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Constants
 @using App.Core.Interfaces
 @using App.Web.Services
@@ -45,15 +45,15 @@
 
                     <!-- Almacén -->
                     <MudSelect T="int"
-                            Label="@L["Warehouse"]"
+                            Label="@L["Location"]"
                             @bind-Value="_model.LocationId"
                             Required="true"
-                            RequiredError="@L["Warehouse is required"]"
+                            RequiredError="@L["Location is required"]"
                             Class="mb-4">
-                        @foreach (var warehouse in Warehouses)
+                        @foreach (var location in Locations)
                         {
-                            <MudSelectItem Value="@warehouse.Id">
-                                @warehouse.Name
+                            <MudSelectItem Value="@location.Id">
+                                @location.Name
                             </MudSelectItem>
                         }
                     </MudSelect>
@@ -173,7 +173,7 @@
     IMudDialogInstance MudDialog { get; set; } = null!;
     
     [Parameter] 
-    public List<WarehouseDto> Warehouses { get; set; } = new();
+    public List<LocationDto> Locations { get; set; } = new();
 
     private MudForm _form = null!;
     private CreateInventoryMovementDto _model = new() 

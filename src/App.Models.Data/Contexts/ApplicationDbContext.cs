@@ -36,8 +36,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     #region Shop
     public DbSet<Location> Locations { get; set; } = null!;
-    public DbSet<Branch> Branches { get; set; } = null!; // TODO: Migrate to Location with Type=Branch
-    public DbSet<Warehouse> Warehouses { get; set; } = null!; // TODO: Remove after migration to Location
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
     public DbSet<UnitMeasure> UnitMeasures { get; set; } = null!;
@@ -53,7 +51,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     #endregion
 
     #region Identity Extensions
-    public DbSet<UserBranch> UserBranches { get; set; } = null!;
+    public DbSet<UserLocation> UserLocations { get; set; } = null!;
     #endregion
 
     #region Billing México

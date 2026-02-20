@@ -1,24 +1,36 @@
-@using App.Core.DTOs.Branch
+@using App.Core.DTOs.Location
 @using App.Core.Interfaces
+@using App.Core.Enums.Shop
 @using App.Web.Components.Shared.Dialogs
 
-@inject IBranchService BranchService
+@inject ILocationService LocationService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
-@inject IStringLocalizer<BranchesTab> L
-@inject ILogger<BranchesTab> Logger
+@inject IStringLocalizer<LocationsTab> L
+@inject ILogger<LocationsTab> Logger
 
 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBranchSettings">
     <Authorized>
         <MudPaper Class="pa-4" Elevation="0">
             <MudGrid>
                 <MudItem xs="12" Class="d-flex justify-space-between align-center">
-                    <MudText Typo="Typo.h6">@L["Branches"]</MudText>
+                    <MudText Typo="Typo.h6">@L["Locations"]</MudText>
 
                     <div class="d-flex gap-4">
+                        <MudSelect T="LocationType?"
+                                  @bind-Value="_filterType"
+                                  Label="@L["Type"]"
+                                  Style="width: 150px"
+                                  Dense="true"
+                                  Clearable="true">
+                            <MudSelectItem T="LocationType?" Value="@null">@L["All"]</MudSelectItem>
+                            <MudSelectItem T="LocationType?" Value="@LocationType.Branch">@L["Branch"]</MudSelectItem>
+                            <MudSelectItem T="LocationType?" Value="@LocationType.Warehouse">@L["Warehouse"]</MudSelectItem>
+                        </MudSelect>
+
                         <MudTextField T="string"
                                     ValueChanged="@(s => OnSearch(s))"
-                                    Placeholder="@L["Search branches"]"
+                                    Placeholder="@L["Search locations"]"
                                     Adornment="Adornment.Start"
                                     AdornmentIcon="@Icons.Material.Filled.Search"
                                     Style="width: 300px" />
@@ -29,14 +41,14 @@
                                     StartIcon="@Icons.Material.Filled.Add"
                                     OnClick="OpenCreateDialog"
                                     Class="da-button-rounded">
-                                @L["New Branch"]
+                                @L["New Location"]
                             </MudButton>
                         </AuthorizeView>
                     </div>
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudTable T="BranchDto"
+                    <MudTable T="LocationDto"
                             ServerData="@LoadServerData"
                             Dense="true"
                             Hover="true"
@@ -44,33 +56,40 @@
                             @ref="_table">
                         <HeaderContent>
                             <MudTh>@L["Name"]</MudTh>
-                            <MudTh>@L["City"]</MudTh>
+                            <MudTh>@L["Type"]</MudTh>
+                            <MudTh>@L["Address"]</MudTh>
                             <MudTh>@L["Phone"]</MudTh>
                             <MudTh>@L["Status"]</MudTh>
                             <MudTh Style="width: 100px">@L["Actions"]</MudTh>
                         </HeaderContent>
-                        <RowTemplate Context="branchContext">
-                            <MudTd DataLabel="@L["Name"]">@branchContext.Name</MudTd>
-                            <MudTd DataLabel="@L["City"]">@(branchContext.City ?? "-")</MudTd>
-                            <MudTd DataLabel="@L["Phone"]">@(branchContext.Phone ?? "-")</MudTd>
+                        <RowTemplate Context="locationContext">
+                            <MudTd DataLabel="@L["Name"]">@locationContext.Name</MudTd>
+                            <MudTd DataLabel="@L["Type"]">
+                                <MudChip T="string" Size="Size.Small"
+                                        Color="@(locationContext.Type == LocationType.Branch ? Color.Primary : Color.Secondary)">
+                                    @L[locationContext.TypeName]
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="@L["Address"]">@(locationContext.Address ?? "-")</MudTd>
+                            <MudTd DataLabel="@L["Phone"]">@(locationContext.Phone ?? "-")</MudTd>
                             <MudTd DataLabel="@L["Status"]">
                                 <MudChip T="bool" Size="Size.Small"
-                                        Color="@(branchContext.IsActive ? Color.Success : Color.Error)">
-                                    @(branchContext.IsActive ? L["Active"] : L["Inactive"])
+                                        Color="@(locationContext.IsActive ? Color.Success : Color.Error)">
+                                    @(locationContext.IsActive ? L["Active"] : L["Inactive"])
                                 </MudChip>
                             </MudTd>
                             <MudTd>
                                 <AuthorizeView Context="authActions" Policy="@ApplicationClaims.Admin.ManageBranchSettings">
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                 Size="Size.Small"
-                                                OnClick="@(() => OpenEditDialog(branchContext))"
-                                                title="@L["Edit Branch"]" />
+                                                OnClick="@(() => OpenEditDialog(locationContext))"
+                                                title="@L["Edit Location"]" />
 
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                 Size="Size.Small"
                                                 Color="Color.Error"
-                                                title="@L["Delete Branch"]"
-                                                OnClick="@(() => OpenDeleteDialog(branchContext))" />
+                                                title="@L["Delete Location"]"
+                                                OnClick="@(() => OpenDeleteDialog(locationContext))" />
                                 </AuthorizeView>
                             </MudTd>
                         </RowTemplate>
@@ -78,7 +97,7 @@
                             <MudTablePager />
                         </PagerContent>
                         <NoRecordsContent>
-                            <MudText>@L["No branches found"]</MudText>
+                            <MudText>@L["No locations found"]</MudText>
                         </NoRecordsContent>
                     </MudTable>
                 </MudItem>
@@ -93,37 +112,33 @@
 </AuthorizeView>
 
 @code {
-    private MudTable<BranchDto> _table = null!;
+    private MudTable<LocationDto> _table = null!;
     private bool _loading;
     private string _searchString = "";
+    private LocationType? _filterType;
 
-    private async Task<TableData<BranchDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<LocationDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
         try
         {
             _loading = true;
-            var result = await BranchService.GetBranchesAsync(
+            var (totalCount, items) = await LocationService.GetLocationsAsync(
                 page: state.Page + 1,
                 pageSize: state.PageSize,
-                searchString: _searchString);
+                searchString: _searchString,
+                type: _filterType);
 
-            if (result.IsSuccess)
+            return new TableData<LocationDto>()
             {
-                return new TableData<BranchDto>()
-                {
-                    TotalItems = result.Value.TotalCount,
-                    Items = result.Value.Items
-                };
-            }
-
-            Snackbar.Add(result.Error ?? L["Error loading branches"], Severity.Error);
-            return new TableData<BranchDto>() { TotalItems = 0, Items = Enumerable.Empty<BranchDto>() };
+                TotalItems = totalCount,
+                Items = items
+            };
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading branches");
-            Snackbar.Add(L["Error loading branches"], Severity.Error);
-            return new TableData<BranchDto>() { TotalItems = 0, Items = Enumerable.Empty<BranchDto>() };
+            Logger.LogError(ex, "Error loading locations");
+            Snackbar.Add(L["Error loading locations"], Severity.Error);
+            return new TableData<LocationDto>() { TotalItems = 0, Items = Enumerable.Empty<LocationDto>() };
         }
         finally
         {
@@ -139,7 +154,7 @@
 
     private async Task OpenCreateDialog()
     {
-        var dialog = await DialogService.ShowAsync<BranchDialog>(L["New Branch"]);
+        var dialog = await DialogService.ShowAsync<LocationDialog>(L["New Location"]);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -148,15 +163,15 @@
         }
     }
 
-    private async Task OpenEditDialog(BranchDto branch)
+    private async Task OpenEditDialog(LocationDto location)
     {
-        var parameters = new DialogParameters<BranchDialog>
+        var parameters = new DialogParameters<LocationDialog>
         {
-            { x => x.BranchId, branch.Id }
+            { x => x.LocationId, location.Id }
         };
 
-        var dialog = await DialogService.ShowAsync<BranchDialog>(
-            L["Edit Branch"], parameters);
+        var dialog = await DialogService.ShowAsync<LocationDialog>(
+            L["Edit Location"], parameters);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
@@ -165,42 +180,42 @@
         }
     }
 
-    private async Task OpenDeleteDialog(BranchDto branch)
+    private async Task OpenDeleteDialog(LocationDto location)
     {
         var parameters = new DialogParameters
         {
-            { nameof(ConfirmDialog.Title), L["Delete Branch"].ToString() },
-            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete branch:"].ToString() },
+            { nameof(ConfirmDialog.Title), L["Delete Location"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete location:"].ToString() },
             { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() },
-            { nameof(ConfirmDialog.HighlightedText), branch.Name },
+            { nameof(ConfirmDialog.HighlightedText), location.Name },
             { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
             { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
             { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete }
         };
 
         var dialog = await DialogService.ShowAsync<ConfirmDialog>(
-            L["Delete Branch"], parameters);
+            L["Delete Location"], parameters);
         var result = await dialog.Result;
 
         if (result is not null && !result.Canceled)
         {
             try
             {
-                var deleteResult = await BranchService.DeleteBranchAsync(branch.Id);
-                if (deleteResult.IsSuccess)
+                var deleted = await LocationService.DeleteLocationAsync(location.Id);
+                if (deleted)
                 {
-                    Snackbar.Add(L["Branch deleted successfully"], Severity.Success);
+                    Snackbar.Add(L["Location deleted successfully"], Severity.Success);
                     await _table.ReloadServerData();
                 }
                 else
                 {
-                    Snackbar.Add(deleteResult.Error ?? L["Error deleting branch"], Severity.Error);
+                    Snackbar.Add(L["Error deleting location"], Severity.Error);
                 }
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error deleting branch {BranchId}", branch.Id);
-                Snackbar.Add(L["Error deleting branch"], Severity.Error);
+                Logger.LogError(ex, "Error deleting location {LocationId}", location.Id);
+                Snackbar.Add(L["Error deleting location"], Severity.Error);
             }
         }
     }

@@ -18,7 +18,8 @@
 @inject IDateTime DateTimeService
 @inject ICompanySettingsService CompanySettingsService
 @inject ICurrentUserService CurrentUserService
-@inject IBranchService BranchService
+@inject ILocationService LocationService
+@inject IUserLocationService UserLocationService
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewHistorySales)]
 
@@ -79,20 +80,20 @@
                         </MudSelect>
                     </MudItem>
 
-                    @if (_branches.Count > 0)
+                    @if (_locations.Count > 0)
                     {
-                        <!-- Branch Filter -->
+                        <!-- Location Filter -->
                         <MudItem xs="12" sm="6" md="3">
                             <MudSelect T="int?"
-                                      Label="@L["Branch"]"
-                                      Value="_selectedBranchId"
-                                      ValueChanged="@(b => OnBranchFilterChange(b))"
+                                      Label="@L["Location"]"
+                                      Value="_selectedLocationId"
+                                      ValueChanged="@(l => OnLocationFilterChange(l))"
                                       AnchorOrigin="Origin.BottomCenter"
                                       FullWidth>
                                 <MudSelectItem T="int?" Value="@((int?)null)">@L["All"]</MudSelectItem>
-                                @foreach (var branch in _branches)
+                                @foreach (var location in _locations)
                                 {
-                                    <MudSelectItem T="int?" Value="@branch.Id">@branch.Name</MudSelectItem>
+                                    <MudSelectItem T="int?" Value="@location.Id">@location.Name</MudSelectItem>
                                 }
                             </MudSelect>
                         </MudItem>
@@ -119,7 +120,7 @@
                     <MudTh Style="text-align: right;">@L["Discount"]</MudTh>
                     <MudTh Style="text-align: right;">@L["Tax"]</MudTh>
                     <MudTh Style="text-align: right;">@L["Total"]</MudTh>
-                    <MudTh>@L["Branch"]</MudTh>
+                    <MudTh>@L["Location"]</MudTh>
                     <MudTh>@L["Status"]</MudTh>
                     <MudTh Style="text-align: center; width: 140px;">@L["Actions"]</MudTh>
                 </HeaderContent>
@@ -141,7 +142,7 @@
                     </MudTd>
                     <MudTd DataLabel="@L["Tax"]" Style="text-align: right;">@context.TaxAmount.ToString("C")</MudTd>
                     <MudTd DataLabel="@L["Total"]" Style="text-align: right;">@context.Total.ToString("C")</MudTd>
-                    <MudTd DataLabel="@L["Branch"]">@(context.BranchName ?? L["No branch"])</MudTd>
+                    <MudTd DataLabel="@L["Location"]">@(context.LocationName ?? L["No location"])</MudTd>
                     <MudTd DataLabel="@L["Status"]">
                         <MudChip Size="Size.Small" T="string" Color="@GetStatusColor(context.Status)">
                             @GetStatusDisplayText(context.Status)
@@ -204,10 +205,10 @@
     private DateRange _dateRange = new();
     private SaleType? _selectedSaleType;
     private string? _selectedStatus;
-    private int? _selectedBranchId;
+    private int? _selectedLocationId;
     private string _cancellationReason = "";
     private TimeZoneInfo? _companyTimeZone;
-    private IList<App.Core.DTOs.Branch.BranchDto> _branches = new List<App.Core.DTOs.Branch.BranchDto>();
+    private IList<App.Core.DTOs.Location.LocationDto> _locations = new List<App.Core.DTOs.Location.LocationDto>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,29 +221,27 @@
 
         _dateRange = new DateRange(firstDayOfMonth, lastDayOfMonth);
 
-        // Load branches for filter
-        await LoadBranches();
+        // Load locations for filter
+        await LoadLocations();
 
-        // Default to active branch if set
-        _selectedBranchId = CurrentUserService.ActiveBranchId;
+        // Default to active location if set
+        _selectedLocationId = CurrentUserService.ActiveLocationId;
     }
 
-    private async Task LoadBranches()
+    private async Task LoadLocations()
     {
         if (CurrentUserService.IsGlobalAccess)
         {
-            var result = await BranchService.GetActiveBranchesAsync();
-            if (result.IsSuccess)
-                _branches = result.Value!;
+            _locations = await LocationService.GetActiveLocationsAsync();
         }
         else
         {
             var userId = CurrentUserService.UserId;
             if (userId != null)
             {
-                var result = await BranchService.GetBranchesForUserAsync(userId);
+                var result = await UserLocationService.GetUserLocationsAsync(userId);
                 if (result.IsSuccess)
-                    _branches = result.Value!;
+                    _locations = result.Value!;
             }
         }
     }
@@ -260,7 +259,7 @@
                 endDate: _dateRange.End,
                 status: _selectedStatus,
                 saleType: _selectedSaleType,
-                branchId: _selectedBranchId);
+                locationId: _selectedLocationId);
 
             return new TableData<SaleDto>() { TotalItems = totalItems, Items = items };
         }
@@ -299,9 +298,9 @@
         await _table.ReloadServerData();
     }
 
-    private async Task OnBranchFilterChange(int? branchId)
+    private async Task OnLocationFilterChange(int? locationId)
     {
-        _selectedBranchId = branchId;
+        _selectedLocationId = locationId;
         await _table.ReloadServerData();
     }
 

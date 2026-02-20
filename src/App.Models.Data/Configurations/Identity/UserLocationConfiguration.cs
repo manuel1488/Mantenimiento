@@ -4,20 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace App.Models.Data.Configurations.Identity;
 
-public class UserBranchConfiguration : IEntityTypeConfiguration<UserBranch>
+public class UserLocationConfiguration : IEntityTypeConfiguration<UserLocation>
 {
-    public void Configure(EntityTypeBuilder<UserBranch> builder)
+    public void Configure(EntityTypeBuilder<UserLocation> builder)
     {
-        builder.HasKey(e => new { e.UserId, e.BranchId });
+        builder.HasKey(e => new { e.UserId, e.LocationId });
 
         builder.HasOne(e => e.User)
-            .WithMany(u => u.UserBranches)
+            .WithMany(u => u.UserLocations)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(e => e.Branch)
+        builder.HasOne(e => e.Location)
             .WithMany()
-            .HasForeignKey(e => e.BranchId)
+            .HasForeignKey(e => e.LocationId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,0 +1,230 @@
+@using App.Core.DTOs.Location
+@using App.Core.Interfaces
+@using App.Core.Enums.Shop
+
+@inject ILocationService LocationService
+@inject IStringLocalizer<LocationDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<LocationDialog> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ManageBranchSettings">
+    <Authorized>
+        <MudDialog>
+            <DialogContent>
+                <MudContainer Style="max-width: 800px;" Class="pa-4">
+                    <MudForm Model="@_model" @ref="@_form">
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_model.Name"
+                                            Label="@L["Name"]"
+                                            Required="true"
+                                            RequiredError="@L["Name is required"]"
+                                            OnBlur="@(() => ValidateName(_model.Name))"
+                                            Error="@_nameError"
+                                            ErrorText="@(_nameError ? L["Location name already exists"]?.ToString() : null)" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="LocationType"
+                                          @bind-Value="_model.Type"
+                                          Label="@L["Type"]"
+                                          Required="true"
+                                          Disabled="@(!IsNew)">
+                                    <MudSelectItem T="LocationType" Value="@LocationType.Branch">@L["Branch"]</MudSelectItem>
+                                    <MudSelectItem T="LocationType" Value="@LocationType.Warehouse">@L["Warehouse"]</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudCheckBox T="bool"
+                                        @bind-Value="_model.IsActive"
+                                        Label="@L["Active"]"
+                                        Color="Color.Primary"
+                                        Dense="true" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Description"
+                                            Label="@L["Description"]"
+                                            Lines="2" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudDivider Class="my-2" />
+                                <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Contact Information"]</MudText>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Address"
+                                            Label="@L["Address"]"
+                                            Lines="2" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_model.Phone"
+                                            Label="@L["Phone"]" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_model.Email"
+                                            Label="@L["Email"]" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudForm>
+                </MudContainer>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel"
+                        Class="da-button-rounded"
+                        title="@L["Cancel editing"]">
+                    @L["Cancel"]
+                </MudButton>
+                <MudButton Color="Color.Error"
+                        OnClick="Submit"
+                        Variant="Variant.Filled"
+                        Disabled="@(_processing || !_isValid)"
+                        title="@L["Save location data"]"
+                        Class="da-button-rounded">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">@L["Saving"]</MudText>
+                    }
+                    else
+                    {
+                        @L["Save"]
+                    }
+                </MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int? LocationId { get; set; }
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _isValid = true;
+    private bool _nameError;
+    private bool IsNew => !LocationId.HasValue;
+
+    private CreateLocationDto _model = new() { Type = LocationType.Branch, IsActive = true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (LocationId.HasValue)
+        {
+            await LoadLocation();
+        }
+    }
+
+    private async Task LoadLocation()
+    {
+        try
+        {
+            var location = await LocationService.GetLocationByIdAsync(LocationId!.Value);
+            if (location != null)
+            {
+                _model = new CreateLocationDto
+                {
+                    Name = location.Name,
+                    Description = location.Description,
+                    Type = location.Type,
+                    IsActive = location.IsActive,
+                    Address = location.Address,
+                    Phone = location.Phone,
+                    Email = location.Email
+                };
+            }
+            else
+            {
+                Snackbar.Add(L["Location not found"], Severity.Error);
+                MudDialog.Cancel();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading location {LocationId}", LocationId);
+            Snackbar.Add(L["Error loading location"], Severity.Error);
+            MudDialog.Cancel();
+        }
+    }
+
+    private async Task ValidateName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _nameError = false;
+            return;
+        }
+
+        try
+        {
+            _nameError = !(await LocationService.ValidateUniqueNameAsync(name, LocationId));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error validating location name");
+            _nameError = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        try
+        {
+            await _form.Validate();
+            if (!_form.IsValid || _nameError)
+            {
+                _isValid = false;
+                return;
+            }
+
+            _processing = true;
+
+            if (IsNew)
+            {
+                var result = await LocationService.CreateLocationAsync(_model);
+                Snackbar.Add(L["Location created successfully"], Severity.Success);
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+            else
+            {
+                var updateDto = new UpdateLocationDto
+                {
+                    Name = _model.Name,
+                    Description = _model.Description,
+                    IsActive = _model.IsActive,
+                    Address = _model.Address,
+                    Phone = _model.Phone,
+                    Email = _model.Email
+                };
+
+                var result = await LocationService.UpdateLocationAsync(LocationId!.Value, updateDto);
+                Snackbar.Add(L["Location updated successfully"], Severity.Success);
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving location");
+            Snackbar.Add(L["Error saving location"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

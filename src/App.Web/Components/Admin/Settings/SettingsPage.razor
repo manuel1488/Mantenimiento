@@ -1,8 +1,7 @@
 ﻿@page "/admin/settings"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
-@using App.Web.Components.Admin.Settings.Branches
-@using App.Web.Components.Admin.Settings.Warehouses
+@using App.Web.Components.Admin.Settings.Locations
 @using App.Web.Components.Admin.Settings.General
 @using App.Web.Components.Admin.Settings.Fiscal
 @using App.Web.Components.Admin.Settings.UnitMeasure
@@ -48,13 +47,8 @@
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBranchSettings">
-                    <MudTabPanel Text="@L["Branches"]" Icon="@Icons.Material.Filled.Business">
-                        <BranchesTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewWarehouseSettings">
-                    <MudTabPanel Text="@L["Warehouses"]" Icon="@Icons.Material.Filled.Warehouse">
-                        <WarehousesTab />
+                    <MudTabPanel Text="@L["Locations"]" Icon="@Icons.Material.Filled.LocationOn">
+                        <LocationsTab />
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUnitMeasures">

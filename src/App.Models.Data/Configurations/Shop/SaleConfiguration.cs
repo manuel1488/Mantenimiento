@@ -40,13 +40,13 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
             .HasForeignKey(e => e.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Branch relationship (optional - nullable for pre-branch sales)
-        builder.HasOne(e => e.Branch)
+        // Location relationship (optional - nullable for pre-location sales)
+        builder.HasOne(e => e.Location)
             .WithMany()
-            .HasForeignKey(e => e.BranchId)
+            .HasForeignKey(e => e.LocationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(e => e.BranchId);
+        builder.HasIndex(e => e.LocationId);
 
         // Check constraints
         builder.ToTable(t => t.HasCheckConstraint(

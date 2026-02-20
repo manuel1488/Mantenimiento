@@ -3,7 +3,7 @@
 @using App.Core.DTOs.Shop
 @using App.Core.DTOs.Customer
 @using App.Core.DTOs.Product
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Settings
 @using App.Core.Interfaces.Shop
@@ -20,7 +20,7 @@
 @inject ISaleService SaleService
 @inject ICustomerService CustomerService
 @inject IProductService ProductService
-@inject IWarehouseService WarehouseService
+@inject ILocationService LocationService
 @inject ICompanySettingsService CompanySettingsService
 @inject ITaxSettingsService taxSettingsService
 @inject ITaxRateService TaxRateService
@@ -417,8 +417,8 @@ else
         }
     }
 
-    // Warehouse for inventory
-    private WarehouseDto? _warehouse;
+    // Location for inventory
+    private LocationDto? _location;
 
     // Cart for products
     private List<CartItem> _cart = new();
@@ -502,7 +502,7 @@ else
             // Get company timezone
             _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
 
-            await LoadWarehouse();
+            await LoadLocation();
             await LoadAvailableFractions();
             await InitializeDiscountSettings();
             await LoadRoundingSettings();
@@ -516,30 +516,33 @@ else
         }
     }
 
-    private async Task LoadWarehouse()
+    private async Task LoadLocation()
     {
-        // Get warehouse from active branch
-        var activeBranchId = CurrentUserService.ActiveBranchId;
-        if (!activeBranchId.HasValue)
+        // Get location from active location
+        var activeLocationId = CurrentUserService.ActiveLocationId;
+        if (!activeLocationId.HasValue)
         {
-            Snackbar.Add(L["No active branch selected. Please select a branch to continue."], Severity.Warning);
+            Snackbar.Add(L["No active location selected. Please select a location to continue."], Severity.Warning);
             return;
         }
 
-        // Get all warehouses for the branch
-        var (totalCount, warehouses) = await WarehouseService.GetWarehousesAsync(
-            page: 1,
-            pageSize: 100,
-            isActive: true);
-
-        var branchWarehouse = warehouses.FirstOrDefault(w => w.BranchId == activeBranchId.Value);
-        if (branchWarehouse != null)
+        // Get all active locations
+        var locations = await LocationService.GetActiveLocationsAsync();
+        if (locations != null && locations.Any())
         {
-            _warehouse = branchWarehouse;
+            var activeLocation = locations.FirstOrDefault(l => l.Id == activeLocationId.Value);
+            if (activeLocation != null)
+            {
+                _location = activeLocation;
+            }
+            else
+            {
+                Snackbar.Add(L["No active location found"], Severity.Warning);
+            }
         }
         else
         {
-            Snackbar.Add(L["No active warehouse found for the selected branch"], Severity.Warning);
+            Snackbar.Add(L["Error loading locations"], Severity.Warning);
         }
     }
 
@@ -684,11 +687,11 @@ else
             var inventoryService = ServiceProvider.GetRequiredService<IInventoryQueryService>();
             foreach (var product in products)
             {
-                var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _warehouse?.Id);
+                var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _location?.Id);
                 if (stockInfo != null)
                 {
-                    var warehouseStock = stockInfo.LocationStock.FirstOrDefault();
-                    _productStockCache[product.Id] = warehouseStock?.Quantity ?? 0;
+                    var locationStock = stockInfo.LocationStock.FirstOrDefault();
+                    _productStockCache[product.Id] = locationStock?.Quantity ?? 0;
                 }
                 else
                 {
@@ -718,9 +721,9 @@ else
 
         try
         {
-            // Check product stock in the warehouse
+            // Check product stock in the location
             var inventoryService = ServiceProvider.GetRequiredService<IInventoryQueryService>();
-            var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _warehouse?.Id);
+            var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _location?.Id);
 
             if (stockInfo == null || stockInfo.TotalStock <= 0)
             {
@@ -729,10 +732,10 @@ else
                 return;
             }
 
-            var warehouseStock = stockInfo.LocationStock.FirstOrDefault();
-            if (warehouseStock == null || warehouseStock.Quantity <= 0)
+            var locationStock = stockInfo.LocationStock.FirstOrDefault();
+            if (locationStock == null || locationStock.Quantity <= 0)
             {
-                Snackbar.Add(L["Product {0} is not available in the selected warehouse", product.Name], Severity.Warning);                
+                Snackbar.Add(L["Product {0} is not available in the selected location", product.Name], Severity.Warning);
                 return;
             }
 
@@ -746,12 +749,12 @@ else
             {
                 // Increment quantity instead of adding new item
                 decimal quantityToAdd = isBarcodeScan ? 1 : 1; // Siempre agregar 1 cuando es escaneo de código de barras
-                
-                if (existingItem.Quantity + quantityToAdd <= warehouseStock.Quantity)
+
+                if (existingItem.Quantity + quantityToAdd <= locationStock.Quantity)
                 {
                     existingItem.Quantity += quantityToAdd;
                     await UpdateCartItemAsync(existingItem);
-                    
+
                     // Mostrar confirmación solo para escaneo de código de barras
                     if (isBarcodeScan)
                     {
@@ -795,7 +798,7 @@ else
                 IsPartialSaleAllowed = product.IsPartialSaleAllowed,
                 AllowCustomPricing = product.AllowCustomPricing,
                 Quantity = product.IsPartialSaleAllowed ? 1 : Math.Ceiling(1.0M),
-                AvailableStock = warehouseStock.Quantity,
+                AvailableStock = locationStock.Quantity,
                 IsTaxable = product.IsTaxable,
                 DiscountPercentage = 0
             };
@@ -1147,7 +1150,7 @@ else
             // Prepare sale details
             _model.CustomerId = _selectedCustomer!.Id;
             _model.SaleDate = DateTimeService.Now;
-            _model.BranchId = CurrentUserService.ActiveBranchId;
+            _model.LocationId = CurrentUserService.ActiveLocationId;
 
             // Información de autorización para la venta completa
             _model.DiscountAuthorizerId = _discountAuthorizerId;

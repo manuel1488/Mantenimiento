@@ -1,5 +1,5 @@
 ﻿@using App.Core.DTOs.Inventory
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Constants
 @using App.Core.Interfaces
 @using App.Core.Options
@@ -9,7 +9,7 @@
 
 @inject IStringLocalizer<InventoryAdjustmentsTab> L
 @inject IInventoryHistoryService InventoryHistoryService
-@inject IWarehouseService WarehouseService
+@inject ILocationService LocationService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject ICompanySettingsService CompanySettingsService
@@ -41,16 +41,16 @@
                                 PickerVariant="PickerVariant.Dialog"
                                 Style="min-width: 300px;" />
 
-                <!-- Filtro de Almacén -->
+                <!-- Filtro de Ubicación -->
                 <MudSelect T="int?"
-                        Label="@L["Warehouse"]"
-                        @bind-Value="_selectedWarehouse"
+                        Label="@L["Location"]"
+                        @bind-Value="_selectedLocation"
                         AnchorOrigin="Origin.BottomCenter"
                         Style="min-width: 200px;">
-                    <MudSelectItem T="int?" Value="@null">@L["All Warehouses"]</MudSelectItem>
-                    @foreach (var warehouse in _warehouses)
+                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
+                    @foreach (var location in _locations)
                     {
-                        <MudSelectItem T="int?" Value="@warehouse.Id">@warehouse.Name</MudSelectItem>
+                        <MudSelectItem T="int?" Value="@location.Id">@location.Name (@L[location.TypeName])</MudSelectItem>
                     }
                 </MudSelect>
 
@@ -92,7 +92,7 @@
                         <MudTh>@L["Date"]</MudTh>
                         <MudTh>@L["Adjustment Type"]</MudTh>
                         <MudTh>@L["Product"]</MudTh>
-                        <MudTh>@L["Warehouse"]</MudTh>
+                        <MudTh>@L["Location"]</MudTh>
                         <MudTh Style="text-align: right">@L["Previous Quantity"]</MudTh>
                         <MudTh Style="text-align: right">@L["New Quantity"]</MudTh>
                         <MudTh Style="text-align: right">@L["Difference"]</MudTh>
@@ -117,7 +117,7 @@
                                 <MudText Typo="Typo.caption">@contextMovement.ProductCode</MudText>
                             </div>
                         </MudTd>
-                        <MudTd DataLabel="@L["Warehouse"]">@contextMovement.LocationName</MudTd>
+                        <MudTd DataLabel="@L["Location"]">@contextMovement.LocationName</MudTd>
                         <MudTd DataLabel="@L["Previous Quantity"]" Style="text-align: right">
                             @contextMovement.PreviousBalance.ToString("N2")
                         </MudTd>
@@ -179,34 +179,31 @@
 
 @code {
     private MudTable<InventoryMovementDto> _table = null!;
-    private List<WarehouseDto> _warehouses = new();
+    private List<LocationDto> _locations = new();
     private TimeZoneInfo? _companyTimeZone;
     private bool _loading = true;
     private string _searchString = "";
-    private int? _selectedWarehouse;
+    private int? _selectedLocation;
     private string? _selectedAdjustmentType;
     private DateRange _dateRange = new(DateTime.Today.AddDays(-30), DateTime.Today);
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadWarehouses();
+        await LoadLocations();
         _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
         _loading = false;
     }
 
-    private async Task LoadWarehouses()
+    private async Task LoadLocations()
     {
         try
         {
-            var (_, items) = await WarehouseService.GetWarehousesAsync(
-                pageSize: 100,
-                isActive: true);
-            _warehouses = items.ToList();
+            _locations = (await LocationService.GetActiveLocationsAsync()).ToList();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading warehouses");
-            Snackbar.Add(L["Error loading warehouses"], Severity.Error);
+            Logger.LogError(ex, "Error loading locations");
+            Snackbar.Add(L["Error loading locations"], Severity.Error);
         }
     }
 
@@ -218,7 +215,7 @@
 
             // Todos los filtros se aplican en la base de datos
             var (movements, totalCount) = await InventoryHistoryService.GetWarehouseMovementHistoryAsync(
-                _selectedWarehouse,
+                _selectedLocation,
                 _dateRange.Start,
                 _dateRange.End,
                 _searchString,
@@ -254,7 +251,7 @@
     {
         var parameters = new DialogParameters
         {
-            { "Warehouses", _warehouses }
+            { "Warehouses", _locations }
         };
 
         var dialog = await DialogService.ShowAsync<CreateAdjustmentDialog>(
@@ -300,9 +297,9 @@
         await _table.ReloadServerData();
     }
 
-    private async Task OnWarehouseFilterChange(int? warehouse)
+    private async Task OnLocationFilterChange(int? location)
     {
-        _selectedWarehouse = warehouse;
+        _selectedLocation = location;
         await _table.ReloadServerData();
     }
 

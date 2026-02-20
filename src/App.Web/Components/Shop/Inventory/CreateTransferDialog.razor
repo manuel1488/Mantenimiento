@@ -1,6 +1,6 @@
 ﻿@using App.Core.DTOs.Inventory
 @using App.Core.DTOs.Product
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Interfaces
 @using App.Web.Services
 
@@ -19,30 +19,30 @@
                 <MudForm @ref="_form" Model="@_model">
                     <!-- Almacén Origen -->
                     <MudSelect T="int" 
-                            Label="@L["Source Warehouse"]"
+                            Label="@L["Source Location"]"
                             @bind-Value="_model.LocationId"
                             Required="true"
-                            RequiredError="@L["Source warehouse is required"]"
+                            RequiredError="@L["Source location is required"]"
                             Class="mb-4">
-                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.DestinationLocationId))
+                        @foreach(var location in Locations.Where(w => w.Id != _model.DestinationLocationId))
                         {
-                            <MudSelectItem T="int" Value="@warehouse.Id">
-                                @warehouse.Name
+                            <MudSelectItem T="int" Value="@location.Id">
+                                @location.Name
                             </MudSelectItem>
                         }
                     </MudSelect>
 
                     <!-- Almacén Destino -->
                     <MudSelect T="int" 
-                            Label="@L["Destination Warehouse"]"
+                            Label="@L["Destination Location"]"
                             @bind-Value="_model.DestinationLocationId"
                             Required="true"
-                            RequiredError="@L["Destination warehouse is required"]"
+                            RequiredError="@L["Destination location is required"]"
                             Class="mb-4">
-                        @foreach(var warehouse in Warehouses.Where(w => w.Id != _model.LocationId))
+                        @foreach(var location in Locations.Where(w => w.Id != _model.LocationId))
                         {
-                            <MudSelectItem T="int" Value="@warehouse.Id">
-                                @warehouse.Name
+                            <MudSelectItem T="int" Value="@location.Id">
+                                @location.Name
                             </MudSelectItem>
                         }
                     </MudSelect>
@@ -146,7 +146,7 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    [Parameter] public List<WarehouseDto> Warehouses { get; set; } = new();
+    [Parameter] public List<LocationDto> Locations { get; set; } = new();
 
     private MudForm _form = null!;
     private CreateInventoryTransferDto _model = new();

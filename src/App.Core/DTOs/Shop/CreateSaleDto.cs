@@ -16,7 +16,7 @@ public class CreateSaleDto
     
     public SaleType SaleType { get; set; } = SaleType.Public;
 
-    public int? BranchId { get; set; }
+    public int? LocationId { get; set; }
 
     [Range(0, 100)]
     public decimal DiscountPercentage { get; set; } = 0;

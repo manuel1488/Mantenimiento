@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+    <comment>Location selector label</comment>
+  </data>
   <data name="Branch" xml:space="preserve">
     <value>Branch</value>
-    <comment>Branch selector label</comment>
+    <comment>Branch type name</comment>
   </data>
   <data name="Warehouse" xml:space="preserve">
     <value>Warehouse</value>
-    <comment>Warehouse selector label</comment>
+    <comment>Warehouse type name</comment>
   </data>
   <data name="Load Type" xml:space="preserve">
     <value>Load Type</value>
@@ -76,13 +80,9 @@
     <value>Status</value>
     <comment>Status column header</comment>
   </data>
-  <data name="Error loading branches" xml:space="preserve">
-    <value>Error loading branches</value>
-    <comment>Error message for branch loading</comment>
-  </data>
-  <data name="Error loading warehouses" xml:space="preserve">
-    <value>Error loading warehouses</value>
-    <comment>Error message for warehouse loading</comment>
+  <data name="Error loading locations" xml:space="preserve">
+    <value>Error loading locations</value>
+    <comment>Error message for location loading</comment>
   </data>
   <data name="Initial inventory loaded successfully" xml:space="preserve">
     <value>Initial inventory loaded successfully</value>

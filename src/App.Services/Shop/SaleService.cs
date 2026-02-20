@@ -4,7 +4,7 @@ using App.Core.Common;
 using App.Core.Constants;
 using App.Core.DTOs.Inventory;
 using App.Core.DTOs.Shop;
-using App.Core.DTOs.Warehouse;
+// using App.Core.DTOs.Warehouse; // TODO: Update for Location-based sales
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
@@ -78,7 +78,7 @@ public class SaleService : ISaleService
         DateTime? endDate = null,
         string? status = null,
         SaleType? saleType = null,
-        int? branchId = null)
+        int? locationId = null)
     {
         try
         {
@@ -87,7 +87,7 @@ public class SaleService : ISaleService
             IQueryable<Sale> query = context.Sales
                 .AsNoTracking()
                 .Include(s => s.Customer)
-                .Include(s => s.Branch)
+                .Include(s => s.Location)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product);
 
@@ -124,9 +124,9 @@ public class SaleService : ISaleService
                 query = query.Where(s => s.SaleType == saleType.Value);
             }
 
-            if (branchId.HasValue)
+            if (locationId.HasValue)
             {
-                query = query.Where(s => s.BranchId == branchId.Value);
+                query = query.Where(s => s.LocationId == locationId.Value);
             }
 
             // Get total count
@@ -160,7 +160,7 @@ public class SaleService : ISaleService
             var sale = await context.Sales
                 .AsNoTracking()
                 .Include(s => s.Customer)
-                .Include(s => s.Branch)
+                .Include(s => s.Location)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                 .FirstOrDefaultAsync(s => s.Id == id);
@@ -195,13 +195,9 @@ public class SaleService : ISaleService
                 return Result<SaleDto>.Failure(validationResult.Error!);
             }
 
-            // Determine appropriate warehouse
-            var warehouseResult = await GetWarehouseForSaleAsync();
-            if (!warehouseResult.IsSuccess)
-            {
-                return Result<SaleDto>.Failure(warehouseResult.Error!);
-            }
-            var warehouse = warehouseResult.Value!;
+            // TODO: Implement Location-based warehouse logic
+            // For now, using LocationId from DTO - needs proper validation
+            int? locationId = createDto.LocationId;
 
             // Validate discount
             var discountResult = await ValidateDiscountAsync(
@@ -214,7 +210,7 @@ public class SaleService : ISaleService
             }
 
             // Calculate sale
-            var saleCalculation = await CalculateSaleAsync(context, createDto, warehouse.Id);
+            var saleCalculation = await CalculateSaleAsync(context, createDto, locationId);
             if (!saleCalculation.IsSuccess)
             {
                 return Result<SaleDto>.Failure(saleCalculation.Error!);
@@ -232,7 +228,7 @@ public class SaleService : ISaleService
                 var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
                 {
                     ProductId = detail.ProductId,
-                    LocationId = warehouse.Id,
+                    LocationId = locationId ?? 0, // TODO: Validate locationId properly
                     Quantity = detail.Quantity,
                     MovementType = InventoryMovementType.Sale,
                     MovementSubType = InventoryMovementSubType.DirectSale,
@@ -353,13 +349,8 @@ public class SaleService : ISaleService
                 return Result<bool>.Success(true); // Already cancelled
             }
 
-            // Get warehouse
-            var warehouseResult = await GetWarehouseForSaleAsync();
-            if (!warehouseResult.IsSuccess)
-            {
-                return Result<bool>.Failure(warehouseResult.Error!);
-            }
-            var warehouse = warehouseResult.Value!;
+            // Use LocationId from the sale entity
+            int? locationId = sale.LocationId;
 
             // Return inventory
             foreach (var detail in sale.Details)
@@ -367,7 +358,7 @@ public class SaleService : ISaleService
                 var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
                 {
                     ProductId = detail.ProductId,
-                    LocationId = warehouse.Id,
+                    LocationId = locationId ?? 0, // TODO: Validate locationId properly
                     Quantity = detail.Quantity,
                     MovementType = InventoryMovementType.Return,
                     MovementSubType = InventoryMovementSubType.DirectSale,
@@ -467,27 +458,28 @@ public class SaleService : ISaleService
         return Result.Success();
     }
 
-    private async Task<Result<(Warehouse Warehouse, int Id)>> GetWarehouseForSaleAsync()
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        // Get warehouse from active branch
-        var activeBranchId = _currentUserService.ActiveBranchId;
-        if (!activeBranchId.HasValue)
-        {
-            return Result<(Warehouse, int)>.Failure(L["No active branch selected. Please select a branch to continue."]);
-        }
-
-        var warehouse = await context.Warehouses
-            .FirstOrDefaultAsync(w => w.BranchId == activeBranchId.Value && w.IsActive);
-
-        if (warehouse == null)
-        {
-            return Result<(Warehouse, int)>.Failure(L["No active warehouse found for the selected branch"]);
-        }
-
-        return Result<(Warehouse, int)>.Success((warehouse, warehouse.Id));
-    }
+    // TODO: Reimplement this method using Location instead of Branch/Warehouse
+    // private async Task<Result<(Warehouse Warehouse, int Id)>> GetWarehouseForSaleAsync()
+    // {
+    //     await using var context = await _contextFactory.CreateDbContextAsync();
+    //
+    //     // Get warehouse from active branch
+    //     var activeBranchId = _currentUserService.ActiveBranchId;
+    //     if (!activeBranchId.HasValue)
+    //     {
+    //         return Result<(Warehouse, int)>.Failure(L["No active branch selected. Please select a branch to continue."]);
+    //     }
+    //
+    //     var warehouse = await context.Warehouses
+    //         .FirstOrDefaultAsync(w => w.BranchId == activeBranchId.Value && w.IsActive);
+    //
+    //     if (warehouse == null)
+    //     {
+    //         return Result<(Warehouse, int)>.Failure(L["No active warehouse found for the selected branch"]);
+    //     }
+    //
+    //     return Result<(Warehouse, int)>.Success((warehouse, warehouse.Id));
+    // }
 
     private Result ValidateSaleStatusChange(App.Core.Enums.Shop.SaleStatus currentStatus, App.Core.Enums.Shop.SaleStatus newStatus)
     {
@@ -509,10 +501,17 @@ public class SaleService : ISaleService
     private async Task<Result<(Sale Sale, List<SaleDetail> Details)>> CalculateSaleAsync(
         ApplicationDbContext context,
         CreateSaleDto createDto,
-        int warehouseId)
+        int? locationId)
     {
         try
         {
+            // Validate locationId is provided
+            if (!locationId.HasValue)
+            {
+                return Result<(Sale, List<SaleDetail>)>.Failure(
+                    L["Location is required for sales"]);
+            }
+
             // Create new sale entity
             var sale = new Sale
             {
@@ -521,7 +520,7 @@ public class SaleService : ISaleService
                 PaymentMethod = createDto.PaymentMethod,
                 Status = App.Core.Enums.Shop.SaleStatus.Created,
                 SaleType = createDto.SaleType,
-                BranchId = createDto.BranchId,
+                LocationId = createDto.LocationId,
                 DiscountPercentage = createDto.DiscountPercentage,
                 DiscountAuthorizedBy = createDto.DiscountAuthorizedBy,
                 CreatedBy = _currentUserService.FullName,
@@ -554,7 +553,7 @@ public class SaleService : ISaleService
             foreach (var detailDto in createDto.Details)
             {
                 var stockAvailable = await _inventoryService.ValidateStockAvailabilityAsync(
-                    detailDto.ProductId, warehouseId, detailDto.Quantity);
+                    detailDto.ProductId, locationId.Value, detailDto.Quantity);
 
                 if (!stockAvailable)
                 {

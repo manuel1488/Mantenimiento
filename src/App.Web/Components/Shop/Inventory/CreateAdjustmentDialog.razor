@@ -1,6 +1,6 @@
 ﻿@using App.Core.DTOs.Inventory
 @using App.Core.DTOs.Product
-@using App.Core.DTOs.Warehouse
+@using App.Core.DTOs.Location
 @using App.Core.Constants
 @using App.Core.Interfaces
 @using App.Web.Services
@@ -33,18 +33,18 @@
                         <MudSelectItem Value="@InventoryMovementSubType.SystemAdjustment">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.SystemAdjustment)</MudSelectItem>
                     </MudSelect>
 
-                    <!-- Almacén -->
+                    <!-- Location -->
                     <MudSelect T="int"
-                            Label="@L["Warehouse"]"
+                            Label="@L["Location"]"
                             Value="_model.LocationId"
                             Required="true"
-                            RequiredError="@L["Warehouse is required"]"
-                            ValueChanged="OnWarehouseChanged"
+                            RequiredError="@L["Location is required"]"
+                            ValueChanged="OnLocationChanged"
                             Class="mb-4">
-                        @foreach (var warehouse in Warehouses)
+                        @foreach (var location in Locations)
                         {
-                            <MudSelectItem Value="@warehouse.Id">
-                                @warehouse.Name
+                            <MudSelectItem Value="@location.Id">
+                                @location.Name
                             </MudSelectItem>
                         }
                     </MudSelect>
@@ -135,11 +135,11 @@
 
 
 @code {
-    [CascadingParameter] 
+    [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = null!;
-    
-    [Parameter] 
-    public List<WarehouseDto> Warehouses { get; set; } = new();
+
+    [Parameter]
+    public List<LocationDto> Locations { get; set; } = new();
 
     private MudForm _form = null!;
     private CreateInventoryAdjustmentDto _model = new() 
@@ -154,18 +154,18 @@
     {
         try
         {
-            // If no warehouse is selected, return an empty list
+            // If no location is selected, return an empty list
             if (_model.LocationId == 0)
             {
                 return Array.Empty<ProductDto>();
             }
 
             // Search for products
-            var products = string.IsNullOrEmpty(value) 
+            var products = string.IsNullOrEmpty(value)
                 ? (await ProductService.GetProductsAsync(page: 1, pageSize: 50, isActive: true)).Items
                 : (await ProductService.GetProductsAsync(searchString: value, pageSize: 50, isActive: true)).Items;
 
-            // Check if products are initialized in inventory for the selected warehouse
+            // Check if products are initialized in inventory for the selected location
             var validProducts = new List<ProductDto>();
             foreach (var product in products)
             {
@@ -185,10 +185,10 @@
         }
     }
 
-    private void OnWarehouseChanged(int warehouseId)
+    private void OnLocationChanged(int locationId)
     {
-        _model.LocationId = warehouseId;
-        // Reset product selection when warehouse changes
+        _model.LocationId = locationId;
+        // Reset product selection when location changes
         _selectedProduct = null;
         _currentStock = null;
         _model.ProductId = 0;
@@ -209,7 +209,7 @@
                 if (stock == null || !stock.LocationStock.Any(w => w.LocationId == _model.LocationId))
                 {
                     // The product is not initialized in the inventory
-                    Snackbar.Add(L["Product not found in this warehouse"], Severity.Warning);
+                    Snackbar.Add(L["Product not found in this location"], Severity.Warning);
                     _selectedProduct = null;
                     _currentStock = null;
                     _model.ProductId = 0;

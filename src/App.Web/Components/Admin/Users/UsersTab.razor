@@ -18,7 +18,7 @@
 @inject IRoleService RoleService
 @inject ILogger<UsersTab> Logger
 @inject RoleTranslationService RoleTranslationService
-@inject IUserBranchService UserBranchService
+@inject IUserLocationService UserLocationService
 
 
 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUsers">
@@ -254,10 +254,10 @@
                         await IdentityService.UpdateUserPermissionsAsync(userId, rolePermissions);
                     }
 
-                    // Asignar sucursales
-                    if (model.BranchIds.Any())
+                    // Asignar ubicaciones
+                    if (model.LocationIds.Any())
                     {
-                        await UserBranchService.AssignBranchesToUserAsync(userId, model.BranchIds.ToList());
+                        await UserLocationService.AssignLocationsToUserAsync(userId, model.LocationIds.ToList());
                     }
 
                     Snackbar.Add(L["User created successfully"], Severity.Success);
@@ -297,10 +297,10 @@
             // Actualizar con la información más reciente
             var userInfo = userResult.Value;
 
-            // Obtener sucursales asignadas
-            var userBranchesResult = await UserBranchService.GetUserBranchesAsync(user.Id);
-            var userBranchIds = userBranchesResult.IsSuccess
-                ? userBranchesResult.Value!.Select(b => b.Id).ToList()
+            // Obtener ubicaciones asignadas
+            var userLocationsResult = await UserLocationService.GetUserLocationsAsync(user.Id);
+            var userLocationIds = userLocationsResult.IsSuccess
+                ? userLocationsResult.Value!.Select(l => l.Id).ToList()
                 : new List<int>();
 
             var parameters = new DialogParameters<UserDialog>
@@ -314,7 +314,7 @@
                         FullName = userInfo.FullName,
                         IsActive = userInfo.IsActive,
                         Role = currentRole,
-                        BranchIds = userBranchIds
+                        LocationIds = userLocationIds
                     }
                 }
             };
@@ -349,8 +349,8 @@
                             await IdentityService.UpdateUserPermissionsAsync(model.Id!, rolePermissions);
                         }
 
-                        // Actualizar sucursales asignadas
-                        await UserBranchService.AssignBranchesToUserAsync(model.Id!, model.BranchIds.ToList());
+                        // Actualizar ubicaciones asignadas
+                        await UserLocationService.AssignLocationsToUserAsync(model.Id!, model.LocationIds.ToList());
 
                         Snackbar.Add(L["User updated successfully"], Severity.Success);
                         await _table.ReloadServerData();

@@ -20,6 +20,10 @@
     <value>Discounts</value>
     <comment>Discounts settings tab</comment>
   </data>
+  <data name="Locations" xml:space="preserve">
+    <value>Locations</value>
+    <comment>Locations settings tab</comment>
+  </data>
   <data name="Branches" xml:space="preserve">
     <value>Branches</value>
     <comment>Branches settings tab</comment>

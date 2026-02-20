@@ -6,10 +6,10 @@ public interface ICurrentUserService
     string? UserName { get; }
     string FullName { get; }
 
-    // Branch context
-    int? ActiveBranchId { get; }
+    // Location context
+    int? ActiveLocationId { get; }
     bool IsGlobalAccess { get; }
-    Task<IReadOnlyList<int>> GetAssignedBranchIdsAsync();
-    Task SetActiveBranchAsync(int? branchId);
-    Task<bool> HasAccessToBranchAsync(int branchId);
+    Task<IReadOnlyList<int>> GetAssignedLocationIdsAsync();
+    Task SetActiveLocationAsync(int? locationId);
+    Task<bool> HasAccessToLocationAsync(int locationId);
 }

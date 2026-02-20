@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Location name already exists" xml:space="preserve">
+    <value>El nombre de ubicación ya existe</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Branch" xml:space="preserve">
+    <value>Sucursal</value>
+  </data>
+  <data name="Warehouse" xml:space="preserve">
+    <value>Almacén</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activa</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Contact Information" xml:space="preserve">
+    <value>Información de Contacto</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="Cancel editing" xml:space="preserve">
+    <value>Cancelar edición</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save location data" xml:space="preserve">
+    <value>Guardar datos de ubicación</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Location not found" xml:space="preserve">
+    <value>Ubicación no encontrada</value>
+  </data>
+  <data name="Error loading location" xml:space="preserve">
+    <value>Error al cargar ubicación</value>
+  </data>
+  <data name="Location created successfully" xml:space="preserve">
+    <value>Ubicación creada exitosamente</value>
+  </data>
+  <data name="Location updated successfully" xml:space="preserve">
+    <value>Ubicación actualizada exitosamente</value>
+  </data>
+  <data name="Error saving location" xml:space="preserve">
+    <value>Error al guardar ubicación</value>
+  </data>
+</root>
