@@ -11,6 +11,14 @@
     <value>Date Range</value>
     <comment>Date range picker label</comment>
   </data>
+  <data name="Source Location">
+    <value>Source Location</value>
+    <comment>Source location filter label</comment>
+  </data>
+  <data name="Destination Location">
+    <value>Destination Location</value>
+    <comment>Destination location filter label</comment>
+  </data>
   <data name="Source Warehouse">
     <value>Source Warehouse</value>
     <comment>Source warehouse filter label</comment>
@@ -18,6 +26,14 @@
   <data name="Destination Warehouse">
     <value>Destination Warehouse</value>
     <comment>Destination warehouse filter label</comment>
+  </data>
+  <data name="Branch">
+    <value>Branch</value>
+    <comment>Branch location type</comment>
+  </data>
+  <data name="Warehouse">
+    <value>Warehouse</value>
+    <comment>Warehouse location type</comment>
   </data>
   <data name="All">
     <value>All</value>

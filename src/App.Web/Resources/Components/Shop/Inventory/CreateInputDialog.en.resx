@@ -7,6 +7,9 @@
   <data name="Input Subtype" xml:space="preserve">
     <value>Input Subtype</value>
   </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
   <data name="Warehouse" xml:space="preserve">
     <value>Warehouse</value>
   </data>
@@ -73,6 +76,9 @@
   </data>
   <data name="Input subtype is required" xml:space="preserve">
     <value>Input subtype is required</value>
+  </data>
+  <data name="Location is required" xml:space="preserve">
+    <value>Location is required</value>
   </data>
   <data name="Warehouse is required" xml:space="preserve">
     <value>Warehouse is required</value>

@@ -8,8 +8,14 @@
   <data name="Date Range" xml:space="preserve">
     <value>Date Range</value>
   </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
   <data name="Warehouse" xml:space="preserve">
     <value>Warehouse</value>
+  </data>
+  <data name="Branch" xml:space="preserve">
+    <value>Branch</value>
   </data>
   <data name="All Warehouses" xml:space="preserve">
     <value>All Warehouses</value>

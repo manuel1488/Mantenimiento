@@ -5,9 +5,17 @@
     <value>Rango de Fechas</value>
     <comment>Date range picker label</comment>
   </data>
+  <data name="Location">
+    <value>Ubicación</value>
+    <comment>Location filter label</comment>
+  </data>
   <data name="Warehouse">
     <value>Almacén</value>
     <comment>Warehouse filter label</comment>
+  </data>
+  <data name="Branch">
+    <value>Sucursal</value>
+    <comment>Branch location type</comment>
   </data>
   <data name="All Warehouses">
     <value>Todos los Almacenes</value>

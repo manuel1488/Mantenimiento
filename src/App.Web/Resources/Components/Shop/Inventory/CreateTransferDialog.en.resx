@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- Form Fields -->
+  <data name="Source Location">
+    <value>Source Location</value>
+    <comment>Source location field label</comment>
+  </data>
   <data name="Source Warehouse">
     <value>Source Warehouse</value>
     <comment>Source warehouse field label</comment>
+  </data>
+  <data name="Destination Location">
+    <value>Destination Location</value>
+    <comment>Destination location field label</comment>
   </data>
   <data name="Destination Warehouse">
     <value>Destination Warehouse</value>

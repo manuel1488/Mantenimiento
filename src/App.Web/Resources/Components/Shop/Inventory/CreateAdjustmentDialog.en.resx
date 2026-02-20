@@ -4,6 +4,9 @@
   <data name="Adjustment Type" xml:space="preserve">
     <value>Adjustment Type</value>
   </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
   <data name="Warehouse" xml:space="preserve">
     <value>Warehouse</value>
   </data>
@@ -44,6 +47,9 @@
   <!-- Validation Messages -->
   <data name="Adjustment type is required" xml:space="preserve">
     <value>Adjustment type is required</value>
+  </data>
+  <data name="Location is required" xml:space="preserve">
+    <value>Location is required</value>
   </data>
   <data name="Warehouse is required" xml:space="preserve">
     <value>Warehouse is required</value>

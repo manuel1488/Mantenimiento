@@ -114,6 +114,22 @@
     <comment>Status when product has normal stock levels</comment>
   </data>
 
+  <!-- Location -->
+  <data name="Location">
+    <value>Ubicación</value>
+    <comment>Location filter label</comment>
+  </data>
+
+  <!-- Location Types -->
+  <data name="Branch">
+    <value>Sucursal</value>
+    <comment>Branch location type</comment>
+  </data>
+  <data name="Warehouse">
+    <value>Almacén</value>
+    <comment>Warehouse location type</comment>
+  </data>
+
   <!-- Authorization -->
   <data name="You don't have permission to view this page">
     <value>No tienes permisos para ver esta página</value>
@@ -121,6 +137,10 @@
   </data>
 
   <!-- Error Messages -->
+  <data name="Error loading locations">
+    <value>Error al cargar ubicaciones</value>
+    <comment>Error message when locations loading fails</comment>
+  </data>
   <data name="Error loading warehouses">
     <value>Error al cargar almacenes</value>
     <comment>Error message when warehouse loading fails</comment>
