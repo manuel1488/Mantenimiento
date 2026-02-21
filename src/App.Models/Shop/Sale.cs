@@ -37,10 +37,6 @@ public class Sale : BaseEntity<long>
 
     public App.Core.Enums.Shop.SaleStatus Status { get; set; }
 
-    [Required]
-    [StringLength(20)]
-    public string PaymentMethod { get; set; } = null!;
-
     public SaleType SaleType { get; set; } = SaleType.Public;
 
     [StringLength(200)]
@@ -60,4 +56,6 @@ public class Sale : BaseEntity<long>
     public virtual Location? Location { get; set; }
 
     public virtual ICollection<SaleDetail> Details { get; set; } = new List<SaleDetail>();
+
+    public virtual ICollection<SalePayment> Payments { get; set; } = new List<SalePayment>();
 }

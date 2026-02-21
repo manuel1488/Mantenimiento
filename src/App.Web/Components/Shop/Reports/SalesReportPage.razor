@@ -227,7 +227,7 @@
                             @context.Status.ToString()
                         </MudChip>
                     </MudTd>
-                    <MudTd DataLabel="@L["Payment"]">@context.PaymentMethod</MudTd>
+                    <MudTd DataLabel="@L["Payment"]">@(context.Payments.FirstOrDefault()?.PaymentMethodName ?? "—")</MudTd>
                     <MudTd DataLabel="@L["Subtotal"]">@context.Subtotal.ToString("C")</MudTd>
                     <MudTd DataLabel="@L["Tax"]">@context.TaxAmount.ToString("C")</MudTd>
                     <MudTd DataLabel="@L["Discount"]">@context.DiscountAmount.ToString("C")</MudTd>

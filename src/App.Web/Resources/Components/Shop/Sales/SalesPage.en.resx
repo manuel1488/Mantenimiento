@@ -219,4 +219,19 @@
   <data name="Surcharge" xml:space="preserve">
     <value>Surcharge</value>
   </data>
+  <data name="Payment Methods" xml:space="preserve">
+    <value>Payment Methods</value>
+  </data>
+  <data name="Complete" xml:space="preserve">
+    <value>Complete</value>
+  </data>
+  <data name="Remaining" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+  <data name="No active location selected. Please select a location to continue." xml:space="preserve">
+    <value>No active location selected. Please select a location to continue.</value>
+  </data>
+  <data name="No active location found" xml:space="preserve">
+    <value>No active location found</value>
+  </data>
 </root>

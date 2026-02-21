@@ -12,6 +12,7 @@
 @using App.Web.Components.Admin.Settings.PartialSaleFractions
 @using App.Web.Components.Admin.Settings.WholesaleTiers
 @using App.Web.Components.Admin.Settings.Rounding
+@using App.Web.Components.Admin.Settings.PaymentMethods
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -84,6 +85,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Rounding"]" Icon="@Icons.Material.Filled.RoundedCorner">
                         <RoundingSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Payment Methods"]" Icon="@Icons.Material.Filled.Payments">
+                        <PaymentMethodsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

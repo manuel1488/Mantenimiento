@@ -60,4 +60,8 @@
     <value>Redondeo</value>
     <comment>Rounding settings tab</comment>
   </data>
+  <data name="Payment Methods" xml:space="preserve">
+    <value>Métodos de Pago</value>
+    <comment>Payment methods settings tab</comment>
+  </data>
 </root>

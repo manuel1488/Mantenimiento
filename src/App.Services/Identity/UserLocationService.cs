@@ -6,6 +6,7 @@ using App.Models.Data.Contexts;
 using App.Models.Identity;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -17,17 +18,21 @@ public class UserLocationService : IUserLocationService
     private readonly IMapper _mapper;
     private readonly ILogger<UserLocationService> _logger;
     private readonly IStringLocalizer<UserLocationService> _localizer;
+    private readonly IMemoryCache _cache;
+    private const string LOCATION_CACHE_KEY_PREFIX = "UserLocations_";
 
     public UserLocationService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
         IMapper mapper,
         ILogger<UserLocationService> logger,
-        IStringLocalizer<UserLocationService> localizer)
+        IStringLocalizer<UserLocationService> localizer,
+        IMemoryCache cache)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
         _logger = logger;
         _localizer = localizer;
+        _cache = cache;
     }
 
     public async Task<Result<IList<LocationDto>>> GetUserLocationsAsync(string userId, LocationType? type = null)
@@ -117,6 +122,7 @@ public class UserLocationService : IUserLocationService
             }
 
             await context.SaveChangesAsync();
+            _cache.Remove($"{LOCATION_CACHE_KEY_PREFIX}{userId}");
             return Result.Success();
         }
         catch (Exception ex)
@@ -142,6 +148,7 @@ public class UserLocationService : IUserLocationService
 
             context.UserLocations.Remove(userLocation);
             await context.SaveChangesAsync();
+            _cache.Remove($"{LOCATION_CACHE_KEY_PREFIX}{userId}");
 
             return Result.Success();
         }

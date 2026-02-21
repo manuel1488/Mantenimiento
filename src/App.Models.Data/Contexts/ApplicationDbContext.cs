@@ -5,6 +5,7 @@ using App.Models.Identity;
 using App.Models.Settings;
 using App.Models.Shared;
 using App.Models.Shop;
+using PaymentMethod = App.Models.Settings.PaymentMethod;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TaxRate> TaxRates { get; set; } = null!;
     public DbSet<DiscountSettings> DiscountSettings { get; set; } = null!;
     public DbSet<RoundingSettings> RoundingSettings { get; set; } = null!;
+    public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
     #endregion
 
     #region Shared
@@ -44,6 +46,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InventoryMovement> InventoryMovements { get; set; } = null!;
     public DbSet<Sale> Sales { get; set; } = null!;
     public DbSet<SaleDetail> SaleDetails { get; set; } = null!;
+    public DbSet<SalePayment> SalePayments { get; set; } = null!;
     public DbSet<TicketConfiguration> TicketConfigurations { get; set; } = null!;
     public DbSet<PartialSaleFraction> PartialSaleFractions { get; set; } = null!;
     public DbSet<ProductPartialSurcharge> ProductPartialSurcharges { get; set; } = null!;

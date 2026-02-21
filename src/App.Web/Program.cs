@@ -608,12 +608,14 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddSingleton<RoleTranslationService>();
     services.AddScoped<IDiscountSettingsService, DiscountSettingsService>();
     services.AddScoped<IRoundingSettingsService, RoundingSettingsService>();
+    services.AddScoped<IPaymentMethodService, PaymentMethodService>();
     services.AddScoped<ISaleService, SaleService>();
     services.AddScoped<IPartialSaleFractionService, PartialSaleFractionService>();
     services.AddScoped<IProductPartialSurchargeService, ProductPartialSurchargeService>();
     services.AddScoped<IWholesaleTierService, WholesaleTierService>();
     services.AddScoped<IProductWholesalePriceService, ProductWholesalePriceService>();
     services.AddScoped<ICustomerSeeder, CustomerSeeder>();
+    services.AddScoped<IPaymentMethodSeeder, PaymentMethodSeeder>();
     builder.Services.AddScoped<IDiscountAuthorizerService, DiscountAuthorizerService>();
     builder.Services.AddScoped<ISalesReportService, SalesReportService>();
     builder.Services.AddScoped<IDashboardService, DashboardService>();
@@ -672,6 +674,7 @@ async Task InitializeDatabase(WebApplication app)
     var generalSeeder = scope.ServiceProvider.GetRequiredService<IGeneralSeeder>();
     var mexicoFiscalSeeder = scope.ServiceProvider.GetRequiredService<IMexicoFiscalSeeder>();
     var customerSeeder = scope.ServiceProvider.GetRequiredService<ICustomerSeeder>();
+    var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<IPaymentMethodSeeder>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
@@ -679,6 +682,7 @@ async Task InitializeDatabase(WebApplication app)
     await generalSeeder.SeedAsync();
     await mexicoFiscalSeeder.SeedAsync();
     await customerSeeder.SeedAsync();
+    await paymentMethodSeeder.SeedAsync();
 }
 
 #endregion

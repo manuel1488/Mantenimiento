@@ -227,11 +227,11 @@
                             </MudChip>
                         </CellTemplate>
                     </PropertyColumn>
-                    <PropertyColumn Property="x => x.PaymentMethod" Title="@L["Payment"]">
+                    <TemplateColumn Title="@L["Payment"]">
                         <CellTemplate>
-                            @L[context.Item.PaymentMethod ?? "N/A"]
+                            @(context.Item.Payments.FirstOrDefault()?.PaymentMethodName ?? "N/A")
                         </CellTemplate>
-                    </PropertyColumn>
+                    </TemplateColumn>
                     <PropertyColumn Property="x => x.Subtotal" Title="@L["Subtotal"]" Format="C2" />
                     <PropertyColumn Property="x => x.TaxAmount" Title="@L["Tax"]" Format="C2" />
                     <PropertyColumn Property="x => x.DiscountAmount" Title="@L["Discount"]" Format="C2" />
@@ -358,17 +358,17 @@
     private void CalculatePaymentMethodBreakdown()
     {
         _paymentMethodBreakdown = _sales
-            .Where(s => !string.IsNullOrEmpty(s.PaymentMethod))
-            .GroupBy(s => s.PaymentMethod!)
+            .SelectMany(s => s.Payments)
+            .GroupBy(p => p.PaymentMethodName)
             .ToDictionary(
                 g => g.Key,
-                g => g.Sum(s => s.Total)
+                g => g.Sum(p => p.Amount)
             );
     }
 
     private int GetPaymentMethodCount(string paymentMethod)
     {
-        return _sales.Count(s => s.PaymentMethod == paymentMethod);
+        return _sales.Count(s => s.Payments.Any(p => p.PaymentMethodName == paymentMethod));
     }
 
     private string GetPaymentIcon(string paymentMethod)

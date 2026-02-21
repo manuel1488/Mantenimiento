@@ -301,7 +301,7 @@
 
         @* Payment Information *@
         <div class="payment-info">
-            <div><strong>@L["Payment Method"]:</strong> @L[Model.Data.PaymentMethod]</div>
+            <div><strong>@L["Payment Method"]:</strong> @(string.Join(", ", Model.Data.Payments.Select(p => p.PaymentMethodName)))</div>
             <div><strong>@L["Status"]:</strong> @L[Model.Data.Status.ToString()]</div>
         </div>
 

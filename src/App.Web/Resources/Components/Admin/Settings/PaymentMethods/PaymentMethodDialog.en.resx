@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>Name is required</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="Card" xml:space="preserve">
+    <value>Card</value>
+  </data>
+  <data name="Transfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Check</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Card Subtype" xml:space="preserve">
+    <value>Card Subtype</value>
+  </data>
+  <data name="Not specified" xml:space="preserve">
+    <value>Not specified</value>
+  </data>
+  <data name="Debit" xml:space="preserve">
+    <value>Debit</value>
+  </data>
+  <data name="Credit" xml:space="preserve">
+    <value>Credit</value>
+  </data>
+  <data name="CFDI Form Code (MX)" xml:space="preserve">
+    <value>CFDI Form Code (MX)</value>
+  </data>
+  <data name="Code from SAT catalog (mx_payment_forms)" xml:space="preserve">
+    <value>Code from SAT catalog (mx_payment_forms)</value>
+  </data>
+  <data name="Icon (Material Icons name)" xml:space="preserve">
+    <value>Icon (Material Icons name)</value>
+  </data>
+  <data name="Sort Order" xml:space="preserve">
+    <value>Sort Order</value>
+  </data>
+  <data name="Active in point of sale" xml:space="preserve">
+    <value>Active in point of sale</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+</root>

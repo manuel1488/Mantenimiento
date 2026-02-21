@@ -4,6 +4,8 @@
 @using App.Core.DTOs.Customer
 @using App.Core.DTOs.Product
 @using App.Core.DTOs.Location
+@using App.Core.DTOs.Settings
+@using App.Core.Enums.Shop
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Settings
 @using App.Core.Interfaces.Shop
@@ -18,6 +20,7 @@
 @using MudBlazor
 
 @inject ISaleService SaleService
+@inject IPaymentMethodService PaymentMethodService
 @inject ICustomerService CustomerService
 @inject IProductService ProductService
 @inject ILocationService LocationService
@@ -95,13 +98,12 @@ else
                         </MudItem>
 
                         <MudItem xs="12" md="4">
-                            <MudSelect @bind-Value="_model.PaymentMethod" Label="@L["Payment Method"]" Required="true">
-                                <MudSelectItem Value="@("Cash")">@L["Cash"]</MudSelectItem>
-                                <MudSelectItem Value="@("CreditCard")">@L["Credit Card"]</MudSelectItem>
-                                <MudSelectItem Value="@("DebitCard")">@L["Debit Card"]</MudSelectItem>
-                                <MudSelectItem Value="@("BankTransfer")">@L["Bank Transfer"]</MudSelectItem>
-                                <MudSelectItem Value="@("Other")">@L["Other"]</MudSelectItem>
-                            </MudSelect>
+                            @if (_location != null)
+                            {
+                                <MudChip T="string" Icon="@Icons.Material.Filled.LocationOn" Color="Color.Default" Size="Size.Small">
+                                    @_location.Name
+                                </MudChip>
+                            }
                         </MudItem>
                     </MudGrid>
                 </MudPaper>
@@ -347,6 +349,109 @@ else
                         </MudListItem>
                     </MudList>
 
+                    <MudDivider Class="my-3" />
+
+                    <!-- ── Payment Methods Section ── -->
+                    <div class="d-flex justify-space-between align-center mb-2">
+                        <MudText Typo="Typo.subtitle2">@L["Payment Methods"]</MudText>
+                        @{
+                            var _paidTotal = _paymentEntries.Sum(e => e.Amount);
+                            var _remaining = _total - _paidTotal;
+                        }
+                        <MudChip T="string" Size="Size.Small"
+                            Color="@(_remaining <= 0 ? Color.Success : Color.Warning)">
+                            @(_remaining <= 0 ? L["Complete"] : $"{L["Remaining"]}: {_remaining:C2}")
+                        </MudChip>
+                    </div>
+
+                    @if (!_availablePaymentMethods.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2">
+                            @L["No payment methods configured"]
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <!-- Payment method buttons -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px;">
+                            @foreach (var pm in _availablePaymentMethods)
+                            {
+                                <MudButton Variant="Variant.Outlined"
+                                    Color="Color.Default"
+                                    Size="Size.Small"
+                                    OnClick="@(() => AddPaymentEntry(pm))"
+                                    Style="height:52px; text-transform:none; font-size:11px; flex-direction:column; gap:2px;"
+                                    Disabled="@(!_cart.Any())">
+                                    <MudIcon Icon="@pm.Icon" Size="Size.Small" />
+                                    <span>@pm.Name</span>
+                                </MudButton>
+                            }
+                        </div>
+                    }
+
+                    <!-- Payment entries list -->
+                    @foreach (var entry in _paymentEntries)
+                    {
+                        <div style="background:#FAFAFA; padding:8px 10px; border-radius:6px; border-left:3px solid @GetPaymentColor(entry.PaymentMethod.Type); margin-bottom:6px;">
+                            <div class="d-flex align-center justify-space-between">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@entry.PaymentMethod.Icon" Size="Size.Small" Style="@($"color:{GetPaymentColor(entry.PaymentMethod.Type)}")" />
+                                    <MudText Typo="Typo.body2"><strong>@entry.PaymentMethod.Name</strong></MudText>
+                                </div>
+                                <div class="d-flex align-center gap-1">
+                                    <MudNumericField T="decimal"
+                                        Value="@entry.Amount"
+                                        ValueChanged="@((val) => UpdatePaymentAmount(entry, val))"
+                                        Format="C2" Min="0.01M" Step="0.01M"
+                                        Style="width:100px;" Dense="true"
+                                        Variant="Variant.Outlined" Margin="Margin.Dense"
+                                        HideSpinButtons="true" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                        Size="Size.Small" Color="Color.Error"
+                                        OnClick="@(() => RemovePaymentEntry(entry))"
+                                        title="@L["Remove"]" />
+                                </div>
+                            </div>
+                            @if (entry.PaymentMethod.Type == PaymentMethodType.Card)
+                            {
+                                <div class="d-flex align-center gap-2 mt-1">
+                                    <MudTextField @bind-Value="entry.CardLastFour"
+                                        Placeholder="@L["Last 4 digits (optional)"]"
+                                        MaxLength="4" Dense="true"
+                                        Variant="Variant.Outlined" Margin="Margin.Dense"
+                                        Style="font-size:11px; max-width:160px;" />
+                                    @if (!string.IsNullOrEmpty(entry.PaymentMethod.MxCfdiFormCode))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info"
+                                            Style="font-size:10px;">
+                                            CFDI: @entry.PaymentMethod.MxCfdiFormCode
+                                        </MudChip>
+                                    }
+                                </div>
+                            }
+                            @if (entry.PaymentMethod.Type == PaymentMethodType.Transfer || entry.PaymentMethod.Type == PaymentMethodType.Check)
+                            {
+                                <MudTextField @bind-Value="entry.Reference"
+                                    Placeholder="@L["Reference number (optional)"]"
+                                    Dense="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                    Style="font-size:11px; margin-top:4px;" />
+                            }
+                        </div>
+                    }
+
+                    @if (_paymentEntries.Any())
+                    {
+                        <MudProgressLinear Value="@PaidPercentage" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)" Class="my-2" />
+                        <div class="d-flex justify-space-between mb-2">
+                            <MudText Typo="Typo.caption" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)">
+                                @L["Paid"]: @_paymentEntries.Sum(e => e.Amount).ToString("C2")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)">
+                                @L["Remaining"]: @(Math.Max(0, _total - _paymentEntries.Sum(e => e.Amount)).ToString("C2"))
+                            </MudText>
+                        </div>
+                    }
+
                     <MudButton Variant="Variant.Filled"
                         Color="@(_model.DiscountPercentage > 0 && _discountAuthorizerId == null ? Color.Warning : Color.Success)"
                         FullWidth="true" OnClick="ProcessSale" Disabled="@(_isBusy || !IsFormValid())"
@@ -388,10 +493,14 @@ else
     private CreateSaleDto _model = new()
     {
         SaleType = SaleType.Public,
-        PaymentMethod = "Cash",
         DiscountPercentage = 0,
-        Details = new List<CreateSaleDetailDto>()
+        Details = new List<CreateSaleDetailDto>(),
+        Payments = new List<CreateSalePaymentDto>()
     };
+
+    // Payment methods
+    private List<PaymentMethodDto> _availablePaymentMethods = new();
+    private List<PaymentEntry> _paymentEntries = new();
 
     // Customer selection
     private CustomerDto? _selectedCustomer;
@@ -436,6 +545,7 @@ else
     private decimal _roundingAmount = 0;
     private decimal _total = 0;
     private bool _isRoundingEnabled = false;
+    private double PaidPercentage => _total > 0 ? Math.Min(100, (double)(_paymentEntries.Sum(e => e.Amount) / _total * 100)) : 0;
 
     // Discount settings
     private decimal _maxItemDiscount = 0;
@@ -506,6 +616,7 @@ else
             await LoadAvailableFractions();
             await InitializeDiscountSettings();
             await LoadRoundingSettings();
+            await LoadPaymentMethods();
         }
         catch (Exception ex)
         {
@@ -1069,7 +1180,10 @@ else
 
     private bool IsFormValid()
     {
-        return _selectedCustomer != null && _cart.Any();
+        if (_selectedCustomer == null || !_cart.Any()) return false;
+        if (!_paymentEntries.Any()) return false;
+        var paidTotal = _paymentEntries.Sum(e => e.Amount);
+        return paidTotal >= _total;
     }
 
     private async Task OpenCreateCustomerDialog()
@@ -1089,6 +1203,51 @@ else
             }
         }
     }
+
+    private async Task LoadPaymentMethods()
+    {
+        try
+        {
+            _availablePaymentMethods = (await PaymentMethodService.GetActiveAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading payment methods");
+            Snackbar.Add(L["Error loading payment methods"], Severity.Warning);
+        }
+    }
+
+    private void AddPaymentEntry(PaymentMethodDto pm)
+    {
+        var remaining = _total - _paymentEntries.Sum(e => e.Amount);
+        _paymentEntries.Add(new PaymentEntry
+        {
+            PaymentMethod = pm,
+            Amount = Math.Max(0.01M, remaining)
+        });
+        StateHasChanged();
+    }
+
+    private void RemovePaymentEntry(PaymentEntry entry)
+    {
+        _paymentEntries.Remove(entry);
+        StateHasChanged();
+    }
+
+    private void UpdatePaymentAmount(PaymentEntry entry, decimal amount)
+    {
+        entry.Amount = amount;
+        StateHasChanged();
+    }
+
+    private static string GetPaymentColor(PaymentMethodType type) => type switch
+    {
+        PaymentMethodType.Cash => "#4CAF50",
+        PaymentMethodType.Card => "#2196F3",
+        PaymentMethodType.Transfer => "#9C27B0",
+        PaymentMethodType.Check => "#607D8B",
+        _ => "#9E9E9E"
+    };
 
     private async Task ProcessSale()
     {
@@ -1136,6 +1295,15 @@ else
             // Información de autorización para la venta completa
             _model.DiscountAuthorizerId = _discountAuthorizerId;
             _model.DiscountAuthorizedAt = _discountAuthorizedAt;
+
+            // Map payment entries
+            _model.Payments = _paymentEntries.Select(e => new CreateSalePaymentDto
+            {
+                PaymentMethodId = e.PaymentMethod.Id,
+                Amount = e.Amount,
+                CardLastFour = e.CardLastFour,
+                Reference = e.Reference
+            }).ToList();
 
             // Detalles sin información de autorización a nivel de producto
             _model.Details = _cart.Select(item => new CreateSaleDetailDto
@@ -1187,13 +1355,14 @@ else
     private async Task ClearCartAndFormAsync()
     {
         _cart.Clear();
+        _paymentEntries.Clear();
         _discountAuthorizerId = null;
         _model = new CreateSaleDto
         {
             SaleType = SaleType.Public,
-            PaymentMethod = "Cash",
             DiscountPercentage = 0,
-            Details = new List<CreateSaleDetailDto>()
+            Details = new List<CreateSaleDetailDto>(),
+            Payments = new List<CreateSalePaymentDto>()
         };
 
         _model.CustomerId = _selectedCustomer?.Id ?? 0;
@@ -1235,6 +1404,14 @@ else
             return stock.ToString("N2");
         }
         return "...";
+    }
+
+    public class PaymentEntry
+    {
+        public PaymentMethodDto PaymentMethod { get; set; } = null!;
+        public decimal Amount { get; set; }
+        public string? CardLastFour { get; set; }
+        public string? Reference { get; set; }
     }
 
     public class CartItem

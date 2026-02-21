@@ -60,4 +60,8 @@
     <value>Rounding</value>
     <comment>Rounding settings tab</comment>
   </data>
+  <data name="Payment Methods" xml:space="preserve">
+    <value>Payment Methods</value>
+    <comment>Payment methods settings tab</comment>
+  </data>
 </root>

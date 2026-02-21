@@ -84,7 +84,7 @@
                                 <MudListItem>
                                     <MudText Typo="Typo.body2">
                                         <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Payment Method"]: </MudText>
-                                        @_sale.PaymentMethod
+                                        @(string.Join(", ", _sale.Payments.Select(p => p.PaymentMethodName)))
                                     </MudText>
                                 </MudListItem>
                                 

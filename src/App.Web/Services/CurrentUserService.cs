@@ -153,7 +153,30 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
-    public Task EnsureInitializedAsync() => InitializeActiveLocationAsync();
+    public async Task EnsureInitializedAsync()
+    {
+        // If previously initialized but the location cache was invalidated externally
+        // (e.g., admin updated user's locations), reset so we pick up fresh data.
+        if (_locationInitialized)
+        {
+            try
+            {
+                var userId = UserId;
+                var cacheKey = $"{LOCATION_CACHE_KEY_PREFIX}{userId}";
+                if (!_cache.TryGetValue(cacheKey, out _))
+                {
+                    _locationInitialized = false;
+                    _activeLocationId = null;
+                }
+            }
+            catch
+            {
+                // If we can't get userId, leave as-is
+            }
+        }
+
+        await InitializeActiveLocationAsync();
+    }
 
     public async Task SetActiveLocationAsync(int? locationId)
     {

@@ -338,7 +338,7 @@
                 <span>@L["Customer"]: <strong>@sale.CustomerName</strong></span>
                 <span>@L["Type"]: <strong>@GetSaleTypeDisplay(sale.SaleType)</strong></span>
                 <span>@L["Status"]: <span class="status-chip @statusClass">@sale.Status.ToString()</span></span>
-                <span>@L["Payment"]: <strong>@sale.PaymentMethod</strong></span>
+                <span>@L["Payment"]: <strong>@(string.Join(", ", sale.Payments.Select(p => p.PaymentMethodName)))</strong></span>
                 <span>@L["Total"]: <strong>@sale.Total.ToString("C")</strong></span>
             </div>
         </div>

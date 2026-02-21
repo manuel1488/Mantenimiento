@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Payment Methods" xml:space="preserve">
+    <value>Payment Methods</value>
+  </data>
+  <data name="Configure the payment methods available at the point of sale" xml:space="preserve">
+    <value>Configure the payment methods available at the point of sale</value>
+  </data>
+  <data name="New Payment Method" xml:space="preserve">
+    <value>New Payment Method</value>
+  </data>
+  <data name="Edit Payment Method" xml:space="preserve">
+    <value>Edit Payment Method</value>
+  </data>
+  <data name="No payment methods configured. Create at least one to accept payments." xml:space="preserve">
+    <value>No payment methods configured. Create at least one to accept payments.</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Card Subtype" xml:space="preserve">
+    <value>Card Subtype</value>
+  </data>
+  <data name="CFDI Code (MX)" xml:space="preserve">
+    <value>CFDI Code (MX)</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Confirm Delete" xml:space="preserve">
+    <value>Confirm Delete</value>
+  </data>
+  <data name="Are you sure you want to delete {0}?" xml:space="preserve">
+    <value>Are you sure you want to delete {0}?</value>
+  </data>
+  <data name="Payment method created" xml:space="preserve">
+    <value>Payment method created</value>
+  </data>
+  <data name="Payment method updated" xml:space="preserve">
+    <value>Payment method updated</value>
+  </data>
+  <data name="Payment method deleted" xml:space="preserve">
+    <value>Payment method deleted</value>
+  </data>
+  <data name="Error loading payment methods" xml:space="preserve">
+    <value>Error loading payment methods</value>
+  </data>
+  <data name="You don't have permission to view this section" xml:space="preserve">
+    <value>You don't have permission to view this section</value>
+  </data>
+</root>

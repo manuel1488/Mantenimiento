@@ -129,7 +129,7 @@
                 <!-- Ultra Compact Footer -->
                 <div style="font-size: 0.75rem; color: var(--mud-palette-text-secondary); border-top: 1px solid var(--mud-palette-divider); padding-top: 8px;">
                     <div class="d-flex justify-space-between" style="margin-bottom: 4px;">
-                        <span><strong>@L["Payment"]:</strong> @L[_sale.PaymentMethod]</span>
+                        <span><strong>@L["Payment"]:</strong> @(string.Join(", ", _sale.Payments.Select(p => p.PaymentMethodName)))</span>
                     </div>
                     
                     @if (_sale.DiscountPercentage > 0 && !string.IsNullOrEmpty(_sale.DiscountAuthorizedBy))

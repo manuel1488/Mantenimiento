@@ -265,6 +265,24 @@ namespace App.Models.Data.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Type = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Street = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExteriorNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    InteriorNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Neighborhood = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    City = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    State = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PostalCode = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Country = table.Column<string>(type: "varchar(2)", unicode: false, maxLength: 2, nullable: false, defaultValue: "MX")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Latitude = table.Column<decimal>(type: "decimal(10,8)", precision: 10, scale: 8, nullable: true),
+                    Longitude = table.Column<decimal>(type: "decimal(11,8)", precision: 11, scale: 8, nullable: true),
                     Address = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Phone = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
@@ -592,6 +610,39 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "stg_payment_methods",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    CardSubtype = table.Column<int>(type: "int", nullable: true),
+                    MxCfdiFormCode = table.Column<string>(type: "varchar(5)", maxLength: 5, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Icon = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
+                    SortOrder = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_stg_payment_methods", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "stg_rounding_settings",
                 columns: table => new
                 {
@@ -886,6 +937,58 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "sh_location_ticket_settings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    PrinterName = table.Column<string>(type: "varchar(200)", unicode: false, maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PaperWidth = table.Column<int>(type: "int", nullable: false, defaultValue: 80),
+                    AutoPrint = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    Copies = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    HeaderText = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FooterText = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LogoBase64 = table.Column<string>(type: "LONGTEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ShowLogo = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
+                    TaxId = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LegalName = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ShowFullAddress = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
+                    ShowQrCode = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    QrCodeContent = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ShowPrices = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
+                    ShowTaxBreakdown = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_location_ticket_settings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_location_ticket_settings_sh_locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "sh_locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "sh_products",
                 columns: table => new
                 {
@@ -954,8 +1057,6 @@ namespace App.Models.Data.Migrations
                     RoundingAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Total = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Status = table.Column<int>(type: "int", unicode: false, nullable: false),
-                    PaymentMethod = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     SaleType = table.Column<int>(type: "int", nullable: false),
                     DiscountAuthorizedBy = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -1382,6 +1483,48 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "sh_sale_payments",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SaleId = table.Column<long>(type: "bigint", nullable: false),
+                    PaymentMethodId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    CardLastFour = table.Column<string>(type: "varchar(4)", maxLength: 4, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Reference = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_sale_payments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_sale_payments_sh_sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "sh_sales",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_sh_sale_payments_stg_payment_methods_PaymentMethodId",
+                        column: x => x.PaymentMethodId,
+                        principalTable: "stg_payment_methods",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "mx_invoice_files",
                 columns: table => new
                 {
@@ -1555,9 +1698,25 @@ namespace App.Models.Data.Migrations
                 columns: new[] { "ProductId", "LocationId", "MovementDate" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_sh_location_ticket_settings_LocationId",
+                table: "sh_location_ticket_settings",
+                column: "LocationId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_locations_City_State",
+                table: "sh_locations",
+                columns: new[] { "City", "State" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_sh_locations_Name",
                 table: "sh_locations",
                 column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_locations_PostalCode",
+                table: "sh_locations",
+                column: "PostalCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sh_locations_Type",
@@ -1643,6 +1802,16 @@ namespace App.Models.Data.Migrations
                 name: "IX_sh_sale_details_SaleId_ProductId",
                 table: "sh_sale_details",
                 columns: new[] { "SaleId", "ProductId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_sale_payments_PaymentMethodId",
+                table: "sh_sale_payments",
+                column: "PaymentMethodId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_sale_payments_SaleId",
+                table: "sh_sale_payments",
+                column: "SaleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sh_sales_CustomerId",
@@ -1745,6 +1914,16 @@ namespace App.Models.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_stg_payment_methods_IsActive",
+                table: "stg_payment_methods",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_stg_payment_methods_SortOrder",
+                table: "stg_payment_methods",
+                column: "SortOrder");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_stg_rounding_settings_Id",
                 table: "stg_rounding_settings",
                 column: "Id",
@@ -1834,6 +2013,9 @@ namespace App.Models.Data.Migrations
                 name: "sh_inventory_movements");
 
             migrationBuilder.DropTable(
+                name: "sh_location_ticket_settings");
+
+            migrationBuilder.DropTable(
                 name: "sh_product_images");
 
             migrationBuilder.DropTable(
@@ -1844,6 +2026,9 @@ namespace App.Models.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "sh_sale_details");
+
+            migrationBuilder.DropTable(
+                name: "sh_sale_payments");
 
             migrationBuilder.DropTable(
                 name: "stg_currencies");
@@ -1889,6 +2074,9 @@ namespace App.Models.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "sh_products");
+
+            migrationBuilder.DropTable(
+                name: "stg_payment_methods");
 
             migrationBuilder.DropTable(
                 name: "stg_countries");

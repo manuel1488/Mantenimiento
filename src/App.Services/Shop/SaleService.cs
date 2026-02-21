@@ -89,7 +89,9 @@ public class SaleService : ISaleService
                 .Include(s => s.Customer)
                 .Include(s => s.Location)
                 .Include(s => s.Details)
-                    .ThenInclude(d => d.Product);
+                    .ThenInclude(d => d.Product)
+                .Include(s => s.Payments)
+                    .ThenInclude(p => p.PaymentMethod);
 
             // Apply filters
             if (!string.IsNullOrWhiteSpace(searchString))
@@ -163,6 +165,8 @@ public class SaleService : ISaleService
                 .Include(s => s.Location)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
+                .Include(s => s.Payments)
+                    .ThenInclude(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             return sale != null ? _mapper.Map<SaleDto>(sale) : null;
@@ -217,6 +221,32 @@ public class SaleService : ISaleService
             }
 
             var (sale, detailsToProcess) = saleCalculation.Value!;
+
+            // Validate payments sum equals total
+            var paymentsTotal = createDto.Payments.Sum(p => p.Amount);
+            if (paymentsTotal < sale.Total)
+            {
+                return Result<SaleDto>.Failure(
+                    L["Payment total ({0:C}) is less than sale total ({1:C})", paymentsTotal, sale.Total]);
+            }
+
+            // Attach payment entries
+            var currentUser = _currentUserService.UserId ?? "System";
+            var now = _dateTime.Now;
+            foreach (var paymentDto in createDto.Payments)
+            {
+                sale.Payments.Add(new App.Models.Shop.SalePayment
+                {
+                    PaymentMethodId = paymentDto.PaymentMethodId,
+                    Amount = paymentDto.Amount,
+                    CardLastFour = paymentDto.CardLastFour,
+                    Reference = paymentDto.Reference,
+                    CreatedBy = currentUser,
+                    CreatedAt = now,
+                    ModifiedBy = currentUser,
+                    ModifiedAt = now
+                });
+            }
 
             // Save the sale entity
             context.Sales.Add(sale);
@@ -300,7 +330,6 @@ public class SaleService : ISaleService
 
             // Update properties
             sale.Status = updateDto.Status;
-            sale.PaymentMethod = updateDto.PaymentMethod;
 
             // Update discount if changed and recalculate totals
             if (updateDto.DiscountPercentage != sale.DiscountPercentage)
@@ -517,7 +546,6 @@ public class SaleService : ISaleService
             {
                 CustomerId = createDto.CustomerId,
                 SaleDate = createDto.SaleDate ?? _dateTime.Now,
-                PaymentMethod = createDto.PaymentMethod,
                 Status = App.Core.Enums.Shop.SaleStatus.Created,
                 SaleType = createDto.SaleType,
                 LocationId = createDto.LocationId,

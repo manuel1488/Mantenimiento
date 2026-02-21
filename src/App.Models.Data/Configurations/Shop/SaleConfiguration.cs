@@ -18,9 +18,6 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.Property(e => e.Status)
             .IsUnicode(false);
 
-        builder.Property(e => e.PaymentMethod)
-            .IsUnicode(false);
-
         builder.Property(e => e.DiscountPercentage)
             .HasColumnType("decimal(5,2)")
             .HasDefaultValue(0);

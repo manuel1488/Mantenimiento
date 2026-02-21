@@ -87,10 +87,11 @@ public class SalesReportService : ISalesReportService
                     v => v.Count,
                     cancellationToken);
 
-            // Sales grouped by payment method
+            // Sales grouped by payment method (via SalePayments join)
             var salesByPaymentMethod = await query
-                .GroupBy(s => s.PaymentMethod)
-                .Select(g => new { Method = g.Key, Count = g.Count() })
+                .SelectMany(s => s.Payments)
+                .GroupBy(p => p.PaymentMethod.Name)
+                .Select(g => new { Method = g.Key, Count = g.Select(p => p.SaleId).Distinct().Count() })
                 .ToDictionaryAsync(
                     k => k.Method,
                     v => v.Count,
@@ -98,8 +99,9 @@ public class SalesReportService : ISalesReportService
 
             // Sales amount grouped by payment method
             var salesByPaymentMethodAmount = await query
-                .GroupBy(s => s.PaymentMethod)
-                .Select(g => new { Method = g.Key, Total = g.Sum(s => s.Total) })
+                .SelectMany(s => s.Payments)
+                .GroupBy(p => p.PaymentMethod.Name)
+                .Select(g => new { Method = g.Key, Total = g.Sum(p => p.Amount) })
                 .ToDictionaryAsync(
                     k => k.Method,
                     v => v.Total,
@@ -379,7 +381,8 @@ public class SalesReportService : ISalesReportService
                         productDetailsSheet.Cells[row, 1].Value = sale.Id;
                         productDetailsSheet.Cells[row, 2].Value = _dateTime.FormatToTimezone(sale.SaleDate, timeZone);
                         productDetailsSheet.Cells[row, 3].Value = sale.CustomerName;
-                        productDetailsSheet.Cells[row, 4].Value = GetPaymentMethodDisplay(sale.PaymentMethod);
+                        productDetailsSheet.Cells[row, 4].Value = GetPaymentMethodDisplay(
+                            sale.Payments.FirstOrDefault()?.PaymentMethodName);
                         productDetailsSheet.Cells[row, 5].Value = detail.ProductCode;
                         productDetailsSheet.Cells[row, 6].Value = detail.ProductName;
                         productDetailsSheet.Cells[row, 7].Value = detail.Quantity;
@@ -478,7 +481,10 @@ public class SalesReportService : ISalesReportService
         SalesReportRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var query = context.Sales.AsNoTracking();
+        IQueryable<Sale> query = context.Sales
+            .AsNoTracking()
+            .Include(s => s.Payments)
+                .ThenInclude(p => p.PaymentMethod);
 
         // Obtener la zona horaria actual
         var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
@@ -525,7 +531,7 @@ public class SalesReportService : ISalesReportService
         // Apply payment method filter
         if (!string.IsNullOrWhiteSpace(request.PaymentMethod))
         {
-            query = query.Where(s => s.PaymentMethod == request.PaymentMethod);
+            query = query.Where(s => s.Payments.Any(p => p.PaymentMethod.Name == request.PaymentMethod));
         }
 
         return query;

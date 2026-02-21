@@ -61,6 +61,8 @@ public class DashboardService : IDashboardService
 
             // Obtener ventas del mes
             var monthSales = await context.Sales
+                .Include(s => s.Payments)
+                    .ThenInclude(p => p.PaymentMethod)
                 .Where(s => s.Status != App.Core.Enums.Shop.SaleStatus.Cancelled && s.SaleDate >= monthStart && s.SaleDate <= todayEnd)
                 .ToListAsync(cancellationToken);
 
@@ -78,10 +80,11 @@ public class DashboardService : IDashboardService
 
             // Obtener ventas por método de pago (para el mes actual)
             var salesByPaymentMethod = monthSales
-                .GroupBy(s => s.PaymentMethod)
+                .SelectMany(s => s.Payments.Select(p => new { p.PaymentMethod.Name, s.Total }))
+                .GroupBy(x => x.Name)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Sum(s => s.Total));
+                    g => g.Sum(x => x.Total));
 
             // Obtener ventas por tipo (para el mes actual)
             var salesByType = monthSales

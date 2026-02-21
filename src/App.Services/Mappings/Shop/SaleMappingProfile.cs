@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 
 using App.Core.DTOs.Shop;
 using App.Models.Shop;
@@ -15,7 +15,9 @@ public class SaleMappingProfile : Profile
             .ForMember(dest => dest.LocationName,
                 opt => opt.MapFrom(src => src.Location != null ? src.Location.Name : null))
             .ForMember(dest => dest.Details,
-                opt => opt.MapFrom(src => src.Details));
+                opt => opt.MapFrom(src => src.Details))
+            .ForMember(dest => dest.Payments,
+                opt => opt.MapFrom(src => src.Payments));
 
         CreateMap<SaleDetail, SaleDetailDto>()
             .ForMember(dest => dest.ProductName,
@@ -26,5 +28,15 @@ public class SaleMappingProfile : Profile
                 opt => opt.MapFrom(src => src.PartialSaleFraction != null ? src.PartialSaleFraction.Code : null))
             .ForMember(dest => dest.PartialSaleFractionName,
                 opt => opt.MapFrom(src => src.PartialSaleFraction != null ? src.PartialSaleFraction.Name : null));
+
+        CreateMap<SalePayment, SalePaymentDto>()
+            .ForMember(dest => dest.PaymentMethodName,
+                opt => opt.MapFrom(src => src.PaymentMethod.Name))
+            .ForMember(dest => dest.PaymentMethodType,
+                opt => opt.MapFrom(src => src.PaymentMethod.Type))
+            .ForMember(dest => dest.CardSubtype,
+                opt => opt.MapFrom(src => src.PaymentMethod.CardSubtype))
+            .ForMember(dest => dest.PaymentMethodIcon,
+                opt => opt.MapFrom(src => src.PaymentMethod.Icon));
     }
 }

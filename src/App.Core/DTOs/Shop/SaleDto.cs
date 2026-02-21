@@ -17,7 +17,6 @@ public class SaleDto : AuditableDto
     public decimal RoundingAmount { get; set; }
     public decimal Total { get; set; }
     public App.Core.Enums.Shop.SaleStatus Status { get; set; }
-    public string PaymentMethod { get; set; } = null!;
     public SaleType SaleType { get; set; }
     public int? LocationId { get; set; }
     public string? LocationName { get; set; }
@@ -36,4 +35,5 @@ public class SaleDto : AuditableDto
     public decimal NonTaxableAmount { get; set; } // Amount not subject to tax
     
     public List<SaleDetailDto> Details { get; set; } = new();
+    public List<SalePaymentDto> Payments { get; set; } = new();
 }

@@ -128,7 +128,7 @@
                     <MudTd DataLabel="@L["Sale #"]">@context.Id</MudTd>
                     <MudTd DataLabel="@L["Date"]">@FormatToCompanyTimezone(context.SaleDate)</MudTd>
                     <MudTd DataLabel="@L["Customer"]">@context.CustomerName</MudTd>
-                    <MudTd DataLabel="@L["Payment Method"]">@context.PaymentMethod</MudTd>
+                    <MudTd DataLabel="@L["Payment Method"]">@(context.Payments.FirstOrDefault()?.PaymentMethodName ?? "—")</MudTd>
                     <MudTd DataLabel="@L["Subtotal"]" Style="text-align: right;">@context.Subtotal.ToString("C")</MudTd>
                     <MudTd DataLabel="@L["Discount"]" Style="text-align: right;">
                         @if (context.DiscountPercentage > 0)
