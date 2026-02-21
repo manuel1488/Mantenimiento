@@ -58,62 +58,59 @@
 }
 else
 {
-    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="pa-0">
-        <MudGrid>
-            <!-- Sale Type and Customer Selection -->
-            <MudItem xs="12">
-                <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudGrid>
-                        <MudItem xs="12" md="4">
-                            <MudText Typo="Typo.h6">@L["Public Sale"]</MudText>
-                        </MudItem>
+    <div style="display:flex; flex-direction:column; height:calc(100vh - 96px); margin:-16px; overflow:hidden;">
 
-                        <MudItem xs="12" md="4">
-                            <MudAutocomplete T="CustomerDto" Context="ath" Label="@L["Customer"]" @bind-Value="_selectedCustomer"
-                                SearchFunc="@SearchCustomers" 
-                                ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
-                                AdornmentIcon="@Icons.Material.Filled.Search" 
-                                AdornmentColor="Color.Primary"
-                                OnAdornmentClick="@((MouseEventArgs e) => SearchCustomers(_selectedCustomer?.Name ?? string.Empty, CancellationToken.None))"
-                                Required="true"
-                                RequiredError="@L["Customer is required"]"
-                                ResetValueOnEmptyText="true" 
-                                CoerceText="true" 
-                                CoerceValue="false"
-                                OnClearButtonClick="@(() => _selectedCustomer = null)"
-                                OnBlur="@(() => CustomerSelectedAsync(_selectedCustomer))">
-                                <MoreItemsTemplate>
-                                    <MudText Align="Align.Center">@L["Type to search more..."]</MudText>
-                                </MoreItemsTemplate>
-                                <NoItemsTemplate>
-                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                        <MudText>@L["No customer found"]</MudText>
-                                        <MudButton Variant="Variant.Text" Color="Color.Primary"
-                                            OnClick="@OpenCreateCustomerDialog">
-                                            @L["Add Customer"]
-                                        </MudButton>
-                                    </MudStack>
-                                </NoItemsTemplate>
-                            </MudAutocomplete>
-                        </MudItem>
+        <!-- ── Compact Header: Title + Customer + Location ── -->
+        <div style="display:flex; align-items:center; gap:16px; padding:8px 16px; background:white; border-bottom:1px solid rgba(0,0,0,0.12); flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <MudText Typo="Typo.subtitle1" Style="white-space:nowrap; font-weight:600; flex-shrink:0;">@L["Public Sale"]</MudText>
 
-                        <MudItem xs="12" md="4">
-                            @if (_location != null)
-                            {
-                                <MudChip T="string" Icon="@Icons.Material.Filled.LocationOn" Color="Color.Default" Size="Size.Small">
-                                    @_location.Name
-                                </MudChip>
-                            }
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
-            </MudItem>
+            <div style="flex:1; max-width:420px;">
+                <MudAutocomplete T="CustomerDto" Context="ath" Label="@L["Customer"]" @bind-Value="_selectedCustomer"
+                    SearchFunc="@SearchCustomers"
+                    ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    AdornmentColor="Color.Primary"
+                    OnAdornmentClick="@((MouseEventArgs e) => SearchCustomers(_selectedCustomer?.Name ?? string.Empty, CancellationToken.None))"
+                    Required="true"
+                    RequiredError="@L["Customer is required"]"
+                    ResetValueOnEmptyText="true"
+                    CoerceText="true"
+                    CoerceValue="false"
+                    OnClearButtonClick="@(() => _selectedCustomer = null)"
+                    OnBlur="@(() => CustomerSelectedAsync(_selectedCustomer))"
+                    Margin="Margin.Dense"
+                    Variant="Variant.Outlined">
+                    <MoreItemsTemplate>
+                        <MudText Align="Align.Center">@L["Type to search more..."]</MudText>
+                    </MoreItemsTemplate>
+                    <NoItemsTemplate>
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText>@L["No customer found"]</MudText>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                OnClick="@OpenCreateCustomerDialog">
+                                @L["Add Customer"]
+                            </MudButton>
+                        </MudStack>
+                    </NoItemsTemplate>
+                </MudAutocomplete>
+            </div>
 
-            <!-- Product Search and Cart -->
-            <MudItem xs="12" md="8">
-                <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudText Typo="Typo.h6" Class="mb-4">@L["Add Products"]</MudText>
+            @if (_location != null)
+            {
+                <MudChip T="string" Icon="@Icons.Material.Filled.LocationOn" Color="Color.Default" Size="Size.Small">
+                    @_location.Name
+                </MudChip>
+            }
+        </div>
 
+        <!-- ── Body ── -->
+        <div style="display:flex; flex:1; overflow:hidden; gap:10px; padding:10px; background:#F5F5F5;">
+
+            <!-- Left: Product Search + Cart -->
+            <div style="flex:1; min-width:0; overflow:hidden; display:grid; grid-template-rows:auto 1fr; background:white; border-radius:4px; box-shadow:var(--mud-elevation-2); padding:12px; gap:8px;">
+
+                <!-- Row 1: Search field + empty-cart alert -->
+                <div>
                     <MudAutocomplete T="ProductDto" Label="@L["Search Products"]"
                         @ref="_productAutocomplete"
                         Value="_selectedProduct"
@@ -149,16 +146,19 @@ else
                             <MudText>@L["No products found"]</MudText>
                         </NoItemsTemplate>
                     </MudAutocomplete>
-
                     @if (!_cart.Any())
                     {
-                        <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4">
+                        <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-2">
                             @L["Search and add products to the cart"]
                         </MudAlert>
                     }
-                    else
-                    {
-                        <MudTable Items="@_cart" Dense="true" Hover="true" Class="mt-4" T="CartItem">
+                </div>
+
+                <!-- Row 2: Cart table (1fr - fills remaining space) -->
+                @if (_cart.Any())
+                {
+                    <div style="overflow-y:auto; min-height:0;">
+                        <MudTable Items="@_cart" Dense="true" Hover="true" T="CartItem">
                             <HeaderContent>
                                 <MudTh Style="width: 38%">@L["Product"]</MudTh>
                                 <MudTh Style="width: 15%">@L["Price"]</MudTh>
@@ -256,14 +256,15 @@ else
                                 </MudTd>
                             </RowTemplate>
                         </MudTable>
+                    </div>
                     }
-                </MudPaper>
-            </MudItem>
+            </div>
 
-            <!-- Totals and Checkout -->
-            <MudItem xs="12" md="4">
-                <MudPaper Elevation="2" Class="pa-4 mb-4">
-                    <MudText Typo="Typo.h6" Class="mb-4">@L["Sale Summary"]</MudText>
+            <!-- Right: Sale Summary -->
+            <div style="width:340px; flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;">
+                <MudPaper Elevation="2" Class="pa-3" Style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                    <div style="flex:1; overflow-y:auto; padding-bottom:8px;">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>@L["Sale Summary"]</strong></MudText>
 
                     <MudList T="string" Clickable="false" DisablePadding="true">
                         <MudListItem T="string">
@@ -452,39 +453,45 @@ else
                         </div>
                     }
 
-                    <MudButton Variant="Variant.Filled"
-                        Color="@(_model.DiscountPercentage > 0 && _discountAuthorizerId == null ? Color.Warning : Color.Success)"
-                        FullWidth="true" OnClick="ProcessSale" Disabled="@(_isBusy || !IsFormValid())"
-                        Class="mt-4 da-button-rounded">
-                        @if (_isBusy)
-                        {
-                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                            @L["Processing..."]
-                        }
-                        else if (_model.DiscountPercentage > 0 && _discountAuthorizerId == null)
-                        {
-                            <MudIcon Icon="@Icons.Material.Filled.LockOpen" Class="mr-2" />
-                            @L["Authorize and Complete Sale"]
-                        }
-                        else
-                        {
-                            <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2" />
-                            @L["Complete Sale"]
-                        }
-                    </MudButton>
+                    </div>
 
-                    @if (_cart.Any())
-                    {
-                        <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true" OnClick="ClearCartAsync"
-                            Disabled="@_isBusy" Class="mt-2 da-button-rounded">
-                            <MudIcon Icon="@Icons.Material.Filled.RemoveShoppingCart" Class="mr-2" />
-                            @L["Clear Cart"]
+                    <!-- ── Footer: botones siempre visibles ── -->
+                    <div style="flex-shrink:0; padding-top:8px; border-top:1px solid rgba(0,0,0,0.08);">
+                        <MudButton Variant="Variant.Filled"
+                            Color="@(_model.DiscountPercentage > 0 && _discountAuthorizerId == null ? Color.Warning : Color.Success)"
+                            FullWidth="true" OnClick="ProcessSale" Disabled="@(_isBusy || !IsFormValid())"
+                            Class="da-button-rounded">
+                            @if (_isBusy)
+                            {
+                                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                @L["Processing..."]
+                            }
+                            else if (_model.DiscountPercentage > 0 && _discountAuthorizerId == null)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.LockOpen" Class="mr-2" />
+                                @L["Authorize and Complete Sale"]
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2" />
+                                @L["Complete Sale"]
+                            }
                         </MudButton>
-                    }
-                </MudPaper>                
-            </MudItem>
-        </MudGrid>
-    </MudContainer>
+
+                        @if (_cart.Any())
+                        {
+                            <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true" OnClick="ClearCartAsync"
+                                Disabled="@_isBusy" Class="mt-2 da-button-rounded">
+                                <MudIcon Icon="@Icons.Material.Filled.RemoveShoppingCart" Class="mr-2" />
+                                @L["Clear Cart"]
+                            </MudButton>
+                        }
+                    </div>
+                </MudPaper>
+            </div>
+
+        </div>
+    </div>
 }
 
 @code {

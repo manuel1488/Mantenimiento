@@ -1,0 +1,75 @@
+/* ── POS Terminal Layout ── */
+
+.pos-layout {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--mud-appbar-height) - 32px);
+    margin: -16px;
+    overflow: hidden;
+}
+
+.pos-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 16px;
+    background: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.pos-header-title {
+    white-space: nowrap;
+    font-weight: 600 !important;
+    flex-shrink: 0;
+}
+
+.pos-header-customer {
+    flex: 1;
+    max-width: 420px;
+}
+
+.pos-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 10px;
+    padding: 10px;
+    background: var(--mud-palette-background);
+}
+
+.pos-left {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-right {
+    width: 340px;
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-right-paper {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1;
+    overflow: hidden;
+}
+
+.pos-right-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 8px;
+}
+
+.pos-right-footer {
+    flex-shrink: 0;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
