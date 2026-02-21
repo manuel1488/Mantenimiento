@@ -261,104 +261,60 @@ else
             </div>
 
             <!-- Right: Sale Summary -->
-            <div style="width:340px; flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="width:440px; flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;">
                 <MudPaper Elevation="2" Class="pa-3" Style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
                     <div style="flex:1; overflow-y:auto; padding-bottom:8px;">
-                    <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>@L["Sale Summary"]</strong></MudText>
 
-                    <MudList T="string" Clickable="false" DisablePadding="true">
-                        <MudListItem T="string">
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.subtitle2">@L["Subtotal"]:</MudText>
-                                <MudText><strong>@_subtotal.ToString("C2")</strong></MudText>
-                            </div>
-                        </MudListItem>
+                    <!-- ── Totals ── -->
+                    <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:6px;">@L["Sale Summary"]</div>
 
-                        <MudDivider Class="my-2" />
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
+                        <span style="font-size:13px; color:#666;">@L["Subtotal"]:</span>
+                        <span style="font-size:13px; font-weight:600;">@_subtotal.ToString("C2")</span>
+                    </div>
 
-                        <!-- Sale Discount -->
-                        <MudListItem>
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.subtitle2">@L["Discount"]:</MudText>
-                                <div class="d-flex align-center">
-                                    <MudNumericField Value="_model.DiscountPercentage" Min="0" Max="@_maxSaleDiscount"
-                                        Immediate="true" ValueChanged="@((decimal val) => UpdateSaleDiscountAsync(val))"
-                                        Adornment="Adornment.End" AdornmentText="%" Style="width: 120px;" />
-                                </div>
-                            </div>
-                        </MudListItem>
+                    <MudDivider Class="my-1" />
 
-                        @if (_model.DiscountPercentage > 0)
-                        {
-                            <MudListItem>
-                                <div class="d-flex justify-space-between">
-                                    <MudText Typo="Typo.caption">@L["Discount Amount"]:</MudText>
-                                    <MudText><strong>-@_discountAmount.ToString("C2")</strong></MudText>
-                                </div>
-                            </MudListItem>
+                    <!-- Discount – read-only, set automatically by system rules -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
+                        <span style="font-size:13px; color:#666;">@L["Discount"] (@_model.DiscountPercentage.ToString("N1")%):</span>
+                        <span style="font-size:13px; font-weight:600; color:@(_discountAmount > 0 ? "#E53935" : "#666");">
+                            @(_discountAmount > 0 ? $"-{_discountAmount:C2}" : "-$0.00")
+                        </span>
+                    </div>
 
-                            @if (_discountAuthorizerId != null && _model.DiscountAuthorizedBy != null)
-                            {
-                                <MudListItem>
-                                    <div class="d-flex justify-space-between align-center">
-                                        <MudText Typo="Typo.caption">@L["Authorized By"]:</MudText>
-                                        <MudChip Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.VerifiedUser">
-                                            @_model.DiscountAuthorizedBy
-                                        </MudChip>
-                                    </div>
-                                </MudListItem>
-                            }
-                            else
-                            {
-                                <MudListItem>
-                                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-1">
-                                        <div class="d-flex align-center">
-                                            <MudIcon Icon="@Icons.Material.Filled.Lock" Class="mr-2" />
-                                            @L["Authorization required to apply discount"]
-                                        </div>
-                                    </MudAlert>
-                                </MudListItem>
-                            }
-                        }
+                    <MudDivider Class="my-1" />
 
-                        <MudDivider Class="my-2" />
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
+                        <span style="font-size:13px; color:#666;">@L["Tax"]:</span>
+                        <span style="font-size:13px; font-weight:600;">@_taxAmount.ToString("C2")</span>
+                    </div>
 
-                        <MudListItem>
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.subtitle2">@L["Tax"]:</MudText>
-                                <MudText><strong>@_taxAmount.ToString("C2")</strong></MudText>
-                            </div>
-                        </MudListItem>
+                    @if (_isRoundingEnabled && _roundingAmount != 0)
+                    {
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
+                            <span style="font-size:13px; color:#666;">@L["Rounding"]:</span>
+                            <span style="font-size:13px; font-weight:600;">@(_roundingAmount > 0 ? "+" : "")@_roundingAmount.ToString("C2")</span>
+                        </div>
+                    }
 
-                        @if (_isRoundingEnabled && _roundingAmount != 0)
-                        {
-                            <MudListItem>
-                                <div class="d-flex justify-space-between">
-                                    <MudText Typo="Typo.subtitle2">@L["Rounding"]:</MudText>
-                                    <MudText><strong>@(_roundingAmount > 0 ? "+" : "")@_roundingAmount.ToString("C2")</strong></MudText>
-                                </div>
-                            </MudListItem>
-                        }
+                    <MudDivider Class="my-1" />
 
-                        <MudDivider Class="my-2" />
+                    <!-- Total prominent -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; margin-bottom:8px;">
+                        <span style="font-size:17px; font-weight:700;">@L["Total"]:</span>
+                        <span style="font-size:22px; font-weight:700; color:#E53935;">@_total.ToString("C2")</span>
+                    </div>
 
-                        <MudListItem>
-                            <div class="d-flex justify-space-between">
-                                <MudText Typo="Typo.h6">@L["Total"]:</MudText>
-                                <MudText Typo="Typo.h6" Color="Color.Primary"><strong>@_total.ToString("C2")</strong></MudText>
-                            </div>
-                        </MudListItem>
-                    </MudList>
-
-                    <MudDivider Class="my-3" />
+                    <MudDivider Class="mb-2" />
 
                     <!-- ── Payment Methods Section ── -->
-                    <div class="d-flex justify-space-between align-center mb-2">
-                        <MudText Typo="Typo.subtitle2">@L["Payment Methods"]</MudText>
-                        @{
-                            var _paidTotal = _paymentEntries.Sum(e => e.Amount);
-                            var _remaining = _total - _paidTotal;
-                        }
+                    @{
+                        var _paidTotal = _paymentEntries.Sum(e => e.Amount);
+                        var _remaining = _total - _paidTotal;
+                    }
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:13px; font-weight:600; color:#444;">@L["Payment Methods"]</span>
                         <MudChip T="string" Size="Size.Small"
                             Color="@(_remaining <= 0 ? Color.Success : Color.Warning)">
                             @(_remaining <= 0 ? L["Complete"] : $"{L["Remaining"]}: {_remaining:C2}")
@@ -373,18 +329,18 @@ else
                     }
                     else
                     {
-                        <!-- Payment method buttons -->
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px;">
+                        <!-- Payment method buttons – 4 columns -->
+                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; margin-bottom:8px;">
                             @foreach (var pm in _availablePaymentMethods)
                             {
                                 <MudButton Variant="Variant.Outlined"
                                     Color="Color.Default"
                                     Size="Size.Small"
                                     OnClick="@(() => AddPaymentEntry(pm))"
-                                    Style="height:52px; text-transform:none; font-size:11px; flex-direction:column; gap:2px;"
+                                    Style="height:44px; text-transform:none; font-size:10px; flex-direction:column; gap:1px; padding:4px 2px;"
                                     Disabled="@(!_cart.Any())">
                                     <MudIcon Icon="@pm.Icon" Size="Size.Small" />
-                                    <span>@pm.Name</span>
+                                    <span style="line-height:1.1; text-align:center;">@pm.Name</span>
                                 </MudButton>
                             }
                         </div>
@@ -436,6 +392,20 @@ else
                                     Placeholder="@L["Reference number (optional)"]"
                                     Dense="true" Variant="Variant.Outlined" Margin="Margin.Dense"
                                     Style="font-size:11px; margin-top:4px;" />
+                            }
+                            @if (entry.PaymentMethod.Type == PaymentMethodType.Cash)
+                            {
+                                <div style="display:flex; align-items:center; gap:6px; margin-top:6px; padding:5px 6px; border-radius:4px; background:@(GetCashChange(entry) >= 0 ? "#F1F8E9" : "#FFF3E0");">
+                                    <span style="font-size:12px; color:#555; white-space:nowrap;">@L["Customer gives"]:</span>
+                                    <MudNumericField T="decimal" @bind-Value="entry.CashReceived"
+                                        Format="C2" Min="0" Step="0.5M"
+                                        Dense="true" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                        HideSpinButtons="true" Style="width:95px; flex-shrink:0;" />
+                                    <span style="font-size:11px; color:#777; flex-shrink:0;">→ @L["Cash change"]:</span>
+                                    <span style="font-size:16px; font-weight:700; color:@(GetCashChange(entry) >= 0 ? "#4CAF50" : "#FF9800"); flex:1; text-align:right; white-space:nowrap;">
+                                        @GetCashChange(entry).ToString("C2")
+                                    </span>
+                                </div>
                             }
                         </div>
                     }
@@ -1227,10 +1197,12 @@ else
     private void AddPaymentEntry(PaymentMethodDto pm)
     {
         var remaining = _total - _paymentEntries.Sum(e => e.Amount);
+        var amount = Math.Max(0.01M, remaining);
         _paymentEntries.Add(new PaymentEntry
         {
             PaymentMethod = pm,
-            Amount = Math.Max(0.01M, remaining)
+            Amount = amount,
+            CashReceived = pm.Type == PaymentMethodType.Cash ? amount : 0
         });
         StateHasChanged();
     }
@@ -1246,6 +1218,8 @@ else
         entry.Amount = amount;
         StateHasChanged();
     }
+
+    private static decimal GetCashChange(PaymentEntry entry) => entry.CashReceived - entry.Amount;
 
     private static string GetPaymentColor(PaymentMethodType type) => type switch
     {
@@ -1417,6 +1391,7 @@ else
     {
         public PaymentMethodDto PaymentMethod { get; set; } = null!;
         public decimal Amount { get; set; }
+        public decimal CashReceived { get; set; }
         public string? CardLastFour { get; set; }
         public string? Reference { get; set; }
     }

@@ -234,4 +234,10 @@
   <data name="No active location found" xml:space="preserve">
     <value>No se encontró ubicación activa</value>
   </data>
+  <data name="Customer gives" xml:space="preserve">
+    <value>Cliente entrega</value>
+  </data>
+  <data name="Cash change" xml:space="preserve">
+    <value>Cambio</value>
+  </data>
 </root>
