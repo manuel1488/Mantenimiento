@@ -1,0 +1,153 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Enums.Shop
+@using MudBlazor
+
+@inject IStringLocalizer<PaymentEntryDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <!-- Header with method color -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:12px 14px; border-radius:8px; background:@($"{GetPaymentColor(PaymentMethod.Type)}18"); border-left:4px solid @GetPaymentColor(PaymentMethod.Type);">
+            <MudIcon Icon="@PaymentMethod.Icon" Size="Size.Large" Style="@($"color:{GetPaymentColor(PaymentMethod.Type)}")" />
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight:600; line-height:1.2;">@PaymentMethod.Name</MudText>
+                <MudText Typo="Typo.body2" Style="color:#555;">
+                    @L["Total to pay"]: <strong>@RemainingAmount.ToString("C2")</strong>
+                </MudText>
+            </div>
+        </div>
+
+        @if (PaymentMethod.Type == PaymentMethodType.Cash)
+        {
+            <!-- Cash: primary field is what customer gives -->
+            <MudNumericField T="decimal" @bind-Value="_cashReceived"
+                Label="@L["Customer gives"]"
+                Format="C2" Min="0" Step="0.5M"
+                Variant="Variant.Outlined"
+                HideSpinButtons="true"
+                AutoFocus="true"
+                Immediate="true"
+                Style="font-size:18px;" />
+
+            <!-- Change / shortage display -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding:14px 18px; border-radius:8px; background:@(CashChange >= 0 ? "#F1F8E9" : "#FFF3E0");">
+                <span style="font-size:14px; color:#555; font-weight:500;">
+                    @(CashChange >= 0 ? L["Cash change"] : L["Short"]):</span>
+                <span style="font-size:28px; font-weight:700; color:@(CashChange >= 0 ? "#4CAF50" : "#FF9800");">
+                    @Math.Abs(CashChange).ToString("C2")
+                </span>
+            </div>
+        }
+        else
+        {
+            <!-- Non-cash: amount to charge (pre-filled, adjustable for split payment) -->
+            <MudNumericField T="decimal" @bind-Value="_amount"
+                Label="@L["Amount to charge"]"
+                HelperText="@L["Adjust if splitting payment with another method"]"
+                Format="C2" Min="0.01M" Step="0.01M"
+                Variant="Variant.Outlined"
+                HideSpinButtons="true"
+                AutoFocus="true"
+                Immediate="true" />
+
+            @if (PaymentMethod.Type == PaymentMethodType.Card)
+            {
+                <MudTextField @bind-Value="_cardLastFour"
+                    Label="@L["Last 4 digits (optional)"]"
+                    MaxLength="4"
+                    Variant="Variant.Outlined"
+                    Class="mt-3" />
+                @if (!string.IsNullOrEmpty(PaymentMethod.MxCfdiFormCode))
+                {
+                    <div class="mt-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info">CFDI: @PaymentMethod.MxCfdiFormCode</MudChip>
+                    </div>
+                }
+            }
+            else if (PaymentMethod.Type == PaymentMethodType.Transfer || PaymentMethod.Type == PaymentMethodType.Check)
+            {
+                <MudTextField @bind-Value="_reference"
+                    Label="@L["Reference number (optional)"]"
+                    Variant="Variant.Outlined"
+                    Class="mt-3" />
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Confirm"
+            Disabled="@(!IsValid)">
+            @L["Confirm"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public PaymentMethodDto PaymentMethod { get; set; } = null!;
+    [Parameter] public decimal RemainingAmount { get; set; }
+    [Parameter] public PaymentEntryData? ExistingData { get; set; }
+
+    private decimal _amount;
+    private decimal _cashReceived;
+    private string? _cardLastFour;
+    private string? _reference;
+
+    // For cash: change is positive (customer gets back) or negative (customer short)
+    private decimal CashChange => _cashReceived - RemainingAmount;
+
+    // Amount actually applied to the sale for cash = min(received, remaining)
+    private decimal CashApplied => Math.Min(_cashReceived, RemainingAmount);
+
+    private bool IsValid => PaymentMethod.Type == PaymentMethodType.Cash
+        ? _cashReceived > 0
+        : _amount >= 0.01M;
+
+    protected override void OnInitialized()
+    {
+        if (ExistingData != null)
+        {
+            _amount = ExistingData.Amount;
+            _cashReceived = ExistingData.CashReceived > 0 ? ExistingData.CashReceived : ExistingData.Amount;
+            _cardLastFour = ExistingData.CardLastFour;
+            _reference = ExistingData.Reference;
+        }
+        else
+        {
+            _amount = Math.Max(0.01M, RemainingAmount);
+            _cashReceived = PaymentMethod.Type == PaymentMethodType.Cash ? RemainingAmount : 0;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Confirm()
+    {
+        var data = new PaymentEntryData
+        {
+            Amount = PaymentMethod.Type == PaymentMethodType.Cash ? CashApplied : _amount,
+            CashReceived = PaymentMethod.Type == PaymentMethodType.Cash ? _cashReceived : 0,
+            CardLastFour = _cardLastFour,
+            Reference = _reference
+        };
+        MudDialog.Close(DialogResult.Ok(data));
+    }
+
+    private static string GetPaymentColor(PaymentMethodType type) => type switch
+    {
+        PaymentMethodType.Cash => "#4CAF50",
+        PaymentMethodType.Card => "#2196F3",
+        PaymentMethodType.Transfer => "#9C27B0",
+        PaymentMethodType.Check => "#607D8B",
+        _ => "#9E9E9E"
+    };
+
+    public class PaymentEntryData
+    {
+        public decimal Amount { get; set; }
+        public decimal CashReceived { get; set; }
+        public string? CardLastFour { get; set; }
+        public string? Reference { get; set; }
+    }
+}
