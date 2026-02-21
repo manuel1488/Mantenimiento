@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Total to pay" xml:space="preserve">
+    <value>Total a pagar</value>
+  </data>
+  <data name="Customer gives" xml:space="preserve">
+    <value>El cliente entrega</value>
+  </data>
+  <data name="Cash change" xml:space="preserve">
+    <value>Cambio</value>
+  </data>
+  <data name="Short" xml:space="preserve">
+    <value>Falta</value>
+  </data>
+  <data name="Amount to charge" xml:space="preserve">
+    <value>Monto a cobrar</value>
+  </data>
+  <data name="Adjust if splitting payment with another method" xml:space="preserve">
+    <value>Ajusta si vas a dividir el pago con otro método</value>
+  </data>
+  <data name="Last 4 digits (optional)" xml:space="preserve">
+    <value>Últimos 4 dígitos (opcional)</value>
+  </data>
+  <data name="Reference number (optional)" xml:space="preserve">
+    <value>Número de referencia (opcional)</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+</root>

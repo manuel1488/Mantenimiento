@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Total to pay" xml:space="preserve">
+    <value>Total to pay</value>
+  </data>
+  <data name="Customer gives" xml:space="preserve">
+    <value>Customer gives</value>
+  </data>
+  <data name="Cash change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="Short" xml:space="preserve">
+    <value>Short</value>
+  </data>
+  <data name="Amount to charge" xml:space="preserve">
+    <value>Amount to charge</value>
+  </data>
+  <data name="Adjust if splitting payment with another method" xml:space="preserve">
+    <value>Adjust if splitting payment with another method</value>
+  </data>
+  <data name="Last 4 digits (optional)" xml:space="preserve">
+    <value>Last 4 digits (optional)</value>
+  </data>
+  <data name="Reference number (optional)" xml:space="preserve">
+    <value>Reference number (optional)</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+</root>

@@ -240,4 +240,7 @@
   <data name="Cash change" xml:space="preserve">
     <value>Cambio</value>
   </data>
+  <data name="Paid" xml:space="preserve">
+    <value>Pagado</value>
+  </data>
 </root>

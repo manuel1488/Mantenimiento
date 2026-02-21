@@ -336,7 +336,7 @@ else
                                 <MudButton Variant="Variant.Outlined"
                                     Color="Color.Default"
                                     Size="Size.Small"
-                                    OnClick="@(() => AddPaymentEntry(pm))"
+                                    OnClick="@(async () => await AddPaymentEntry(pm))"
                                     Style="height:44px; text-transform:none; font-size:10px; flex-direction:column; gap:1px; padding:4px 2px;"
                                     Disabled="@(!_cart.Any())">
                                     <MudIcon Icon="@pm.Icon" Size="Size.Small" />
@@ -346,67 +346,34 @@ else
                         </div>
                     }
 
-                    <!-- Payment entries list -->
+                    <!-- Payment entries – compact, click to edit -->
                     @foreach (var entry in _paymentEntries)
                     {
-                        <div style="background:#FAFAFA; padding:8px 10px; border-radius:6px; border-left:3px solid @GetPaymentColor(entry.PaymentMethod.Type); margin-bottom:6px;">
-                            <div class="d-flex align-center justify-space-between">
-                                <div class="d-flex align-center gap-2">
-                                    <MudIcon Icon="@entry.PaymentMethod.Icon" Size="Size.Small" Style="@($"color:{GetPaymentColor(entry.PaymentMethod.Type)}")" />
-                                    <MudText Typo="Typo.body2"><strong>@entry.PaymentMethod.Name</strong></MudText>
-                                </div>
-                                <div class="d-flex align-center gap-1">
-                                    <MudNumericField T="decimal"
-                                        Value="@entry.Amount"
-                                        ValueChanged="@((val) => UpdatePaymentAmount(entry, val))"
-                                        Format="C2" Min="0.01M" Step="0.01M"
-                                        Style="width:100px;" Dense="true"
-                                        Variant="Variant.Outlined" Margin="Margin.Dense"
-                                        HideSpinButtons="true" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
-                                        Size="Size.Small" Color="Color.Error"
-                                        OnClick="@(() => RemovePaymentEntry(entry))"
-                                        title="@L["Remove"]" />
-                                </div>
+                        <div style="display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:6px; background:#FAFAFA; border-left:3px solid @GetPaymentColor(entry.PaymentMethod.Type); margin-bottom:4px; cursor:pointer;"
+                            @onclick="@(async () => await EditPaymentEntry(entry))">
+                            <MudIcon Icon="@entry.PaymentMethod.Icon" Size="Size.Small" Style="@($"color:{GetPaymentColor(entry.PaymentMethod.Type)}")" />
+                            <div style="flex:1; min-width:0; overflow:hidden;">
+                                <span style="font-size:13px; font-weight:600;">@entry.PaymentMethod.Name</span>
+                                @if (entry.PaymentMethod.Type == PaymentMethodType.Cash && entry.CashReceived > entry.Amount)
+                                {
+                                    <span style="font-size:11px; color:#4CAF50; margin-left:6px;">(@L["Cash change"]: @GetCashChange(entry).ToString("C2"))</span>
+                                }
+                                @if (!string.IsNullOrEmpty(entry.CardLastFour))
+                                {
+                                    <span style="font-size:11px; color:#777; margin-left:6px;">••@entry.CardLastFour</span>
+                                }
+                                @if (!string.IsNullOrEmpty(entry.Reference))
+                                {
+                                    <span style="font-size:11px; color:#777; margin-left:6px;">Ref: @entry.Reference</span>
+                                }
                             </div>
-                            @if (entry.PaymentMethod.Type == PaymentMethodType.Card)
-                            {
-                                <div class="d-flex align-center gap-2 mt-1">
-                                    <MudTextField @bind-Value="entry.CardLastFour"
-                                        Placeholder="@L["Last 4 digits (optional)"]"
-                                        MaxLength="4" Dense="true"
-                                        Variant="Variant.Outlined" Margin="Margin.Dense"
-                                        Style="font-size:11px; max-width:160px;" />
-                                    @if (!string.IsNullOrEmpty(entry.PaymentMethod.MxCfdiFormCode))
-                                    {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Info"
-                                            Style="font-size:10px;">
-                                            CFDI: @entry.PaymentMethod.MxCfdiFormCode
-                                        </MudChip>
-                                    }
-                                </div>
-                            }
-                            @if (entry.PaymentMethod.Type == PaymentMethodType.Transfer || entry.PaymentMethod.Type == PaymentMethodType.Check)
-                            {
-                                <MudTextField @bind-Value="entry.Reference"
-                                    Placeholder="@L["Reference number (optional)"]"
-                                    Dense="true" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                    Style="font-size:11px; margin-top:4px;" />
-                            }
-                            @if (entry.PaymentMethod.Type == PaymentMethodType.Cash)
-                            {
-                                <div style="display:flex; align-items:center; gap:6px; margin-top:6px; padding:5px 6px; border-radius:4px; background:@(GetCashChange(entry) >= 0 ? "#F1F8E9" : "#FFF3E0");">
-                                    <span style="font-size:12px; color:#555; white-space:nowrap;">@L["Customer gives"]:</span>
-                                    <MudNumericField T="decimal" @bind-Value="entry.CashReceived"
-                                        Format="C2" Min="0" Step="0.5M"
-                                        Dense="true" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                        HideSpinButtons="true" Style="width:95px; flex-shrink:0;" />
-                                    <span style="font-size:11px; color:#777; flex-shrink:0;">→ @L["Cash change"]:</span>
-                                    <span style="font-size:16px; font-weight:700; color:@(GetCashChange(entry) >= 0 ? "#4CAF50" : "#FF9800"); flex:1; text-align:right; white-space:nowrap;">
-                                        @GetCashChange(entry).ToString("C2")
-                                    </span>
-                                </div>
-                            }
+                            <span style="font-size:14px; font-weight:700; color:#333; white-space:nowrap;">@entry.Amount.ToString("C2")</span>
+                            <span @onclick:stopPropagation="true">
+                                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                    Size="Size.Small" Color="Color.Error"
+                                    OnClick="@(() => RemovePaymentEntry(entry))"
+                                    title="@L["Remove"]" />
+                            </span>
                         </div>
                     }
 
@@ -1194,28 +1161,65 @@ else
         }
     }
 
-    private void AddPaymentEntry(PaymentMethodDto pm)
+    private async Task AddPaymentEntry(PaymentMethodDto pm)
     {
         var remaining = _total - _paymentEntries.Sum(e => e.Amount);
-        var amount = Math.Max(0.01M, remaining);
-        _paymentEntries.Add(new PaymentEntry
+        var parameters = new DialogParameters<PaymentEntryDialog>
         {
-            PaymentMethod = pm,
-            Amount = amount,
-            CashReceived = pm.Type == PaymentMethodType.Cash ? amount : 0
-        });
-        StateHasChanged();
+            { x => x.PaymentMethod, pm },
+            { x => x.RemainingAmount, Math.Max(0.01M, remaining) }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<PaymentEntryDialog>(pm.Name, parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: PaymentEntryDialog.PaymentEntryData data })
+        {
+            _paymentEntries.Add(new PaymentEntry
+            {
+                PaymentMethod = pm,
+                Amount = data.Amount,
+                CashReceived = data.CashReceived,
+                CardLastFour = data.CardLastFour,
+                Reference = data.Reference
+            });
+            StateHasChanged();
+        }
+    }
+
+    private async Task EditPaymentEntry(PaymentEntry entry)
+    {
+        var remaining = _total - _paymentEntries.Where(e => e != entry).Sum(e => e.Amount);
+        var existing = new PaymentEntryDialog.PaymentEntryData
+        {
+            Amount = entry.Amount,
+            CashReceived = entry.CashReceived,
+            CardLastFour = entry.CardLastFour,
+            Reference = entry.Reference
+        };
+        var parameters = new DialogParameters<PaymentEntryDialog>
+        {
+            { x => x.PaymentMethod, entry.PaymentMethod },
+            { x => x.RemainingAmount, remaining },
+            { x => x.ExistingData, existing }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<PaymentEntryDialog>(entry.PaymentMethod.Name, parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: PaymentEntryDialog.PaymentEntryData data })
+        {
+            entry.Amount = data.Amount;
+            entry.CashReceived = data.CashReceived;
+            entry.CardLastFour = data.CardLastFour;
+            entry.Reference = data.Reference;
+            StateHasChanged();
+        }
     }
 
     private void RemovePaymentEntry(PaymentEntry entry)
     {
         _paymentEntries.Remove(entry);
-        StateHasChanged();
-    }
-
-    private void UpdatePaymentAmount(PaymentEntry entry, decimal amount)
-    {
-        entry.Amount = amount;
         StateHasChanged();
     }
 
