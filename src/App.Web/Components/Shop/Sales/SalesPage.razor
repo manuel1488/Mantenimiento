@@ -262,8 +262,8 @@ else
 
             <!-- Right: Sale Summary -->
             <div style="width:440px; flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;">
-                <MudPaper Elevation="2" Class="pa-3" Style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
-                    <div style="flex:1; overflow-y:auto; padding-bottom:8px;">
+                <MudPaper Elevation="2" Class="pa-2" Style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+                    <div style="flex:1; overflow-y:auto; padding-bottom:4px;">
 
                     <!-- ── Totals ── -->
                     <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:6px;">@L["Sale Summary"]</div>
@@ -412,21 +412,21 @@ else
 
                     @if (_paymentEntries.Any())
                     {
-                        <MudProgressLinear Value="@PaidPercentage" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)" Class="my-2" />
-                        <div class="d-flex justify-space-between mb-2">
-                            <MudText Typo="Typo.caption" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)">
+                        <MudProgressLinear Value="@PaidPercentage" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)" Class="mt-1 mb-1" Style="height:4px; border-radius:2px;" />
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="font-size:11px; color:@(PaidPercentage >= 100 ? "#4CAF50" : "#FF9800");">
                                 @L["Paid"]: @_paymentEntries.Sum(e => e.Amount).ToString("C2")
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="@(PaidPercentage >= 100 ? Color.Success : Color.Warning)">
+                            </span>
+                            <span style="font-size:11px; color:@(PaidPercentage >= 100 ? "#4CAF50" : "#FF9800");">
                                 @L["Remaining"]: @(Math.Max(0, _total - _paymentEntries.Sum(e => e.Amount)).ToString("C2"))
-                            </MudText>
+                            </span>
                         </div>
                     }
 
                     </div>
 
                     <!-- ── Footer: botones siempre visibles ── -->
-                    <div style="flex-shrink:0; padding-top:8px; border-top:1px solid rgba(0,0,0,0.08);">
+                    <div style="flex-shrink:0; padding-top:6px; border-top:1px solid rgba(0,0,0,0.08);">
                         <MudButton Variant="Variant.Filled"
                             Color="@(_model.DiscountPercentage > 0 && _discountAuthorizerId == null ? Color.Warning : Color.Success)"
                             FullWidth="true" OnClick="ProcessSale" Disabled="@(_isBusy || !IsFormValid())"
