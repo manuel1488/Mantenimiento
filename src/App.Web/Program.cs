@@ -260,6 +260,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Admin.ManageTicketSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageTicketSettings));
         options.AddPolicy(ApplicationClaims.Admin.ViewTicketSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewTicketSettings));
 
+        options.AddPolicy(ApplicationClaims.Admin.ViewCashiers, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewCashiers));
+        options.AddPolicy(ApplicationClaims.Admin.ManageCashiers, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageCashiers));
+
+        options.AddPolicy(ApplicationClaims.Admin.ViewCashStations, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewCashStations));
+        options.AddPolicy(ApplicationClaims.Admin.ManageCashStations, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageCashStations));
+
         // Shop policies
         options.AddPolicy(ApplicationClaims.Shop.ViewInventory, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventory));
         options.AddPolicy(ApplicationClaims.Shop.ManageInventory, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageInventory));
@@ -289,6 +295,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.ViewWarehouses, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewWarehouses));
         options.AddPolicy(ApplicationClaims.Shop.ManageWarehouses, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageWarehouses));
         options.AddPolicy(ApplicationClaims.Shop.DeleteWarehouses, policy => policy.RequireClaim(ApplicationClaims.Shop.DeleteWarehouses));
+
+        options.AddPolicy(ApplicationClaims.Shop.ViewCashRegister, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewCashRegister));
+        options.AddPolicy(ApplicationClaims.Shop.ManageCashRegister, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageCashRegister));
+        options.AddPolicy(ApplicationClaims.Shop.WithdrawCashRegister, policy => policy.RequireClaim(ApplicationClaims.Shop.WithdrawCashRegister));
+        options.AddPolicy(ApplicationClaims.Shop.ViewCashRegisterReport, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewCashRegisterReport));
 
         options.AddPolicy(ApplicationClaims.Shop.ViewInventoryHistory, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventoryHistory));
         options.AddPolicy(ApplicationClaims.Shop.ViewInventoryTransfers, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventoryTransfers));
@@ -625,6 +636,9 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<IInventoryAlertEmailService, InventoryAlertEmailService>();
     builder.Services.AddScoped<IExcelProcessingService, ExcelProcessingService>();
     builder.Services.AddScoped<IInventoryColumnMappingService, InventoryColumnMappingService>();
+    builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+    services.AddScoped<ICashierProfileService, CashierProfileService>();
+    services.AddScoped<ICashStationService, CashStationService>();
 }
 
 /// <summary>

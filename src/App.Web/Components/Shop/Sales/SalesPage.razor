@@ -40,6 +40,7 @@
 @inject IServiceProvider ServiceProvider
 @inject IDateTime DateTimeService
 @inject ICurrentUserService CurrentUserService
+@inject ICashRegisterService CashRegisterService
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.CreateSale)]
 
@@ -58,6 +59,15 @@
 }
 else
 {
+    @if (_activeCashRegister == null)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-2" Icon="@Icons.Material.Filled.PointOfSale">
+            @L["No open cash register. Open a cash register before processing sales."]
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/shop/cash-register" Class="ml-2">
+                @L["Open Cash Register"]
+            </MudButton>
+        </MudAlert>
+    }
     <div style="display:flex; flex-direction:column; height:calc(100vh - 96px); margin:-16px; overflow:hidden;">
 
         <!-- ── Compact Header: Title + Customer + Location ── -->
@@ -498,6 +508,7 @@ else
     private bool _needsDiscountAuthorization = false;
     private bool _configurationValid = true;
     private string _configurationError = string.Empty;
+    private CashRegisterDto? _activeCashRegister;
     private TimeZoneInfo? _companyTimeZone;
 
     // Autorización de descuentos
@@ -567,6 +578,7 @@ else
             _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
 
             await LoadLocation();
+            await LoadActiveCashRegisterAsync();
             await LoadAvailableFractions();
             await InitializeDiscountSettings();
             await LoadRoundingSettings();
@@ -580,6 +592,19 @@ else
             _configurationError = L["Error initializing sales page: {0}", ex.Message];
             Logger.LogError(ex, "Error initializing sales page");
         }
+    }
+
+    private async Task LoadActiveCashRegisterAsync()
+    {
+        var activeLocationId = CurrentUserService.ActiveLocationId;
+        if (!activeLocationId.HasValue) return;
+
+        var result = await CashRegisterService.GetActiveCashRegisterAsync(
+            activeLocationId.Value,
+            CurrentUserService.UserId);
+
+        if (result.IsSuccess)
+            _activeCashRegister = result.Value;
     }
 
     private async Task LoadLocation()

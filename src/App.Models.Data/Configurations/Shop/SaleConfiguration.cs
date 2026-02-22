@@ -45,6 +45,14 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 
         builder.HasIndex(e => e.LocationId);
 
+        // Cash register relationship (nullable for backward compatibility)
+        builder.HasOne(e => e.CashRegister)
+            .WithMany(e => e.Sales)
+            .HasForeignKey(e => e.CashRegisterId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(e => e.CashRegisterId);
+
         // Check constraints
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_Sale_DiscountRange",

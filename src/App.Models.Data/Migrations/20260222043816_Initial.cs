@@ -454,6 +454,32 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "stg_cash_register_settings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MaxWithdrawalAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    DefaultInitialFund = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_stg_cash_register_settings", x => x.Id);
+                    table.CheckConstraint("CK_CashRegisterSettings_MaxWithdrawal", "MaxWithdrawalAmount > 0");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "stg_countries",
                 columns: table => new
                 {
@@ -911,6 +937,43 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "id_cashier_profiles",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<string>(type: "varchar(450)", maxLength: 450, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Notes = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedBy = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_id_cashier_profiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_id_cashier_profiles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_id_cashier_profiles_sh_locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "sh_locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "id_user_locations",
                 columns: table => new
                 {
@@ -929,6 +992,35 @@ namespace App.Models.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_id_user_locations_sh_locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "sh_locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "sh_cash_stations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedBy = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_cash_stations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_cash_stations_sh_locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "sh_locations",
                         principalColumn: "Id",
@@ -1043,58 +1135,6 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "sh_sales",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CustomerId = table.Column<long>(type: "bigint", nullable: false),
-                    SaleDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Subtotal = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    TaxAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: false, defaultValue: 0m),
-                    DiscountAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false, defaultValue: 0m),
-                    RoundingAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    Total = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    Status = table.Column<int>(type: "int", unicode: false, nullable: false),
-                    SaleType = table.Column<int>(type: "int", nullable: false),
-                    DiscountAuthorizedBy = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DiscountAuthorizerId = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DiscountAuthorizedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    LocationId = table.Column<int>(type: "int", nullable: true),
-                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
-                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_sh_sales", x => x.Id);
-                    table.CheckConstraint("CK_Sale_DiscountRange", "DiscountPercentage >= 0 AND DiscountPercentage <= 100");
-                    table.ForeignKey(
-                        name: "FK_sh_sales_sh_locations_LocationId",
-                        column: x => x.LocationId,
-                        principalTable: "sh_locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_sh_sales_shd_customers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "shd_customers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "stg_tax_settings",
                 columns: table => new
                 {
@@ -1145,6 +1185,53 @@ namespace App.Models.Data.Migrations
                         column: x => x.CountryCode,
                         principalTable: "stg_countries",
                         principalColumn: "Code",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "sh_cash_registers",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "varchar(450)", maxLength: 450, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    InitialFund = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    OpeningNotes = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ClosingNotes = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OpenedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ClosedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CashStationId = table.Column<int>(type: "int", nullable: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_cash_registers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_cash_registers_sh_cash_stations_CashStationId",
+                        column: x => x.CashStationId,
+                        principalTable: "sh_cash_stations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_sh_cash_registers_sh_locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "sh_locations",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -1378,6 +1465,134 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "sh_cash_register_denominations",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CashRegisterId = table.Column<long>(type: "bigint", nullable: false),
+                    DenominationType = table.Column<int>(type: "int", nullable: false),
+                    DenominationValue = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_cash_register_denominations", x => x.Id);
+                    table.CheckConstraint("CK_CashRegisterDenomination_QuantityNonNegative", "Quantity >= 0");
+                    table.ForeignKey(
+                        name: "FK_sh_cash_register_denominations_sh_cash_registers_CashRegiste~",
+                        column: x => x.CashRegisterId,
+                        principalTable: "sh_cash_registers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "sh_cash_register_movements",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CashRegisterId = table.Column<long>(type: "bigint", nullable: false),
+                    MovementType = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Reason = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_cash_register_movements", x => x.Id);
+                    table.CheckConstraint("CK_CashRegisterMovement_AmountPositive", "Amount > 0");
+                    table.ForeignKey(
+                        name: "FK_sh_cash_register_movements_sh_cash_registers_CashRegisterId",
+                        column: x => x.CashRegisterId,
+                        principalTable: "sh_cash_registers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "sh_sales",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CustomerId = table.Column<long>(type: "bigint", nullable: false),
+                    SaleDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    DiscountPercentage = table.Column<decimal>(type: "decimal(5,2)", nullable: false, defaultValue: 0m),
+                    DiscountAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false, defaultValue: 0m),
+                    RoundingAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Status = table.Column<int>(type: "int", unicode: false, nullable: false),
+                    SaleType = table.Column<int>(type: "int", nullable: false),
+                    DiscountAuthorizedBy = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DiscountAuthorizerId = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DiscountAuthorizedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    LocationId = table.Column<int>(type: "int", nullable: true),
+                    CashRegisterId = table.Column<long>(type: "bigint", nullable: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_sales", x => x.Id);
+                    table.CheckConstraint("CK_Sale_DiscountRange", "DiscountPercentage >= 0 AND DiscountPercentage <= 100");
+                    table.ForeignKey(
+                        name: "FK_sh_sales_sh_cash_registers_CashRegisterId",
+                        column: x => x.CashRegisterId,
+                        principalTable: "sh_cash_registers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_sh_sales_sh_locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "sh_locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_sh_sales_shd_customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "shd_customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "mx_invoices",
                 columns: table => new
                 {
@@ -1493,6 +1708,9 @@ namespace App.Models.Data.Migrations
                     Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     CardLastFour = table.Column<string>(type: "varchar(4)", maxLength: 4, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    AuthorizationCode = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CardBrand = table.Column<int>(type: "int", nullable: true),
                     Reference = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
@@ -1614,6 +1832,17 @@ namespace App.Models.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_id_cashier_profiles_LocationId",
+                table: "id_cashier_profiles",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_id_cashier_profiles_UserId",
+                table: "id_cashier_profiles",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_id_user_locations_LocationId",
                 table: "id_user_locations",
                 column: "LocationId");
@@ -1669,6 +1898,52 @@ namespace App.Models.Data.Migrations
                 name: "IX_mx_product_services_Id",
                 table: "mx_product_services",
                 column: "Id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_register_denominations_CashRegisterId",
+                table: "sh_cash_register_denominations",
+                column: "CashRegisterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_register_movements_CashRegisterId",
+                table: "sh_cash_register_movements",
+                column: "CashRegisterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_registers_CashStationId",
+                table: "sh_cash_registers",
+                column: "CashStationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_registers_LocationId",
+                table: "sh_cash_registers",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_registers_LocationId_UserId_Status",
+                table: "sh_cash_registers",
+                columns: new[] { "LocationId", "UserId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_registers_OpenedAt",
+                table: "sh_cash_registers",
+                column: "OpenedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_registers_Status",
+                table: "sh_cash_registers",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_registers_UserId",
+                table: "sh_cash_registers",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_cash_stations_LocationId_Name",
+                table: "sh_cash_stations",
+                columns: new[] { "LocationId", "Name" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1812,6 +2087,11 @@ namespace App.Models.Data.Migrations
                 name: "IX_sh_sale_payments_SaleId",
                 table: "sh_sale_payments",
                 column: "SaleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_sales_CashRegisterId",
+                table: "sh_sales",
+                column: "CashRegisterId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sh_sales_CustomerId",
@@ -1986,6 +2266,9 @@ namespace App.Models.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "id_cashier_profiles");
+
+            migrationBuilder.DropTable(
                 name: "id_user_locations");
 
             migrationBuilder.DropTable(
@@ -2005,6 +2288,12 @@ namespace App.Models.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "mx_payment_methods");
+
+            migrationBuilder.DropTable(
+                name: "sh_cash_register_denominations");
+
+            migrationBuilder.DropTable(
+                name: "sh_cash_register_movements");
 
             migrationBuilder.DropTable(
                 name: "sh_inventory");
@@ -2029,6 +2318,9 @@ namespace App.Models.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "sh_sale_payments");
+
+            migrationBuilder.DropTable(
+                name: "stg_cash_register_settings");
 
             migrationBuilder.DropTable(
                 name: "stg_currencies");
@@ -2091,10 +2383,16 @@ namespace App.Models.Data.Migrations
                 name: "sh_unit_measures");
 
             migrationBuilder.DropTable(
-                name: "sh_locations");
+                name: "sh_cash_registers");
 
             migrationBuilder.DropTable(
                 name: "shd_customers");
+
+            migrationBuilder.DropTable(
+                name: "sh_cash_stations");
+
+            migrationBuilder.DropTable(
+                name: "sh_locations");
         }
     }
 }

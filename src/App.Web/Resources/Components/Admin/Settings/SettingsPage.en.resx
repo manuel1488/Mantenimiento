@@ -64,4 +64,8 @@
     <value>Payment Methods</value>
     <comment>Payment methods settings tab</comment>
   </data>
+  <data name="Cash Register" xml:space="preserve">
+    <value>Cash Register</value>
+    <comment>Cash register settings tab</comment>
+  </data>
 </root>

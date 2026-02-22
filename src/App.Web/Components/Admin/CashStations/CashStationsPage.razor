@@ -1,0 +1,239 @@
+@page "/admin/cash-stations"
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Location
+@using App.Core.DTOs.Shop.CashStation
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Shop
+@using MudBlazor
+
+@inject ICashStationService CashStationService
+@inject ILocationService LocationService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IStringLocalizer<CashStationsPage> L
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewCashStations)]
+
+<PageTitle>@L["Cash Stations"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Cash Stations"]</MudText>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <!-- Toolbar -->
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="2" Wrap="Wrap.Wrap">
+                <!-- Location filter -->
+                <MudSelect T="int?" @bind-Value="_locationFilter"
+                           Placeholder="@L["All Locations"]"
+                           Clearable="true"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           Style="min-width: 200px;">
+                    @foreach (var loc in _locations)
+                    {
+                        <MudSelectItem T="int?" Value="@((int?)loc.Id)">@loc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <!-- Status filter -->
+                <MudRadioGroup T="string" @bind-Value="_statusFilter" Class="mr-4">
+                    <MudRadio T="string" Value="@("all")">@L["All"]</MudRadio>
+                    <MudRadio T="string" Value="@("active")">@L["Active"]</MudRadio>
+                    <MudRadio T="string" Value="@("inactive")">@L["Inactive"]</MudRadio>
+                </MudRadioGroup>
+
+                <MudSpacer />
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ManageCashStations">
+                    <Authorized>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="AddStation">
+                            @L["Add Cash Station"]
+                        </MudButton>
+                    </Authorized>
+                </AuthorizeView>
+            </MudStack>
+
+            <MudDataGrid T="CashStationDto"
+                         @ref="_grid"
+                         ServerData="@LoadServerData"
+                         SortMode="SortMode.None"
+                         RowsPerPage="10"
+                         Dense="true"
+                         Hover="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.Name" Title="@L["Name"]" />
+                    <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" />
+                    <TemplateColumn Title="@L["Status"]">
+                        <CellTemplate>
+                            @if (context.Item.IsActive)
+                            {
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small">@L["Active"]</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["Inactive"]</MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.CreatedBy" Title="@L["Created By"]" />
+                    <TemplateColumn Title="@L["Created At"]">
+                        <CellTemplate>
+                            @context.Item.CreatedAt.ToLocalTime().ToString("g")
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Actions"]" CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <AuthorizeView Policy="@ApplicationClaims.Admin.ManageCashStations" Context="authCtx">
+                                <Authorized>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Color="Color.Primary"
+                                                   Size="Size.Small"
+                                                   title="@L["Edit"]"
+                                                   OnClick="@(() => EditStation(context.Item))" />
+                                    @if (context.Item.IsActive)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Block"
+                                                       Color="Color.Warning"
+                                                       Size="Size.Small"
+                                                       title="@L["Deactivate"]"
+                                                       OnClick="@(() => ToggleActiveAsync(context.Item))" />
+                                    }
+                                    else
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.CheckCircle"
+                                                       Color="Color.Success"
+                                                       Size="Size.Small"
+                                                       title="@L["Activate"]"
+                                                       OnClick="@(() => ToggleActiveAsync(context.Item))" />
+                                    }
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   Size="Size.Small"
+                                                   title="@L["Delete"]"
+                                                   OnClick="@(() => DeleteStationAsync(context.Item))" />
+                                </Authorized>
+                            </AuthorizeView>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="CashStationDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private MudDataGrid<CashStationDto>? _grid;
+    private string _statusFilter = "all";
+    private int? _locationFilter;
+    private List<LocationDto> _locations = [];
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        var locs = await LocationService.GetActiveLocationsAsync();
+        _locations = locs.ToList();
+    }
+    #endregion
+
+    #region Server Data
+    private async Task<GridData<CashStationDto>> LoadServerData(GridState<CashStationDto> state)
+    {
+        var (total, items) = await CashStationService.GetAllAsync(
+            state.Page + 1,
+            state.PageSize,
+            _locationFilter);
+
+        bool? isActive = _statusFilter switch
+        {
+            "active" => true,
+            "inactive" => false,
+            _ => null
+        };
+
+        if (isActive.HasValue)
+            items = items.Where(x => x.IsActive == isActive.Value).ToList();
+
+        return new GridData<CashStationDto>
+        {
+            Items = items,
+            TotalItems = total
+        };
+    }
+    #endregion
+
+    #region Methods
+    private async Task AddStation()
+    {
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CashStationDialog>(L["Add Cash Station"], options);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+            await _grid!.ReloadServerData();
+    }
+
+    private async Task EditStation(CashStationDto station)
+    {
+        var parameters = new DialogParameters<CashStationDialog>
+        {
+            { x => x.Id, station.Id },
+            { x => x.Station, station }
+        };
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CashStationDialog>(L["Edit Cash Station"], parameters, options);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+            await _grid!.ReloadServerData();
+    }
+
+    private async Task ToggleActiveAsync(CashStationDto station)
+    {
+        var dto = new UpdateCashStationDto
+        {
+            Name = station.Name,
+            IsActive = !station.IsActive
+        };
+        var result = await CashStationService.UpdateAsync(station.Id, dto);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cash station updated successfully"], Severity.Success);
+            await _grid!.ReloadServerData();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task DeleteStationAsync(CashStationDto station)
+    {
+        var dialog = await DialogService.ShowMessageBox(
+            L["Delete Cash Station"],
+            L["Are you sure you want to delete this cash station?"],
+            yesText: L["Confirm"],
+            cancelText: L["Cancel"]);
+
+        if (dialog != true) return;
+
+        var result = await CashStationService.DeleteAsync(station.Id);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cash station deleted successfully"], Severity.Success);
+            await _grid!.ReloadServerData();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+    #endregion
+}

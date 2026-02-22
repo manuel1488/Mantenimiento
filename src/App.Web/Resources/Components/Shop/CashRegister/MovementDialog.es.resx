@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Add Withdrawal" xml:space="preserve">
+    <value>Registrar Retiro</value>
+  </data>
+  <data name="Add Deposit" xml:space="preserve">
+    <value>Registrar Depósito</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Monto</value>
+  </data>
+  <data name="Amount must be greater than zero" xml:space="preserve">
+    <value>El monto debe ser mayor a cero</value>
+  </data>
+  <data name="Exceeds maximum allowed ({0:C})" xml:space="preserve">
+    <value>Supera el máximo permitido ({0:C})</value>
+  </data>
+  <data name="Maximum per withdrawal: {0:C}" xml:space="preserve">
+    <value>Máximo por retiro: {0:C}</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="Reason is required" xml:space="preserve">
+    <value>El motivo es requerido</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+  <data name="Saving..." xml:space="preserve">
+    <value>Guardando...</value>
+  </data>
+  <data name="Movement registered successfully" xml:space="preserve">
+    <value>Movimiento registrado correctamente</value>
+  </data>
+  <data name="Error registering movement" xml:space="preserve">
+    <value>Error al registrar el movimiento</value>
+  </data>
+</root>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Add Cashier" xml:space="preserve">
+    <value>Add Cashier</value>
+  </data>
+  <data name="Edit Cashier" xml:space="preserve">
+    <value>Edit Cashier</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Search users..." xml:space="preserve">
+    <value>Search users...</value>
+  </data>
+  <data name="User is required" xml:space="preserve">
+    <value>User is required</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Location is required" xml:space="preserve">
+    <value>Location is required</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Optional notes" xml:space="preserve">
+    <value>Optional notes</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Cashier created successfully" xml:space="preserve">
+    <value>Cashier created successfully</value>
+  </data>
+  <data name="Cashier updated successfully" xml:space="preserve">
+    <value>Cashier updated successfully</value>
+  </data>
+</root>

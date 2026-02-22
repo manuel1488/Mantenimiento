@@ -13,6 +13,9 @@ public class ApplicationUser : IdentityUser, IAuditableEntity, ISoftDelete
     // Location assignments
     public virtual ICollection<UserLocation> UserLocations { get; set; } = new List<UserLocation>();
 
+    // Cashier profile
+    public virtual CashierProfile? CashierProfile { get; set; }
+
     // Implementación de IAuditableEntity
     public string CreatedBy { get; set; } = null!;
     public DateTime CreatedAt { get; set; }

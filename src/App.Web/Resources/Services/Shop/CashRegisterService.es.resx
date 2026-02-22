@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving cash register" xml:space="preserve">
+    <value>Error al obtener la caja</value>
+  </data>
+  <data name="A cash register is already open for this location" xml:space="preserve">
+    <value>Ya existe una caja abierta para esta ubicación</value>
+  </data>
+  <data name="Error opening cash register" xml:space="preserve">
+    <value>Error al abrir la caja</value>
+  </data>
+  <data name="Cash register not found" xml:space="preserve">
+    <value>Caja no encontrada</value>
+  </data>
+  <data name="Cash register is already closed" xml:space="preserve">
+    <value>La caja ya está cerrada</value>
+  </data>
+  <data name="Error closing cash register" xml:space="preserve">
+    <value>Error al cerrar la caja</value>
+  </data>
+  <data name="Active cash register not found" xml:space="preserve">
+    <value>No se encontró una caja activa</value>
+  </data>
+  <data name="Withdrawal amount exceeds the maximum allowed ({0:C})" xml:space="preserve">
+    <value>El monto del retiro supera el máximo permitido ({0:C})</value>
+  </data>
+  <data name="Error adding movement" xml:space="preserve">
+    <value>Error al registrar el movimiento</value>
+  </data>
+  <data name="Error generating report" xml:space="preserve">
+    <value>Error al generar el reporte</value>
+  </data>
+  <data name="Error retrieving settings" xml:space="preserve">
+    <value>Error al obtener la configuración</value>
+  </data>
+  <data name="Maximum withdrawal amount must be greater than zero" xml:space="preserve">
+    <value>El monto máximo de retiro debe ser mayor a cero</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+  <data name="No open cash register found. Please open a cash register before processing sales." xml:space="preserve">
+    <value>No hay caja abierta. Por favor abra una caja antes de procesar ventas.</value>
+  </data>
+</root>

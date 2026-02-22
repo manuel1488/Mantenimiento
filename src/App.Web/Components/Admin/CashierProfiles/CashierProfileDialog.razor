@@ -1,0 +1,203 @@
+@using App.Core.DTOs.Identity
+@using App.Core.DTOs.Location
+@using App.Core.Identity.Interfaces
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Identity
+@using MudBlazor
+
+@inject ICashierProfileService CashierProfileService
+@inject IIdentityService IdentityService
+@inject ILocationService LocationService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<CashierProfileDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            @if (Id == 0)
+            {
+                <!-- Create mode: location + user autocomplete -->
+                <MudSelect T="int"
+                           @bind-Value="_locationId"
+                           Label="@L["Location"]"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           RequiredError="@L["Location is required"]"
+                           Class="mb-3">
+                    @foreach (var loc in _locations)
+                    {
+                        <MudSelectItem T="int" Value="@loc.Id">@loc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudAutocomplete T="UserDto"
+                                 Label="@L["User"]"
+                                 Value="_selectedUser"
+                                 ValueChanged="OnUserSelected"
+                                 SearchFunc="SearchUsersAsync"
+                                 ToStringFunc="@(u => u == null ? string.Empty : $"{u.FullName} ({u.Email})")"
+                                 Variant="Variant.Outlined"
+                                 Required="true"
+                                 RequiredError="@L["User is required"]"
+                                 Class="mb-3" />
+            }
+            else
+            {
+                <!-- Edit mode: readonly user info, editable location -->
+                <MudTextField Value="@Profile?.UserFullName"
+                              Label="@L["User"]"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Class="mb-2" />
+                <MudTextField Value="@Profile?.UserEmail"
+                              Label="@L["Email"]"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Class="mb-3" />
+                <MudSelect T="int"
+                           @bind-Value="_locationId"
+                           Label="@L["Location"]"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           RequiredError="@L["Location is required"]"
+                           Class="mb-3">
+                    @foreach (var loc in _locations)
+                    {
+                        <MudSelectItem T="int" Value="@loc.Id">@loc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSwitch @bind-Value="_isActive"
+                           Label="@L["Active"]"
+                           Color="Color.Success"
+                           Class="mb-3" />
+            }
+
+            <MudTextField @bind-Value="_notes"
+                          Label="@L["Notes"]"
+                          Placeholder="@L["Optional notes"]"
+                          Variant="Variant.Outlined"
+                          Lines="3"
+                          MaxLength="500" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Save"
+                   Disabled="@(!_isValid || _processing)">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    #region Parameters
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public long Id { get; set; } = 0;
+
+    [Parameter]
+    public CashierProfileDto? Profile { get; set; }
+    #endregion
+
+    #region Fields
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+    private UserDto? _selectedUser;
+    private bool _isActive = true;
+    private string? _notes;
+    private int _locationId;
+    private List<LocationDto> _locations = [];
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        var locs = await LocationService.GetActiveLocationsAsync();
+        _locations = locs.ToList();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Profile != null)
+        {
+            _isActive = Profile.IsActive;
+            _notes = Profile.Notes;
+            _locationId = Profile.LocationId;
+        }
+    }
+    #endregion
+
+    #region Methods
+    private async Task<IEnumerable<UserDto>> SearchUsersAsync(string? value, CancellationToken cancellationToken)
+    {
+        var (_, users) = await IdentityService.GetUsersAsync(1, 20, value, isActive: true);
+        return users;
+    }
+
+    private void OnUserSelected(UserDto? user)
+    {
+        _selectedUser = user;
+        _isValid = user != null && _locationId > 0;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        try
+        {
+            if (Id == 0)
+            {
+                var dto = new CreateCashierProfileDto
+                {
+                    UserId = _selectedUser!.Id,
+                    LocationId = _locationId,
+                    Notes = _notes
+                };
+                var result = await CashierProfileService.CreateAsync(dto);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Cashier created successfully"], Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(result.Value));
+                }
+                else
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                }
+            }
+            else
+            {
+                var dto = new UpdateCashierProfileDto
+                {
+                    LocationId = _locationId,
+                    IsActive = _isActive,
+                    Notes = _notes
+                };
+                var result = await CashierProfileService.UpdateAsync(Id, dto);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Cashier updated successfully"], Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(result.Value));
+                }
+                else
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                }
+            }
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+    #endregion
+}

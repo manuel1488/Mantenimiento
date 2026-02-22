@@ -30,6 +30,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DiscountSettings> DiscountSettings { get; set; } = null!;
     public DbSet<RoundingSettings> RoundingSettings { get; set; } = null!;
     public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
+    public DbSet<CashRegisterSettings> CashRegisterSettings { get; set; } = null!;
     #endregion
 
     #region Shared
@@ -52,10 +53,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProductPartialSurcharge> ProductPartialSurcharges { get; set; } = null!;
     public DbSet<WholesaleTier> WholesaleTiers { get; set; } = null!;
     public DbSet<ProductWholesalePrice> ProductWholesalePrices { get; set; } = null!;
+    public DbSet<CashRegister> CashRegisters { get; set; } = null!;
+    public DbSet<CashRegisterMovement> CashRegisterMovements { get; set; } = null!;
+    public DbSet<CashRegisterDenomination> CashRegisterDenominations { get; set; } = null!;
+    public DbSet<CashStation> CashStations { get; set; } = null!;
     #endregion
 
     #region Identity Extensions
     public DbSet<UserLocation> UserLocations { get; set; } = null!;
+    public DbSet<CashierProfile> CashierProfiles { get; set; } = null!;
     #endregion
 
     #region Billing México

@@ -78,4 +78,7 @@
   <data name="Error getting tax rate. Please ensure tax rates are properly configured." xml:space="preserve">
     <value>Error getting tax rate. Please ensure tax rates are properly configured.</value>
   </data>
+  <data name="No open cash register found. Please open a cash register before processing sales." xml:space="preserve">
+    <value>No open cash register found. Please open a cash register before processing sales.</value>
+  </data>
 </root>

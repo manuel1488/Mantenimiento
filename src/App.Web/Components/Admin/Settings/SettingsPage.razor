@@ -13,6 +13,7 @@
 @using App.Web.Components.Admin.Settings.WholesaleTiers
 @using App.Web.Components.Admin.Settings.Rounding
 @using App.Web.Components.Admin.Settings.PaymentMethods
+@using App.Web.Components.Admin.Settings.CashRegister
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -90,6 +91,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Payment Methods"]" Icon="@Icons.Material.Filled.Payments">
                         <PaymentMethodsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Cash Register"]" Icon="@Icons.Material.Filled.PointOfSale">
+                        <CashRegisterSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

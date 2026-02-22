@@ -1,0 +1,98 @@
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces.Shop
+
+@inject ICashRegisterService CashRegisterService
+@inject IStringLocalizer<CashRegisterSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<CashRegisterSettingsTab> Logger
+
+@if (_loading)
+{
+    <div class="d-flex justify-center pa-4">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    </div>
+}
+else
+{
+    <MudForm @ref="_form" @bind-IsValid="_isValid">
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudNumericField T="decimal"
+                                 @bind-Value="_model.MaxWithdrawalAmount"
+                                 Label="@L["Maximum Withdrawal Amount"]"
+                                 Variant="Variant.Outlined"
+                                 Min="1m"
+                                 Format="C2"
+                                 Required="true"
+                                 RequiredError="@L["Maximum withdrawal amount is required"]"
+                                 HelperText="@L["Maximum amount allowed per individual withdrawal"]" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudNumericField T="decimal?"
+                                 @bind-Value="_model.DefaultInitialFund"
+                                 Label="@L["Default Initial Fund (optional)"]"
+                                 Variant="Variant.Outlined"
+                                 Min="0m"
+                                 Format="C2"
+                                 HelperText="@L["Pre-filled when opening a new cash register"]" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudButton Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="Save"
+                           Disabled="@(!_isValid || _processing)">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        @L["Saving..."]
+                    }
+                    else
+                    {
+                        @L["Save"]
+                    }
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+}
+
+@code {
+    #region Fields
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _loading = true;
+    private bool _processing;
+    private UpdateCashRegisterSettingsDto _model = new();
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await CashRegisterService.GetSettingsAsync();
+        if (result.IsSuccess && result.Value is not null)
+        {
+            _model.MaxWithdrawalAmount = result.Value.MaxWithdrawalAmount;
+            _model.DefaultInitialFund = result.Value.DefaultInitialFund;
+        }
+        _loading = false;
+    }
+    #endregion
+
+    #region Methods
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        var result = await CashRegisterService.UpdateSettingsAsync(_model);
+        _processing = false;
+
+        if (result.IsSuccess)
+            Snackbar.Add(L["Settings saved successfully"], Severity.Success);
+        else
+            Snackbar.Add(result.Error, Severity.Error);
+    }
+    #endregion
+}

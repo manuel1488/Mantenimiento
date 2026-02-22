@@ -1,0 +1,160 @@
+@using App.Core.DTOs.Location
+@using App.Core.DTOs.Shop.CashStation
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Shop
+@using MudBlazor
+
+@inject ICashStationService CashStationService
+@inject ILocationService LocationService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<CashStationDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            @if (Id == 0)
+            {
+                <MudSelect T="int"
+                           @bind-Value="_locationId"
+                           Label="@L["Location"]"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           RequiredError="@L["Location is required"]"
+                           Class="mb-3">
+                    @foreach (var loc in _locations)
+                    {
+                        <MudSelectItem T="int" Value="@loc.Id">@loc.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MudTextField Value="@Station?.LocationName"
+                              Label="@L["Location"]"
+                              Variant="Variant.Outlined"
+                              ReadOnly="true"
+                              Class="mb-3" />
+                <MudSwitch @bind-Value="_isActive"
+                           Label="@L["Active"]"
+                           Color="Color.Success"
+                           Class="mb-3" />
+            }
+
+            <MudTextField @bind-Value="_name"
+                          Label="@L["Name"]"
+                          Placeholder="Ej. Caja 1"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="@L["Name is required"]"
+                          MaxLength="100" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Save"
+                   Disabled="@(!_isValid || _processing)">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    #region Parameters
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public int Id { get; set; } = 0;
+
+    [Parameter]
+    public CashStationDto? Station { get; set; }
+    #endregion
+
+    #region Fields
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+    private string _name = string.Empty;
+    private int _locationId;
+    private bool _isActive = true;
+    private List<LocationDto> _locations = [];
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == 0)
+        {
+            var locations = await LocationService.GetActiveLocationsAsync();
+            _locations = locations.ToList();
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Station != null)
+        {
+            _name = Station.Name;
+            _locationId = Station.LocationId;
+            _isActive = Station.IsActive;
+        }
+    }
+    #endregion
+
+    #region Methods
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        try
+        {
+            if (Id == 0)
+            {
+                var dto = new CreateCashStationDto
+                {
+                    LocationId = _locationId,
+                    Name = _name
+                };
+                var result = await CashStationService.CreateAsync(dto);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Cash station created successfully"], Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(result.Value));
+                }
+                else
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                }
+            }
+            else
+            {
+                var dto = new UpdateCashStationDto
+                {
+                    Name = _name,
+                    IsActive = _isActive
+                };
+                var result = await CashStationService.UpdateAsync(Id, dto);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Cash station updated successfully"], Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(result.Value));
+                }
+                else
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                }
+            }
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+    #endregion
+}

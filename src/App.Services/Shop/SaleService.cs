@@ -36,6 +36,7 @@ public class SaleService : ISaleService
     private readonly ITaxSettingsService _taxSettingsService;
     private readonly IProductPartialSurchargeService _productPartialSurchargeService;
     private readonly IRoundingSettingsService _roundingSettingsService;
+    private readonly ICashRegisterService _cashRegisterService;
 
     public SaleService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -51,7 +52,8 @@ public class SaleService : ISaleService
         ICompanySettingsService companySettingsService,
         ITaxSettingsService taxSettingsService,
         IProductPartialSurchargeService productPartialSurchargeService,
-        IRoundingSettingsService roundingSettingsService)
+        IRoundingSettingsService roundingSettingsService,
+        ICashRegisterService cashRegisterService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -67,6 +69,7 @@ public class SaleService : ISaleService
         _taxSettingsService = taxSettingsService;
         _productPartialSurchargeService = productPartialSurchargeService;
         _roundingSettingsService = roundingSettingsService;
+        _cashRegisterService = cashRegisterService;
     }
 
     public async Task<(int TotalCount, IList<SaleDto> Items)> GetSalesAsync(
@@ -192,6 +195,24 @@ public class SaleService : ISaleService
                 return Result<SaleDto>.Failure(configValidation.Error!);
             }
 
+            // Validate active cash register for current user+location
+            long? cashRegisterId = null;
+            var activeLocationId = _currentUserService.ActiveLocationId;
+            if (activeLocationId.HasValue)
+            {
+                var cashRegResult = await _cashRegisterService.GetActiveCashRegisterAsync(
+                    activeLocationId.Value,
+                    _currentUserService.UserId);
+
+                if (!cashRegResult.IsSuccess)
+                    return Result<SaleDto>.Failure(cashRegResult.Error!);
+
+                if (cashRegResult.Value == null)
+                    return Result<SaleDto>.Failure(L["No open cash register found. Please open a cash register before processing sales."]);
+
+                cashRegisterId = cashRegResult.Value.Id;
+            }
+
             // Validate sale data
             var validationResult = await ValidateSaleDataAsync(createDto);
             if (!validationResult.IsSuccess)
@@ -214,7 +235,7 @@ public class SaleService : ISaleService
             }
 
             // Calculate sale
-            var saleCalculation = await CalculateSaleAsync(context, createDto, locationId);
+            var saleCalculation = await CalculateSaleAsync(context, createDto, locationId, cashRegisterId);
             if (!saleCalculation.IsSuccess)
             {
                 return Result<SaleDto>.Failure(saleCalculation.Error!);
@@ -532,7 +553,8 @@ public class SaleService : ISaleService
     private async Task<Result<(Sale Sale, List<SaleDetail> Details)>> CalculateSaleAsync(
         ApplicationDbContext context,
         CreateSaleDto createDto,
-        int? locationId)
+        int? locationId,
+        long? cashRegisterId = null)
     {
         try
         {
@@ -551,6 +573,7 @@ public class SaleService : ISaleService
                 Status = App.Core.Enums.Shop.SaleStatus.Created,
                 SaleType = createDto.SaleType,
                 LocationId = createDto.LocationId,
+                CashRegisterId = cashRegisterId,
                 DiscountPercentage = createDto.DiscountPercentage,
                 DiscountAuthorizedBy = createDto.DiscountAuthorizedBy,
                 CreatedBy = _currentUserService.FullName,

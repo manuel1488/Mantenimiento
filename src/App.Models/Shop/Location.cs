@@ -67,4 +67,6 @@ public class Location : BaseEntity<int>
 
     [StringLength(100)]
     public string? Email { get; set; }
+
+    public virtual ICollection<CashStation> CashStations { get; set; } = [];
 }

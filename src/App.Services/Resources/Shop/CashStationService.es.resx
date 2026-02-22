@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="A cash station with this name already exists at this location" xml:space="preserve">
+    <value>Ya existe una caja con este nombre en esta ubicación</value>
+  </data>
+  <data name="Error creating cash station" xml:space="preserve">
+    <value>Error al crear la caja</value>
+  </data>
+  <data name="Cash station not found" xml:space="preserve">
+    <value>Caja no encontrada</value>
+  </data>
+  <data name="Error updating cash station" xml:space="preserve">
+    <value>Error al actualizar la caja</value>
+  </data>
+  <data name="Cannot delete a cash station with an open cash register" xml:space="preserve">
+    <value>No se puede eliminar una caja con una sesión abierta</value>
+  </data>
+  <data name="Error deleting cash station" xml:space="preserve">
+    <value>Error al eliminar la caja</value>
+  </data>
+</root>

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260222001011_AddCardAuthorizationFields")]
-    partial class AddCardAuthorizationFields
+    [Migration("20260222043816_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -550,6 +550,54 @@ namespace App.Models.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("App.Models.Identity.CashierProfile", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("varchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("id_cashier_profiles");
+                });
+
             modelBuilder.Entity("App.Models.Identity.UserLocation", b =>
                 {
                     b.Property<string>("UserId")
@@ -563,6 +611,50 @@ namespace App.Models.Data.Migrations
                     b.HasIndex("LocationId");
 
                     b.ToTable("id_user_locations");
+                });
+
+            modelBuilder.Entity("App.Models.Settings.CashRegisterSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal?>("DefaultInitialFund")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<decimal>("MaxWithdrawalAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("stg_cash_register_settings", t =>
+                        {
+                            t.HasCheckConstraint("CK_CashRegisterSettings_MaxWithdrawal", "MaxWithdrawalAmount > 0");
+                        });
                 });
 
             modelBuilder.Entity("App.Models.Settings.CompanySettings", b =>
@@ -1448,6 +1540,232 @@ namespace App.Models.Data.Migrations
                     b.ToTable("shd_customers");
                 });
 
+            modelBuilder.Entity("App.Models.Shop.CashRegister", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CashStationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ClosingNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("InitialFund")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("OpeningNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("varchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashStationId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("OpenedAt");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("LocationId", "UserId", "Status");
+
+                    b.ToTable("sh_cash_registers");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashRegisterDenomination", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CashRegisterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("DenominationType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DenominationValue")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashRegisterId");
+
+                    b.ToTable("sh_cash_register_denominations", t =>
+                        {
+                            t.HasCheckConstraint("CK_CashRegisterDenomination_QuantityNonNegative", "Quantity >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashRegisterMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<long>("CashRegisterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("MovementType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CashRegisterId");
+
+                    b.ToTable("sh_cash_register_movements", t =>
+                        {
+                            t.HasCheckConstraint("CK_CashRegisterMovement_AmountPositive", "Amount > 0");
+                        });
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashStation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("sh_cash_stations");
+                });
+
             modelBuilder.Entity("App.Models.Shop.Inventory", b =>
                 {
                     b.Property<long>("Id")
@@ -2240,6 +2558,9 @@ namespace App.Models.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("CashRegisterId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2311,6 +2632,8 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CashRegisterId");
 
                     b.HasIndex("CustomerId");
 
@@ -2775,6 +3098,25 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Invoice");
                 });
 
+            modelBuilder.Entity("App.Models.Identity.CashierProfile", b =>
+                {
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("App.Models.Identity.ApplicationUser", "User")
+                        .WithOne("CashierProfile")
+                        .HasForeignKey("App.Models.Identity.CashierProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("App.Models.Identity.UserLocation", b =>
                 {
                     b.HasOne("App.Models.Shop.Location", "Location")
@@ -2802,6 +3144,57 @@ namespace App.Models.Data.Migrations
                         .HasPrincipalKey("Code")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashRegister", b =>
+                {
+                    b.HasOne("App.Models.Shop.CashStation", "CashStation")
+                        .WithMany("CashRegisters")
+                        .HasForeignKey("CashStationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CashStation");
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashRegisterDenomination", b =>
+                {
+                    b.HasOne("App.Models.Shop.CashRegister", "CashRegister")
+                        .WithMany("Denominations")
+                        .HasForeignKey("CashRegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CashRegister");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashRegisterMovement", b =>
+                {
+                    b.HasOne("App.Models.Shop.CashRegister", "CashRegister")
+                        .WithMany("Movements")
+                        .HasForeignKey("CashRegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CashRegister");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashStation", b =>
+                {
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany("CashStations")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("App.Models.Shop.Inventory", b =>
@@ -2929,6 +3322,11 @@ namespace App.Models.Data.Migrations
 
             modelBuilder.Entity("App.Models.Shop.Sale", b =>
                 {
+                    b.HasOne("App.Models.Shop.CashRegister", "CashRegister")
+                        .WithMany("Sales")
+                        .HasForeignKey("CashRegisterId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("App.Models.Shared.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
@@ -2939,6 +3337,8 @@ namespace App.Models.Data.Migrations
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CashRegister");
 
                     b.Navigation("Customer");
 
@@ -3048,7 +3448,28 @@ namespace App.Models.Data.Migrations
 
             modelBuilder.Entity("App.Models.Identity.ApplicationUser", b =>
                 {
+                    b.Navigation("CashierProfile");
+
                     b.Navigation("UserLocations");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashRegister", b =>
+                {
+                    b.Navigation("Denominations");
+
+                    b.Navigation("Movements");
+
+                    b.Navigation("Sales");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.CashStation", b =>
+                {
+                    b.Navigation("CashRegisters");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.Location", b =>
+                {
+                    b.Navigation("CashStations");
                 });
 
             modelBuilder.Entity("App.Models.Shop.PartialSaleFraction", b =>

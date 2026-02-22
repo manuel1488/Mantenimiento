@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="A cashier profile already exists for this user" xml:space="preserve">
+    <value>A cashier profile already exists for this user</value>
+  </data>
+  <data name="Error creating cashier profile" xml:space="preserve">
+    <value>Error creating cashier profile</value>
+  </data>
+  <data name="Cashier profile not found" xml:space="preserve">
+    <value>Cashier profile not found</value>
+  </data>
+  <data name="Error updating cashier profile" xml:space="preserve">
+    <value>Error updating cashier profile</value>
+  </data>
+  <data name="Error deleting cashier profile" xml:space="preserve">
+    <value>Error deleting cashier profile</value>
+  </data>
+  <data name="Location is required" xml:space="preserve">
+    <value>Location is required</value>
+  </data>
+</root>

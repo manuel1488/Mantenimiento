@@ -42,4 +42,13 @@
   <data name="Initial Setup" xml:space="preserve">
     <value>Initial Setup</value>
   </data>
+  <data name="Cash Register" xml:space="preserve">
+    <value>Cash Register</value>
+  </data>
+  <data name="Cashiers" xml:space="preserve">
+    <value>Cashiers</value>
+  </data>
+  <data name="Cash Stations" xml:space="preserve">
+    <value>Cash Stations</value>
+  </data>
 </root>

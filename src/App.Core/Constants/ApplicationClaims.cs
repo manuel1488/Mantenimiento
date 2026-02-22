@@ -59,6 +59,12 @@ public static class ApplicationClaims
         public const string ViewWarehouses = "Shop.Warehouses.View";
         public const string ManageWarehouses = "Shop.Warehouses.Manage";
         public const string DeleteWarehouses = "Shop.Warehouses.Delete";
+
+        // Caja (Cash Register)
+        public const string ViewCashRegister = "Shop.CashRegister.View";
+        public const string ManageCashRegister = "Shop.CashRegister.Manage";
+        public const string WithdrawCashRegister = "Shop.CashRegister.Withdraw";
+        public const string ViewCashRegisterReport = "Shop.CashRegister.ViewReport";
     }
 
     public static class Admin
@@ -122,6 +128,14 @@ public static class ApplicationClaims
         // Settings for Tickets
         public const string ViewTicketSettings = "Admin.TicketSettings.View";
         public const string ManageTicketSettings = "Admin.TicketSettings.Manage";
+
+        // Cajeros (Cashier Profiles)
+        public const string ViewCashiers = "Admin.Cashiers.View";
+        public const string ManageCashiers = "Admin.Cashiers.Manage";
+
+        // Cash Stations
+        public const string ViewCashStations = "Admin.CashStations.View";
+        public const string ManageCashStations = "Admin.CashStations.Manage";
     }
 
     public static class Shared

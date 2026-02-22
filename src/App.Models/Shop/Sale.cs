@@ -55,6 +55,12 @@ public class Sale : BaseEntity<long>
     [ForeignKey(nameof(LocationId))]
     public virtual Location? Location { get; set; }
 
+    // Cash register relationship (nullable for backward compatibility with existing sales)
+    public long? CashRegisterId { get; set; }
+
+    [ForeignKey(nameof(CashRegisterId))]
+    public virtual CashRegister? CashRegister { get; set; }
+
     public virtual ICollection<SaleDetail> Details { get; set; } = new List<SaleDetail>();
 
     public virtual ICollection<SalePayment> Payments { get; set; } = new List<SalePayment>();

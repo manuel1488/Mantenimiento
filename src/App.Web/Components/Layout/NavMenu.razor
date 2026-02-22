@@ -54,6 +54,12 @@
                         <MudNavLink Href="/shop/inventory">@L["Inventory"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewCashRegister">
+                    <Authorized Context="cashRegisterAuth">
+                        <MudNavLink Href="/shop/cash-register">@L["Cash Register"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>
@@ -92,6 +98,18 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ManageInitialSetup">
                     <Authorized Context="setupAuth">
                         <MudNavLink Href="/admin/initial-setup">@L["Initial Setup"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewCashiers">
+                    <Authorized>
+                        <MudNavLink Href="/admin/cashier-profiles" Icon="@Icons.Material.Filled.Badge">@L["Cashiers"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewCashStations">
+                    <Authorized>
+                        <MudNavLink Href="/admin/cash-stations" Icon="@Icons.Material.Filled.PointOfSale">@L["Cash Stations"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
             </MudNavGroup>

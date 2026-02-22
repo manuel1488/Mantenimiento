@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Maximum Withdrawal Amount" xml:space="preserve">
+    <value>Maximum Withdrawal Amount</value>
+  </data>
+  <data name="Maximum withdrawal amount is required" xml:space="preserve">
+    <value>Maximum withdrawal amount is required</value>
+  </data>
+  <data name="Maximum amount allowed per individual withdrawal" xml:space="preserve">
+    <value>Maximum amount allowed per individual withdrawal</value>
+  </data>
+  <data name="Default Initial Fund (optional)" xml:space="preserve">
+    <value>Default Initial Fund (optional)</value>
+  </data>
+  <data name="Pre-filled when opening a new cash register" xml:space="preserve">
+    <value>Pre-filled when opening a new cash register</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Saving..." xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="Settings saved successfully" xml:space="preserve">
+    <value>Settings saved successfully</value>
+  </data>
+</root>

@@ -1,0 +1,120 @@
+@using App.Core.DTOs.Shop
+@using App.Core.Enums.Shop
+@using App.Core.Interfaces.Shop
+
+@inject ICashRegisterService CashRegisterService
+@inject IStringLocalizer<MovementDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<MovementDialog> Logger
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@(MovementType == CashRegisterMovementType.Withdrawal ? Icons.Material.Filled.ArrowCircleUp : Icons.Material.Filled.ArrowCircleDown)"
+                     Class="mr-3" />
+            @(MovementType == CashRegisterMovementType.Withdrawal ? L["Add Withdrawal"] : L["Add Deposit"])
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudNumericField T="decimal"
+                                     @bind-Value="_amount"
+                                     Label="@L["Amount"]"
+                                     Variant="Variant.Outlined"
+                                     Min="0.01m"
+                                     Format="C2"
+                                     Immediate="true"
+                                     Required="true"
+                                     RequiredError="@L["Amount must be greater than zero"]"
+                                     Validation="@((decimal v) => ValidateAmount(v))"
+                                     HelperText="@(MovementType == CashRegisterMovementType.Withdrawal ? string.Format(L["Maximum per withdrawal: {0:C}"], _maxWithdrawalAmount) : null)" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_reason"
+                                  Label="@L["Reason"]"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="@L["Reason is required"]" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="@_processing">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Confirm"
+                   Disabled="@(!_isValid || _processing)">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                @L["Saving..."]
+            }
+            else
+            {
+                @L["Confirm"]
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public long CashRegisterId { get; set; }
+    [Parameter] public CashRegisterMovementType MovementType { get; set; }
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+    private decimal _amount;
+    private string? _reason;
+    private decimal _maxWithdrawalAmount = 1000m;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var settingsResult = await CashRegisterService.GetSettingsAsync();
+        if (settingsResult.IsSuccess && settingsResult.Value is not null)
+            _maxWithdrawalAmount = settingsResult.Value.MaxWithdrawalAmount;
+    }
+
+    private string? ValidateAmount(decimal value)
+    {
+        if (value <= 0) return L["Amount must be greater than zero"];
+        if (MovementType == CashRegisterMovementType.Withdrawal && value > _maxWithdrawalAmount)
+            return string.Format(L["Exceeds maximum allowed ({0:C})"], _maxWithdrawalAmount);
+        return null;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Confirm()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        var dto = new AddCashRegisterMovementDto
+        {
+            CashRegisterId = CashRegisterId,
+            Type = MovementType,
+            Amount = _amount,
+            Reason = _reason!
+        };
+
+        var result = await CashRegisterService.AddMovementAsync(dto);
+        _processing = false;
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Movement registered successfully"], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(result.Value));
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+}

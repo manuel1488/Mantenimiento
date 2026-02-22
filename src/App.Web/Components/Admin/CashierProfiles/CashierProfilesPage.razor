@@ -1,0 +1,223 @@
+@page "/admin/cashier-profiles"
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Identity
+@using App.Core.Interfaces.Identity
+@using MudBlazor
+
+@inject ICashierProfileService CashierProfileService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IStringLocalizer<CashierProfilesPage> L
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewCashiers)]
+
+<PageTitle>@L["Cashiers"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Cashiers"]</MudText>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <!-- Toolbar -->
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="2">
+                <!-- Status filter -->
+                <MudRadioGroup T="string" @bind-Value="_statusFilter" Class="mr-4">
+                    <MudRadio T="string" Value="@("all")">@L["All"]</MudRadio>
+                    <MudRadio T="string" Value="@("active")">@L["Active"]</MudRadio>
+                    <MudRadio T="string" Value="@("inactive")">@L["Inactive"]</MudRadio>
+                </MudRadioGroup>
+
+                <MudSpacer />
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ManageCashiers">
+                    <Authorized>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="AddCashier">
+                            @L["Add Cashier"]
+                        </MudButton>
+                    </Authorized>
+                </AuthorizeView>
+            </MudStack>
+
+            <MudDataGrid T="CashierProfileDto"
+                         @ref="_grid"
+                         ServerData="@LoadServerData"
+                         SortMode="SortMode.None"
+                         RowsPerPage="10"
+                         Dense="true"
+                         Hover="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.UserFullName" Title="@L["Full Name"]" />
+                    <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" />
+                    <PropertyColumn Property="x => x.UserEmail" Title="@L["Email"]" />
+                    <TemplateColumn Title="@L["Status"]">
+                        <CellTemplate>
+                            @if (context.Item.IsActive)
+                            {
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small">@L["Active"]</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["Inactive"]</MudChip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Notes" Title="@L["Notes"]" />
+                    <PropertyColumn Property="x => x.CreatedBy" Title="@L["Created By"]" />
+                    <TemplateColumn Title="@L["Created At"]">
+                        <CellTemplate>
+                            @context.Item.CreatedAt.ToLocalTime().ToString("g")
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Actions"]" CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <AuthorizeView Policy="@ApplicationClaims.Admin.ManageCashiers" Context="authCtx">
+                                <Authorized>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Color="Color.Primary"
+                                                   Size="Size.Small"
+                                                   title="@L["Edit"]"
+                                                   OnClick="@(() => EditCashier(context.Item))" />
+                                    @if (context.Item.IsActive)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Block"
+                                                       Color="Color.Warning"
+                                                       Size="Size.Small"
+                                                       title="@L["Deactivate"]"
+                                                       OnClick="@(() => ToggleActiveAsync(context.Item))" />
+                                    }
+                                    else
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.CheckCircle"
+                                                       Color="Color.Success"
+                                                       Size="Size.Small"
+                                                       title="@L["Activate"]"
+                                                       OnClick="@(() => ToggleActiveAsync(context.Item))" />
+                                    }
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   Size="Size.Small"
+                                                   title="@L["Delete"]"
+                                                   OnClick="@(() => DeleteCashierAsync(context.Item))" />
+                                </Authorized>
+                            </AuthorizeView>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="CashierProfileDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private MudDataGrid<CashierProfileDto>? _grid;
+    private string _statusFilter = "all";
+    private string _prevStatusFilter = "all";
+    #endregion
+
+    #region Lifecycle
+    protected override void OnParametersSet() { }
+    #endregion
+
+    #region Server Data
+    private async Task<GridData<CashierProfileDto>> LoadServerData(GridState<CashierProfileDto> state)
+    {
+        bool? isActive = _statusFilter switch
+        {
+            "active" => true,
+            "inactive" => false,
+            _ => null
+        };
+
+        var (total, items) = await CashierProfileService.GetAllAsync(
+            state.Page + 1,
+            state.PageSize,
+            isActive);
+
+        return new GridData<CashierProfileDto>
+        {
+            Items = items,
+            TotalItems = total
+        };
+    }
+    #endregion
+
+    #region Methods
+    private async Task AddCashier()
+    {
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CashierProfileDialog>(L["Add Cashier"], options);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+            await _grid!.ReloadServerData();
+    }
+
+    private async Task EditCashier(CashierProfileDto profile)
+    {
+        var parameters = new DialogParameters<CashierProfileDialog>
+        {
+            { x => x.Id, profile.Id },
+            { x => x.Profile, profile }
+        };
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CashierProfileDialog>(L["Edit Cashier"], parameters, options);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+            await _grid!.ReloadServerData();
+    }
+
+    private async Task ToggleActiveAsync(CashierProfileDto profile)
+    {
+        var dto = new UpdateCashierProfileDto
+        {
+            LocationId = profile.LocationId,
+            IsActive = !profile.IsActive,
+            Notes = profile.Notes
+        };
+        var result = await CashierProfileService.UpdateAsync(profile.Id, dto);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cashier profile updated successfully"], Severity.Success);
+            await _grid!.ReloadServerData();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task DeleteCashierAsync(CashierProfileDto profile)
+    {
+        var options = new DialogOptions { BackdropClick = false };
+        var parameters = new DialogParameters<MudMessageBox>
+        {
+            { x => x.Message, L["Are you sure you want to delete this cashier profile?"].Value }
+        };
+        var dialog = await DialogService.ShowMessageBox(
+            L["Delete Cashier Profile"],
+            L["Are you sure you want to delete this cashier profile?"],
+            yesText: L["Confirm"],
+            cancelText: L["Cancel"]);
+
+        if (dialog != true) return;
+
+        var result = await CashierProfileService.DeleteAsync(profile.Id);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cashier profile deleted successfully"], Severity.Success);
+            await _grid!.ReloadServerData();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+    #endregion
+}

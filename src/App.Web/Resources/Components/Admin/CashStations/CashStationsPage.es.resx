@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Cash Stations" xml:space="preserve">
+    <value>Cajas</value>
+  </data>
+  <data name="Add Cash Station" xml:space="preserve">
+    <value>Agregar Caja</value>
+  </data>
+  <data name="All Locations" xml:space="preserve">
+    <value>Todas las ubicaciones</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Creado Por</value>
+  </data>
+  <data name="Created At" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Activar</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="Delete Cash Station" xml:space="preserve">
+    <value>Eliminar Caja</value>
+  </data>
+  <data name="Are you sure you want to delete this cash station?" xml:space="preserve">
+    <value>¿Está seguro de que desea eliminar esta caja?</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+  <data name="Cash station deleted successfully" xml:space="preserve">
+    <value>Caja eliminada correctamente</value>
+  </data>
+  <data name="Cash station updated successfully" xml:space="preserve">
+    <value>Caja actualizada correctamente</value>
+  </data>
+</root>

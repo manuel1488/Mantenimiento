@@ -1,0 +1,232 @@
+@using App.Core.DTOs.Location
+@using App.Core.DTOs.Shop
+@using App.Core.DTOs.Shop.CashStation
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Identity
+@using App.Core.Interfaces.Shop
+@using App.Shared.Services
+
+@inject ICashRegisterService CashRegisterService
+@inject ICashStationService CashStationService
+@inject ICashierProfileService CashierProfileService
+@inject ILocationService LocationService
+@inject ICurrentUserService CurrentUserService
+@inject IStringLocalizer<OpenCashRegisterDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<OpenCashRegisterDialog> Logger
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.LockOpen" Class="mr-3" />
+            @L["Open Cash Register"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-4">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </div>
+        }
+        else if (_noLocation)
+        {
+            <MudAlert Severity="Severity.Warning">
+                @L["No locations assigned to your user. Contact your administrator."]
+            </MudAlert>
+        }
+        else if (_stations.Count == 0)
+        {
+            <MudAlert Severity="Severity.Warning">
+                @L["No cash stations configured for your location. Contact your administrator."]
+            </MudAlert>
+        }
+        else
+        {
+            <MudForm @ref="_form" @bind-IsValid="_isValid">
+                <MudGrid>
+                    @if (_locations.Count > 1)
+                    {
+                        <MudItem xs="12">
+                            <MudSelect T="int?"
+                                       Value="_locationId"
+                                       ValueChanged="OnLocationChangedAsync"
+                                       Label="@L["Location"]"
+                                       Variant="Variant.Outlined"
+                                       Required="true"
+                                       RequiredError="@L["Location is required"]">
+                                @foreach (var loc in _locations)
+                                {
+                                    <MudSelectItem T="int?" Value="@((int?)loc.Id)">@loc.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    }
+                    <MudItem xs="12">
+                        <MudSelect T="int?"
+                                   @bind-Value="_stationId"
+                                   Label="@L["Cash Station"]"
+                                   Variant="Variant.Outlined"
+                                   Required="true"
+                                   RequiredError="@L["Cash station is required"]">
+                            @foreach (var station in _stations)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)station.Id)">@station.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudNumericField T="decimal"
+                                         @bind-Value="_initialFund"
+                                         Label="@L["Initial Fund"]"
+                                         Variant="Variant.Outlined"
+                                         Min="0m"
+                                         Format="C2"
+                                         Required="true"
+                                         RequiredError="@L["Initial fund must be 0 or greater"]" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_notes"
+                                      Label="@L["Opening notes (optional)"]"
+                                      Variant="Variant.Outlined"
+                                      Lines="2" />
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="@_processing">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="OpenRegister"
+                   Disabled="@(!_isValid || _processing || _noLocation || _stations.Count == 0)">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                @L["Opening..."]
+            }
+            else
+            {
+                @L["Open"]
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _loading = true;
+    private bool _processing;
+    private bool _noLocation;
+    private List<LocationDto> _locations = [];
+    private List<CashStationDto> _stations = [];
+    private int? _locationId;
+    private int? _stationId;
+    private decimal _initialFund;
+    private string? _notes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CurrentUserService.EnsureInitializedAsync();
+
+        if (CurrentUserService.IsGlobalAccess)
+        {
+            // Global admin: can choose any location and its stations
+            var allLocations = await LocationService.GetActiveLocationsAsync();
+            _locations = allLocations.ToList();
+
+            if (_locations.Count == 0)
+            {
+                _noLocation = true;
+            }
+            else if (_locations.Count == 1)
+            {
+                _locationId = _locations[0].Id;
+                await LoadStationsAsync(_locationId.Value);
+            }
+        }
+        else
+        {
+            // Non-global: location comes from their CashierProfile
+            var userId = CurrentUserService.UserId;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var profileLocationId = await GetCashierProfileLocationAsync(userId);
+                if (profileLocationId.HasValue)
+                {
+                    _locationId = profileLocationId.Value;
+                    await LoadStationsAsync(_locationId.Value);
+                }
+                else
+                {
+                    _noLocation = true;
+                }
+            }
+            else
+            {
+                _noLocation = true;
+            }
+        }
+
+        _loading = false;
+    }
+
+    private async Task<int?> GetCashierProfileLocationAsync(string userId)
+    {
+        var profile = await CashierProfileService.GetByUserIdAsync(userId);
+        return profile?.LocationId > 0 ? profile.LocationId : null;
+    }
+
+    private async Task LoadStationsAsync(int locationId)
+    {
+        _stations = (await CashStationService.GetByLocationAsync(locationId, isActive: true)).ToList();
+        if (_stations.Count == 1)
+            _stationId = _stations[0].Id;
+        else
+            _stationId = null;
+    }
+
+    private async Task OnLocationChangedAsync(int? locationId)
+    {
+        _locationId = locationId;
+        _stationId = null;
+        _stations = [];
+
+        if (locationId.HasValue)
+            await LoadStationsAsync(locationId.Value);
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task OpenRegister()
+    {
+        await _form.Validate();
+        if (!_form.IsValid || _locationId is null || _stationId is null) return;
+
+        _processing = true;
+        var dto = new OpenCashRegisterDto
+        {
+            LocationId = _locationId.Value,
+            CashStationId = _stationId.Value,
+            InitialFund = _initialFund,
+            Notes = string.IsNullOrWhiteSpace(_notes) ? null : _notes
+        };
+
+        var result = await CashRegisterService.OpenCashRegisterAsync(dto);
+        _processing = false;
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cash register opened successfully"], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(result.Value));
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+}
