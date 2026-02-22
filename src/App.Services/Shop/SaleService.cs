@@ -197,11 +197,11 @@ public class SaleService : ISaleService
 
             // Validate active cash register for current user+location
             long? cashRegisterId = null;
-            var activeLocationId = _currentUserService.ActiveLocationId;
-            if (activeLocationId.HasValue)
+            var saleLocationId = createDto.LocationId;
+            if (saleLocationId.HasValue)
             {
                 var cashRegResult = await _cashRegisterService.GetActiveCashRegisterAsync(
-                    activeLocationId.Value,
+                    saleLocationId.Value,
                     _currentUserService.UserId);
 
                 if (!cashRegResult.IsSuccess)

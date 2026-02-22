@@ -1334,7 +1334,7 @@ else
             // Prepare sale details
             _model.CustomerId = _selectedCustomer!.Id;
             _model.SaleDate = DateTimeService.Now;
-            _model.LocationId = CurrentUserService.ActiveLocationId;
+            _model.LocationId = _activeCashRegister?.LocationId;
 
             // Información de autorización para la venta completa
             _model.DiscountAuthorizerId = _discountAuthorizerId;
