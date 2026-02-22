@@ -338,7 +338,7 @@ else
                                     Size="Size.Small"
                                     OnClick="@(async () => await OpenPaymentGroupDialog(pm))"
                                     Style="height:44px; text-transform:none; font-size:10px; flex-direction:column; gap:1px; padding:4px 2px;"
-                                    Disabled="@(!_cart.Any())">
+                                    Disabled="@IsPaymentButtonDisabled(pm)">
                                     <MudIcon Icon="@pm.Icon" Size="Size.Small" />
                                     <span style="line-height:1.1; text-align:center;">@pm.Name</span>
                                 </MudButton>
@@ -1161,11 +1161,18 @@ else
         }
     }
 
+    private bool IsPaymentButtonDisabled(PaymentMethodDto pm)
+    {
+        if (!_cart.Any()) return true;
+        if (_paymentEntries.Any(e => e.PaymentMethod.Id == pm.Id)) return false;
+        return _paymentEntries.Sum(e => e.Amount) >= _total;
+    }
+
     private async Task OpenPaymentGroupDialog(PaymentMethodDto pm)
     {
         // Calculate remaining, excluding current entries for this method
         var otherTotal = _paymentEntries.Where(e => e.PaymentMethod.Id != pm.Id).Sum(e => e.Amount);
-        var remaining = Math.Max(0.01M, _total - otherTotal);
+        var remaining = _total - otherTotal;
 
         var existing = _paymentEntries
             .Where(e => e.PaymentMethod.Id == pm.Id)
@@ -1178,6 +1185,11 @@ else
                 CardBrand = e.CardBrand,
                 Reference = e.Reference
             }).ToList();
+
+        // Guard: total already covered and no existing entries for this method
+        if (remaining <= 0 && !existing.Any()) return;
+
+        remaining = Math.Max(0.01M, remaining);
 
         var parameters = new DialogParameters<PaymentGroupDialog>
         {

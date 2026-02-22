@@ -52,7 +52,9 @@
                     }
                     <MudNumericField T="decimal" @bind-Value="item.Amount"
                         Label="@L["Amount"]"
-                        Format="C2" Min="0.01M" Step="0.01M"
+                        Format="C2" Min="0.01M"
+                        Max="@(TotalSaleRemaining - _items.Where(i => i.Id != item.Id).Sum(i => i.Amount))"
+                        Step="0.01M"
                         Variant="Variant.Outlined" Margin="Margin.Dense"
                         HideSpinButtons="true"
                         Immediate="true"
@@ -120,7 +122,8 @@
                 OnClick="AddSubEntry"
                 FullWidth="true"
                 Size="Size.Small"
-                Color="Color.Primary">
+                Color="Color.Primary"
+                Disabled="@(_items.Sum(i => i.Amount) >= TotalSaleRemaining)">
                 @L["Add another payment"]
             </MudButton>
         }
@@ -149,7 +152,7 @@
     private decimal CashApplied => Math.Min(_cashReceived, TotalSaleRemaining);
     private bool IsValid => IsCash
         ? _cashReceived > 0
-        : _items.Any() && _items.All(i => i.Amount >= 0.01M);
+        : _items.Any() && _items.All(i => i.Amount >= 0.01M) && _items.Sum(i => i.Amount) <= TotalSaleRemaining;
 
     protected override void OnInitialized()
     {
