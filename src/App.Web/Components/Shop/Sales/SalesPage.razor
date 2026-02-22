@@ -358,10 +358,10 @@ else
                                     Color="Color.Default"
                                     Size="Size.Small"
                                     OnClick="@(async () => await OpenPaymentGroupDialog(pm))"
-                                    Style="height:44px; text-transform:none; font-size:10px; flex-direction:column; gap:1px; padding:4px 2px;"
+                                    Style="height:44px; text-transform:none; font-size:10px; flex-direction:row; gap:4px; padding:4px 6px; justify-content:flex-start;"
                                     Disabled="@IsPaymentButtonDisabled(pm)">
                                     <MudIcon Icon="@pm.Icon" Size="Size.Small" />
-                                    <span style="line-height:1.1; text-align:center;">@pm.Name</span>
+                                    <span style="line-height:1.1; text-align:left;">@pm.Name</span>
                                 </MudButton>
                             }
                         </div>
