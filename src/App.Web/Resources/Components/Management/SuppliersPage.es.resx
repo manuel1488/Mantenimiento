@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Page Title -->
+  <data name="Suppliers Management" xml:space="preserve">
+    <value>Administración de Proveedores</value>
+  </data>
+
+  <!-- Search and Filters -->
+  <data name="Search suppliers" xml:space="preserve">
+    <value>Buscar proveedores</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+
+  <!-- Actions -->
+  <data name="New Supplier" xml:space="preserve">
+    <value>Nuevo Proveedor</value>
+  </data>
+  <data name="Edit Supplier" xml:space="preserve">
+    <value>Editar Proveedor</value>
+  </data>
+  <data name="Delete Supplier" xml:space="preserve">
+    <value>Eliminar Proveedor</value>
+  </data>
+
+  <!-- Table Headers -->
+  <data name="Trade Name" xml:space="preserve">
+    <value>Nombre Comercial</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+
+  <!-- Messages -->
+  <data name="No suppliers found" xml:space="preserve">
+    <value>No se encontraron proveedores</value>
+  </data>
+  <data name="Error loading suppliers" xml:space="preserve">
+    <value>Error al cargar los proveedores</value>
+  </data>
+  <data name="Are you sure you want to delete supplier:" xml:space="preserve">
+    <value>¿Está seguro que desea eliminar el proveedor:</value>
+  </data>
+  <data name="Supplier deleted successfully" xml:space="preserve">
+    <value>Proveedor eliminado exitosamente</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+</root>

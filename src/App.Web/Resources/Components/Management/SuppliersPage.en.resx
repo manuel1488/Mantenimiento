@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Page Title -->
+  <data name="Suppliers Management" xml:space="preserve">
+    <value>Suppliers Management</value>
+  </data>
+
+  <!-- Search and Filters -->
+  <data name="Search suppliers" xml:space="preserve">
+    <value>Search suppliers</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+
+  <!-- Actions -->
+  <data name="New Supplier" xml:space="preserve">
+    <value>New Supplier</value>
+  </data>
+  <data name="Edit Supplier" xml:space="preserve">
+    <value>Edit Supplier</value>
+  </data>
+  <data name="Delete Supplier" xml:space="preserve">
+    <value>Delete Supplier</value>
+  </data>
+
+  <!-- Table Headers -->
+  <data name="Trade Name" xml:space="preserve">
+    <value>Trade Name</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>Tax ID</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+
+  <!-- Messages -->
+  <data name="No suppliers found" xml:space="preserve">
+    <value>No suppliers found</value>
+  </data>
+  <data name="Error loading suppliers" xml:space="preserve">
+    <value>Error loading suppliers</value>
+  </data>
+  <data name="Are you sure you want to delete supplier:" xml:space="preserve">
+    <value>Are you sure you want to delete supplier:</value>
+  </data>
+  <data name="Supplier deleted successfully" xml:space="preserve">
+    <value>Supplier deleted successfully</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+</root>

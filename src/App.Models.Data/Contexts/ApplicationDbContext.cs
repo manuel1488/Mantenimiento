@@ -38,6 +38,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     #endregion
 
     #region Shop
+    public DbSet<Supplier> Suppliers { get; set; } = null!;
     public DbSet<Location> Locations { get; set; } = null!;
     public DbSet<LocationTicketSettings> LocationTicketSettings { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;

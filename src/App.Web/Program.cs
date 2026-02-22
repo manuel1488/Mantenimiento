@@ -316,6 +316,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shared.ManageCustomers, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageCustomers));
         options.AddPolicy(ApplicationClaims.Shared.DeleteCustomers, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteCustomers));
 
+        options.AddPolicy(ApplicationClaims.Shared.ViewSuppliers, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewSuppliers));
+        options.AddPolicy(ApplicationClaims.Shared.ManageSuppliers, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageSuppliers));
+        options.AddPolicy(ApplicationClaims.Shared.DeleteSuppliers, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteSuppliers));
+
         options.AddPolicy(ApplicationClaims.Shared.ViewReports, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewReports));
         options.AddPolicy(ApplicationClaims.Shared.GenerateReports, policy => policy.RequireClaim(ApplicationClaims.Shared.GenerateReports));
 
@@ -564,6 +568,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IIdentitySeeder, IdentitySeeder>();
     services.AddScoped<IdentityRedirectManager>();
     services.AddScoped<ICustomerService, CustomerService>();
+    services.AddScoped<ISupplierService, SupplierService>();
     services.AddScoped<IIdentityService, IdentityService>();
     services.AddScoped<IRoleService, RoleService>();
     services.AddScoped<IImageService, ImageService>();

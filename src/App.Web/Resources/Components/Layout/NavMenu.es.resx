@@ -30,6 +30,9 @@
   <data name="Customers" xml:space="preserve">
     <value>Clientes</value>
   </data>
+  <data name="Suppliers" xml:space="preserve">
+    <value>Proveedores</value>
+  </data>
   <data name="Administration" xml:space="preserve">
     <value>Administración</value>
   </data>

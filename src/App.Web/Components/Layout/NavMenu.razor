@@ -73,6 +73,9 @@
                 <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCustomers">
                     <MudNavLink Href="/customers">@L["Customers"]</MudNavLink>
                 </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewSuppliers">
+                    <MudNavLink Href="/management/suppliers">@L["Suppliers"]</MudNavLink>
+                </AuthorizeView>
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

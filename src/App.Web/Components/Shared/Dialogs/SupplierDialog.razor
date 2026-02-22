@@ -1,0 +1,269 @@
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces
+@using App.Core.DTOs.Settings
+@using System.ComponentModel.DataAnnotations
+
+@inject ISupplierService SupplierService
+@inject IStringLocalizer<SupplierDialog> L
+@inject ISnackbar Snackbar
+@inject ILookupService LookupService
+@inject ILogger<SupplierDialog> Logger
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer Style="max-width: 800px;" Class="pa-4">
+            <MudForm Model="@_model" @ref="@_form">
+                <MudGrid>
+                    <!-- Datos Generales -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["General Information"]</MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Name"
+                                    Label="@L["Trade Name"]"
+                                    Required="true"
+                                    RequiredError="@L["Trade name is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.LegalName"
+                                    Label="@L["Legal Name"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.TaxId"
+                                    Label="@L["Tax ID"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudSelect @bind-Value="_model.CountryCode"
+                                  Label="@L["Country"]"
+                                  Required="true"
+                                  RequiredError="@L["Country is required"]">
+                            @foreach (var country in _countries)
+                            {
+                                <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudSwitch @bind-Value="_model.IsActive"
+                                  Color="Color.Success"
+                                  Label="@L["Active"]" />
+                    </MudItem>
+
+                    <!-- Contacto -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2 mt-2">@L["Contact"]</MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Email"
+                                    Label="@L["Email"]"
+                                    InputType="InputType.Email"
+                                    Validation="@((string email) => ValidateEmail(email))"
+                                    Immediate="true" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Phone"
+                                    Label="@L["Phone"]"
+                                    InputType="InputType.Telephone" />
+                    </MudItem>
+
+                    <!-- Dirección -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2 mt-2">@L["Address"]</MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.Street"
+                                    Label="@L["Street"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.ExteriorNumber"
+                                    Label="@L["Exterior Number"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="_model.City"
+                                    Label="@L["City"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="_model.State"
+                                    Label="@L["State"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="_model.PostalCode"
+                                    Label="@L["Postal Code"]" />
+                    </MudItem>
+
+                    <!-- Notas -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_model.Notes"
+                                    Label="@L["Notes"]"
+                                    Lines="3"
+                                    MaxLength="500" />
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel"
+                  Class="da-button-rounded"
+                  title="@L["Cancel"]">
+            @L["Cancel"]
+        </MudButton>
+        <MudButton Color="Color.Error"
+                  OnClick="Submit"
+                  Variant="Variant.Filled"
+                  Disabled="@_processing"
+                  title="@L["Save supplier data"]"
+                  Class="da-button-rounded">
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">@L["Saving"]</MudText>
+            }
+            else
+            {
+                @L["Save"]
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public long? SupplierId { get; set; }
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private CreateSupplierDto _model = new();
+    private List<CountryDto> _countries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = (await LookupService.GetCountriesAsync()).ToList();
+
+        if (SupplierId.HasValue)
+            await LoadSupplier();
+    }
+
+    private async Task LoadSupplier()
+    {
+        try
+        {
+            var supplier = await SupplierService.GetSupplierByIdAsync(SupplierId!.Value);
+            if (supplier != null)
+            {
+                _model = new CreateSupplierDto
+                {
+                    Name = supplier.Name,
+                    LegalName = supplier.LegalName,
+                    TaxId = supplier.TaxId,
+                    Email = supplier.Email,
+                    Phone = supplier.Phone,
+                    Street = supplier.Street,
+                    ExteriorNumber = supplier.ExteriorNumber,
+                    City = supplier.City,
+                    State = supplier.State,
+                    PostalCode = supplier.PostalCode,
+                    CountryCode = supplier.CountryCode,
+                    Notes = supplier.Notes,
+                    IsActive = supplier.IsActive
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading supplier {SupplierId}", SupplierId);
+            Snackbar.Add(L["Error loading supplier"], Severity.Error);
+            MudDialog.Cancel();
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        _processing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (SupplierId.HasValue)
+            {
+                var updateDto = new UpdateSupplierDto
+                {
+                    Name = _model.Name,
+                    LegalName = _model.LegalName,
+                    TaxId = _model.TaxId,
+                    Email = _model.Email,
+                    Phone = _model.Phone,
+                    Street = _model.Street,
+                    ExteriorNumber = _model.ExteriorNumber,
+                    City = _model.City,
+                    State = _model.State,
+                    PostalCode = _model.PostalCode,
+                    CountryCode = _model.CountryCode,
+                    Notes = _model.Notes,
+                    IsActive = _model.IsActive
+                };
+
+                var result = await SupplierService.UpdateSupplierAsync(SupplierId.Value, updateDto);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Supplier updated successfully"], Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                }
+            }
+            else
+            {
+                var result = await SupplierService.CreateSupplierAsync(_model);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add(L["Supplier created successfully"], Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving supplier");
+            Snackbar.Add(L["Error saving supplier"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private string? ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
+
+        var emailValidator = new EmailAddressAttribute();
+        return !emailValidator.IsValid(email) ? L["Please enter a valid email address"] : null;
+    }
+}

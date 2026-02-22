@@ -1,0 +1,202 @@
+@page "/management/suppliers"
+@using App.Core.Constants
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using Microsoft.AspNetCore.Authorization
+
+@inject ISupplierService SupplierService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<SuppliersPage> L
+@inject ILogger<SuppliersPage> Logger
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewSuppliers)]
+
+<PageTitle>@L["Suppliers Management"]</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudGrid>
+        <MudItem xs="12" Class="d-flex gap-4">
+            <!-- Búsqueda -->
+            <MudTextField T="string"
+                         ValueChanged="@(s => OnSearch(s))"
+                         Placeholder="@L["Search suppliers"]"
+                         Adornment="Adornment.Start"
+                         AdornmentIcon="@Icons.Material.Filled.Search"
+                         Class="flex-1" />
+
+            <!-- Estado -->
+            <MudSelect T="bool?"
+                      Label="@L["Status"]"
+                      ValueChanged="@(s => OnStatusFilterChange(s))"
+                      AnchorOrigin="Origin.BottomCenter"
+                      Style="min-width: 200px;">
+                <MudSelectItem T="bool?" Value="@((bool?)null)">@L["All"]</MudSelectItem>
+                <MudSelectItem T="bool?" Value="@true">@L["Active"]</MudSelectItem>
+                <MudSelectItem T="bool?" Value="@false">@L["Inactive"]</MudSelectItem>
+            </MudSelect>
+
+            <AuthorizeView Context="contextNew" Policy="@ApplicationClaims.Shared.ManageSuppliers">
+                <MudButton Variant="Variant.Filled"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Add"
+                          OnClick="OpenCreateDialog"
+                          Class="da-button-rounded">
+                    @L["New Supplier"]
+                </MudButton>
+            </AuthorizeView>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTable T="SupplierDto"
+                     ServerData="@LoadServerData"
+                     Dense="true"
+                     Hover="true"
+                     Loading="@_loading"
+                     @ref="_table">
+                <HeaderContent>
+                    <MudTh>@L["Trade Name"]</MudTh>
+                    <MudTh>@L["Tax ID"]</MudTh>
+                    <MudTh>@L["Phone"]</MudTh>
+                    <MudTh>@L["Email"]</MudTh>
+                    <MudTh>@L["City"]</MudTh>
+                    <MudTh>@L["Status"]</MudTh>
+                    <MudTh>@L["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@L["Trade Name"]">@context.Name</MudTd>
+                    <MudTd DataLabel="@L["Tax ID"]">@context.TaxId</MudTd>
+                    <MudTd DataLabel="@L["Phone"]">@context.Phone</MudTd>
+                    <MudTd DataLabel="@L["Email"]">@context.Email</MudTd>
+                    <MudTd DataLabel="@L["City"]">@context.City</MudTd>
+                    <MudTd DataLabel="@L["Status"]">
+                        <MudChip T="string"
+                                Color="@(context.IsActive ? Color.Success : Color.Default)"
+                                Size="Size.Small">
+                            @(context.IsActive ? L["Active"] : L["Inactive"])
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>
+                        <AuthorizeView Context="contextEdit" Policy="@ApplicationClaims.Shared.ManageSuppliers">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                         Size="Size.Small"
+                                         OnClick="@(() => OpenEditDialog(context))"
+                                         title="@L["Edit Supplier"]" />
+                        </AuthorizeView>
+                        <AuthorizeView Context="contextDelete" Policy="@ApplicationClaims.Shared.DeleteSuppliers">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                         Size="Size.Small"
+                                         Color="Color.Error"
+                                         OnClick="@(() => OpenDeleteDialog(context))"
+                                         title="@L["Delete Supplier"]" />
+                        </AuthorizeView>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+                <NoRecordsContent>
+                    <MudText>@L["No suppliers found"]</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private MudTable<SupplierDto> _table = null!;
+    private bool _loading;
+    private string _searchString = "";
+    private bool? _selectedStatus;
+
+    private async Task<TableData<SupplierDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _loading = true;
+            var (totalItems, items) = await SupplierService.GetSuppliersAsync(
+                page: state.Page + 1,
+                pageSize: state.PageSize,
+                searchString: _searchString,
+                isActive: _selectedStatus);
+
+            return new TableData<SupplierDto>() { TotalItems = totalItems, Items = items };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading suppliers");
+            Snackbar.Add(L["Error loading suppliers"], Severity.Error);
+            return new TableData<SupplierDto>() { TotalItems = 0, Items = Enumerable.Empty<SupplierDto>() };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OnStatusFilterChange(bool? status)
+    {
+        _selectedStatus = status;
+        await _table.ReloadServerData();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var dialog = await DialogService.ShowAsync<SupplierDialog>(L["New Supplier"]);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+            await _table.ReloadServerData();
+    }
+
+    private async Task OpenEditDialog(SupplierDto supplier)
+    {
+        var parameters = new DialogParameters<SupplierDialog>
+        {
+            { x => x.SupplierId, supplier.Id }
+        };
+
+        var dialog = await DialogService.ShowAsync<SupplierDialog>(L["Edit Supplier"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+            await _table.ReloadServerData();
+    }
+
+    private async Task OpenDeleteDialog(SupplierDto supplier)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Supplier"] },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete supplier:"] },
+            { nameof(ConfirmDialog.HighlightedText), supplier.Name },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"] },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"] },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Supplier"], parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var deleteResult = await SupplierService.DeleteSupplierAsync(supplier.Id);
+            if (deleteResult.IsSuccess)
+            {
+                Snackbar.Add(L["Supplier deleted successfully"], Severity.Success);
+                await _table.ReloadServerData();
+            }
+            else
+            {
+                Snackbar.Add(deleteResult.Error, Severity.Error);
+            }
+        }
+    }
+}

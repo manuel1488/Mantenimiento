@@ -146,6 +146,11 @@ public static class ApplicationClaims
         public const string ManageCustomers = "Shared.Customers.Manage";
         public const string DeleteCustomers = "Shared.Customers.Delete";
 
+        // Proveedores
+        public const string ViewSuppliers = "Shared.Suppliers.View";
+        public const string ManageSuppliers = "Shared.Suppliers.Manage";
+        public const string DeleteSuppliers = "Shared.Suppliers.Delete";
+
         // Reportes Generales
         public const string ViewReports = "Shared.Reports.View";
         public const string GenerateReports = "Shared.Reports.Generate";
