@@ -243,4 +243,13 @@
   <data name="Paid" xml:space="preserve">
     <value>Pagado</value>
   </data>
+  <data name="No cash register open" xml:space="preserve">
+    <value>No hay caja abierta</value>
+  </data>
+  <data name="To process sales you must first open a cash register." xml:space="preserve">
+    <value>Para procesar ventas debes abrir primero una caja registradora.</value>
+  </data>
+  <data name="Open Cash Register" xml:space="preserve">
+    <value>Abrir Caja</value>
+  </data>
 </root>

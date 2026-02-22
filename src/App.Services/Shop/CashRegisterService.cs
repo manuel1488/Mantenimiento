@@ -92,6 +92,34 @@ public class CashRegisterService : ICashRegisterService
         }
     }
 
+    public async Task<Result<CashRegisterDto?>> GetActiveCashRegisterByUserAsync(string userId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var cashRegister = await context.CashRegisters
+                .AsNoTracking()
+                .Include(c => c.Location)
+                .Include(c => c.CashStation)
+                .Include(c => c.Movements)
+                .Include(c => c.Denominations)
+                .FirstOrDefaultAsync(c =>
+                    c.UserId == userId &&
+                    c.Status == CashRegisterStatus.Open);
+
+            if (cashRegister == null)
+                return Result<CashRegisterDto?>.Success(null);
+
+            var dto = await BuildCashRegisterDtoAsync(context, cashRegister);
+            return Result<CashRegisterDto?>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting active cash register for user {UserId}", userId);
+            return Result<CashRegisterDto?>.Failure(L["Error retrieving cash register"]);
+        }
+    }
+
     public async Task<Result<CashRegisterDto>> OpenCashRegisterAsync(OpenCashRegisterDto dto)
     {
         try

@@ -234,16 +234,12 @@ else
         try
         {
             await CurrentUserService.EnsureInitializedAsync();
-            var locationId = CurrentUserService.ActiveLocationId;
-            if (locationId.HasValue)
-            {
-                var result = await CashRegisterService.GetActiveCashRegisterAsync(
-                    locationId.Value, CurrentUserService.UserId);
-                if (result.IsSuccess)
-                    _register = result.Value;
-                else
-                    Snackbar.Add(result.Error, Severity.Error);
-            }
+            var result = await CashRegisterService.GetActiveCashRegisterByUserAsync(
+                CurrentUserService.UserId);
+            if (result.IsSuccess)
+                _register = result.Value;
+            else
+                Snackbar.Add(result.Error, Severity.Error);
         }
         catch (Exception ex)
         {

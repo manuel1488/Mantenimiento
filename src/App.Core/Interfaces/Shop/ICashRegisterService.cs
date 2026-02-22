@@ -12,6 +12,12 @@ public interface ICashRegisterService
     Task<Result<CashRegisterDto?>> GetActiveCashRegisterAsync(int locationId, string userId);
 
     /// <summary>
+    /// Gets the active cash register for a specific user regardless of location.
+    /// Returns null in Value if none is open.
+    /// </summary>
+    Task<Result<CashRegisterDto?>> GetActiveCashRegisterByUserAsync(string userId);
+
+    /// <summary>
     /// Opens a new cash register session for the given user + location.
     /// Fails if the user already has an open register at the same location.
     /// </summary>
