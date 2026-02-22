@@ -251,7 +251,7 @@
     {
         var parameters = new DialogParameters
         {
-            { "Warehouses", _locations }
+            { "Locations", _locations }
         };
 
         var dialog = await DialogService.ShowAsync<CreateAdjustmentDialog>(
