@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Enums.Shop;
 using App.Models.Settings;
 
 namespace App.Models.Shop;
@@ -20,6 +21,17 @@ public class SalePayment : BaseEntity<long>
     /// </summary>
     [StringLength(4)]
     public string? CardLastFour { get; set; }
+
+    /// <summary>
+    /// Authorization/approval code returned by the card terminal.
+    /// </summary>
+    [StringLength(20)]
+    public string? AuthorizationCode { get; set; }
+
+    /// <summary>
+    /// Card brand (Visa, Mastercard, Amex, etc.), when applicable.
+    /// </summary>
+    public CardBrand? CardBrand { get; set; }
 
     /// <summary>
     /// Transfer or check reference number, when applicable.

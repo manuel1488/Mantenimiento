@@ -240,6 +240,8 @@ public class SaleService : ISaleService
                     PaymentMethodId = paymentDto.PaymentMethodId,
                     Amount = paymentDto.Amount,
                     CardLastFour = paymentDto.CardLastFour,
+                    AuthorizationCode = paymentDto.AuthorizationCode,
+                    CardBrand = paymentDto.CardBrand,
                     Reference = paymentDto.Reference,
                     CreatedBy = currentUser,
                     CreatedAt = now,

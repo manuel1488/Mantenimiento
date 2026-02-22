@@ -12,5 +12,7 @@ public class SalePaymentDto
     public string PaymentMethodIcon { get; set; } = null!;
     public decimal Amount { get; set; }
     public string? CardLastFour { get; set; }
+    public string? AuthorizationCode { get; set; }
+    public CardBrand? CardBrand { get; set; }
     public string? Reference { get; set; }
 }

@@ -336,7 +336,7 @@ else
                                 <MudButton Variant="Variant.Outlined"
                                     Color="Color.Default"
                                     Size="Size.Small"
-                                    OnClick="@(async () => await AddPaymentEntry(pm))"
+                                    OnClick="@(async () => await OpenPaymentGroupDialog(pm))"
                                     Style="height:44px; text-transform:none; font-size:10px; flex-direction:column; gap:1px; padding:4px 2px;"
                                     Disabled="@(!_cart.Any())">
                                     <MudIcon Icon="@pm.Icon" Size="Size.Small" />
@@ -346,32 +346,32 @@ else
                         </div>
                     }
 
-                    <!-- Payment entries – compact, click to edit -->
-                    @foreach (var entry in _paymentEntries)
+                    <!-- Payment entries – grouped by method, one row per method, click to edit -->
+                    @foreach (var group in _paymentEntries.GroupBy(e => e.PaymentMethod.Id))
                     {
-                        <div style="display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:6px; background:#FAFAFA; border-left:3px solid @GetPaymentColor(entry.PaymentMethod.Type); margin-bottom:4px; cursor:pointer;"
-                            @onclick="@(async () => await EditPaymentEntry(entry))">
-                            <MudIcon Icon="@entry.PaymentMethod.Icon" Size="Size.Small" Style="@($"color:{GetPaymentColor(entry.PaymentMethod.Type)}")" />
+                        var grpPm = group.First().PaymentMethod;
+                        var groupTotal = group.Sum(e => e.Amount);
+                        var subCount = group.Count();
+                        var cashEntry = group.FirstOrDefault(e => e.PaymentMethod.Type == PaymentMethodType.Cash);
+                        <div @key="grpPm.Id" style="display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:6px; background:#FAFAFA; border-left:3px solid @GetPaymentColor(grpPm.Type); margin-bottom:4px; cursor:pointer;"
+                            @onclick="@(async () => await OpenPaymentGroupDialog(grpPm))">
+                            <MudIcon Icon="@grpPm.Icon" Size="Size.Small" Style="@($"color:{GetPaymentColor(grpPm.Type)}")" />
                             <div style="flex:1; min-width:0; overflow:hidden;">
-                                <span style="font-size:13px; font-weight:600;">@entry.PaymentMethod.Name</span>
-                                @if (entry.PaymentMethod.Type == PaymentMethodType.Cash && entry.CashReceived > entry.Amount)
+                                <span style="font-size:13px; font-weight:600;">@grpPm.Name</span>
+                                @if (subCount > 1)
                                 {
-                                    <span style="font-size:11px; color:#4CAF50; margin-left:6px;">(@L["Cash change"]: @GetCashChange(entry).ToString("C2"))</span>
+                                    <span style="font-size:11px; color:#999; margin-left:4px;">(@subCount)</span>
                                 }
-                                @if (!string.IsNullOrEmpty(entry.CardLastFour))
+                                @if (cashEntry != null && cashEntry.CashReceived > cashEntry.Amount)
                                 {
-                                    <span style="font-size:11px; color:#777; margin-left:6px;">••@entry.CardLastFour</span>
-                                }
-                                @if (!string.IsNullOrEmpty(entry.Reference))
-                                {
-                                    <span style="font-size:11px; color:#777; margin-left:6px;">Ref: @entry.Reference</span>
+                                    <span style="font-size:11px; color:#4CAF50; margin-left:6px;">(@L["Cash change"]: @GetCashChange(cashEntry).ToString("C2"))</span>
                                 }
                             </div>
-                            <span style="font-size:14px; font-weight:700; color:#333; white-space:nowrap;">@entry.Amount.ToString("C2")</span>
+                            <span style="font-size:14px; font-weight:700; color:#333; white-space:nowrap;">@groupTotal.ToString("C2")</span>
                             <span @onclick:stopPropagation="true">
                                 <MudIconButton Icon="@Icons.Material.Filled.Close"
                                     Size="Size.Small" Color="Color.Error"
-                                    OnClick="@(() => RemovePaymentEntry(entry))"
+                                    OnClick="@(() => RemovePaymentGroup(grpPm.Id))"
                                     title="@L["Remove"]" />
                             </span>
                         </div>
@@ -1161,65 +1161,57 @@ else
         }
     }
 
-    private async Task AddPaymentEntry(PaymentMethodDto pm)
+    private async Task OpenPaymentGroupDialog(PaymentMethodDto pm)
     {
-        var remaining = _total - _paymentEntries.Sum(e => e.Amount);
-        var parameters = new DialogParameters<PaymentEntryDialog>
+        // Calculate remaining, excluding current entries for this method
+        var otherTotal = _paymentEntries.Where(e => e.PaymentMethod.Id != pm.Id).Sum(e => e.Amount);
+        var remaining = Math.Max(0.01M, _total - otherTotal);
+
+        var existing = _paymentEntries
+            .Where(e => e.PaymentMethod.Id == pm.Id)
+            .Select(e => new PaymentGroupDialog.SubEntry
+            {
+                Amount = e.Amount,
+                CashReceived = e.CashReceived,
+                CardLastFour = e.CardLastFour,
+                AuthorizationCode = e.AuthorizationCode,
+                CardBrand = e.CardBrand,
+                Reference = e.Reference
+            }).ToList();
+
+        var parameters = new DialogParameters<PaymentGroupDialog>
         {
             { x => x.PaymentMethod, pm },
-            { x => x.RemainingAmount, Math.Max(0.01M, remaining) }
+            { x => x.TotalSaleRemaining, remaining },
+            { x => x.ExistingEntries, existing }
         };
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
-        var dialog = await DialogService.ShowAsync<PaymentEntryDialog>(pm.Name, parameters, options);
+        var dialog = await DialogService.ShowAsync<PaymentGroupDialog>(pm.Name, parameters, options);
         var result = await dialog.Result;
 
-        if (result is { Canceled: false, Data: PaymentEntryDialog.PaymentEntryData data })
+        if (result is { Canceled: false, Data: List<PaymentGroupDialog.SubEntry> subEntries })
         {
-            _paymentEntries.Add(new PaymentEntry
+            _paymentEntries.RemoveAll(e => e.PaymentMethod.Id == pm.Id);
+            foreach (var sub in subEntries)
             {
-                PaymentMethod = pm,
-                Amount = data.Amount,
-                CashReceived = data.CashReceived,
-                CardLastFour = data.CardLastFour,
-                Reference = data.Reference
-            });
+                _paymentEntries.Add(new PaymentEntry
+                {
+                    PaymentMethod = pm,
+                    Amount = sub.Amount,
+                    CashReceived = sub.CashReceived,
+                    CardLastFour = sub.CardLastFour,
+                    AuthorizationCode = sub.AuthorizationCode,
+                    CardBrand = sub.CardBrand,
+                    Reference = sub.Reference
+                });
+            }
             StateHasChanged();
         }
     }
 
-    private async Task EditPaymentEntry(PaymentEntry entry)
+    private void RemovePaymentGroup(int methodId)
     {
-        var remaining = _total - _paymentEntries.Where(e => e != entry).Sum(e => e.Amount);
-        var existing = new PaymentEntryDialog.PaymentEntryData
-        {
-            Amount = entry.Amount,
-            CashReceived = entry.CashReceived,
-            CardLastFour = entry.CardLastFour,
-            Reference = entry.Reference
-        };
-        var parameters = new DialogParameters<PaymentEntryDialog>
-        {
-            { x => x.PaymentMethod, entry.PaymentMethod },
-            { x => x.RemainingAmount, remaining },
-            { x => x.ExistingData, existing }
-        };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
-        var dialog = await DialogService.ShowAsync<PaymentEntryDialog>(entry.PaymentMethod.Name, parameters, options);
-        var result = await dialog.Result;
-
-        if (result is { Canceled: false, Data: PaymentEntryDialog.PaymentEntryData data })
-        {
-            entry.Amount = data.Amount;
-            entry.CashReceived = data.CashReceived;
-            entry.CardLastFour = data.CardLastFour;
-            entry.Reference = data.Reference;
-            StateHasChanged();
-        }
-    }
-
-    private void RemovePaymentEntry(PaymentEntry entry)
-    {
-        _paymentEntries.Remove(entry);
+        _paymentEntries.RemoveAll(e => e.PaymentMethod.Id == methodId);
         StateHasChanged();
     }
 
@@ -1287,6 +1279,8 @@ else
                 PaymentMethodId = e.PaymentMethod.Id,
                 Amount = e.Amount,
                 CardLastFour = e.CardLastFour,
+                AuthorizationCode = e.AuthorizationCode,
+                CardBrand = e.CardBrand,
                 Reference = e.Reference
             }).ToList();
 
@@ -1397,6 +1391,8 @@ else
         public decimal Amount { get; set; }
         public decimal CashReceived { get; set; }
         public string? CardLastFour { get; set; }
+        public string? AuthorizationCode { get; set; }
+        public CardBrand? CardBrand { get; set; }
         public string? Reference { get; set; }
     }
 
