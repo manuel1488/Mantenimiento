@@ -50,7 +50,11 @@ public class DiscountSettingsService : IDiscountSettingsService
 
             if (settings == null)
             {
-                return Result<DiscountSettingsDto>.Failure(L["Discount settings not found"]);
+                return Result<DiscountSettingsDto>.Success(new DiscountSettingsDto
+                {
+                    MaximumPublicDiscount = 0,
+                    RequireAuthorizationForPublicDiscount = false
+                });
             }
 
             var dto = _mapper.Map<DiscountSettingsDto>(settings);

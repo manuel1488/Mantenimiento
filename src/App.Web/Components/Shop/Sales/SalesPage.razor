@@ -506,7 +506,17 @@ else
 
     // State
     private bool _isBusy = false;
+    private bool _focusPending = false;
     private decimal _taxRate = 16; // Default tax rate
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusPending)
+        {
+            _focusPending = false;
+            await _productAutocomplete.FocusAsync();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -561,6 +571,8 @@ else
             await InitializeDiscountSettings();
             await LoadRoundingSettings();
             await LoadPaymentMethods();
+            await LoadDefaultCustomerAsync();
+            _focusPending = true;
         }
         catch (Exception ex)
         {
@@ -1161,6 +1173,16 @@ else
         }
     }
 
+    private async Task LoadDefaultCustomerAsync()
+    {
+        var publicCustomer = await CustomerService.GetPublicCustomerAsync();
+        if (publicCustomer != null)
+        {
+            _selectedCustomer = publicCustomer;
+            _model.CustomerId = publicCustomer.Id;
+        }
+    }
+
     private bool IsPaymentButtonDisabled(PaymentMethodDto pm)
     {
         if (!_cart.Any()) return true;
@@ -1356,9 +1378,9 @@ else
             Payments = new List<CreateSalePaymentDto>()
         };
 
-        _model.CustomerId = _selectedCustomer?.Id ?? 0;
-
+        await LoadDefaultCustomerAsync();
         await UpdateTotalsAsync();
+        await _productAutocomplete.FocusAsync();
     }
 
     private string FormatToCompanyTimezone(DateTime utcDate)
