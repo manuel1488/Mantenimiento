@@ -58,6 +58,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CashRegisterMovement> CashRegisterMovements { get; set; } = null!;
     public DbSet<CashRegisterDenomination> CashRegisterDenominations { get; set; } = null!;
     public DbSet<CashStation> CashStations { get; set; } = null!;
+    public DbSet<StockEntry> StockEntries { get; set; } = null!;
+    public DbSet<StockEntryItem> StockEntryItems { get; set; } = null!;
     #endregion
 
     #region Identity Extensions

@@ -28,7 +28,7 @@
                     <MudButton Variant="Variant.Filled"
                             Color="Color.Primary"
                             StartIcon="@Icons.Material.Filled.Add"
-                            OnClick="OpenInputDialog"
+                            OnClick="OpenStockEntryDialog"
                             Class="da-button-rounded">
                         @L["New Input"]
                     </MudButton>
@@ -269,22 +269,22 @@
         }
     }
 
-    private async Task OpenInputDialog()
+    private async Task OpenStockEntryDialog()
     {
         var parameters = new DialogParameters
         {
             { "Locations", _locations }
         };
 
-        var dialog = await DialogService.ShowAsync<CreateInputDialog>(
+        var dialog = await DialogService.ShowAsync<CreateStockEntryDialog>(
             L["New Input"],
             parameters,
             new DialogOptions
             {
-                MaxWidth = MaxWidth.Large,
+                MaxWidth = MaxWidth.ExtraLarge,
                 FullWidth = true,
                 CloseButton = true,
-                BackdropClick = true
+                BackdropClick = false
             });
 
         var result = await dialog.Result;
@@ -292,7 +292,6 @@
         if (result != null && !result.Canceled)
         {
             await _table.ReloadServerData();
-            Snackbar.Add(L["Input created successfully"], Severity.Success);
         }
     }
 

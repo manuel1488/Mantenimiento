@@ -639,6 +639,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
     builder.Services.AddScoped<IProductCodeGeneratorService, ProductCodeGeneratorService>();
     builder.Services.AddScoped<IInventoryAlertEmailService, InventoryAlertEmailService>();
+    builder.Services.AddScoped<IStockEntryService, StockEntryService>();
     builder.Services.AddScoped<IExcelProcessingService, ExcelProcessingService>();
     builder.Services.AddScoped<IInventoryColumnMappingService, InventoryColumnMappingService>();
     builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();

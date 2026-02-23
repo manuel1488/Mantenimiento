@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="New Stock Entry" xml:space="preserve"><value>Nuevo Ingreso de Stock</value></data>
+  <data name="Entry Header" xml:space="preserve"><value>Cabecera del Ingreso</value></data>
+  <data name="Input Type" xml:space="preserve"><value>Tipo de Ingreso</value></data>
+  <data name="Input type is required" xml:space="preserve"><value>El tipo de ingreso es obligatorio</value></data>
+  <data name="Input Subtype" xml:space="preserve"><value>Subtipo de Ingreso</value></data>
+  <data name="Input subtype is required" xml:space="preserve"><value>El subtipo de ingreso es obligatorio</value></data>
+  <data name="Location" xml:space="preserve"><value>Ubicación</value></data>
+  <data name="Location is required" xml:space="preserve"><value>La ubicación es obligatoria</value></data>
+  <data name="Supplier" xml:space="preserve"><value>Proveedor</value></data>
+  <data name="Search supplier..." xml:space="preserve"><value>Buscar proveedor...</value></data>
+  <data name="Document Number" xml:space="preserve"><value>Número de Documento</value></data>
+  <data name="Reference" xml:space="preserve"><value>Referencia</value></data>
+  <data name="Entry Date" xml:space="preserve"><value>Fecha de Ingreso</value></data>
+  <data name="Reason" xml:space="preserve"><value>Motivo</value></data>
+  <data name="Reason is required" xml:space="preserve"><value>El motivo es obligatorio</value></data>
+  <data name="Attachment" xml:space="preserve"><value>Adjunto</value></data>
+  <data name="Attach PDF or image (max 10 MB)" xml:space="preserve"><value>Adjuntar PDF o imagen (máx. 10 MB)</value></data>
+  <data name="Products" xml:space="preserve"><value>Productos</value></data>
+  <data name="Scan barcode..." xml:space="preserve"><value>Escanear código...</value></data>
+  <data name="Product not found for barcode" xml:space="preserve"><value>No se encontró producto para ese código</value></data>
+  <data name="Add Row" xml:space="preserve"><value>Agregar fila</value></data>
+  <data name="Product" xml:space="preserve"><value>Producto</value></data>
+  <data name="Current Stock" xml:space="preserve"><value>Stock Actual</value></data>
+  <data name="Quantity" xml:space="preserve"><value>Cantidad</value></data>
+  <data name="Unit Cost" xml:space="preserve"><value>Costo Unitario</value></data>
+  <data name="Actions" xml:space="preserve"><value>Acciones</value></data>
+  <data name="Remove row" xml:space="preserve"><value>Eliminar fila</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="Processing" xml:space="preserve"><value>Procesando</value></data>
+  <data name="Stock Input" xml:space="preserve"><value>Ingreso de Stock</value></data>
+  <data name="Purchase" xml:space="preserve"><value>Compra</value></data>
+  <data name="Return" xml:space="preserve"><value>Devolución</value></data>
+  <data name="New Product" xml:space="preserve"><value>Producto Nuevo</value></data>
+  <data name="At least one product with quantity greater than zero is required" xml:space="preserve"><value>Se requiere al menos un producto con cantidad mayor a cero</value></data>
+  <data name="Stock entry created successfully" xml:space="preserve"><value>Ingreso de stock creado exitosamente</value></data>
+  <data name="Error creating stock entry" xml:space="preserve"><value>Error al crear el ingreso de stock</value></data>
+  <data name="Error searching products" xml:space="preserve"><value>Error al buscar productos</value></data>
+  <data name="Error loading suppliers" xml:space="preserve"><value>Error al cargar proveedores</value></data>
+  <data name="Error loading stock" xml:space="preserve"><value>Error al cargar stock</value></data>
+  <data name="File too large. Maximum size is 10 MB" xml:space="preserve"><value>Archivo demasiado grande. El tamaño máximo es 10 MB</value></data>
+  <data name="You don't have permission to view this page" xml:space="preserve"><value>No tienes permiso para ver esta página</value></data>
+  <data name="Collapse header" xml:space="preserve"><value>Contraer cabecera</value></data>
+  <data name="Expand header" xml:space="preserve"><value>Expandir cabecera</value></data>
+  <data name="Initial Count" xml:space="preserve"><value>Conteo Inicial</value></data>
+  <data name="Product is required" xml:space="preserve"><value>El producto es obligatorio</value></data>
+  <data name="Quantity must be greater than zero" xml:space="preserve"><value>La cantidad debe ser mayor a cero</value></data>
+</root>

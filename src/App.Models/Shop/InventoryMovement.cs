@@ -77,6 +77,8 @@ public class InventoryMovement : BaseEntity<long>
 
     public long? SupplierId { get; set; }
 
+    public long? StockEntryId { get; set; }
+
     [ForeignKey(nameof(ProductId))]
     public virtual Product Product { get; set; } = null!;
 
@@ -88,4 +90,7 @@ public class InventoryMovement : BaseEntity<long>
 
     [ForeignKey(nameof(SupplierId))]
     public virtual Supplier? Supplier { get; set; }
+
+    [ForeignKey(nameof(StockEntryId))]
+    public virtual StockEntry? StockEntry { get; set; }
 }
