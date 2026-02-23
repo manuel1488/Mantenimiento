@@ -81,4 +81,37 @@
   <data name="Error loading product" xml:space="preserve">
     <value>Error loading product</value>
   </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="Custom Pricing" xml:space="preserve">
+    <value>Custom Pricing</value>
+  </data>
+  <data name="Wholesale Prices" xml:space="preserve">
+    <value>Wholesale Prices</value>
+  </data>
+  <data name="No wholesale prices configured" xml:space="preserve">
+    <value>No wholesale prices configured</value>
+  </data>
+  <data name="Tier" xml:space="preserve">
+    <value>Tier</value>
+  </data>
+  <data name="Min. Quantity" xml:space="preserve">
+    <value>Min. Quantity</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Partial Sale Surcharges" xml:space="preserve">
+    <value>Partial Sale Surcharges</value>
+  </data>
+  <data name="No surcharges configured" xml:space="preserve">
+    <value>No surcharges configured</value>
+  </data>
+  <data name="Fraction" xml:space="preserve">
+    <value>Fraction</value>
+  </data>
+  <data name="Surcharge" xml:space="preserve">
+    <value>Surcharge</value>
+  </data>
 </root>
