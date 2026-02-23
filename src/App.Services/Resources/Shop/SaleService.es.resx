@@ -81,4 +81,7 @@
   <data name="No open cash register found. Please open a cash register before processing sales." xml:space="preserve">
     <value>No hay caja abierta. Por favor abra una caja antes de procesar ventas.</value>
   </data>
+  <data name="Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments." xml:space="preserve">
+    <value>Límite de caja alcanzado ({0:C}). Realiza un retiro antes de aceptar más pagos en efectivo.</value>
+  </data>
 </root>

@@ -81,4 +81,7 @@
   <data name="No open cash register found. Please open a cash register before processing sales." xml:space="preserve">
     <value>No open cash register found. Please open a cash register before processing sales.</value>
   </data>
+  <data name="Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments." xml:space="preserve">
+    <value>Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments.</value>
+  </data>
 </root>

@@ -286,6 +286,14 @@ else
                 <MudPaper Elevation="2" Class="pa-2" Style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
                     <div style="flex:1; overflow-y:auto; padding-bottom:4px;">
 
+                    @if (_cashSettings is { IsStrictCashLimit: false } &&
+                         _activeCashRegister?.ExpectedCash >= _cashSettings.MaxWithdrawalAmount)
+                    {
+                        <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2" Icon="@Icons.Material.Filled.Savings">
+                            @L["Cash register has reached the limit ({0:C}). Please make a withdrawal.", _cashSettings.MaxWithdrawalAmount]
+                        </MudAlert>
+                    }
+
                     <!-- ── Totals ── -->
                     <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:6px;">@L["Sale Summary"]</div>
 
@@ -521,6 +529,7 @@ else
     private bool _configurationValid = true;
     private string _configurationError = string.Empty;
     private CashRegisterDto? _activeCashRegister;
+    private CashRegisterSettingsDto? _cashSettings;
     private TimeZoneInfo? _companyTimeZone;
 
     // Autorización de descuentos
@@ -590,6 +599,7 @@ else
             _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
 
             await LoadActiveCashRegisterAsync();
+            await LoadCashSettingsAsync();
             await LoadLocation();
             await LoadAvailableFractions();
             await InitializeDiscountSettings();
@@ -612,6 +622,13 @@ else
         var result = await CashRegisterService.GetActiveCashRegisterByUserAsync(userId);
         if (result.IsSuccess)
             _activeCashRegister = result.Value;
+    }
+
+    private async Task LoadCashSettingsAsync()
+    {
+        var result = await CashRegisterService.GetSettingsAsync();
+        if (result.IsSuccess)
+            _cashSettings = result.Value;
     }
 
     private async Task LoadLocation()
@@ -1371,6 +1388,20 @@ else
             if (result.IsSuccess)
             {
                 Snackbar.Add(L["Sale completed successfully"], Severity.Success);
+
+                // Refresh cash register to get updated ExpectedCash
+                await LoadActiveCashRegisterAsync();
+
+                // Non-strict warning: notify if limit reached
+                if (_cashSettings is { IsStrictCashLimit: false } &&
+                    _activeCashRegister?.ExpectedCash >= _cashSettings.MaxWithdrawalAmount)
+                {
+                    Snackbar.Add(
+                        L["Cash register has reached the limit ({0:C}). Please make a withdrawal.",
+                          _cashSettings.MaxWithdrawalAmount],
+                        Severity.Warning,
+                        cfg => cfg.VisibleStateDuration = 8000);
+                }
 
                 // Show receipt dialog or navigate to sale details
                 await DialogService.ShowAsync<SaleReceiptDialog>(

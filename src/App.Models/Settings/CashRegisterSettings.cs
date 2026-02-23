@@ -16,4 +16,6 @@ public class CashRegisterSettings : BaseEntity<int>
 
     [Column(TypeName = "decimal(10,2)")]
     public decimal? DefaultInitialFund { get; set; }
+
+    public bool IsStrictCashLimit { get; set; } = false;
 }

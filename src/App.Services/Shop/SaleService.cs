@@ -211,6 +211,29 @@ public class SaleService : ISaleService
                     return Result<SaleDto>.Failure(L["No open cash register found. Please open a cash register before processing sales."]);
 
                 cashRegisterId = cashRegResult.Value.Id;
+
+                // --- Cash limit strict-mode check ---
+                var cashLimitSettings = await _cashRegisterService.GetSettingsAsync();
+                if (cashLimitSettings.IsSuccess && cashLimitSettings.Value is { IsStrictCashLimit: true })
+                {
+                    var cashMethodIds = await context.PaymentMethods
+                        .AsNoTracking()
+                        .Where(pm => pm.Type == App.Core.Enums.Shop.PaymentMethodType.Cash)
+                        .Select(pm => pm.Id)
+                        .ToListAsync();
+
+                    var cashPaymentAmount = createDto.Payments
+                        .Where(p => cashMethodIds.Contains(p.PaymentMethodId))
+                        .Sum(p => p.Amount);
+
+                    if (cashPaymentAmount > 0 &&
+                        cashRegResult.Value.ExpectedCash >= cashLimitSettings.Value.MaxWithdrawalAmount)
+                    {
+                        return Result<SaleDto>.Failure(
+                            L["Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments.",
+                              cashLimitSettings.Value.MaxWithdrawalAmount]);
+                    }
+                }
             }
 
             // Validate sale data

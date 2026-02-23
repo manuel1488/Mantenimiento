@@ -36,6 +36,15 @@ else
                                  Format="C2"
                                  HelperText="@L["Pre-filled when opening a new cash register"]" />
             </MudItem>
+            <MudItem xs="12" md="6">
+                <MudSwitch T="bool"
+                           @bind-Value="_model.IsStrictCashLimit"
+                           Label="@L["Strict Cash Limit"]"
+                           Color="Color.Warning" />
+                <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                    @L["If enabled, new cash sales are blocked when the register reaches the limit"]
+                </MudText>
+            </MudItem>
             <MudItem xs="12">
                 <MudButton Color="Color.Primary"
                            Variant="Variant.Filled"
@@ -74,6 +83,7 @@ else
         {
             _model.MaxWithdrawalAmount = result.Value.MaxWithdrawalAmount;
             _model.DefaultInitialFund = result.Value.DefaultInitialFund;
+            _model.IsStrictCashLimit = result.Value.IsStrictCashLimit;
         }
         _loading = false;
     }

@@ -24,4 +24,10 @@
   <data name="Settings saved successfully" xml:space="preserve">
     <value>Settings saved successfully</value>
   </data>
+  <data name="Strict Cash Limit" xml:space="preserve">
+    <value>Strict Cash Limit</value>
+  </data>
+  <data name="If enabled, new cash sales are blocked when the register reaches the limit" xml:space="preserve">
+    <value>If enabled, new cash sales are blocked when the register reaches the limit</value>
+  </data>
 </root>

@@ -465,7 +465,8 @@ public class CashRegisterService : ICashRegisterService
                 {
                     Id = 0,
                     MaxWithdrawalAmount = 1000,
-                    DefaultInitialFund = null
+                    DefaultInitialFund = null,
+                    IsStrictCashLimit = false
                 });
             }
 
@@ -496,6 +497,7 @@ public class CashRegisterService : ICashRegisterService
                 {
                     MaxWithdrawalAmount = dto.MaxWithdrawalAmount,
                     DefaultInitialFund = dto.DefaultInitialFund,
+                    IsStrictCashLimit = dto.IsStrictCashLimit,
                     CreatedBy = _currentUserService.FullName,
                     CreatedAt = now,
                     ModifiedBy = _currentUserService.FullName,
@@ -507,6 +509,7 @@ public class CashRegisterService : ICashRegisterService
             {
                 settings.MaxWithdrawalAmount = dto.MaxWithdrawalAmount;
                 settings.DefaultInitialFund = dto.DefaultInitialFund;
+                settings.IsStrictCashLimit = dto.IsStrictCashLimit;
                 settings.ModifiedBy = _currentUserService.FullName;
                 settings.ModifiedAt = now;
             }

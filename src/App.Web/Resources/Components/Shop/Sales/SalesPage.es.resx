@@ -252,4 +252,7 @@
   <data name="Open Cash Register" xml:space="preserve">
     <value>Abrir Caja</value>
   </data>
+  <data name="Cash register has reached the limit ({0:C}). Please make a withdrawal." xml:space="preserve">
+    <value>La caja ha alcanzado el límite ({0:C}). Por favor realiza un retiro.</value>
+  </data>
 </root>
