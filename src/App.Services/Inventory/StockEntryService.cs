@@ -131,7 +131,11 @@ public class StockEntryService : IStockEntryService
                 // Link the movement back to this stock entry
                 var movement = await context.InventoryMovements.FindAsync([movementId], ct);
                 if (movement != null)
+                {
                     movement.StockEntryId = stockEntry.Id;
+                    movement.ModifiedBy = currentUser;
+                    movement.ModifiedAt = currentTime;
+                }
 
                 itemResults.Add(new StockEntryItemResultDto
                 {

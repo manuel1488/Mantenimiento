@@ -14,6 +14,7 @@
 @inject IInventoryQueryService InventoryQueryService
 @inject ISnackbar Snackbar
 @inject ILogger<CreateStockEntryDialog> Logger
+@inject IJSRuntime JS
 
 <AuthorizeView Policy="@ApplicationClaims.Shop.ManageInventoryInputs">
     <Authorized>
@@ -182,18 +183,20 @@
                     <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Products"]</MudText>
 
                     <!-- Scanner field -->
-                    <MudTextField T="string"
-                                  @bind-Value="_scanInput"
-                                  @onkeyup="OnScanKeyUp"
-                                  Placeholder="@L["Scan barcode..."]"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.QrCodeScanner"
-                                  Class="mb-3"
-                                  Style="max-width:360px;"
-                                  Immediate="true" />
+                    <div id="scan-wrapper">
+                        <MudTextField T="string"
+                                      @bind-Value="_scanInput"
+                                      @onkeyup="OnScanKeyUp"
+                                      Placeholder="@L["Scan barcode..."]"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.QrCodeScanner"
+                                      Class="mb-3"
+                                      Style="max-width:360px;"
+                                      Immediate="true" />
+                    </div>
 
                     <!-- Product grid (scrollable) -->
-                    <div style="overflow-y:auto; max-height:calc(100vh - 480px); min-height:120px;">
+                    <div id="stock-rows-scroll" style="overflow-y:auto; max-height:calc(100vh - 480px); min-height:120px;">
                         <MudTable Items="_rows"
                                   Dense="true"
                                   Hover="true"
@@ -201,7 +204,6 @@
                             <HeaderContent>
                                 <MudTh Style="width:40px">#</MudTh>
                                 <MudTh>@L["Product"]</MudTh>
-                                <MudTh Style="width:120px; text-align:right">@L["Current Stock"]</MudTh>
                                 <MudTh Style="width:140px">@L["Quantity"]</MudTh>
                                 @if (_movementType == InventoryMovementType.Purchase)
                                 {
@@ -221,9 +223,6 @@
                                                      ShowProgressIndicator="true"
                                                      Dense="true"
                                                      Style="min-width:220px" />
-                                </MudTd>
-                                <MudTd Style="text-align:right">
-                                    @(row.CurrentStock.HasValue ? row.CurrentStock.Value.ToString("N2") : "-")
                                 </MudTd>
                                 <MudTd>
                                     <MudNumericField T="decimal"
@@ -406,7 +405,6 @@
             return;
 
         var code = _scanInput.Trim();
-        _scanInput = string.Empty;
 
         try
         {
@@ -417,23 +415,42 @@
             if (product == null)
             {
                 Snackbar.Add(L["Product not found for barcode"], Severity.Warning);
+                await ClearScanFieldAsync();
                 return;
             }
 
-            // Check if product already in grid
+            // Accumulate in existing row if product is already in the grid
             var existing = _rows.FirstOrDefault(r => r.Product?.Id == product.Id);
             if (existing != null)
             {
                 existing.Quantity += 1;
+                _rows = [.._rows]; // new reference so MudTable re-renders
+                await ClearScanFieldAsync();
                 StateHasChanged();
                 return;
             }
 
-            // Add new row
+            // Reuse the first empty row if available
+            var emptyRow = _rows.FirstOrDefault(r => r.Product == null);
+            if (emptyRow != null)
+            {
+                emptyRow.Product = product;
+                emptyRow.Quantity = 1;
+                emptyRow.UnitCost = product.Cost > 0 ? product.Cost : null;
+                await LoadRowStock(emptyRow);
+                _rows = [.._rows]; // new reference so MudTable re-renders
+                await ClearScanFieldAsync();
+                StateHasChanged();
+                return;
+            }
+
+            // No empty row — add a new one
             var row = new StockEntryLineItem { Product = product, Quantity = 1 };
             await LoadRowStock(row);
-            _rows.Add(row);
+            _rows = [.._rows, row];
+            await ClearScanFieldAsync();
             StateHasChanged();
+            await ScrollRowsToBottom();
         }
         catch (Exception ex)
         {
@@ -442,11 +459,28 @@
         }
     }
 
+    private async Task ClearScanFieldAsync()
+    {
+        _scanInput = string.Empty;
+        // Blazor Server won't update a focused input from the server side,
+        // so we force-clear it via JS and dispatch an input event to keep the binding in sync.
+        await JS.InvokeVoidAsync("eval",
+            "var i=document.querySelector('#scan-wrapper input');if(i){i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));}");
+    }
+
     // ── Grid ─────────────────────────────────────────────────────────────────
 
-    private void AddEmptyRow()
+    private async Task AddEmptyRow()
     {
         _rows.Add(new StockEntryLineItem());
+        await ScrollRowsToBottom();
+    }
+
+    private async Task ScrollRowsToBottom()
+    {
+        await Task.Yield(); // allow Blazor to render the new row first
+        await JS.InvokeVoidAsync("eval",
+            "var el=document.getElementById('stock-rows-scroll'); if(el) el.scrollTop=el.scrollHeight;");
     }
 
     private void RemoveRow(StockEntryLineItem row)
@@ -473,6 +507,19 @@
 
     private async Task OnRowProductChanged(StockEntryLineItem row, ProductDto? product)
     {
+        if (product != null)
+        {
+            // If the same product is already in another row, merge and remove this one
+            var duplicate = _rows.FirstOrDefault(r => r != row && r.Product?.Id == product.Id);
+            if (duplicate != null)
+            {
+                duplicate.Quantity += row.Quantity;
+                _rows = _rows.Where(r => r != row).ToList();
+                StateHasChanged();
+                return;
+            }
+        }
+
         row.Product = product;
         row.CurrentStock = null;
         row.UnitCost = product?.Cost > 0 ? product.Cost : null;
