@@ -29,9 +29,9 @@
         </MudCardHeader>
         
         <MudCardContent Class="pt-0">
-            <MudTabs Elevation="0" 
-                     Color="Color.Error" 
-                     ApplyEffectsToContainer="true" 
+            <MudTabs Elevation="0"
+                     Color="Color.Primary"
+                     ApplyEffectsToContainer="true"
                      PanelClass="pt-6">
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["General"]" Icon="@Icons.Material.Filled.Settings">

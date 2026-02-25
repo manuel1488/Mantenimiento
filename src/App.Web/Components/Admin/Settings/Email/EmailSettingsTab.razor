@@ -108,7 +108,7 @@
                         <!-- Save Button -->
                         <MudButton OnClick="SaveChangesAsync"
                                 Variant="Variant.Filled"
-                                Color="Color.Error"
+                                Color="Color.Primary"
                                 StartIcon="@Icons.Material.Filled.Save"
                                 Disabled="@_processing"
                                 Class="da-button-rounded">
@@ -225,7 +225,7 @@
         {
             { "ContentText", L["Enter the email address to send a test message:"].ToString() },
             { "ButtonText", L["Send Test Email"].ToString() },
-            { "Color", Color.Error }
+            { "Color", Color.Primary }
         };
 
         var options = new DialogOptions

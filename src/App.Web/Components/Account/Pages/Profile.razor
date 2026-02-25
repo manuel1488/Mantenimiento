@@ -23,8 +23,8 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
     <MudText Typo="Typo.h4" Class="mb-4">@L["UserProfile"]</MudText>
 
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" 
-             PanelClass="pa-6" Color="Color.Error">
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true"
+             PanelClass="pa-6" Color="Color.Primary">
         <MudTabPanel Text="@L["PersonalInfo"]" Icon="@Icons.Material.Filled.Person">
             <UserInfoTab />
         </MudTabPanel>
@@ -57,7 +57,7 @@
                                     Validation="@((string password) => PasswordValidator.ValidatePassword(password, L))" />
                             </MudItem>
                             <MudItem xs="12">
-                                <MudTextField T="string" @bind-value="_model.ConfirmPassword"
+                                <MudTextField T="string" @bind-Value="_model.ConfirmPassword"
                                     InputType="@_confirmPasswordInputType"
                                     Adornment="Adornment.End"
                                     AdornmentAriaLabel="@(_confirmPasswordVisible ? L["HidePasswordTooltip"] : L["ShowPasswordTooltip"])"
@@ -77,7 +77,7 @@
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-end">
                     <MudButton Variant="Variant.Filled"
-                              Color="Color.Error"
+                              Color="Color.Primary"
                               OnClick="ChangePasswordAsync"
                               Disabled="@_isProcessing"
                               Class="da-button-rounded">

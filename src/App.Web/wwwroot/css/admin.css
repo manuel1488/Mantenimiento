@@ -1,8 +1,12 @@
 .da-admin {
-    --da-primary: #E53935;
-    --da-secondary: #757575;
-    --da-surface: #FFFFFF;
-    --da-background: #F5F5F5;
+    --da-primary:          #1A6868;
+    --da-primary-dark:     #155454;
+    --da-primary-light:    #7DDCD6;
+    --da-secondary:        #7B3FA0;
+    --da-secondary-light:  #B07ACC;
+    --da-surface:          #FFFFFF;
+    --da-background:       #F5F9F9;
+    --da-text-on-primary:  #FFFFFF;
 }
 
 .da-card {
@@ -11,4 +15,23 @@
 
 .da-button-rounded {
     border-radius: 20px !important;
+}
+
+/* Cleeny brand heading style */
+.da-brand-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--da-primary);
+}
+
+/* Teal accent chip/badge */
+.da-chip-teal {
+    background-color: var(--da-primary-light) !important;
+    color: var(--da-primary) !important;
+}
+
+/* Purple accent chip/badge */
+.da-chip-purple {
+    background-color: var(--da-secondary-light) !important;
+    color: var(--da-secondary) !important;
 }

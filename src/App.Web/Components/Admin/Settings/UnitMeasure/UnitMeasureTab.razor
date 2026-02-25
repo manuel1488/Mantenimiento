@@ -44,7 +44,7 @@
 
                         <AuthorizeView Context="authNew" Policy="@ApplicationClaims.Admin.ManageUnitMeasures">
                             <MudButton Variant="Variant.Filled"
-                                    Color="Color.Error"
+                                    Color="Color.Primary"
                                     StartIcon="@Icons.Material.Filled.Add"
                                     OnClick="OpenCreateDialog"
                                     Disabled="@string.IsNullOrEmpty(_selectedCountry)"

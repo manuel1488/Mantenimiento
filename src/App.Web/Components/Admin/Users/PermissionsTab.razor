@@ -28,9 +28,9 @@
                 @if (!string.IsNullOrEmpty(_selectedUserId))
                 {
                     <MudItem xs="12">
-                        <MudTabs Elevation="0" 
-                                Color="Color.Error" 
-                                ApplyEffectsToContainer="true" 
+                        <MudTabs Elevation="0"
+                                Color="Color.Primary"
+                                ApplyEffectsToContainer="true"
                                 PanelClass="pt-6">
                             @foreach (var group in _permissionGroups)
                             {
@@ -43,7 +43,7 @@
                                         {
                                             <MudItem xs="12" sm="6" md="4">
                                                 <MudCheckBox Label="@PermissionService.GetFullPermissionDisplayName(permission)"
-                                                             Color="Color.Error"
+                                                             Color="Color.Primary"
                                                              Value="@_selectedPermissions.Contains(permission)"
                                                              ValueChanged="@((bool value) => OnPermissionToggle(permission, value))" />
                                             </MudItem>
@@ -72,7 +72,7 @@
 
                             <!-- Botón de guardar -->
                             <MudButton Variant="Variant.Filled"
-                                    Color="Color.Error"
+                                    Color="Color.Primary"
                                     OnClick="SavePermissionsAsync"
                                     Disabled="@_processing"
                                     Class="da-button-rounded">

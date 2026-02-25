@@ -91,7 +91,7 @@
                     <AuthorizeView Policy="@ApplicationClaims.Admin.ManageSettings">
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled"
-                                       Color="Color.Error"
+                                       Color="Color.Primary"
                                        OnClick="SaveChangesAsync"
                                        Disabled="@_processing"
                                        Class="da-button-rounded">

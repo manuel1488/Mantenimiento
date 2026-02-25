@@ -39,7 +39,7 @@
                     <AuthorizeView Context="contextNew" Policy="@ApplicationClaims.Admin.ManageTaxRates">
                         <!-- New Tax Rate Button -->
                         <MudButton Variant="Variant.Filled"
-                                Color="Color.Error"
+                                Color="Color.Primary"
                                 StartIcon="@Icons.Material.Filled.Add"
                                 OnClick="OpenCreateDialog"
                                 Class="da-button-rounded">
@@ -112,7 +112,7 @@
                         <div class="d-flex gap-4 mb-4">
                             <MudDateRangePicker DateRange="_dateRange"
                                             Label="@L["Date Range"]"
-                                            AdornmentColor="Color.Error"
+                                            AdornmentColor="Color.Primary"
                                             Culture="@CultureInfo.CurrentUICulture"
                                             DateFormat="@GetLocalizedDateFormat()"
                                             Style="min-width: 300px;"

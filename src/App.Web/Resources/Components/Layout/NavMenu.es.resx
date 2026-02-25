@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="App Name" xml:space="preserve">
+    <value>Cleeny</value>
+  </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Panel de Control</value>
   </data>

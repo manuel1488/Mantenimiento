@@ -75,7 +75,7 @@
                         </MudItem>
 
                         <MudItem xs="12" Class="d-flex justify-end">
-                            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="LoadIndividualInventoryAsync"
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadIndividualInventoryAsync"
                                 Disabled="@(!CanSubmit())" Class="da-button-rounded">
                                 @if (_processing)
                                 {
@@ -126,7 +126,7 @@
                             </MudItem>
 
                             <MudItem xs="12" Class="d-flex justify-end">
-                                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ImportBulkInventoryAsync"
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ImportBulkInventoryAsync"
                                     Disabled="@(!CanImport())" Class="da-button-rounded">
                                     @if (_processing)
                                     {

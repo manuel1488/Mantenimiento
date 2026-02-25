@@ -48,7 +48,7 @@
                     <AuthorizeView Policy="@ApplicationClaims.Admin.ManageDisccounts">
                         <Authorized Context="contextDisccount">
                             <MudButton Variant="Variant.Filled"
-                                     Color="Color.Error"
+                                     Color="Color.Primary"
                                      OnClick="SaveChangesAsync"
                                      Disabled="@_processing"
                                      Class="da-button-rounded">
