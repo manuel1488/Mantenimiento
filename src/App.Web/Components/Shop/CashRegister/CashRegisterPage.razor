@@ -44,13 +44,15 @@ else if (_register == null)
                    OnClick="OpenRegisterDialog">
             @L["Open Cash Register"]
         </MudButton>
-        <MudButton Variant="Variant.Outlined"
-                   StartIcon="@Icons.Material.Filled.History"
-                   Size="Size.Large"
-                   Class="ml-2"
-                   Href="/shop/cash-register/history">
-            @L["View History"]
-        </MudButton>
+        <AuthorizeView Policy="@ApplicationClaims.Shop.ViewCashRegisterHistory">
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.History"
+                       Size="Size.Large"
+                       Class="ml-2"
+                       Href="/shop/cash-register/history">
+                @L["View History"]
+            </MudButton>
+        </AuthorizeView>
     </MudPaper>
 }
 else
@@ -89,12 +91,14 @@ else
                            Href="@($"/shop/cash-register/report/{_register.Id}")">
                     @L["Print Report"]
                 </MudButton>
-                <MudButton StartIcon="@Icons.Material.Filled.History"
-                           Variant="Variant.Outlined"
-                           Size="Size.Small"
-                           Href="/shop/cash-register/history">
-                    @L["View History"]
-                </MudButton>
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewCashRegisterHistory">
+                    <MudButton StartIcon="@Icons.Material.Filled.History"
+                               Variant="Variant.Outlined"
+                               Size="Size.Small"
+                               Href="/shop/cash-register/history">
+                        @L["View History"]
+                    </MudButton>
+                </AuthorizeView>
                 <MudButton StartIcon="@Icons.Material.Filled.Lock"
                            Color="Color.Error"
                            Variant="Variant.Filled"

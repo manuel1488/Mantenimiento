@@ -42,9 +42,10 @@ public interface ICashRegisterService
 
     /// <summary>
     /// Gets paginated history of cash register sessions for a location.
+    /// Pass null or 0 for locationId to return sessions across all locations (admin use).
     /// </summary>
     Task<(int TotalCount, IList<CashRegisterDto> Items)> GetHistoryAsync(
-        int locationId,
+        int? locationId,
         int page = 1,
         int pageSize = 20,
         DateTime? startDate = null,

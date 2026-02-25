@@ -5,7 +5,7 @@
 @using App.Shared.Services
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewCashRegister)]
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewCashRegisterHistory)]
 
 @inject ICashRegisterService CashRegisterService
 @inject ICurrentUserService CurrentUserService
@@ -116,7 +116,7 @@
         try
         {
             await CurrentUserService.EnsureInitializedAsync();
-            var locationId = CurrentUserService.ActiveLocationId ?? 0;
+            var locationId = CurrentUserService.ActiveLocationId;
             var (total, items) = await CashRegisterService.GetHistoryAsync(
                 locationId,
                 page: state.Page + 1,

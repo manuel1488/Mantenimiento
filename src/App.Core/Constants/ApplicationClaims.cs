@@ -64,6 +64,7 @@ public static class ApplicationClaims
         public const string ViewCashRegister = "Shop.CashRegister.View";
         public const string ManageCashRegister = "Shop.CashRegister.Manage";
         public const string WithdrawCashRegister = "Shop.CashRegister.Withdraw";
+        public const string ViewCashRegisterHistory = "Shop.CashRegister.ViewHistory";
         public const string ViewCashRegisterReport = "Shop.CashRegister.ViewReport";
     }
 

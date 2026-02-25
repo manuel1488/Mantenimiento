@@ -299,6 +299,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.ViewCashRegister, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewCashRegister));
         options.AddPolicy(ApplicationClaims.Shop.ManageCashRegister, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageCashRegister));
         options.AddPolicy(ApplicationClaims.Shop.WithdrawCashRegister, policy => policy.RequireClaim(ApplicationClaims.Shop.WithdrawCashRegister));
+        options.AddPolicy(ApplicationClaims.Shop.ViewCashRegisterHistory, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewCashRegisterHistory));
         options.AddPolicy(ApplicationClaims.Shop.ViewCashRegisterReport, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewCashRegisterReport));
 
         options.AddPolicy(ApplicationClaims.Shop.ViewInventoryHistory, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventoryHistory));

@@ -416,7 +416,7 @@ public class CashRegisterService : ICashRegisterService
     }
 
     public async Task<(int TotalCount, IList<CashRegisterDto> Items)> GetHistoryAsync(
-        int locationId,
+        int? locationId,
         int page = 1,
         int pageSize = 20,
         DateTime? startDate = null,
@@ -431,7 +431,10 @@ public class CashRegisterService : ICashRegisterService
                 .Include(c => c.Location)
                 .Include(c => c.Movements)
                 .Include(c => c.Denominations)
-                .Where(c => c.LocationId == locationId);
+                .AsQueryable();
+
+            if (locationId.HasValue && locationId.Value > 0)
+                query = query.Where(c => c.LocationId == locationId.Value);
 
             if (startDate.HasValue)
                 query = query.Where(c => c.OpenedAt >= startDate.Value);
