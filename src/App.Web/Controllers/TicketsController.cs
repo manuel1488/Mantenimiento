@@ -45,6 +45,28 @@ public class TicketsController : ControllerBase
         }
     }
 
+    [HttpGet("withdrawal/{id}")]
+    [Authorize(Policy = ApplicationClaims.Shop.ViewCashRegister)]
+    public async Task<IActionResult> GetWithdrawalTicket(long id, bool download = false)
+    {
+        try
+        {
+            var pdfBytes = await _ticketService.GenerateWithdrawalTicketPdfAsync(id);
+
+            var contentDisposition = download
+                ? $"attachment; filename=withdrawal_{id}.pdf"
+                : $"inline; filename=withdrawal_{id}.pdf";
+
+            Response.Headers.Append("Content-Disposition", contentDisposition);
+            return File(pdfBytes, "application/pdf");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generando ticket de retiro {Id}", id);
+            return StatusCode(500, "Error generando ticket");
+        }
+    }
+
     [HttpGet("configuration")]
     [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
     public async Task<ActionResult<TicketConfigurationDto>> GetConfiguration()

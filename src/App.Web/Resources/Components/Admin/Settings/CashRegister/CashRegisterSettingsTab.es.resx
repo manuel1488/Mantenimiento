@@ -1,13 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <data name="Maximum Withdrawal Amount" xml:space="preserve">
-    <value>Monto Máximo de Retiro</value>
+  <data name="Withdrawal Limit" xml:space="preserve">
+    <value>Límite por Retiro</value>
   </data>
-  <data name="Maximum withdrawal amount is required" xml:space="preserve">
-    <value>El monto máximo de retiro es requerido</value>
+  <data name="Maximum Withdrawal Amount (optional)" xml:space="preserve">
+    <value>Monto Máximo de Retiro (opcional)</value>
   </data>
-  <data name="Maximum amount allowed per individual withdrawal" xml:space="preserve">
-    <value>Monto máximo permitido por retiro individual</value>
+  <data name="Leave empty for no withdrawal limit" xml:space="preserve">
+    <value>Dejar vacío para no tener límite por retiro</value>
+  </data>
+  <data name="Strict Withdrawal Limit" xml:space="preserve">
+    <value>Límite de retiro estricto</value>
+  </data>
+  <data name="If enabled, withdrawals exceeding the limit are blocked" xml:space="preserve">
+    <value>Si está activado, los retiros que superen el límite serán bloqueados</value>
+  </data>
+  <data name="Withdrawal limit is required when strict mode is enabled" xml:space="preserve">
+    <value>El monto de retiro es requerido cuando el modo estricto está activado</value>
+  </data>
+  <data name="Cash Register Limit" xml:space="preserve">
+    <value>Límite de Efectivo en Caja</value>
+  </data>
+  <data name="Maximum Cash in Register (optional)" xml:space="preserve">
+    <value>Monto Máximo en Caja (opcional)</value>
+  </data>
+  <data name="Leave empty for no cash limit in register" xml:space="preserve">
+    <value>Dejar vacío para no tener límite de efectivo en caja</value>
+  </data>
+  <data name="Strict Cash Limit" xml:space="preserve">
+    <value>Límite de efectivo estricto</value>
+  </data>
+  <data name="If enabled, new cash sales are blocked when the register reaches the limit" xml:space="preserve">
+    <value>Si está activado, las ventas en efectivo serán bloqueadas cuando la caja alcance el límite</value>
+  </data>
+  <data name="Cash limit is required when strict mode is enabled" xml:space="preserve">
+    <value>El monto en caja es requerido cuando el modo estricto está activado</value>
   </data>
   <data name="Default Initial Fund (optional)" xml:space="preserve">
     <value>Fondo Inicial Predeterminado (opcional)</value>
@@ -23,11 +50,5 @@
   </data>
   <data name="Settings saved successfully" xml:space="preserve">
     <value>Configuración guardada exitosamente</value>
-  </data>
-  <data name="Strict Cash Limit" xml:space="preserve">
-    <value>Límite de efectivo estricto</value>
-  </data>
-  <data name="If enabled, new cash sales are blocked when the register reaches the limit" xml:space="preserve">
-    <value>Si está activado, las ventas en efectivo serán bloqueadas cuando la caja alcance el límite</value>
   </data>
 </root>

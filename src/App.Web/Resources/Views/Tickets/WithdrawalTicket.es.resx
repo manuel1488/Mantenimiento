@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Withdrawal Ticket" xml:space="preserve">
+    <value>Ticket de Retiro</value>
+  </data>
+  <data name="Company Logo" xml:space="preserve">
+    <value>Logo de la Empresa</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Tax ID" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="CASH WITHDRAWAL" xml:space="preserve">
+    <value>RETIRO DE EFECTIVO</value>
+  </data>
+  <data name="Withdrawal #" xml:space="preserve">
+    <value>Retiro #</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Cashier" xml:space="preserve">
+    <value>Cajero</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="Printed" xml:space="preserve">
+    <value>Impreso</value>
+  </data>
+  <data name="AMOUNT" xml:space="preserve">
+    <value>MONTO</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="Ref" xml:space="preserve">
+    <value>Ref</value>
+  </data>
+  <data name="Session Opened" xml:space="preserve">
+    <value>Apertura de caja</value>
+  </data>
+</root>

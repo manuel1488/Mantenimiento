@@ -15,9 +15,10 @@ public class CashRegisterMovement : BaseEntity<long>
     [Column(TypeName = "decimal(10,2)")]
     public decimal Amount { get; set; }
 
-    [Required]
     [StringLength(500)]
-    public string Reason { get; set; } = null!;
+    public string? Reason { get; set; }
+
+    public int? WithdrawalNumber { get; set; }
 
     [ForeignKey(nameof(CashRegisterId))]
     public virtual CashRegister CashRegister { get; set; } = null!;

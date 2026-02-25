@@ -1,0 +1,228 @@
+@model App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.WithdrawalTicketDataDto>
+@using App.Shared.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<App.Web.Views.Tickets.WithdrawalTicket> L
+@inject IDateTime DateTimeService
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@L["Withdrawal Ticket"]</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            color: #000;
+            background: #fff;
+            width: @(Model.TicketWidth)mm;
+            margin: 0 auto;
+            padding: 3mm 2mm 3mm 2mm;
+        }
+
+        .ticket-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .company-logo {
+            max-width: 60mm;
+            max-height: 20mm;
+            margin: 0 auto 2mm auto;
+            display: block;
+        }
+
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 1mm;
+            text-transform: uppercase;
+        }
+
+        .company-info {
+            font-size: 10px;
+            margin-bottom: 1mm;
+            line-height: 1.3;
+        }
+
+        .custom-header {
+            font-size: 11px;
+            margin-bottom: 2mm;
+            font-style: italic;
+        }
+
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 2mm 0;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1mm;
+            letter-spacing: 1px;
+        }
+
+        .withdrawal-info {
+            text-align: left;
+            margin-bottom: 2mm;
+            font-size: 11px;
+        }
+
+        .withdrawal-info div {
+            margin-bottom: 0.5mm;
+        }
+
+        .amount-section {
+            margin: 3mm 0;
+        }
+
+        .amount-label {
+            font-size: 11px;
+            color: #333;
+        }
+
+        .amount-value {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .reason-section {
+            text-align: left;
+            font-size: 11px;
+            margin: 2mm 0;
+        }
+
+        .custom-footer {
+            font-size: 10px;
+            margin-top: 2mm;
+            font-style: italic;
+        }
+
+        .ref-id {
+            font-size: 10px;
+            margin-top: 1mm;
+            color: #666;
+        }
+
+        @@media print {
+            body {
+                margin: 0;
+                padding: 2mm 1mm;
+            }
+
+            .ticket-container {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket-container">
+
+        @* Company Logo *@
+        @if (Model.ShowCompanyLogo && !string.IsNullOrEmpty(Model.CompanyLogoBase64))
+        {
+            <img src="data:image/png;base64,@Model.CompanyLogoBase64" alt="@L["Company Logo"]" class="company-logo" />
+        }
+
+        @* Company Name *@
+        @if (!string.IsNullOrEmpty(Model.CompanyName))
+        {
+            <div class="company-name">@Model.CompanyName</div>
+        }
+
+        @* Company Information *@
+        <div class="company-info">
+            @if (!string.IsNullOrEmpty(Model.CompanyAddress))
+            {
+                <div>@Model.CompanyAddress</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.CompanyPhone))
+            {
+                <div>@L["Phone"]: @Model.CompanyPhone</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.CompanyTaxId))
+            {
+                <div>@L["Tax ID"]: @Model.CompanyTaxId</div>
+            }
+        </div>
+
+        @* Custom Header *@
+        @if (!string.IsNullOrEmpty(Model.CustomHeader))
+        {
+            <div class="custom-header">@Model.CustomHeader</div>
+        }
+
+        <div class="divider"></div>
+
+        @* Title *@
+        <div class="title">@L["CASH WITHDRAWAL"]</div>
+
+        <div class="divider"></div>
+
+        @* Withdrawal Info *@
+        <div class="withdrawal-info">
+            @if (Model.Data.WithdrawalNumber.HasValue)
+            {
+                <div><strong>@L["Withdrawal #"]:</strong> @Model.Data.WithdrawalNumber</div>
+            }
+            <div><strong>@L["Date"]:</strong> @(Model.TimeZone != null ? DateTimeService.FormatToTimezone(Model.Data.CreatedAt, Model.TimeZone) : Model.Data.CreatedAt.ToString("dd/MM/yyyy h:mm tt"))</div>
+            <div><strong>@L["Cashier"]:</strong> @Model.Data.CashierName</div>
+            <div><strong>@L["Location"]:</strong> @Model.Data.LocationName</div>
+            @{
+                var openedAtStr = Model.TimeZone != null
+                    ? DateTimeService.FormatToTimezone(Model.Data.CashRegisterOpenedAt, Model.TimeZone)
+                    : Model.Data.CashRegisterOpenedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
+            }
+            <div><strong>@L["Session Opened"]:</strong> @openedAtStr</div>
+            @{
+                var printedAt = DateTimeService.Now;
+                var printedAtStr = Model.TimeZone != null
+                    ? DateTimeService.FormatToTimezone(printedAt, Model.TimeZone)
+                    : printedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
+            }
+            <div><strong>@L["Printed"]:</strong> @printedAtStr</div>
+        </div>
+
+        <div class="divider"></div>
+
+        @* Amount — prominent *@
+        <div class="amount-section">
+            <div class="amount-label">@L["AMOUNT"]</div>
+            <div class="amount-value">@Model.Data.Amount.ToString("C")</div>
+        </div>
+
+        @* Reason — only if provided *@
+        @if (!string.IsNullOrWhiteSpace(Model.Data.Reason))
+        {
+            <div class="divider"></div>
+            <div class="reason-section">
+                <div><strong>@L["Reason"]:</strong> @Model.Data.Reason</div>
+            </div>
+        }
+
+        <div class="divider"></div>
+
+        @* Custom Footer *@
+        @if (!string.IsNullOrEmpty(Model.CustomFooter))
+        {
+            <div class="custom-footer">@Model.CustomFooter</div>
+        }
+
+        <div class="ref-id">@L["Ref"]: @Model.Data.MovementId.ToString("D8")</div>
+
+    </div>
+</body>
+</html>

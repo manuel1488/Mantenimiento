@@ -214,7 +214,9 @@ public class SaleService : ISaleService
 
                 // --- Cash limit strict-mode check ---
                 var cashLimitSettings = await _cashRegisterService.GetSettingsAsync();
-                if (cashLimitSettings.IsSuccess && cashLimitSettings.Value is { IsStrictCashLimit: true })
+                if (cashLimitSettings.IsSuccess &&
+                    cashLimitSettings.Value is { IsStrictCashLimit: true } &&
+                    cashLimitSettings.Value.MaxCashLimit.HasValue)
                 {
                     var cashMethodIds = await context.PaymentMethods
                         .AsNoTracking()
@@ -227,11 +229,11 @@ public class SaleService : ISaleService
                         .Sum(p => p.Amount);
 
                     if (cashPaymentAmount > 0 &&
-                        cashRegResult.Value.ExpectedCash >= cashLimitSettings.Value.MaxWithdrawalAmount)
+                        cashRegResult.Value.ExpectedCash >= cashLimitSettings.Value.MaxCashLimit.Value)
                     {
                         return Result<SaleDto>.Failure(
                             L["Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments.",
-                              cashLimitSettings.Value.MaxWithdrawalAmount]);
+                              cashLimitSettings.Value.MaxCashLimit.Value]);
                     }
                 }
             }

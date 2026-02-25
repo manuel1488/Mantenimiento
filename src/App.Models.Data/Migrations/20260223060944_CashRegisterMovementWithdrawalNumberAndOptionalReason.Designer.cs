@@ -4,6 +4,7 @@ using App.Models.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260223060944_CashRegisterMovementWithdrawalNumberAndOptionalReason")]
+    partial class CashRegisterMovementWithdrawalNumberAndOptionalReason
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -640,13 +643,10 @@ namespace App.Models.Data.Migrations
                     b.Property<bool>("IsStrictCashLimit")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("IsStrictWithdrawalLimit")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<decimal?>("MaxCashLimit")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<decimal?>("MaxWithdrawalAmount")
+                    b.Property<decimal>("MaxWithdrawalAmount")
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime?>("ModifiedAt")

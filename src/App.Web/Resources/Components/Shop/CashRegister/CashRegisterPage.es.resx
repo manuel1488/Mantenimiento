@@ -102,4 +102,7 @@
   <data name="Total" xml:space="preserve">
     <value>Total</value>
   </data>
+  <data name="Reprint" xml:space="preserve">
+    <value>Reimprimir</value>
+  </data>
 </root>

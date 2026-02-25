@@ -283,10 +283,24 @@ public class CashRegisterService : ICashRegisterService
                 var settingsResult = await GetSettingsAsync();
                 if (settingsResult.IsSuccess && settingsResult.Value != null)
                 {
-                    if (dto.Amount > settingsResult.Value.MaxWithdrawalAmount)
+                    var s = settingsResult.Value;
+                    if (s.MaxWithdrawalAmount.HasValue &&
+                        dto.Amount > s.MaxWithdrawalAmount.Value &&
+                        s.IsStrictWithdrawalLimit)
+                    {
                         return Result<CashRegisterMovementDto>.Failure(
-                            L["Withdrawal amount exceeds the maximum allowed ({0:C})", settingsResult.Value.MaxWithdrawalAmount]);
+                            L["Withdrawal amount exceeds the maximum allowed ({0:C})", s.MaxWithdrawalAmount.Value]);
+                    }
                 }
+            }
+
+            int? withdrawalNumber = null;
+            if (dto.Type == CashRegisterMovementType.Withdrawal)
+            {
+                var existingCount = await context.CashRegisterMovements
+                    .CountAsync(m => m.CashRegisterId == dto.CashRegisterId &&
+                                     m.MovementType == CashRegisterMovementType.Withdrawal);
+                withdrawalNumber = existingCount + 1;
             }
 
             var now = _dateTime.Now;
@@ -296,6 +310,7 @@ public class CashRegisterService : ICashRegisterService
                 MovementType = dto.Type,
                 Amount = dto.Amount,
                 Reason = dto.Reason,
+                WithdrawalNumber = withdrawalNumber,
                 CreatedBy = _currentUserService.FullName,
                 CreatedAt = now,
                 ModifiedBy = _currentUserService.FullName,
@@ -464,9 +479,11 @@ public class CashRegisterService : ICashRegisterService
                 return Result<CashRegisterSettingsDto>.Success(new CashRegisterSettingsDto
                 {
                     Id = 0,
-                    MaxWithdrawalAmount = 1000,
-                    DefaultInitialFund = null,
-                    IsStrictCashLimit = false
+                    MaxWithdrawalAmount = null,
+                    IsStrictWithdrawalLimit = false,
+                    MaxCashLimit = null,
+                    IsStrictCashLimit = false,
+                    DefaultInitialFund = null
                 });
             }
 
@@ -483,8 +500,14 @@ public class CashRegisterService : ICashRegisterService
     {
         try
         {
-            if (dto.MaxWithdrawalAmount <= 0)
+            if (dto.MaxWithdrawalAmount.HasValue && dto.MaxWithdrawalAmount <= 0)
                 return Result<CashRegisterSettingsDto>.Failure(L["Maximum withdrawal amount must be greater than zero"]);
+
+            if (dto.IsStrictWithdrawalLimit && !dto.MaxWithdrawalAmount.HasValue)
+                return Result<CashRegisterSettingsDto>.Failure(L["Withdrawal limit amount is required when strict withdrawal limit is enabled"]);
+
+            if (dto.IsStrictCashLimit && (dto.MaxCashLimit == null || dto.MaxCashLimit <= 0))
+                return Result<CashRegisterSettingsDto>.Failure(L["Cash limit amount must be greater than zero when strict cash limit is enabled"]);
 
             await using var context = await _contextFactory.CreateDbContextAsync();
             var now = _dateTime.Now;
@@ -496,8 +519,10 @@ public class CashRegisterService : ICashRegisterService
                 settings = new CashRegisterSettings
                 {
                     MaxWithdrawalAmount = dto.MaxWithdrawalAmount,
-                    DefaultInitialFund = dto.DefaultInitialFund,
+                    IsStrictWithdrawalLimit = dto.IsStrictWithdrawalLimit,
+                    MaxCashLimit = dto.MaxCashLimit,
                     IsStrictCashLimit = dto.IsStrictCashLimit,
+                    DefaultInitialFund = dto.DefaultInitialFund,
                     CreatedBy = _currentUserService.FullName,
                     CreatedAt = now,
                     ModifiedBy = _currentUserService.FullName,
@@ -508,8 +533,10 @@ public class CashRegisterService : ICashRegisterService
             else
             {
                 settings.MaxWithdrawalAmount = dto.MaxWithdrawalAmount;
-                settings.DefaultInitialFund = dto.DefaultInitialFund;
+                settings.IsStrictWithdrawalLimit = dto.IsStrictWithdrawalLimit;
+                settings.MaxCashLimit = dto.MaxCashLimit;
                 settings.IsStrictCashLimit = dto.IsStrictCashLimit;
+                settings.DefaultInitialFund = dto.DefaultInitialFund;
                 settings.ModifiedBy = _currentUserService.FullName;
                 settings.ModifiedAt = now;
             }

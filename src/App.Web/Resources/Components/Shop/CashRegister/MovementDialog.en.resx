@@ -18,6 +18,9 @@
   <data name="Maximum per withdrawal: {0:C}" xml:space="preserve">
     <value>Maximum per withdrawal: {0:C}</value>
   </data>
+  <data name="Exceeds limit ({0:C}) — non-strict mode allows it" xml:space="preserve">
+    <value>Exceeds limit ({0:C}) — non-strict mode allows it</value>
+  </data>
   <data name="Reason" xml:space="preserve">
     <value>Reason</value>
   </data>

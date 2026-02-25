@@ -18,6 +18,9 @@
   <data name="Maximum per withdrawal: {0:C}" xml:space="preserve">
     <value>Máximo por retiro: {0:C}</value>
   </data>
+  <data name="Exceeds limit ({0:C}) — non-strict mode allows it" xml:space="preserve">
+    <value>Supera el límite ({0:C}) — el modo no estricto lo permite</value>
+  </data>
   <data name="Reason" xml:space="preserve">
     <value>Motivo</value>
   </data>

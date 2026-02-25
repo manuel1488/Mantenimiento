@@ -145,6 +145,84 @@ public class TicketService : ITicketService
         return $"/api/tickets/sale/{saleId}";
     }
 
+    public string GetWithdrawalTicketUrl(long movementId)
+    {
+        return $"/api/tickets/withdrawal/{movementId}";
+    }
+
+    public async Task<byte[]> GenerateWithdrawalTicketPdfAsync(long movementId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            var movement = await context.CashRegisterMovements
+                .AsNoTracking()
+                .Include(m => m.CashRegister)
+                    .ThenInclude(c => c.Location)
+                .FirstOrDefaultAsync(m => m.Id == movementId, cancellationToken);
+
+            if (movement == null)
+                throw new InvalidOperationException($"Movement not found with ID: {movementId}");
+
+            var config = await GetTicketConfigurationAsync();
+            var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+
+            DateTime createdAt;
+            if (companyTimeZone != null)
+            {
+                try { createdAt = TimeZoneInfo.ConvertTimeFromUtc(movement.CreatedAt, companyTimeZone); }
+                catch { createdAt = movement.CreatedAt.ToLocalTime(); }
+            }
+            else
+            {
+                createdAt = movement.CreatedAt.ToLocalTime();
+            }
+
+            var data = new App.Core.DTOs.Shop.WithdrawalTicketDataDto
+            {
+                MovementId = movement.Id,
+                WithdrawalNumber = movement.WithdrawalNumber,
+                Amount = movement.Amount,
+                Reason = movement.Reason,
+                CashierName = movement.CashRegister?.CreatedBy ?? string.Empty,
+                LocationName = movement.CashRegister?.Location?.Name ?? string.Empty,
+                CashRegisterOpenedAt = movement.CashRegister?.OpenedAt ?? DateTime.UtcNow,
+                CreatedAt = createdAt
+            };
+
+            var ticketDto = new App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.WithdrawalTicketDataDto>
+            {
+                Data = data,
+                CompanyName = config.CompanyName,
+                CompanyLogoBase64 = config.ShowCompanyLogo ? config.CompanyLogoBase64 : null,
+                CompanyAddress = config.CompanyAddress,
+                CompanyPhone = config.CompanyPhone,
+                CompanyTaxId = config.CompanyTaxId,
+                ShowQRCode = false,
+                ShowCompanyLogo = config.ShowCompanyLogo,
+                CustomHeader = config.CustomHeader,
+                CustomFooter = null,
+                TicketWidth = config.TicketWidth,
+                Copies = config.DefaultCopies,
+                TimeZone = companyTimeZone
+            };
+
+            var pdfBytes = await _pdfService.GenerateThermalTicketPdfFromViewAsync(
+                "/Views/Tickets/WithdrawalTicket.cshtml",
+                ticketDto,
+                config.TicketWidth,
+                cancellationToken);
+
+            return pdfBytes;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating withdrawal ticket PDF for movement {MovementId}", movementId);
+            throw;
+        }
+    }
+
     public async Task<TicketConfigurationDto> GetTicketConfigurationAsync()
     {
         try

@@ -1,8 +1,11 @@
 @using App.Core.DTOs.Shop
 @using App.Core.Enums.Shop
 @using App.Core.Interfaces.Shop
+@using App.Core.Interfaces
 
 @inject ICashRegisterService CashRegisterService
+@inject ITicketService TicketService
+@inject IJSRuntime JS
 @inject IStringLocalizer<MovementDialog> L
 @inject ISnackbar Snackbar
 @inject ILogger<MovementDialog> Logger
@@ -18,6 +21,22 @@
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_isValid">
             <MudGrid>
+                @if (MovementType == CashRegisterMovementType.Withdrawal && _maxWithdrawalAmount.HasValue)
+                {
+                    <MudItem xs="12">
+                        <MudAlert Severity="@(_exceedsWithdrawalLimit && !_isStrictWithdrawalLimit ? Severity.Warning : Severity.Info)"
+                                  Dense="true" Class="mb-1">
+                            @if (_exceedsWithdrawalLimit && !_isStrictWithdrawalLimit)
+                            {
+                                @string.Format(L["Exceeds limit ({0:C}) — non-strict mode allows it"], _maxWithdrawalAmount.Value)
+                            }
+                            else
+                            {
+                                @string.Format(L["Maximum per withdrawal: {0:C}"], _maxWithdrawalAmount.Value)
+                            }
+                        </MudAlert>
+                    </MudItem>
+                }
                 <MudItem xs="12">
                     <MudNumericField T="decimal"
                                      @bind-Value="_amount"
@@ -28,15 +47,12 @@
                                      Immediate="true"
                                      Required="true"
                                      RequiredError="@L["Amount must be greater than zero"]"
-                                     Validation="@((decimal v) => ValidateAmount(v))"
-                                     HelperText="@(MovementType == CashRegisterMovementType.Withdrawal ? string.Format(L["Maximum per withdrawal: {0:C}"], _maxWithdrawalAmount) : null)" />
+                                     Validation="@((decimal v) => ValidateAmount(v))" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_reason"
                                   Label="@L["Reason"]"
-                                  Variant="Variant.Outlined"
-                                  Required="true"
-                                  RequiredError="@L["Reason is required"]" />
+                                  Variant="Variant.Outlined" />
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -71,20 +87,30 @@
     private bool _processing;
     private decimal _amount;
     private string? _reason;
-    private decimal _maxWithdrawalAmount = 1000m;
+    private decimal? _maxWithdrawalAmount;
+    private bool _isStrictWithdrawalLimit;
+
+    private bool _exceedsWithdrawalLimit =>
+        _maxWithdrawalAmount.HasValue && _amount > _maxWithdrawalAmount.Value;
 
     protected override async Task OnInitializedAsync()
     {
         var settingsResult = await CashRegisterService.GetSettingsAsync();
         if (settingsResult.IsSuccess && settingsResult.Value is not null)
+        {
             _maxWithdrawalAmount = settingsResult.Value.MaxWithdrawalAmount;
+            _isStrictWithdrawalLimit = settingsResult.Value.IsStrictWithdrawalLimit;
+        }
     }
 
     private string? ValidateAmount(decimal value)
     {
         if (value <= 0) return L["Amount must be greater than zero"];
-        if (MovementType == CashRegisterMovementType.Withdrawal && value > _maxWithdrawalAmount)
-            return string.Format(L["Exceeds maximum allowed ({0:C})"], _maxWithdrawalAmount);
+        if (MovementType == CashRegisterMovementType.Withdrawal &&
+            _maxWithdrawalAmount.HasValue &&
+            value > _maxWithdrawalAmount.Value &&
+            _isStrictWithdrawalLimit)
+            return string.Format(L["Exceeds maximum allowed ({0:C})"], _maxWithdrawalAmount.Value);
         return null;
     }
 
@@ -110,6 +136,20 @@
         if (result.IsSuccess)
         {
             Snackbar.Add(L["Movement registered successfully"], Severity.Success);
+
+            if (MovementType == CashRegisterMovementType.Withdrawal && result.Value is not null)
+            {
+                try
+                {
+                    var ticketUrl = TicketService.GetWithdrawalTicketUrl(result.Value.Id);
+                    await JS.InvokeVoidAsync("printTicket", ticketUrl);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Could not open withdrawal ticket print window");
+                }
+            }
+
             MudDialog.Close(DialogResult.Ok(result.Value));
         }
         else

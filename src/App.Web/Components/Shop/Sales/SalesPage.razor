@@ -286,11 +286,11 @@ else
                 <MudPaper Elevation="2" Class="pa-2" Style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
                     <div style="flex:1; overflow-y:auto; padding-bottom:4px;">
 
-                    @if (_cashSettings is { IsStrictCashLimit: false } &&
-                         _activeCashRegister?.ExpectedCash >= _cashSettings.MaxWithdrawalAmount)
+                    @if (_cashSettings is { IsStrictCashLimit: false, MaxCashLimit: not null } &&
+                         _activeCashRegister?.ExpectedCash >= _cashSettings.MaxCashLimit)
                     {
                         <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2" Icon="@Icons.Material.Filled.Savings">
-                            @L["Cash register has reached the limit ({0:C}). Please make a withdrawal.", _cashSettings.MaxWithdrawalAmount]
+                            @L["Cash register has reached the limit ({0:C}). Please make a withdrawal.", _cashSettings.MaxCashLimit]
                         </MudAlert>
                     }
 
@@ -1393,12 +1393,12 @@ else
                 await LoadActiveCashRegisterAsync();
 
                 // Non-strict warning: notify if limit reached
-                if (_cashSettings is { IsStrictCashLimit: false } &&
-                    _activeCashRegister?.ExpectedCash >= _cashSettings.MaxWithdrawalAmount)
+                if (_cashSettings is { IsStrictCashLimit: false, MaxCashLimit: not null } &&
+                    _activeCashRegister?.ExpectedCash >= _cashSettings.MaxCashLimit)
                 {
                     Snackbar.Add(
                         L["Cash register has reached the limit ({0:C}). Please make a withdrawal.",
-                          _cashSettings.MaxWithdrawalAmount],
+                          _cashSettings.MaxCashLimit],
                         Severity.Warning,
                         cfg => cfg.VisibleStateDuration = 8000);
                 }

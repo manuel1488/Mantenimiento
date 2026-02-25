@@ -8,7 +8,8 @@ public class CashRegisterMovementDto
     public long CashRegisterId { get; set; }
     public CashRegisterMovementType Type { get; set; }
     public decimal Amount { get; set; }
-    public string Reason { get; set; } = string.Empty;
+    public string? Reason { get; set; }
+    public int? WithdrawalNumber { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
