@@ -15,40 +15,41 @@
         </MudText>
     </TitleContent>
     <DialogContent>
-        <MudGrid>
-            <!-- Session Summary -->
-            <MudItem xs="12">
-                <MudText Typo="Typo.subtitle1" Class="mb-2"><strong>@L["Session Summary"]</strong></MudText>
-                <MudSimpleTable Dense="true" Striped="false">
-                    <tbody>
-                        <tr>
-                            <td>@L["Initial Fund"]</td>
-                            <td class="text-right">@Register.InitialFund.ToString("C2")</td>
-                        </tr>
-                        <tr>
-                            <td>@L["Deposits"]</td>
-                            <td class="text-right">@Register.TotalDeposits.ToString("C2")</td>
-                        </tr>
-                        <tr>
-                            <td>@L["Withdrawals"]</td>
-                            <td class="text-right">@Register.TotalWithdrawals.ToString("C2")</td>
-                        </tr>
-                        <tr style="font-weight: bold;">
-                            <td>@L["Expected Cash"]</td>
-                            <td class="text-right">@Register.ExpectedCash.ToString("C2")</td>
-                        </tr>
-                    </tbody>
-                </MudSimpleTable>
+        <MudGrid Spacing="2">
+            <!-- Session Summary — 4 stat cards in one compact row -->
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="0" Class="pa-2 rounded" Style="background: var(--mud-palette-background-grey);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Initial Fund"]</MudText>
+                    <MudText Typo="Typo.body2"><strong>@Register.InitialFund.ToString("C2")</strong></MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="0" Class="pa-2 rounded" Style="background: var(--mud-palette-background-grey);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Deposits"]</MudText>
+                    <MudText Typo="Typo.body2"><strong>@Register.TotalDeposits.ToString("C2")</strong></MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="0" Class="pa-2 rounded" Style="background: var(--mud-palette-background-grey);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Withdrawals"]</MudText>
+                    <MudText Typo="Typo.body2"><strong>@Register.TotalWithdrawals.ToString("C2")</strong></MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="6" sm="3">
+                <MudPaper Elevation="0" Class="pa-2 rounded" Style="background: var(--mud-palette-background-grey);">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Expected Cash"]</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Primary"><strong>@Register.ExpectedCash.ToString("C2")</strong></MudText>
+                </MudPaper>
             </MudItem>
 
             <!-- Bills -->
-            <MudItem xs="12" sm="6">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Bills"]</MudText>
+            <MudItem xs="12" sm="5">
+                <MudText Typo="Typo.subtitle2" Class="mb-1">@L["Bills"]</MudText>
                 <MudSimpleTable Dense="true">
                     <thead>
                         <tr>
                             <th>@L["Denomination"]</th>
-                            <th style="width: 100px;">@L["Quantity"]</th>
+                            <th style="width: 90px;">@L["Quantity"]</th>
                             <th class="text-right">@L["Subtotal"]</th>
                         </tr>
                     </thead>
@@ -73,13 +74,13 @@
             </MudItem>
 
             <!-- Coins -->
-            <MudItem xs="12" sm="6">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Coins"]</MudText>
+            <MudItem xs="12" sm="4">
+                <MudText Typo="Typo.subtitle2" Class="mb-1">@L["Coins"]</MudText>
                 <MudSimpleTable Dense="true">
                     <thead>
                         <tr>
                             <th>@L["Denomination"]</th>
-                            <th style="width: 100px;">@L["Quantity"]</th>
+                            <th style="width: 90px;">@L["Quantity"]</th>
                             <th class="text-right">@L["Subtotal"]</th>
                         </tr>
                     </thead>
@@ -103,18 +104,18 @@
                 </MudSimpleTable>
             </MudItem>
 
-            <!-- Totals -->
-            <MudItem xs="12">
-                <MudDivider Class="mb-3" />
+            <!-- Totals + Notes — tercera columna, alineados con las tablas -->
+            <MudItem xs="12" sm="3" Class="d-flex flex-column gap-2">
+                <MudDivider />
                 <MudSimpleTable Dense="true">
                     <tbody>
-                        <tr style="font-weight: bold;">
+                        <tr>
                             <td>@L["Total Counted"]</td>
-                            <td class="text-right">@TotalCounted.ToString("C2")</td>
+                            <td class="text-right"><strong>@TotalCounted.ToString("C2")</strong></td>
                         </tr>
-                        <tr style="font-weight: bold;">
+                        <tr>
                             <td>@L["Expected Cash"]</td>
-                            <td class="text-right">@Register.ExpectedCash.ToString("C2")</td>
+                            <td class="text-right"><strong>@Register.ExpectedCash.ToString("C2")</strong></td>
                         </tr>
                         <tr>
                             <td><strong>@L["Difference"]</strong></td>
@@ -126,20 +127,16 @@
                         </tr>
                     </tbody>
                 </MudSimpleTable>
-            </MudItem>
-
-            <!-- Closing Notes -->
-            <MudItem xs="12">
                 <MudTextField @bind-Value="_closingNotes"
                               Label="@L["Closing notes (optional)"]"
                               Variant="Variant.Outlined"
-                              Lines="2" />
+                              Lines="3" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel" Disabled="@_processing">@L["Cancel"]</MudButton>
-        <MudButton Color="Color.Error"
+        <MudButton Color="Color.Primary"
                    Variant="Variant.Filled"
                    OnClick="CloseRegister"
                    Disabled="@_processing">
@@ -199,7 +196,7 @@
         _coins =
         [
             new(20m),   new(10m), new(5m),   new(2m),
-            new(1m),    new(0.50m), new(0.20m), new(0.10m)
+            new(1m),    new(0.50m)
         ];
     }
 

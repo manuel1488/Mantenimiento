@@ -308,7 +308,7 @@ else
         {
             [nameof(CloseCashRegisterDialog.Register)] = _register!
         };
-        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Large, FullWidth = true };
         var dialog = await DialogService.ShowAsync<CloseCashRegisterDialog>(L["Close Cash Register"], parameters, options);
         var result = await dialog.Result;
         if (result is { Canceled: false })
