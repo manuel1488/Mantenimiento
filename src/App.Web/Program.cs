@@ -3,6 +3,7 @@
 using App.Core.Constants;
 using App.Core.Identity.Interfaces;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Billing;
 using App.Core.Interfaces.Identity;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
@@ -646,6 +647,14 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
     services.AddScoped<ICashierProfileService, CashierProfileService>();
     services.AddScoped<ICashStationService, CashStationService>();
+
+    // Mexico CFDI billing
+    services.AddHttpClient();
+    services.AddScoped<IMexicoPacSettingsService, MexicoPacSettingsService>();
+    services.AddScoped<IMexicoCfdiXmlService, MexicoCfdiXmlService>();
+    services.AddScoped<IMexicoCsdSigningService, MexicoCsdSigningService>();
+    services.AddScoped<ISwSapienService, SwSapienService>();
+    services.AddScoped<IMexicoInvoiceService, MexicoInvoiceService>();
 }
 
 /// <summary>

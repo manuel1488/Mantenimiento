@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Invoices" xml:space="preserve">
+    <value>Facturas</value>
+  </data>
+  <data name="Search by folio, RFC, or UUID" xml:space="preserve">
+    <value>Buscar por folio, RFC o UUID</value>
+  </data>
+  <data name="Date Range" xml:space="preserve">
+    <value>Rango de fechas</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estatus</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Stamped" xml:space="preserve">
+    <value>Timbrada</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Borrador</value>
+  </data>
+  <data name="Stamp Error" xml:space="preserve">
+    <value>Error de timbrado</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelada</value>
+  </data>
+  <data name="Folio" xml:space="preserve">
+    <value>Folio</value>
+  </data>
+  <data name="Sale #" xml:space="preserve">
+    <value>Venta #</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Customer RFC" xml:space="preserve">
+    <value>RFC Cliente</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="UUID" xml:space="preserve">
+    <value>UUID</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="View Sale" xml:space="preserve">
+    <value>Ver venta</value>
+  </data>
+  <data name="Download XML" xml:space="preserve">
+    <value>Descargar XML</value>
+  </data>
+  <data name="Download PDF" xml:space="preserve">
+    <value>Descargar PDF</value>
+  </data>
+  <data name="Cancel Invoice" xml:space="preserve">
+    <value>Cancelar factura</value>
+  </data>
+  <data name="No invoices found" xml:space="preserve">
+    <value>No se encontraron facturas</value>
+  </data>
+  <data name="Error loading invoices" xml:space="preserve">
+    <value>Error al cargar facturas</value>
+  </data>
+  <data name="XML downloaded" xml:space="preserve">
+    <value>XML descargado</value>
+  </data>
+  <data name="PDF downloaded" xml:space="preserve">
+    <value>PDF descargado</value>
+  </data>
+  <data name="Confirm Cancellation" xml:space="preserve">
+    <value>Confirmar cancelación</value>
+  </data>
+  <data name="Are you sure you want to cancel this invoice?" xml:space="preserve">
+    <value>¿Estás seguro de cancelar esta factura?</value>
+  </data>
+  <data name="Cancel invoice" xml:space="preserve">
+    <value>Cancelar factura</value>
+  </data>
+  <data name="This action cannot be undone" xml:space="preserve">
+    <value>Esta acción no se puede deshacer</value>
+  </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Mantener</value>
+  </data>
+  <data name="Invoice cancellation requested" xml:space="preserve">
+    <value>Solicitud de cancelación enviada</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Cancelling" xml:space="preserve">
+    <value>Cancelando</value>
+  </data>
+</root>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Generate Invoice" xml:space="preserve">
+    <value>Generar Factura</value>
+  </data>
+  <data name="Sale #" xml:space="preserve">
+    <value>Venta #</value>
+  </data>
+  <data name="This sale already has an invoice" xml:space="preserve">
+    <value>Esta venta ya tiene una factura</value>
+  </data>
+  <data name="Sale Information" xml:space="preserve">
+    <value>Información de la venta</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Receptor Fiscal Data" xml:space="preserve">
+    <value>Datos Fiscales del Receptor</value>
+  </data>
+  <data name="RFC" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="RFC is required" xml:space="preserve">
+    <value>El RFC es requerido</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="Postal code is required" xml:space="preserve">
+    <value>El código postal es requerido</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Nombre / Razón Social</value>
+  </data>
+  <data name="Legal name is required" xml:space="preserve">
+    <value>El nombre fiscal es requerido</value>
+  </data>
+  <data name="Fiscal Regime" xml:space="preserve">
+    <value>Régimen Fiscal</value>
+  </data>
+  <data name="Fiscal regime is required" xml:space="preserve">
+    <value>El régimen fiscal es requerido</value>
+  </data>
+  <data name="CFDI Use" xml:space="preserve">
+    <value>Uso del CFDI</value>
+  </data>
+  <data name="CFDI use is required" xml:space="preserve">
+    <value>El uso del CFDI es requerido</value>
+  </data>
+  <data name="Payment Form" xml:space="preserve">
+    <value>Forma de Pago</value>
+  </data>
+  <data name="Payment form is required" xml:space="preserve">
+    <value>La forma de pago es requerida</value>
+  </data>
+  <data name="Payment Method" xml:space="preserve">
+    <value>Método de Pago</value>
+  </data>
+  <data name="Payment method is required" xml:space="preserve">
+    <value>El método de pago es requerido</value>
+  </data>
+  <data name="PUE - Single payment" xml:space="preserve">
+    <value>PUE - Pago en una sola exhibición</value>
+  </data>
+  <data name="PPD - Installments" xml:space="preserve">
+    <value>PPD - Pago en parcialidades o diferido</value>
+  </data>
+  <data name="Send to Email (optional)" xml:space="preserve">
+    <value>Enviar por correo (opcional)</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Generating..." xml:space="preserve">
+    <value>Generando...</value>
+  </data>
+  <data name="Invoice generated successfully" xml:space="preserve">
+    <value>¡Factura generada exitosamente!</value>
+  </data>
+  <data name="Error generating invoice" xml:space="preserve">
+    <value>Error al generar la factura</value>
+  </data>
+  <data name="Error loading data" xml:space="preserve">
+    <value>Error al cargar los datos</value>
+  </data>
+  <data name="Invoice" xml:space="preserve">
+    <value>Factura</value>
+  </data>
+</root>

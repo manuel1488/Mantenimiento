@@ -38,5 +38,11 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         
         builder.Property(e => e.CaQstNumber)
             .IsUnicode(false);
+
+        builder.Property(e => e.FiscalRegime)
+            .IsUnicode(false);
+
+        builder.Property(e => e.HasFiscalData)
+            .HasDefaultValue(false);
     }
 }

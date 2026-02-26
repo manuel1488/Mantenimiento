@@ -48,6 +48,9 @@
   <data name="Initial Setup" xml:space="preserve">
     <value>Initial Setup</value>
   </data>
+  <data name="Invoices" xml:space="preserve">
+    <value>Invoices</value>
+  </data>
   <data name="Cash Register" xml:space="preserve">
     <value>Cash Register</value>
   </data>

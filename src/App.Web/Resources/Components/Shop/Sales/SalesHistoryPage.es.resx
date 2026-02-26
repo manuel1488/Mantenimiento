@@ -149,4 +149,13 @@
     <value>Venta cancelada exitosamente</value>
     <comment>Mensaje de éxito cuando se cancela la venta</comment>
   </data>
+  <data name="Generate Invoice" xml:space="preserve">
+    <value>Generar Factura</value>
+  </data>
+  <data name="View Invoice" xml:space="preserve">
+    <value>Ver Factura</value>
+  </data>
+  <data name="Invoice" xml:space="preserve">
+    <value>Factura</value>
+  </data>
 </root>

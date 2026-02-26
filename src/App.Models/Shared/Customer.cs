@@ -61,4 +61,10 @@ public class Customer : BaseEntity<long>
     [Required]
     [StringLength(3)]
     public string CountryCode { get; set; } = null!;
+
+    // Mexico fiscal data
+    [StringLength(5)]
+    public string? FiscalRegime { get; set; }
+
+    public bool HasFiscalData { get; set; }
 }

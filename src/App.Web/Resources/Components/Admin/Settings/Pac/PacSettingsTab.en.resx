@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Invoice Numbering" xml:space="preserve">
+    <value>Invoice Numbering</value>
+  </data>
+  <data name="Invoice Serie" xml:space="preserve">
+    <value>Invoice Serie</value>
+  </data>
+  <data name="Letter prefix for folio (e.g. A, B, F)" xml:space="preserve">
+    <value>Letter prefix for folio (e.g. A, B, F)</value>
+  </data>
+  <data name="Start Folio" xml:space="preserve">
+    <value>Start Folio</value>
+  </data>
+  <data name="First folio number to use (applied when no invoices exist yet)" xml:space="preserve">
+    <value>First folio number to use (applied when no invoices exist yet)</value>
+  </data>
+  <data name="PAC Provider (SW Sapien)" xml:space="preserve">
+    <value>PAC Provider (SW Sapien)</value>
+  </data>
+  <data name="Production URL" xml:space="preserve">
+    <value>Production URL</value>
+  </data>
+  <data name="Test URL" xml:space="preserve">
+    <value>Test URL</value>
+  </data>
+  <data name="Authentication" xml:space="preserve">
+    <value>Authentication</value>
+  </data>
+  <data name="Infinite Token (recommended)" xml:space="preserve">
+    <value>Infinite Token (recommended)</value>
+  </data>
+  <data name="Leave empty to use username/password instead" xml:space="preserve">
+    <value>Leave empty to use username/password instead</value>
+  </data>
+  <data name="User (optional)" xml:space="preserve">
+    <value>User (optional)</value>
+  </data>
+  <data name="Password (optional)" xml:space="preserve">
+    <value>Password (optional)</value>
+  </data>
+  <data name="Password saved — enter to change" xml:space="preserve">
+    <value>Password saved — enter to change</value>
+  </data>
+  <data name="Production Mode" xml:space="preserve">
+    <value>Production Mode</value>
+  </data>
+  <data name="Test Mode (Sandbox)" xml:space="preserve">
+    <value>Test Mode (Sandbox)</value>
+  </data>
+  <data name="Test Connection" xml:space="preserve">
+    <value>Test Connection</value>
+  </data>
+  <data name="Testing..." xml:space="preserve">
+    <value>Testing...</value>
+  </data>
+  <data name="CSD Digital Certificate" xml:space="preserve">
+    <value>CSD Digital Certificate</value>
+  </data>
+  <data name="Certificate (.cer)" xml:space="preserve">
+    <value>Certificate (.cer)</value>
+  </data>
+  <data name="Uploaded" xml:space="preserve">
+    <value>Uploaded</value>
+  </data>
+  <data name="Not uploaded" xml:space="preserve">
+    <value>Not uploaded</value>
+  </data>
+  <data name="Upload Certificate" xml:space="preserve">
+    <value>Upload Certificate</value>
+  </data>
+  <data name="Private Key (.key)" xml:space="preserve">
+    <value>Private Key (.key)</value>
+  </data>
+  <data name="Upload Private Key" xml:space="preserve">
+    <value>Upload Private Key</value>
+  </data>
+  <data name="CSD Password" xml:space="preserve">
+    <value>CSD Password</value>
+  </data>
+  <data name="Password to decrypt the private key" xml:space="preserve">
+    <value>Password to decrypt the private key</value>
+  </data>
+  <data name="PAC billing is fully configured and ready to use." xml:space="preserve">
+    <value>PAC billing is fully configured and ready to use.</value>
+  </data>
+  <data name="PAC billing is not fully configured. Please fill all required fields." xml:space="preserve">
+    <value>PAC billing is not fully configured. Please fill all required fields.</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Error reading file" xml:space="preserve">
+    <value>Error reading file</value>
+  </data>
+  <data name="Connection successful" xml:space="preserve">
+    <value>Connection successful</value>
+  </data>
+  <data name="Connection test failed" xml:space="preserve">
+    <value>Connection test failed</value>
+  </data>
+  <data name="Settings saved successfully" xml:space="preserve">
+    <value>Settings saved successfully</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+</root>

@@ -23,4 +23,8 @@ public class CustomerDto : AuditableDto
     public string? CaQstNumber { get; set; }
     public string CountryCode { get; set; } = null!;
     public bool IsActive { get; set; }
+
+    // Mexico fiscal data
+    public string? FiscalRegime { get; set; }
+    public bool HasFiscalData { get; set; }
 }

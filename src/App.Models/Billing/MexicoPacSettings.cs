@@ -1,25 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
 
 namespace App.Models.Billing;
 
-
 [Table("mx_pac_settings")]
 public class MexicoPacSettings : BaseEntity<int>
 {
+    // PAC provider authentication
     [Required]
     [StringLength(50)]
     public string ProviderName { get; set; } = null!;
 
-    [Required]
-    [StringLength(50)]
-    public string User { get; set; } = null!;
-
-    [Required]
     [StringLength(100)]
-    public string Password { get; set; } = null!;
+    public string? User { get; set; }
+
+    [StringLength(200)]
+    public string? Password { get; set; }
+
+    [StringLength(500)]
+    public string? Token { get; set; }
 
     [Required]
     [StringLength(200)]
@@ -27,4 +28,37 @@ public class MexicoPacSettings : BaseEntity<int>
 
     [StringLength(200)]
     public string? TestUrl { get; set; }
+
+    public bool IsProduction { get; set; }
+
+    // Issuer (emisor) company fiscal data
+    [StringLength(20)]
+    public string? IssuerRfc { get; set; }
+
+    [StringLength(150)]
+    public string? IssuerLegalName { get; set; }
+
+    [StringLength(5)]
+    public string? IssuerFiscalRegime { get; set; }
+
+    // Invoice series/folio
+    [StringLength(10)]
+    public string? InvoiceSerie { get; set; } = "A";
+
+    /// <summary>The folio number to start from (inclusive). Default: 1.</summary>
+    public long StartFolio { get; set; } = 1;
+
+    // CSD (Certificado de Sello Digital) — stored as Base64
+    [Column(TypeName = "text")]
+    public string? CsdCertificateBase64 { get; set; }
+
+    [Column(TypeName = "text")]
+    public string? CsdPrivateKeyBase64 { get; set; }
+
+    [StringLength(200)]
+    public string? CsdPassword { get; set; }
+
+    // Issuer address (required for CFDI 4.0 XML)
+    [StringLength(10)]
+    public string? IssuerPostalCode { get; set; }
 }

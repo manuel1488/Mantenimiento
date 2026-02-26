@@ -149,4 +149,13 @@
     <value>Sale cancelled successfully</value>
     <comment>Success message when sale is cancelled</comment>
   </data>
+  <data name="Generate Invoice" xml:space="preserve">
+    <value>Generate Invoice</value>
+  </data>
+  <data name="View Invoice" xml:space="preserve">
+    <value>View Invoice</value>
+  </data>
+  <data name="Invoice" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
 </root>

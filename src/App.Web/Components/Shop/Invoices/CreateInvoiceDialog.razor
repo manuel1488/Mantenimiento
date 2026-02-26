@@ -1,0 +1,275 @@
+@using App.Core.Constants
+@using App.Core.DTOs.Billing.Mexico
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Billing
+@using MudBlazor
+
+@inject IMexicoInvoiceService InvoiceService
+@inject IMexicoFiscalCatalogService FiscalCatalogService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<CreateInvoiceDialog> L
+@inject ILogger<CreateInvoiceDialog> Logger
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Receipt" Class="mr-2" />
+            @L["Generate Invoice"] - @L["Sale #"]@SaleId
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+        }
+
+        @if (_existingInvoice != null)
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-4">
+                @L["This sale already has an invoice"] (@_existingInvoice.FolioDisplay)
+                @if (_existingInvoice.IsStamped)
+                {
+                    <text> - UUID: @_existingInvoice.Uuid</text>
+                }
+            </MudAlert>
+        }
+        else
+        {
+            <MudForm @ref="_form" @bind-IsValid="_isValid">
+                <MudGrid Spacing="2">
+                    <!-- Sale info summary -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Sale Information"]</MudText>
+                        <MudGrid Spacing="1">
+                            <MudItem xs="6">
+                                <MudText Typo="Typo.body2">@L["Customer"]: <b>@CustomerName</b></MudText>
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudText Typo="Typo.body2">@L["Total"]: <b>@SaleTotal.ToString("C")</b></MudText>
+                            </MudItem>
+                        </MudGrid>
+                        <MudDivider Class="my-3" />
+                    </MudItem>
+
+                    <!-- Receptor fiscal data -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Receptor Fiscal Data"]</MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_dto.CustomerRfc"
+                                      Label="@L["RFC"]"
+                                      Required="true"
+                                      RequiredError="@L["RFC is required"]"
+                                      MaxLength="13"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_dto.CustomerPostalCode"
+                                      Label="@L["Postal Code"]"
+                                      Required="true"
+                                      RequiredError="@L["Postal code is required"]"
+                                      MaxLength="5"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_dto.CustomerLegalName"
+                                      Label="@L["Legal Name"]"
+                                      Required="true"
+                                      RequiredError="@L["Legal name is required"]"
+                                      MaxLength="150"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_dto.CustomerFiscalRegime"
+                                   Label="@L["Fiscal Regime"]"
+                                   Required="true"
+                                   RequiredError="@L["Fiscal regime is required"]"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var regime in _fiscalRegimes)
+                            {
+                                <MudSelectItem Value="@regime.Code">@regime.Description (@regime.Code)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <!-- CFDI -->
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_dto.CfdiUse"
+                                   Label="@L["CFDI Use"]"
+                                   Required="true"
+                                   RequiredError="@L["CFDI use is required"]"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var use in _cfdiUses)
+                            {
+                                <MudSelectItem Value="@use.Code">@use.Description (@use.Code)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_dto.PaymentForm"
+                                   Label="@L["Payment Form"]"
+                                   Required="true"
+                                   RequiredError="@L["Payment form is required"]"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var form in _paymentForms)
+                            {
+                                <MudSelectItem Value="@form.Code">@form.Description (@form.Code)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="_dto.PaymentMethod"
+                                   Label="@L["Payment Method"]"
+                                   Required="true"
+                                   RequiredError="@L["Payment method is required"]"
+                                   Variant="Variant.Outlined"
+                                   AnchorOrigin="Origin.BottomCenter">
+                            <MudSelectItem Value="@("PUE")">@L["PUE - Single payment"]</MudSelectItem>
+                            <MudSelectItem Value="@("PPD")">@L["PPD - Installments"]</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_dto.SendToEmail"
+                                      Label="@L["Send to Email (optional)"]"
+                                      MaxLength="100"
+                                      Variant="Variant.Outlined"
+                                      InputType="InputType.Email" />
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="@_processing">@L["Cancel"]</MudButton>
+
+        @if (_existingInvoice != null)
+        {
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       OnClick="Cancel">
+                @L["Close"]
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       OnClick="GenerateInvoice"
+                       Disabled="@(_processing || !_isValid || _loading)">
+                @if (_processing)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">@L["Generating..."]</MudText>
+                }
+                else
+                {
+                    @L["Generate Invoice"]
+                }
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public long SaleId { get; set; }
+    [Parameter] public decimal SaleTotal { get; set; }
+    [Parameter] public string CustomerName { get; set; } = string.Empty;
+    [Parameter] public string? CustomerRfc { get; set; }
+    [Parameter] public string? CustomerLegalName { get; set; }
+    [Parameter] public string? CustomerPostalCode { get; set; }
+    [Parameter] public string? CustomerFiscalRegime { get; set; }
+    [Parameter] public string? CustomerEmail { get; set; }
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _loading;
+    private bool _processing;
+    private MexicoInvoiceDto? _existingInvoice;
+
+    private CreateMexicoInvoiceDto _dto = new();
+    private List<MexicoFiscalRegimeDto> _fiscalRegimes = [];
+    private List<MexicoCfdiUseDto> _cfdiUses = [];
+    private List<MexicoPaymentFormDto> _paymentForms = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        try
+        {
+            // Pre-fill DTO from customer data
+            _dto.SaleId = SaleId;
+            _dto.CustomerRfc = CustomerRfc ?? string.Empty;
+            _dto.CustomerLegalName = CustomerLegalName ?? string.Empty;
+            _dto.CustomerPostalCode = CustomerPostalCode ?? string.Empty;
+            _dto.CustomerFiscalRegime = CustomerFiscalRegime ?? string.Empty;
+            _dto.SendToEmail = CustomerEmail;
+            _dto.PaymentMethod = "PUE";
+
+            // Load catalogs and check existing invoice in parallel
+            _fiscalRegimes = (await FiscalCatalogService.GetFiscalRegimesAsync()).ToList();
+            _cfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();
+            _paymentForms = (await FiscalCatalogService.GetPaymentFormsAsync()).ToList();
+            _existingInvoice = await InvoiceService.GetBySaleIdAsync(SaleId);
+
+            // Default CFDI use
+            if (string.IsNullOrEmpty(_dto.CfdiUse) && _cfdiUses.Any())
+                _dto.CfdiUse = "G03"; // Gastos en general
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading create invoice dialog");
+            Snackbar.Add(L["Error loading data"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task GenerateInvoice()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _processing = true;
+        try
+        {
+            var result = await InvoiceService.CreateAndStampAsync(_dto);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Invoice generated successfully"] + $" UUID: {result.Value!.Uuid}", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(result.Value));
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error generating invoice for sale {SaleId}", SaleId);
+            Snackbar.Add(L["Error generating invoice"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}
