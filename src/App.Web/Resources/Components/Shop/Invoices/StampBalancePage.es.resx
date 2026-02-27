@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Stamp Balance" xml:space="preserve">
+    <value>Control de Timbres</value>
+  </data>
+  <data name="Current Balance (SW Sapien)" xml:space="preserve">
+    <value>Saldo Actual (SW Sapien)</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="Could not load balance. Check your PAC configuration." xml:space="preserve">
+    <value>No se pudo cargar el saldo. Revisa la configuración PAC.</value>
+  </data>
+  <data name="PAC not configured or unreachable. Showing local data only." xml:space="preserve">
+    <value>PAC no configurado o no disponible. Mostrando solo datos locales.</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Disponibles</value>
+  </data>
+  <data name="Low balance" xml:space="preserve">
+    <value>Saldo bajo</value>
+  </data>
+  <data name="Used (provider)" xml:space="preserve">
+    <value>Utilizados (PAC)</value>
+  </data>
+  <data name="Total assigned" xml:space="preserve">
+    <value>Total contratado</value>
+  </data>
+  <data name="Unlimited" xml:space="preserve">
+    <value>Ilimitado</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Uso</value>
+  </data>
+  <data name="remaining" xml:space="preserve">
+    <value>restantes</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Vence</value>
+  </data>
+  <data name="Last updated" xml:space="preserve">
+    <value>Última actualización</value>
+  </data>
+  <data name="Invoices stamped in this system" xml:space="preserve">
+    <value>Facturas timbradas en este sistema</value>
+  </data>
+  <data name="Alert Settings" xml:space="preserve">
+    <value>Configuración de Alertas</value>
+  </data>
+  <data name="Enable low-balance alerts" xml:space="preserve">
+    <value>Habilitar alertas de saldo bajo</value>
+  </data>
+  <data name="Alert threshold (stamps)" xml:space="preserve">
+    <value>Umbral de alerta (timbres)</value>
+  </data>
+  <data name="Send alert when available stamps fall at or below this value" xml:space="preserve">
+    <value>Enviar alerta cuando los timbres disponibles sean iguales o menores a este valor</value>
+  </data>
+  <data name="Cooldown between alerts (hours)" xml:space="preserve">
+    <value>Tiempo entre alertas (horas)</value>
+  </data>
+  <data name="Minimum hours between consecutive alert emails" xml:space="preserve">
+    <value>Mínimo de horas entre correos de alerta consecutivos</value>
+  </data>
+  <data name="Last alert sent" xml:space="preserve">
+    <value>Última alerta enviada</value>
+  </data>
+  <data name="Users with the '{0}' permission will receive email alerts." xml:space="preserve">
+    <value>Los usuarios con el permiso '{0}' recibirán alertas por correo.</value>
+  </data>
+  <data name="Receive stamp alerts" xml:space="preserve">
+    <value>Recibir alertas de timbres</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Save Settings" xml:space="preserve">
+    <value>Guardar Configuración</value>
+  </data>
+  <data name="Alert settings saved" xml:space="preserve">
+    <value>Configuración de alertas guardada exitosamente</value>
+  </data>
+  <data name="Error loading balance" xml:space="preserve">
+    <value>Error al cargar el saldo</value>
+  </data>
+  <data name="Error loading alert settings" xml:space="preserve">
+    <value>Error al cargar la configuración de alertas</value>
+  </data>
+  <data name="Error saving alert settings" xml:space="preserve">
+    <value>Error al guardar la configuración de alertas</value>
+  </data>
+</root>

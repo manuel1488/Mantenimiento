@@ -292,6 +292,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.CreateInvoice, policy => policy.RequireClaim(ApplicationClaims.Shop.CreateInvoice));
         options.AddPolicy(ApplicationClaims.Shop.ViewInvoice, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInvoice));
         options.AddPolicy(ApplicationClaims.Shop.CancelInvoice, policy => policy.RequireClaim(ApplicationClaims.Shop.CancelInvoice));
+        options.AddPolicy(ApplicationClaims.Shop.ViewStampBalance, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewStampBalance));
+        options.AddPolicy(ApplicationClaims.Shop.ReceiveStampAlertEmails, policy => policy.RequireClaim(ApplicationClaims.Shop.ReceiveStampAlertEmails));
 
         options.AddPolicy(ApplicationClaims.Shop.ViewWarehouses, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewWarehouses));
         options.AddPolicy(ApplicationClaims.Shop.ManageWarehouses, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageWarehouses));
@@ -655,6 +657,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IMexicoCsdSigningService, MexicoCsdSigningService>();
     services.AddScoped<ISwSapienService, SwSapienService>();
     services.AddScoped<IMexicoInvoiceService, MexicoInvoiceService>();
+    services.AddScoped<IMexicoStampAlertService, MexicoStampAlertService>();
 }
 
 /// <summary>

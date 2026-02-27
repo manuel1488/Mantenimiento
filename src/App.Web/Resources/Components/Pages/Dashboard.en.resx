@@ -134,6 +134,26 @@
     <value>Manage Inventory</value>
   </data>
   
+  <!-- Stamp Balance Widget -->
+  <data name="Stamp Balance" xml:space="preserve">
+    <value>Stamp Balance</value>
+  </data>
+  <data name="stamps available" xml:space="preserve">
+    <value>stamps available</value>
+  </data>
+  <data name="Invoices stamped" xml:space="preserve">
+    <value>Invoices stamped</value>
+  </data>
+  <data name="Low balance" xml:space="preserve">
+    <value>Low balance</value>
+  </data>
+  <data name="Not configured" xml:space="preserve">
+    <value>Not configured</value>
+  </data>
+  <data name="View Details" xml:space="preserve">
+    <value>View Details</value>
+  </data>
+
   <!-- Error Messages -->
   <data name="Error loading dashboard data" xml:space="preserve">
     <value>Error loading dashboard data</value>

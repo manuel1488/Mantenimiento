@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error fetching stamp balance" xml:space="preserve">
+    <value>Error fetching stamp balance from the PAC provider</value>
+  </data>
+  <data name="Error saving alert settings" xml:space="preserve">
+    <value>Error saving alert settings</value>
+  </data>
+  <data name="Low stamp balance alert: {0} available" xml:space="preserve">
+    <value>⚠️ Low Stamp Balance Alert: {0} stamps available</value>
+  </data>
+  <data name="Stamp Balance Alert" xml:space="preserve">
+    <value>Stamp Balance Alert</value>
+  </data>
+  <data name="Low Stamp Balance" xml:space="preserve">
+    <value>Low Stamp Balance</value>
+  </data>
+  <data name="The PAC stamp balance (SW Sapien) has reached the configured minimum level." xml:space="preserve">
+    <value>The PAC stamp balance (SW Sapien) has reached the configured minimum level.</value>
+  </data>
+  <data name="Available stamps" xml:space="preserve">
+    <value>Available stamps</value>
+  </data>
+  <data name="Alert threshold" xml:space="preserve">
+    <value>Alert threshold</value>
+  </data>
+  <data name="Please purchase additional stamps to continue issuing electronic invoices (CFDI)." xml:space="preserve">
+    <value>Please purchase additional stamps to continue issuing electronic invoices (CFDI).</value>
+  </data>
+  <data name="This message was automatically generated. Users with the 'Receive stamp alerts' permission receive these notifications." xml:space="preserve">
+    <value>This message was automatically generated. Users with the 'Receive stamp alerts' permission receive these notifications.</value>
+  </data>
+</root>

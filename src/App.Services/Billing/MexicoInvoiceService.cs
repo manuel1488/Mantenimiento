@@ -21,6 +21,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private readonly ISwSapienService _pacService;
     private readonly IMexicoPacSettingsService _pacSettingsService;
     private readonly ITaxSettingsService _taxSettingsService;
+    private readonly IMexicoStampAlertService _stampAlertService;
     private readonly IPdfService _pdfService;
     private readonly ILogger<MexicoInvoiceService> _logger;
 
@@ -37,6 +38,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         ISwSapienService pacService,
         IMexicoPacSettingsService pacSettingsService,
         ITaxSettingsService taxSettingsService,
+        IMexicoStampAlertService stampAlertService,
         IPdfService pdfService,
         ILogger<MexicoInvoiceService> logger)
     {
@@ -46,6 +48,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         _pacService = pacService;
         _pacSettingsService = pacSettingsService;
         _taxSettingsService = taxSettingsService;
+        _stampAlertService = stampAlertService;
         _pdfService = pdfService;
         _logger = logger;
     }
@@ -218,6 +221,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         _logger.LogWarning(emailEx, "Email send failed for invoice {InvoiceId}", invoice.Id);
                     }
                 }
+
+                // 14. Non-blocking stamp alert check (fire-and-forget)
+                _ = Task.Run(() => _stampAlertService.CheckAndAlertIfNeededAsync());
 
                 var result = await BuildInvoiceDtoFromEntity(invoice);
                 result.HasXml = true;

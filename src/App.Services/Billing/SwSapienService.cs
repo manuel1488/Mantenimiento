@@ -169,4 +169,61 @@ public class SwSapienService : ISwSapienService
     }
 
     #endregion
+
+    // ── Balance API ──────────────────────────────────────────────────────────
+
+    public async Task<Result<SwSapienStampBalanceData>> GetStampBalanceAsync()
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var settings = await context.MexicoPacSettings.FirstOrDefaultAsync();
+
+            if (settings == null)
+                return Result<SwSapienStampBalanceData>.Failure("No hay configuración PAC disponible");
+
+            var stampingUrl = settings.IsProduction
+                ? settings.ProductionUrl
+                : (settings.TestUrl ?? settings.ProductionUrl);
+
+            var tokenResult = await GetTokenAsync(settings.Token, settings.User, settings.Password, stampingUrl);
+            if (!tokenResult.IsSuccess)
+                return Result<SwSapienStampBalanceData>.Failure(tokenResult.Error!);
+
+            // SW Sapien management API uses a different base URL than the stamping API
+            var managementUrl = GetManagementApiUrl(stampingUrl);
+
+            var http = _httpClientFactory.CreateClient();
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", tokenResult.Value!);
+
+            var response = await http.GetAsync($"{managementUrl}/management/v2/api/users/balance");
+            var json = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug("SW Sapien balance response: {Json}", json);
+
+            var result = JsonSerializer.Deserialize<SwSapienBalanceApiResponse>(json, _jsonOptions);
+            if (result?.Status != "success" || result.Data == null)
+                return Result<SwSapienStampBalanceData>.Failure(
+                    $"Error al consultar saldo de timbres: {result?.Message ?? "respuesta inválida del PAC"}");
+
+            return Result<SwSapienStampBalanceData>.Success(result.Data);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting stamp balance from SW Sapien");
+            return Result<SwSapienStampBalanceData>.Failure($"Error al consultar saldo: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Derives the SW Sapien Management API base URL from the stamping URL.
+    /// services.sw.com.mx     → api.sw.com.mx
+    /// services.test.sw.com.mx → api.test.sw.com.mx
+    /// </summary>
+    private static string GetManagementApiUrl(string stampingUrl) =>
+        stampingUrl
+            .Replace("services.test.sw.com.mx", "api.test.sw.com.mx")
+            .Replace("services.sw.com.mx", "api.sw.com.mx")
+            .TrimEnd('/');
+
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error fetching stamp balance" xml:space="preserve">
+    <value>Error al consultar el saldo de timbres con el proveedor PAC</value>
+  </data>
+  <data name="Error saving alert settings" xml:space="preserve">
+    <value>Error al guardar la configuración de alertas</value>
+  </data>
+  <data name="Low stamp balance alert: {0} available" xml:space="preserve">
+    <value>⚠️ Alerta de saldo bajo: {0} timbres disponibles</value>
+  </data>
+  <data name="Stamp Balance Alert" xml:space="preserve">
+    <value>Alerta de Timbres</value>
+  </data>
+  <data name="Low Stamp Balance" xml:space="preserve">
+    <value>Saldo de Timbres Bajo</value>
+  </data>
+  <data name="The PAC stamp balance (SW Sapien) has reached the configured minimum level." xml:space="preserve">
+    <value>El saldo de timbres PAC (SW Sapien) ha alcanzado el nivel mínimo configurado.</value>
+  </data>
+  <data name="Available stamps" xml:space="preserve">
+    <value>Timbres disponibles</value>
+  </data>
+  <data name="Alert threshold" xml:space="preserve">
+    <value>Umbral de alerta</value>
+  </data>
+  <data name="Please purchase additional stamps to continue issuing electronic invoices (CFDI)." xml:space="preserve">
+    <value>Por favor adquiera más timbres para continuar emitiendo facturas electrónicas (CFDI).</value>
+  </data>
+  <data name="This message was automatically generated. Users with the 'Receive stamp alerts' permission receive these notifications." xml:space="preserve">
+    <value>Este mensaje fue generado automáticamente. Los usuarios con el permiso "Recibir alertas de timbres" reciben estas notificaciones.</value>
+  </data>
+</root>

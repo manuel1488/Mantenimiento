@@ -1,13 +1,17 @@
 ﻿@page "/dashboard"
 @using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
 @using App.Core.DTOs.Dashboard
+@using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces
+@using App.Core.Interfaces.Billing
 @using App.Shared.Services
 @using System.Globalization
 
 @inject IDashboardService DashboardService
 @inject IDateTime DateTimeService
 @inject ICompanySettingsService CompanySettingsService
+@inject IMexicoStampAlertService StampAlertService
 @inject IStringLocalizer<Dashboard> L
 @inject ISnackbar Snackbar
 @inject ILogger<Dashboard> Logger
@@ -285,7 +289,7 @@
                     <MudItem xs="12">
                         <MudPaper Elevation="2" Class="pa-4 rounded-lg">
                             <MudText Typo="Typo.h6" Class="mb-4">@L["Inventory Summary"]</MudText>
-                            
+
                             <MudGrid>
                                 <MudItem xs="12" sm="6">
                                     <div class="d-flex flex-column align-center">
@@ -302,10 +306,10 @@
                                     </div>
                                 </MudItem>
                             </MudGrid>
-                            
+
                             <div class="d-flex justify-end mt-2">
-                                <MudButton Variant="Variant.Text" 
-                                          Size="Size.Small" 
+                                <MudButton Variant="Variant.Text"
+                                          Size="Size.Small"
                                           Color="Color.Primary"
                                           Href="/shop/inventory"
                                           EndIcon="@Icons.Material.Filled.ArrowForward">
@@ -314,6 +318,73 @@
                             </div>
                         </MudPaper>
                     </MudItem>
+
+                    <!-- Stamp Balance (compact, secondary) -->
+                    <AuthorizeView Policy="@ApplicationClaims.Shop.ViewStampBalance">
+                        <Authorized>
+                            <MudItem xs="12">
+                                <MudPaper Elevation="1" Class="pa-3 rounded-lg">
+                                    @if (_loadingStamps)
+                                    {
+                                        <div class="d-flex align-center gap-3">
+                                            <MudSkeleton Width="120px" Height="18px" />
+                                            <MudSkeleton Width="60px" Height="18px" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex justify-space-between align-center">
+                                            <div class="d-flex align-center gap-2">
+                                                <MudIcon Icon="@Icons.Material.Filled.ConfirmationNumber"
+                                                         Size="Size.Small" Color="Color.Secondary" />
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                                    @L["Stamp Balance"]
+                                                </MudText>
+                                                @if (_stampBalance?.IsConfigured == true)
+                                                {
+                                                    <MudText Typo="Typo.body2">
+                                                        <strong style="color: @(_stampBalance.IsUnlimited || _stampBalance.Available > _stampAlertThreshold ? "var(--mud-palette-success)" : "var(--mud-palette-error)")">
+                                                            @(_stampBalance.IsUnlimited ? "∞" : _stampBalance.Available.ToString("N0"))
+                                                        </strong>
+                                                        <span style="color: var(--mud-palette-text-secondary); font-size: 0.75rem;">
+                                                            @L["stamps available"]
+                                                        </span>
+                                                    </MudText>
+                                                    @if (!_stampBalance.IsUnlimited && _stampBalance.Available <= _stampAlertThreshold)
+                                                    {
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Error">
+                                                            @L["Low balance"]
+                                                        </MudChip>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        @L["Not configured"]
+                                                    </MudText>
+                                                }
+                                            </div>
+                                            <MudButton Variant="Variant.Text"
+                                                       Size="Size.Small"
+                                                       Color="Color.Primary"
+                                                       Href="/shop/stamp-balance"
+                                                       EndIcon="@Icons.Material.Filled.ArrowForward">
+                                                @L["View Details"]
+                                            </MudButton>
+                                        </div>
+                                        @if (_stampBalance?.IsConfigured == true && !_stampBalance.IsUnlimited && _stampBalance.TotalAssigned > 0)
+                                        {
+                                            <MudProgressLinear Value="@(_stampBalance.AvailablePercent ?? 0)"
+                                                               Color="@GetStampProgressColor()"
+                                                               Rounded="true"
+                                                               Size="Size.Small"
+                                                               Class="mt-2" />
+                                        }
+                                    }
+                                </MudPaper>
+                            </MudItem>
+                        </Authorized>
+                    </AuthorizeView>
                 </MudGrid>
             </MudItem>
         </MudGrid>
@@ -324,17 +395,22 @@
     private bool _loading = true;
     private string _selectedPeriod = "month";
     private DateRange _dateRange = new(DateTime.Now.AddDays(-30), DateTime.Now);
-    
+
     private DashboardSummaryDto _summary = new();
     private SalesPerformanceDto _performance = new();
     private IEnumerable<StockAlertDto> _stockAlerts = Array.Empty<StockAlertDto>();
     private IEnumerable<RecentSaleDto> _recentSales = Array.Empty<RecentSaleDto>();
-    
+
+    // Stamp balance
+    private MexicoStampBalanceDto? _stampBalance;
+    private int _stampAlertThreshold = 50;
+    private bool _loadingStamps = true;
+
     // Datos para gráficas
     private double[] _salesChartData = Array.Empty<double>();
     private string[] _salesLabels = Array.Empty<string>();
     private List<ChartSeries> _salesChartSeries = new();
-    
+
     // Zona horaria
     private TimeZoneInfo _timeZone = TimeZoneInfo.Utc;
 
@@ -342,10 +418,8 @@
     {
         try
         {
-            // Obtener la zona horaria de la compañía
             _timeZone = await CompanySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
-            
-            await LoadDashboardData();
+            await Task.WhenAll(LoadDashboardData(), LoadStampBalanceAsync());
         }
         catch (Exception ex)
         {
@@ -362,13 +436,34 @@
             {
                 UpdateDateRangeFromPeriod();
             }
-            
-            await LoadDashboardData();
+            await Task.WhenAll(LoadDashboardData(), LoadStampBalanceAsync());
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error refreshing dashboard");
             Snackbar.Add(L["Error refreshing dashboard data"], Severity.Error);
+        }
+    }
+
+    private async Task LoadStampBalanceAsync()
+    {
+        _loadingStamps = true;
+        try
+        {
+            var settings = await StampAlertService.GetAlertSettingsAsync();
+            _stampAlertThreshold = settings.LowStampThreshold;
+
+            var result = await StampAlertService.GetBalanceAsync();
+            if (result.IsSuccess)
+                _stampBalance = result.Value;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Could not load stamp balance for dashboard");
+        }
+        finally
+        {
+            _loadingStamps = false;
         }
     }
 
@@ -462,5 +557,13 @@
             "cancelled" => Color.Error,
             _ => Color.Default
         };
+    }
+
+    private Color GetStampProgressColor()
+    {
+        if (_stampBalance == null) return Color.Default;
+        if (_stampBalance.Available <= _stampAlertThreshold) return Color.Error;
+        if (_stampBalance.AvailablePercent < 25) return Color.Warning;
+        return Color.Success;
     }
 }

@@ -37,6 +37,12 @@
                     </Authorized>
                 </AuthorizeView>
 
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewStampBalance">
+                    <Authorized Context="stampAuth">
+                        <MudNavLink Href="/shop/stamp-balance">@L["Stamp Balance"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
                 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewDailySalesSummary">
                     <Authorized Context="dailySummaryAuth">
                         <MudNavLink Href="/shop/daily-sales-summary">@L["Daily Sales Summary"]</MudNavLink>

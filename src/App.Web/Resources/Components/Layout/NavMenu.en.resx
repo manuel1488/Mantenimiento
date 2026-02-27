@@ -51,6 +51,9 @@
   <data name="Invoices" xml:space="preserve">
     <value>Invoices</value>
   </data>
+  <data name="Stamp Balance" xml:space="preserve">
+    <value>Stamp Balance</value>
+  </data>
   <data name="Cash Register" xml:space="preserve">
     <value>Cash Register</value>
   </data>

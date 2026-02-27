@@ -10,4 +10,10 @@ public interface ISwSapienService
 
     /// <summary>Tests authentication with the configured PAC endpoint.</summary>
     Task<Result> TestConnectionAsync();
+
+    /// <summary>
+    /// Fetches the stamp balance for the authenticated user from the SW Sapien
+    /// Management API (GET /management/v2/api/users/balance).
+    /// </summary>
+    Task<Result<SwSapienStampBalanceData>> GetStampBalanceAsync();
 }

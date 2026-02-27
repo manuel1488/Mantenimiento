@@ -40,3 +40,11 @@ public class SwSapienAuthData
 {
     public string Token { get; set; } = string.Empty;
 }
+
+/// <summary>Wrapper for GET /management/v2/api/users/balance response.</summary>
+public class SwSapienBalanceApiResponse
+{
+    public string? Status { get; set; }
+    public string? Message { get; set; }
+    public SwSapienStampBalanceData? Data { get; set; }
+}

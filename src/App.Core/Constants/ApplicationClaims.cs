@@ -54,7 +54,11 @@ public static class ApplicationClaims
         public const string CreateInvoice = "Shop.Invoice.Create";
         public const string ViewInvoice = "Shop.Invoice.View";
         public const string CancelInvoice = "Shop.Invoice.Cancel";
-        
+
+        // Timbres PAC
+        public const string ViewStampBalance = "Shop.StampBalance.View";
+        public const string ReceiveStampAlertEmails = "Shop.StampBalance.ReceiveAlerts";
+
         // Almacenes
         public const string ViewWarehouses = "Shop.Warehouses.View";
         public const string ManageWarehouses = "Shop.Warehouses.Manage";
