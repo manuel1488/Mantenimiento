@@ -88,6 +88,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             // 4. Get next folio
             var folio = await GetNextFolioAsync();
             var serie = pacSettings.InvoiceSerie ?? "A";
+            var folioLength = pacSettings.FolioLength;
 
             // 5. Create draft invoice record
             var invoice = new MexicoInvoice
@@ -125,7 +126,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             try
             {
                 // 6. Build Comprobante
-                var comprobante = BuildComprobante(invoice, sale, serie, folio, dto);
+                var comprobante = BuildComprobante(invoice, sale, serie, folio, folioLength, dto);
 
                 // 7. Generate XML
                 var xmlResult = await _xmlService.GenerateXmlAsync(comprobante);
@@ -426,15 +427,18 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
     #region Private helpers
 
+    private static string FormatFolio(long folio, int folioLength) =>
+        folioLength > 0 ? folio.ToString().PadLeft(folioLength, '0') : folio.ToString();
+
     private Comprobante BuildComprobante(
-        MexicoInvoice invoice, Sale sale, string serie, long folio, CreateMexicoInvoiceDto dto)
+        MexicoInvoice invoice, Sale sale, string serie, long folio, int folioLength, CreateMexicoInvoiceDto dto)
     {
         var issueDate = ToMexicoCityTime(DateTime.UtcNow);
 
         var comprobante = new Comprobante
         {
             Serie = serie,
-            Folio = folio.ToString(),
+            Folio = FormatFolio(folio, folioLength),
             Fecha = issueDate.ToString("yyyy-MM-ddTHH:mm:ss",
                 System.Globalization.CultureInfo.InvariantCulture),
             Sello = "",

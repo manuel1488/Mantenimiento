@@ -48,6 +48,12 @@ public class MexicoPacSettings : BaseEntity<int>
     /// <summary>The folio number to start from (inclusive). Default: 1.</summary>
     public long StartFolio { get; set; } = 1;
 
+    /// <summary>
+    /// Total length of the folio string padded with leading zeros.
+    /// 0 = no padding (e.g. "42"). Any positive value pads to that length (e.g. 6 → "000042").
+    /// </summary>
+    public int FolioLength { get; set; } = 0;
+
     // CSD (Certificado de Sello Digital) — stored as Base64
     [Column(TypeName = "text")]
     public string? CsdCertificateBase64 { get; set; }

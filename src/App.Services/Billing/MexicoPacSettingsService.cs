@@ -60,6 +60,7 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
             settings.IsProduction = dto.IsProduction;
             settings.InvoiceSerie = dto.InvoiceSerie ?? "A";
             settings.StartFolio = dto.StartFolio;
+            settings.FolioLength = dto.FolioLength;
 
             // Only update sensitive fields if provided
             if (!string.IsNullOrEmpty(dto.Password))
@@ -123,6 +124,7 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
         IsProduction = s.IsProduction,
         InvoiceSerie = s.InvoiceSerie,
         StartFolio = s.StartFolio,
+        FolioLength = s.FolioLength,
         HasCsdCertificate = !string.IsNullOrEmpty(s.CsdCertificateBase64),
         HasCsdPrivateKey = !string.IsNullOrEmpty(s.CsdPrivateKeyBase64),
         HasCsdPassword = !string.IsNullOrEmpty(s.CsdPassword)

@@ -37,6 +37,15 @@
                                              ReadOnly="@(!_hasWriteAccess)"
                                              HelperText="@L["First folio number to use (applied when no invoices exist yet)"]" />
                         </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudNumericField @bind-Value="_model.FolioLength"
+                                             Label="@L["Folio Length (zero-pad)"]"
+                                             Min="0"
+                                             Max="20"
+                                             Variant="Variant.Outlined"
+                                             ReadOnly="@(!_hasWriteAccess)"
+                                             HelperText="@L["Total digits padded with zeros. 0 = no padding. Example: length 6, folio 42 → 000042"]" />
+                        </MudItem>
                     </MudGrid>
                 </MudItem>
 
@@ -284,7 +293,8 @@
                     TestUrl = _settings.TestUrl,
                     IsProduction = _settings.IsProduction,
                     InvoiceSerie = _settings.InvoiceSerie ?? "A",
-                    StartFolio = _settings.StartFolio
+                    StartFolio = _settings.StartFolio,
+                    FolioLength = _settings.FolioLength
                 };
             }
         }

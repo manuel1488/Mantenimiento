@@ -16,6 +16,7 @@ public class MexicoPacSettingsDto
     // Invoice config — issuer fiscal data comes from TaxSettings (Fiscal tab)
     public string? InvoiceSerie { get; set; }
     public long StartFolio { get; set; } = 1;
+    public int FolioLength { get; set; } = 0;
 
     // CSD certificate info
     public bool HasCsdCertificate { get; set; }
@@ -40,6 +41,7 @@ public class UpdateMexicoPacSettingsDto
     public bool IsProduction { get; set; }
     public string? InvoiceSerie { get; set; } = "A";
     public long StartFolio { get; set; } = 1;
+    public int FolioLength { get; set; } = 0;
     public string? CsdCertificateBase64 { get; set; }
     public string? CsdPrivateKeyBase64 { get; set; }
     public string? CsdPassword { get; set; }

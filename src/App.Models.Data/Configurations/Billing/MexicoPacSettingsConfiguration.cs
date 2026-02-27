@@ -23,6 +23,9 @@ public class MexicoPacSettingsConfiguration : IEntityTypeConfiguration<MexicoPac
         builder.Property(e => e.StartFolio)
             .HasDefaultValue(1L);
 
+        builder.Property(e => e.FolioLength)
+            .HasDefaultValue(0);
+
         builder.Property(e => e.IsProduction)
             .HasDefaultValue(false);
     }
