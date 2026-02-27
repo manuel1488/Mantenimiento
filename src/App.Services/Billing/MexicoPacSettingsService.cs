@@ -124,6 +124,7 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
         InvoiceSerie = s.InvoiceSerie,
         StartFolio = s.StartFolio,
         HasCsdCertificate = !string.IsNullOrEmpty(s.CsdCertificateBase64),
-        HasCsdPrivateKey = !string.IsNullOrEmpty(s.CsdPrivateKeyBase64)
+        HasCsdPrivateKey = !string.IsNullOrEmpty(s.CsdPrivateKeyBase64),
+        HasCsdPassword = !string.IsNullOrEmpty(s.CsdPassword)
     };
 }

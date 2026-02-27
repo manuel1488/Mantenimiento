@@ -20,6 +20,7 @@ public class MexicoPacSettingsDto
     // CSD certificate info
     public bool HasCsdCertificate { get; set; }
     public bool HasCsdPrivateKey { get; set; }
+    public bool HasCsdPassword { get; set; }
 
     /// <summary>True when PAC credentials and CSD are present.</summary>
     public bool IsConfigured =>
