@@ -10,6 +10,7 @@ using App.Models.Shop;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using App.Core.DTOs.Settings;
+using App.Shared.Services;
 
 namespace App.Services.Billing;
 
@@ -23,9 +24,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private readonly ITaxSettingsService _taxSettingsService;
     private readonly IMexicoStampAlertService _stampAlertService;
     private readonly IPdfService _pdfService;
+    private readonly IDateTime _dateTime;
+    private readonly ICompanySettingsService _companySettingsService;
     private readonly ILogger<MexicoInvoiceService> _logger;
 
-    private const string MexicoTimezone = "America/Mexico_City";
     private const string DefaultProductServiceCode = "01010101"; // No identificado
     private const string DefaultUnitCode = "H87"; // Pieza (SAT standard)
     private const string IvaCode = "002";
@@ -40,6 +42,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         ITaxSettingsService taxSettingsService,
         IMexicoStampAlertService stampAlertService,
         IPdfService pdfService,
+        IDateTime dateTime,
+        ICompanySettingsService companySettingsService,
         ILogger<MexicoInvoiceService> logger)
     {
         _contextFactory = contextFactory;
@@ -50,6 +54,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         _taxSettingsService = taxSettingsService;
         _stampAlertService = stampAlertService;
         _pdfService = pdfService;
+        _dateTime = dateTime;
+        _companySettingsService = companySettingsService;
         _logger = logger;
     }
 
@@ -119,9 +125,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Status = "Draft",
                 IsStamped = false,
                 CreatedBy = "System",
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _dateTime.Now,
                 ModifiedBy = "System",
-                ModifiedAt = DateTime.UtcNow
+                ModifiedAt = _dateTime.Now
             };
 
             context.MexicoInvoices.Add(invoice);
@@ -129,8 +135,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
             try
             {
-                // 6. Build Comprobante
-                var comprobante = BuildComprobante(invoice, sale, serie, folio, folioLength, dto);
+                // 6. Build Comprobante — resolve local time from company timezone
+                var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+                var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, companyTimeZone);
+                var comprobante = BuildComprobante(invoice, sale, serie, folio, folioLength, dto, issueDate);
 
                 // 7. Generate XML
                 var xmlResult = await _xmlService.GenerateXmlAsync(comprobante);
@@ -142,26 +150,26 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 var keyResult = await _pacSettingsService.GetCsdPrivateKeyBytesAsync();
                 var pwdResult = await _pacSettingsService.GetCsdPasswordAsync();
 
-                if (!certResult.IsSuccess) return await MarkStampError(context, invoice, certResult.Error!);
-                if (!keyResult.IsSuccess) return await MarkStampError(context, invoice, keyResult.Error!);
-                if (!pwdResult.IsSuccess) return await MarkStampError(context, invoice, pwdResult.Error!);
+                if (!certResult.IsSuccess) return await MarkStampError(context, invoice, certResult.Error!, xmlResult.Value);
+                if (!keyResult.IsSuccess) return await MarkStampError(context, invoice, keyResult.Error!, xmlResult.Value);
+                if (!pwdResult.IsSuccess) return await MarkStampError(context, invoice, pwdResult.Error!, xmlResult.Value);
 
                 var signedXmlResult = await _signingService.SignXmlAsync(
                     xmlResult.Value!, certResult.Value!, keyResult.Value!, pwdResult.Value!);
 
                 if (!signedXmlResult.IsSuccess)
-                    return await MarkStampError(context, invoice, signedXmlResult.Error!);
+                    return await MarkStampError(context, invoice, signedXmlResult.Error!, xmlResult.Value);
 
-                // 9. Stamp with PAC
+                // 9. Stamp with PAC — pass signed XML so it can be reviewed on error
                 var stampResult = await _pacService.StampAsync(signedXmlResult.Value!);
                 if (!stampResult.IsSuccess)
-                    return await MarkStampError(context, invoice, stampResult.Error!);
+                    return await MarkStampError(context, invoice, stampResult.Error!, signedXmlResult.Value);
 
                 var stamp = stampResult.Value!;
 
                 // 10. Update invoice with stamp data
                 invoice.Uuid = stamp.Uuid;
-                invoice.StampDate = DateTime.UtcNow;
+                invoice.StampDate = _dateTime.Now;
                 invoice.IsStamped = true;
                 invoice.Status = "Stamped";
                 invoice.NoCertificadoSat = stamp.NoCertificadoSat;
@@ -170,7 +178,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 invoice.SelloCfdi = stamp.SelloCfdi;
                 invoice.CadenaOriginalSat = stamp.CadenaOriginalSat;
                 invoice.StampError = null;
-                invoice.ModifiedAt = DateTime.UtcNow;
+                invoice.ModifiedAt = _dateTime.Now;
 
                 // 11. Save stamped XML
                 var stampedXml = stamp.Cfdi ?? signedXmlResult.Value!;
@@ -180,9 +188,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     FileType = "XML",
                     FileData = System.Text.Encoding.UTF8.GetBytes(stampedXml),
                     CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = _dateTime.Now,
                     ModifiedBy = "System",
-                    ModifiedAt = DateTime.UtcNow
+                    ModifiedAt = _dateTime.Now
                 });
 
                 await context.SaveChangesAsync();
@@ -199,9 +207,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         FileType = "PDF",
                         FileData = pdf,
                         CreatedBy = "System",
-                        CreatedAt = DateTime.UtcNow,
+                        CreatedAt = _dateTime.Now,
                         ModifiedBy = "System",
-                        ModifiedAt = DateTime.UtcNow
+                        ModifiedAt = _dateTime.Now
                     });
                     await context.SaveChangesAsync();
                 }
@@ -281,6 +289,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
+        // Convert local date boundaries to UTC so they match CreatedAt (stored in UTC)
+        var companyTz = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
+
         var query = context.MexicoInvoices.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchString))
@@ -293,10 +304,19 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         }
 
         if (startDate.HasValue)
-            query = query.Where(i => i.CreatedAt >= startDate.Value);
+        {
+            var startLocal = DateTime.SpecifyKind(startDate.Value.Date, DateTimeKind.Unspecified);
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(startLocal, companyTz);
+            query = query.Where(i => i.CreatedAt >= startUtc);
+        }
 
         if (endDate.HasValue)
-            query = query.Where(i => i.CreatedAt <= endDate.Value.AddDays(1));
+        {
+            // End of the selected local day converted to UTC
+            var endLocal = DateTime.SpecifyKind(endDate.Value.Date.AddDays(1), DateTimeKind.Unspecified);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(endLocal, companyTz);
+            query = query.Where(i => i.CreatedAt < endUtc);
+        }
 
         if (!string.IsNullOrEmpty(status))
             query = query.Where(i => i.Status == status);
@@ -321,12 +341,31 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Total = i.Total,
                 CfdiUse = i.CfdiUse,
                 CancellationStatus = i.CancellationStatus,
+                StampError = i.StampError,
                 CreatedAt = i.CreatedAt,
                 CreatedBy = i.CreatedBy,
                 ModifiedAt = i.ModifiedAt,
                 ModifiedBy = i.ModifiedBy
             })
             .ToListAsync();
+
+        // Resolve HasXml / HasPdf with a separate simple query to avoid
+        // correlated-subquery translation issues in Pomelo/MySQL
+        if (items.Count > 0)
+        {
+            var invoiceIds = items.Select(i => i.Id).ToList();
+            var fileTypes = await context.MexicoInvoiceFiles
+                .AsNoTracking()
+                .Where(f => invoiceIds.Contains(f.InvoiceId))
+                .Select(f => new { f.InvoiceId, f.FileType })
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.HasXml = fileTypes.Any(f => f.InvoiceId == item.Id && f.FileType == "XML");
+                item.HasPdf = fileTypes.Any(f => f.InvoiceId == item.Id && f.FileType == "PDF");
+            }
+        }
 
         return (totalCount, items);
     }
@@ -377,9 +416,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             // Mark as cancellation pending (SAT cancellation flow is async)
             invoice.CancellationStatus = "Pending";
             invoice.CancellationReason = reason;
-            invoice.CancellationDate = DateTime.UtcNow;
+            invoice.CancellationDate = _dateTime.Now;
             invoice.Status = "CancellationPending";
-            invoice.ModifiedAt = DateTime.UtcNow;
+            invoice.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
             _logger.LogInformation("Cancellation requested for invoice {InvoiceId}", invoiceId);
@@ -438,9 +477,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         folioLength > 0 ? folio.ToString().PadLeft(folioLength, '0') : folio.ToString();
 
     private Comprobante BuildComprobante(
-        MexicoInvoice invoice, Sale sale, string serie, long folio, int folioLength, CreateMexicoInvoiceDto dto)
+        MexicoInvoice invoice, Sale sale, string serie, long folio, int folioLength, CreateMexicoInvoiceDto dto,
+        DateTime issueDate)
     {
-        var issueDate = ToMexicoCityTime(DateTime.UtcNow);
 
         var comprobante = new Comprobante
         {
@@ -555,37 +594,34 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         };
     }
 
-    private static DateTime ToMexicoCityTime(DateTime utc)
-    {
-        try
-        {
-            var tz = TimeZoneInfo.FindSystemTimeZoneById("America/Mexico_City");
-            return TimeZoneInfo.ConvertTimeFromUtc(utc, tz);
-        }
-        catch
-        {
-            // Windows fallback
-            try
-            {
-                var tz = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
-                return TimeZoneInfo.ConvertTimeFromUtc(utc, tz);
-            }
-            catch
-            {
-                return utc.AddHours(-6);
-            }
-        }
-    }
-
     private async Task<Result<MexicoInvoiceDto>> MarkStampError(
-        ApplicationDbContext context, MexicoInvoice invoice, string error)
+        ApplicationDbContext context, MexicoInvoice invoice, string error, string? xmlContent = null)
     {
         invoice.Status = "StampError";
         invoice.StampError = error;
-        invoice.ModifiedAt = DateTime.UtcNow;
+        invoice.ModifiedAt = _dateTime.Now;
+
+        if (!string.IsNullOrEmpty(xmlContent))
+        {
+            context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
+            {
+                InvoiceId = invoice.Id,
+                FileType = "XML",
+                FileData = System.Text.Encoding.UTF8.GetBytes(xmlContent),
+                CreatedBy = "System",
+                CreatedAt = _dateTime.Now,
+                ModifiedBy = "System",
+                ModifiedAt = _dateTime.Now
+            });
+        }
+
         await context.SaveChangesAsync();
         _logger.LogError("Invoice stamp error for sale {SaleId}: {Error}", invoice.SaleId, error);
-        return Result<MexicoInvoiceDto>.Failure(error);
+        // Return Success so the UI receives the invoice DTO and can show it in the list.
+        // The caller checks Status == "StampError" to distinguish from a successful stamp.
+        var dto = await BuildInvoiceDtoFromEntity(invoice);
+        dto.HasXml = !string.IsNullOrEmpty(xmlContent);
+        return Result<MexicoInvoiceDto>.Success(dto);
     }
 
     private Task<MexicoInvoiceDto> BuildInvoiceDtoFromEntity(MexicoInvoice i) =>

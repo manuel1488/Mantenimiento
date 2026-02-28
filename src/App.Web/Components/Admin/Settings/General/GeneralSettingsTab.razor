@@ -135,8 +135,9 @@
         var currencies = await LookupService.GetCurrenciesAsync();
         _currencies = currencies.ToList();
 
-        // Load available time zones
-        _timeZones = TimeZoneInfo.GetSystemTimeZones().ToList();
+        // Load available time zones — merge Windows IDs and IANA equivalents so that
+        // IANA IDs (e.g. "America/Mexico_City") are selectable regardless of platform.
+        _timeZones = BuildTimeZoneList();
 
         await LoadSettings();
     }
@@ -162,6 +163,38 @@
             Logger.LogError(ex, "Error loading company settings");
             Snackbar.Add(L["Error loading settings"], Severity.Error);
         }
+    }
+
+    private static List<TimeZoneInfo> BuildTimeZoneList()
+    {
+        var zones = TimeZoneInfo.GetSystemTimeZones().ToList();
+
+        // On Windows the list only contains Windows timezone IDs.
+        // Add IANA equivalents so the user can store IANA IDs (required for Linux/Docker).
+        if (OperatingSystem.IsWindows())
+        {
+            var existing = new HashSet<string>(zones.Select(z => z.Id), StringComparer.OrdinalIgnoreCase);
+            var extras = new List<TimeZoneInfo>();
+
+            foreach (var wz in zones.ToList())
+            {
+                if (TimeZoneInfo.TryConvertWindowsIdToIanaId(wz.Id, out var ianaId)
+                    && !existing.Contains(ianaId))
+                {
+                    try
+                    {
+                        extras.Add(TimeZoneInfo.FindSystemTimeZoneById(ianaId));
+                        existing.Add(ianaId);
+                    }
+                    catch { /* IANA timezone not available on this system */ }
+                }
+            }
+
+            zones.AddRange(extras);
+            zones = zones.OrderBy(z => z.BaseUtcOffset).ThenBy(z => z.DisplayName).ToList();
+        }
+
+        return zones;
     }
 
     private async Task<IEnumerable<string>> SearchTimeZones(string value, CancellationToken cancellationToken)

@@ -21,6 +21,9 @@ public class CompanySettings : BaseEntity<int>
     public string CurrencyCode { get; set; } = null!;
 
     [Required]
-    [StringLength(50)]
+    [StringLength(100)]
     public string TimeZoneId { get; set; } = null!;
+
+    [StringLength(200)]
+    public string? TimeZoneDisplayName { get; set; }
 }

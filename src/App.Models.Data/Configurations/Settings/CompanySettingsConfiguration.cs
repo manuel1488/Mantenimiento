@@ -9,9 +9,12 @@ public class CompanySettingsConfiguration : IEntityTypeConfiguration<CompanySett
     public void Configure(EntityTypeBuilder<CompanySettings> builder)
     {
         builder.Property(e => e.TimeZoneId)
-            .HasMaxLength(50)
+            .HasMaxLength(100)
             .IsRequired()
             .IsUnicode(false);
+
+        builder.Property(e => e.TimeZoneDisplayName)
+            .HasMaxLength(200);
 
         builder.HasIndex(e => e.Id)
             .IsUnique();

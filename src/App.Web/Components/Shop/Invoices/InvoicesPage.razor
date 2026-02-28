@@ -11,6 +11,7 @@
 @inject IStringLocalizer<InvoicesPage> L
 @inject ILogger<InvoicesPage> Logger
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewInvoice)]
 
@@ -113,38 +114,41 @@
                                                OnClick="@(() => Navigation.NavigateTo($"/shop/sales/{context.SaleId}"))" />
                             </MudTooltip>
 
-                            @if (context.IsStamped)
+                            <!-- Download XML (available for stamped and error invoices) -->
+                            @if (context.HasXml)
                             {
-                                <!-- Download XML -->
                                 <MudTooltip Text="@L["Download XML"]">
                                     <MudIconButton Icon="@Icons.Material.Filled.Code"
                                                    Size="Size.Small"
-                                                   Color="Color.Info"
-                                                   OnClick="@(() => DownloadXml(context.Id))" />
+                                                   Color="@(context.IsStamped ? Color.Info : Color.Warning)"
+                                                   OnClick="@(() => DownloadXml(context))" />
                                 </MudTooltip>
+                            }
 
-                                <!-- Download PDF -->
+                            <!-- Download PDF -->
+                            @if (context.HasPdf)
+                            {
                                 <MudTooltip Text="@L["Download PDF"]">
                                     <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
                                                    Size="Size.Small"
                                                    Color="Color.Error"
                                                    OnClick="@(() => DownloadPdf(context.Id))" />
                                 </MudTooltip>
+                            }
 
-                                <!-- Cancel -->
-                                @if (context.Status == "Stamped" && string.IsNullOrEmpty(context.CancellationStatus))
-                                {
-                                    <AuthorizeView Policy="@ApplicationClaims.Shop.CancelInvoice" Context="cancelAuth">
-                                        <Authorized Context="cancelCtx">
-                                            <MudTooltip Text="@L["Cancel Invoice"]">
-                                                <MudIconButton Icon="@Icons.Material.Filled.Cancel"
-                                                               Size="Size.Small"
-                                                               Color="Color.Error"
-                                                               OnClick="@(() => ConfirmCancel(context))" />
-                                            </MudTooltip>
-                                        </Authorized>
-                                    </AuthorizeView>
-                                }
+                            <!-- Cancel (only fully stamped) -->
+                            @if (context.Status == "Stamped" && string.IsNullOrEmpty(context.CancellationStatus))
+                            {
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.CancelInvoice" Context="cancelAuth">
+                                    <Authorized Context="cancelCtx">
+                                        <MudTooltip Text="@L["Cancel Invoice"]">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           OnClick="@(() => ConfirmCancel(context))" />
+                                        </MudTooltip>
+                                    </Authorized>
+                                </AuthorizeView>
                             }
                         </div>
                     </MudTd>
@@ -221,16 +225,17 @@
         await _table.ReloadServerData();
     }
 
-    private async Task DownloadXml(long invoiceId)
+    private async Task DownloadXml(MexicoInvoiceSummaryDto invoice)
     {
-        var result = await InvoiceService.GetXmlAsync(invoiceId);
+        var result = await InvoiceService.GetXmlAsync(invoice.Id);
         if (!result.IsSuccess)
         {
             Snackbar.Add(result.Error, Severity.Error);
             return;
         }
-        // File download handled via JS interop — for now show snackbar
-        Snackbar.Add(L["XML downloaded"], Severity.Success);
+        var fileName = $"{invoice.FolioDisplay}{(invoice.IsStamped ? $"_{invoice.Uuid?[..8]}" : "_error")}.xml";
+        await JS.InvokeVoidAsync("downloadFile", fileName, "application/xml",
+            Convert.ToBase64String(result.Value!));
     }
 
     private async Task DownloadPdf(long invoiceId)
@@ -241,7 +246,8 @@
             Snackbar.Add(result.Error, Severity.Error);
             return;
         }
-        Snackbar.Add(L["PDF downloaded"], Severity.Success);
+        await JS.InvokeVoidAsync("downloadFile", $"factura_{invoiceId}.pdf", "application/pdf",
+            Convert.ToBase64String(result.Value!));
     }
 
     private async Task ConfirmCancel(MexicoInvoiceSummaryDto invoice)

@@ -57,11 +57,13 @@ public class CompanySettingsService : ICompanySettingsService
         }
     }
 
+    private const string DefaultTimeZoneId = "America/Mexico_City";
+
     public async Task<CompanySettingsDto> UpdateSettingsAsync(UpdateCompanySettingsDto updateDto)
     {
         try
         {
-            if (!TimeZoneInfo.GetSystemTimeZones().Any(tz => tz.Id == updateDto.TimeZoneId))
+            if (!IsValidTimeZone(updateDto.TimeZoneId))
             {
                 throw new InvalidOperationException(
                     _localizer["Invalid time zone ID: {0}", updateDto.TimeZoneId]);
@@ -69,7 +71,6 @@ public class CompanySettingsService : ICompanySettingsService
 
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
-            // Get current settings or create new ones if they don't exist
             var settings = await _context.CompanySettings
                 .OrderBy(x => x.Id)
                 .FirstOrDefaultAsync();
@@ -84,14 +85,27 @@ public class CompanySettingsService : ICompanySettingsService
                 _context.CompanySettings.Add(settings);
             }
 
-            // Update properties
             _mapper.Map(updateDto, settings);
 
-            // Update audit fields
+            // Persist the display name alongside the IANA/Windows timezone ID
+            try
+            {
+                var tz = TimeZoneInfo.FindSystemTimeZoneById(updateDto.TimeZoneId);
+                settings.TimeZoneDisplayName = tz.DisplayName;
+            }
+            catch
+            {
+                settings.TimeZoneDisplayName = updateDto.TimeZoneId;
+            }
+
             settings.ModifiedBy = _currentUserService.FullName ?? "Unknown";
             settings.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Company settings updated by {User}. Timezone set to: {TimeZoneId}",
+                _currentUserService.FullName, settings.TimeZoneId);
 
             return _mapper.Map<CompanySettingsDto>(settings);
         }
@@ -102,20 +116,54 @@ public class CompanySettingsService : ICompanySettingsService
         }
     }
 
-    public async Task<TimeZoneInfo?> GetCurrentTimeZoneAsync()
+    public async Task<TimeZoneInfo> GetCurrentTimeZoneAsync()
     {
         try
         {
             var settings = await GetSettingsAsync();
-            if (settings?.TimeZoneId == null)
-                return null;
+            var timeZoneId = settings?.TimeZoneId;
 
-            return TimeZoneInfo.FindSystemTimeZoneById(settings.TimeZoneId);
+            if (!string.IsNullOrWhiteSpace(timeZoneId))
+            {
+                try
+                {
+                    return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                }
+                catch (TimeZoneNotFoundException)
+                {
+                    _logger.LogWarning(
+                        "Configured timezone '{TimeZoneId}' not found. Falling back to {Default}",
+                        timeZoneId, DefaultTimeZoneId);
+                }
+            }
+
+            return TimeZoneInfo.FindSystemTimeZoneById(DefaultTimeZoneId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting current time zone");
-            return null;
+            _logger.LogError(ex, "Error getting current time zone, falling back to {Default}", DefaultTimeZoneId);
+            return TimeZoneInfo.FindSystemTimeZoneById(DefaultTimeZoneId);
+        }
+    }
+
+    public bool IsValidTimeZone(string timeZoneId)
+    {
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            return false;
+
+        try
+        {
+            TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error validating timezone: {TimeZoneId}", timeZoneId);
+            return false;
         }
     }
 }

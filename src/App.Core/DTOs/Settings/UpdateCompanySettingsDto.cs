@@ -18,6 +18,6 @@ public class UpdateCompanySettingsDto
     public string CurrencyCode { get; set; } = null!;
 
     [Required]
-    [StringLength(50)]
+    [StringLength(100)]
     public string TimeZoneId { get; set; } = null!;
 }

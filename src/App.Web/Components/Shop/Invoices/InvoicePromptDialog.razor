@@ -270,7 +270,14 @@
             var result = await InvoiceService.CreateAndStampAsync(_dto);
             if (result.IsSuccess)
             {
-                Snackbar.Add(L["Invoice generated successfully"] + $" UUID: {result.Value!.Uuid}", Severity.Success);
+                if (result.Value!.Status == "StampError")
+                {
+                    Snackbar.Add(L["Invoice saved with stamp error. Review it in the invoices list."] + $" {result.Value.StampError}", Severity.Warning);
+                }
+                else
+                {
+                    Snackbar.Add(L["Invoice generated successfully"] + $" UUID: {result.Value.Uuid}", Severity.Success);
+                }
                 MudDialog.Close(DialogResult.Ok(result.Value));
             }
             else

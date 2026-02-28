@@ -15,7 +15,14 @@ public interface ICompanySettingsService
     Task<CompanySettingsDto> UpdateSettingsAsync(UpdateCompanySettingsDto updateDto);
 
     /// <summary>
-    /// Gets the current time zone configuration
+    /// Gets the current time zone. Falls back to America/Mexico_City if the configured
+    /// timezone is missing or invalid.
     /// </summary>
-    Task<TimeZoneInfo?> GetCurrentTimeZoneAsync();
+    Task<TimeZoneInfo> GetCurrentTimeZoneAsync();
+
+    /// <summary>
+    /// Returns true if the given timezone ID is recognized by the runtime
+    /// (accepts both Windows and IANA IDs).
+    /// </summary>
+    bool IsValidTimeZone(string timeZoneId);
 }

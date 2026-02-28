@@ -18,6 +18,9 @@ public class MexicoInvoiceSummaryDto : AuditableDto
     public decimal Total { get; set; }
     public string CfdiUse { get; set; } = string.Empty;
     public string? CancellationStatus { get; set; }
+    public bool HasXml { get; set; }
+    public bool HasPdf { get; set; }
+    public string? StampError { get; set; }
 }
 
 public class MexicoInvoiceDto : MexicoInvoiceSummaryDto
