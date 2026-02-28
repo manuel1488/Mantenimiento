@@ -69,4 +69,25 @@
   <data name="Error loading customer" xml:space="preserve">
     <value>Error al cargar el cliente</value>
   </data>
+  <data name="Mexico Billing Preferences" xml:space="preserve">
+    <value>Preferencias de Facturación México</value>
+  </data>
+  <data name="Fiscal Regime" xml:space="preserve">
+    <value>Régimen Fiscal</value>
+  </data>
+  <data name="Default CFDI Use" xml:space="preserve">
+    <value>Uso de CFDI Predeterminado</value>
+  </data>
+  <data name="Auto-Invoice" xml:space="preserve">
+    <value>Facturación Automática</value>
+  </data>
+  <data name="Send Invoice Email" xml:space="preserve">
+    <value>Enviar Factura por Correo</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
 </root>

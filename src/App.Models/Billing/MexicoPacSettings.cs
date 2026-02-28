@@ -67,4 +67,11 @@ public class MexicoPacSettings : BaseEntity<int>
     // Issuer address (required for CFDI 4.0 XML)
     [StringLength(10)]
     public string? IssuerPostalCode { get; set; }
+
+    // Auto-invoice behavior
+    /// <summary>When enabled, POS shows a "Do you want an invoice?" prompt after each sale to customers with fiscal data.</summary>
+    public bool AutoInvoicePromptEnabled { get; set; } = false;
+
+    /// <summary>When true, the invoice prompt allows editing all CFDI fields. When false, only the email is shown.</summary>
+    public bool AllowEditFiscalDataInPrompt { get; set; } = true;
 }

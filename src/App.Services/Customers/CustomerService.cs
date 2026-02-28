@@ -163,6 +163,12 @@ public class CustomerService : ICustomerService
 
             var customer = _mapper.Map<Customer>(createDto);
 
+            // Compute fiscal readiness flag
+            customer.HasFiscalData = customer.CountryCode == "MX"
+                && !string.IsNullOrEmpty(customer.TaxId)
+                && !string.IsNullOrEmpty(customer.PostalCode)
+                && !string.IsNullOrEmpty(customer.FiscalRegime);
+
             // Set audit fields
             customer.CreatedBy = _currentUserService.FullName ?? "Unknow";
             customer.CreatedAt = _dateTime.Now;
@@ -213,6 +219,12 @@ public class CustomerService : ICustomerService
 
             // Update properties
             _mapper.Map(updateDto, customer);
+
+            // Recompute fiscal readiness flag after update
+            customer.HasFiscalData = customer.CountryCode == "MX"
+                && !string.IsNullOrEmpty(customer.TaxId)
+                && !string.IsNullOrEmpty(customer.PostalCode)
+                && !string.IsNullOrEmpty(customer.FiscalRegime);
 
             // Update audit fields
             customer.ModifiedBy = _currentUserService.UserId;

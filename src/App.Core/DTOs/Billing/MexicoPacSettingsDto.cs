@@ -23,6 +23,10 @@ public class MexicoPacSettingsDto
     public bool HasCsdPrivateKey { get; set; }
     public bool HasCsdPassword { get; set; }
 
+    // Auto-invoice behavior
+    public bool AutoInvoicePromptEnabled { get; set; }
+    public bool AllowEditFiscalDataInPrompt { get; set; } = true;
+
     /// <summary>True when PAC credentials and CSD are present.</summary>
     public bool IsConfigured =>
         HasCsdCertificate &&
@@ -45,4 +49,6 @@ public class UpdateMexicoPacSettingsDto
     public string? CsdCertificateBase64 { get; set; }
     public string? CsdPrivateKeyBase64 { get; set; }
     public string? CsdPassword { get; set; }
+    public bool AutoInvoicePromptEnabled { get; set; }
+    public bool AllowEditFiscalDataInPrompt { get; set; } = true;
 }

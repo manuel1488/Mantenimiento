@@ -1,10 +1,12 @@
 ﻿@using App.Core.DTOs.Customer
+@using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces
 @using App.Core.DTOs.Settings
 @using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
 
 @inject ICustomerService CustomerService
+@inject IMexicoFiscalCatalogService FiscalCatalogService
 @inject IStringLocalizer<CustomerDialog> L
 @inject ISnackbar Snackbar
 @inject ILookupService LookupService
@@ -104,6 +106,60 @@
                         </MudSelect>
                     </MudItem>
 
+                    <!-- Preferencias de facturación México -->
+                    @if (_model.CountryCode == "MX")
+                    {
+                        <MudItem xs="12">
+                            <MudDivider Class="my-1" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">@L["Mexico Billing Preferences"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect @bind-Value="_model.FiscalRegime"
+                                       @bind-Value:after="OnFiscalRegimeChanged"
+                                       Label="@L["Fiscal Regime"]"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true"
+                                       AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var regime in _fiscalRegimes)
+                                {
+                                    <MudSelectItem Value="@regime.Code">@regime.Code — @regime.Description</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6" Class="d-flex align-center">
+                            <div>
+                                <MudSwitch @bind-Value="_model.AutoInvoice"
+                                           Label="@L["Auto-Invoice"]"
+                                           Color="Color.Primary" />
+                                <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
+                                    @L["Automatically generate invoice after each sale"]
+                                </MudText>
+                            </div>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect @bind-Value="_model.DefaultCfdiUse"
+                                       Label="@L["Default CFDI Use"]"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true"
+                                       AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var use in FilteredCfdiUses)
+                                {
+                                    <MudSelectItem Value="@use.Code">@use.Code — @use.Description</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6" Class="d-flex align-center">
+                            <div>
+                                <MudSwitch @bind-Value="_model.SendInvoiceEmail"
+                                           Label="@L["Send Invoice Email"]"
+                                           Color="Color.Primary" />
+                                <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
+                                    @L["Automatically send the invoice email after generation"]
+                                </MudText>
+                            </div>
+                        </MudItem>
+                    }
+
                     <!-- Campos específicos para Canadá (mostrar solo si el país es CA) -->
                     @if (_model.CountryCode == "CA")
                     {
@@ -162,6 +218,15 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public long? CustomerId { get; set; }
     private List<CountryDto> _countries = new();
+    private List<MexicoFiscalRegimeDto> _fiscalRegimes = [];
+    private List<MexicoCfdiUseDto> _cfdiUses = [];
+
+    private IEnumerable<MexicoCfdiUseDto> FilteredCfdiUses =>
+        string.IsNullOrEmpty(_model.FiscalRegime)
+            ? _cfdiUses
+            : _cfdiUses.Where(u =>
+                string.IsNullOrEmpty(u.FiscalRegimeCodes) ||
+                u.FiscalRegimeCodes.Split(',').Any(c => c.Trim() == _model.FiscalRegime));
 
     private MudForm _form = null!;
     private bool _processing;
@@ -171,7 +236,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _countries = (await LookupService.GetCountriesAsync()).ToList();
+        var countriesTask = LookupService.GetCountriesAsync();
+        var regimesTask = FiscalCatalogService.GetFiscalRegimesAsync();
+        var cfdiUsesTask = FiscalCatalogService.GetCfdiUsesAsync();
+        await Task.WhenAll(countriesTask, regimesTask, cfdiUsesTask);
+
+        _countries = (await countriesTask).ToList();
+        _fiscalRegimes = (await regimesTask).ToList();
+        _cfdiUses = (await cfdiUsesTask).ToList();
 
         if (CustomerId.HasValue)
         {
@@ -204,7 +276,11 @@
                     CaPstNumber = _customer.CaPstNumber,
                     CaHstNumber = _customer.CaHstNumber,
                     CaQstNumber = _customer.CaQstNumber,
-                    CountryCode = _customer.CountryCode
+                    CountryCode = _customer.CountryCode,
+                    FiscalRegime = _customer.FiscalRegime,
+                    DefaultCfdiUse = _customer.DefaultCfdiUse,
+                    AutoInvoice = _customer.AutoInvoice,
+                    SendInvoiceEmail = _customer.SendInvoiceEmail
                 };
                 _phoneInput = FormatPhoneNumber(_customer.Phone ?? string.Empty);
             }
@@ -214,6 +290,16 @@
             Logger.LogError(ex, "Error loading customer {CustomerId}", CustomerId);
             Snackbar.Add(L["Error loading customer"], Severity.Error);
             MudDialog.Cancel();
+        }
+    }
+
+    private void OnFiscalRegimeChanged()
+    {
+        // Clear DefaultCfdiUse if it's no longer valid for the selected regime
+        if (!string.IsNullOrEmpty(_model.DefaultCfdiUse) &&
+            !FilteredCfdiUses.Any(u => u.Code == _model.DefaultCfdiUse))
+        {
+            _model.DefaultCfdiUse = null;
         }
     }
 
@@ -252,7 +338,11 @@
                         CaPstNumber = _model.CaPstNumber,
                         CaHstNumber = _model.CaHstNumber,
                         CaQstNumber = _model.CaQstNumber,
-                        CountryCode = _model.CountryCode
+                        CountryCode = _model.CountryCode,
+                        FiscalRegime = _model.FiscalRegime,
+                        DefaultCfdiUse = _model.DefaultCfdiUse,
+                        AutoInvoice = _model.AutoInvoice,
+                        SendInvoiceEmail = _model.SendInvoiceEmail
                     };
 
                     await CustomerService.UpdateCustomerAsync(CustomerId.Value, updateDto);

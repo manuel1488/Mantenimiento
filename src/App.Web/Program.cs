@@ -231,6 +231,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Admin.ViewFiscalSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewFiscalSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageFiscalSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageFiscalSettings));
 
+        options.AddPolicy(ApplicationClaims.Admin.ViewBillingSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewBillingSettings));
+        options.AddPolicy(ApplicationClaims.Admin.ManageBillingSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageBillingSettings));
+
         options.AddPolicy(ApplicationClaims.Admin.ViewWarehouseSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewWarehouseSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageWarehouseSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageWarehouseSettings));
 

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Invoice Numbering" xml:space="preserve">
+    <value>Invoice Numbering</value>
+  </data>
+  <data name="Invoice Serie" xml:space="preserve">
+    <value>Invoice Serie</value>
+  </data>
+  <data name="Letter prefix for folio (e.g. A, B, F)" xml:space="preserve">
+    <value>Letter prefix for folio (e.g. A, B, F)</value>
+  </data>
+  <data name="Start Folio" xml:space="preserve">
+    <value>Start Folio</value>
+  </data>
+  <data name="First folio number to use (applied when no invoices exist yet)" xml:space="preserve">
+    <value>First folio number to use (applied when no invoices exist yet)</value>
+  </data>
+  <data name="Folio Length (zero-pad)" xml:space="preserve">
+    <value>Folio Length (zero-pad)</value>
+  </data>
+  <data name="Total digits padded with zeros. 0 = no padding. Example: length 6, folio 42 → 000042" xml:space="preserve">
+    <value>Total digits padded with zeros. 0 = no padding. Example: length 6, folio 42 → 000042</value>
+  </data>
+  <data name="Auto-Invoice Settings" xml:space="preserve">
+    <value>Auto-Invoice Settings</value>
+  </data>
+  <data name="Show invoice prompt after sale" xml:space="preserve">
+    <value>Show invoice prompt after sale</value>
+  </data>
+  <data name="Ask customer if they want an invoice after each sale (for customers with fiscal data)" xml:space="preserve">
+    <value>Ask customer if they want an invoice after each sale (for customers with fiscal data)</value>
+  </data>
+  <data name="Allow editing fiscal data in prompt" xml:space="preserve">
+    <value>Allow editing fiscal data in prompt</value>
+  </data>
+  <data name="When disabled, only the email is shown in the invoice prompt" xml:space="preserve">
+    <value>When disabled, only the email is shown in the invoice prompt</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+  <data name="Settings saved successfully" xml:space="preserve">
+    <value>Settings saved successfully</value>
+  </data>
+</root>

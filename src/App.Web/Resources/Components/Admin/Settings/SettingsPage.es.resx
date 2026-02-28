@@ -68,6 +68,9 @@
     <value>Caja Registradora</value>
     <comment>Cash register settings tab</comment>
   </data>
+  <data name="Billing" xml:space="preserve">
+    <value>Facturación</value>
+  </data>
   <data name="PAC Billing" xml:space="preserve">
     <value>Facturación PAC</value>
   </data>

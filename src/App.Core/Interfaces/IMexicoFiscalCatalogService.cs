@@ -28,6 +28,7 @@ public interface IMexicoFiscalCatalogService
 
     // CFDI Uses
     Task<IList<MexicoCfdiUseDto>> GetCfdiUsesAsync();
+    Task<IList<MexicoCfdiUseDto>> GetCfdiUsesByFiscalRegimeAsync(string fiscalRegimeCode);
     Task<MexicoCfdiUseDto?> GetCfdiUseByIdAsync(int id);
     Task<MexicoCfdiUseDto?> GetCfdiUseByCodeAsync(string code);
     Task<MexicoCfdiUseDto> CreateCfdiUseAsync(CreateMexicoCfdiUseDto createDto);

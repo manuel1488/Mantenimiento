@@ -120,4 +120,25 @@
   <data name="Please enter a valid email address" xml:space="preserve">
     <value>Por favor ingrese una dirección de correo electrónico válida</value>
   </data>
+  <data name="Mexico Billing Preferences" xml:space="preserve">
+    <value>Preferencias de Facturación México</value>
+  </data>
+  <data name="Fiscal Regime" xml:space="preserve">
+    <value>Régimen Fiscal</value>
+  </data>
+  <data name="Auto-Invoice" xml:space="preserve">
+    <value>Facturación Automática</value>
+  </data>
+  <data name="Automatically generate invoice after each sale" xml:space="preserve">
+    <value>Generar factura automáticamente después de cada venta</value>
+  </data>
+  <data name="Default CFDI Use" xml:space="preserve">
+    <value>Uso de CFDI Predeterminado</value>
+  </data>
+  <data name="Send Invoice Email" xml:space="preserve">
+    <value>Enviar Correo de Factura</value>
+  </data>
+  <data name="Automatically send the invoice email after generation" xml:space="preserve">
+    <value>Enviar automáticamente el correo con la factura al generarla</value>
+  </data>
 </root>

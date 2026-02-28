@@ -14,6 +14,7 @@
 @using App.Web.Components.Admin.Settings.Rounding
 @using App.Web.Components.Admin.Settings.PaymentMethods
 @using App.Web.Components.Admin.Settings.CashRegister
+@using App.Web.Components.Admin.Settings.Billing
 @using App.Web.Components.Admin.Settings.Pac
 
 @inject IStringLocalizer<SettingsPage> L
@@ -97,6 +98,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Cash Register"]" Icon="@Icons.Material.Filled.PointOfSale">
                         <CashRegisterSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBillingSettings">
+                    <MudTabPanel Text="@L["Billing"]" Icon="@Icons.Material.Filled.Receipt">
+                        <BillingSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewFiscalSettings">

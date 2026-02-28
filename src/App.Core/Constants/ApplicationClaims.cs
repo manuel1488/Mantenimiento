@@ -94,6 +94,10 @@ public static class ApplicationClaims
         public const string ViewFiscalSettings = "Admin.FiscalSettings.View";
         public const string ManageFiscalSettings = "Admin.FiscalSettings.Manage";
 
+        // Configuración de Facturación (numeración de folios + factura automática)
+        public const string ViewBillingSettings = "Admin.BillingSettings.View";
+        public const string ManageBillingSettings = "Admin.BillingSettings.Manage";
+
         // Warehouse Settings
         public const string ViewWarehouseSettings = "Admin.WarehouseSettings.View";
         public const string ManageWarehouseSettings = "Admin.WarehouseSettings.Manage";

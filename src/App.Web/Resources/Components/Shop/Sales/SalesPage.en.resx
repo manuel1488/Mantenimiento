@@ -192,6 +192,18 @@
   <data name="Error processing sale: {0}" xml:space="preserve">
     <value>Error processing sale: {0}</value>
   </data>
+  <data name="Invoice?" xml:space="preserve">
+    <value>Invoice?</value>
+  </data>
+  <data name="Invoice generated automatically" xml:space="preserve">
+    <value>Invoice generated automatically</value>
+  </data>
+  <data name="Auto-invoice failed. You can generate it from sales history." xml:space="preserve">
+    <value>Auto-invoice failed. You can generate it from sales history.</value>
+  </data>
+  <data name="Auto-invoice error. You can generate it from sales history." xml:space="preserve">
+    <value>Auto-invoice error. You can generate it from sales history.</value>
+  </data>
   <data name="Price must be greater than 0" xml:space="preserve">
     <value>Price must be greater than 0</value>
   </data>

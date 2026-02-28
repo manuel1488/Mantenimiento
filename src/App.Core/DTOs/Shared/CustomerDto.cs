@@ -27,4 +27,7 @@ public class CustomerDto : AuditableDto
     // Mexico fiscal data
     public string? FiscalRegime { get; set; }
     public bool HasFiscalData { get; set; }
+    public string? DefaultCfdiUse { get; set; }
+    public bool AutoInvoice { get; set; }
+    public bool SendInvoiceEmail { get; set; }
 }

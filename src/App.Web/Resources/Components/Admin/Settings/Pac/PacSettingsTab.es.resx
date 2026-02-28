@@ -120,4 +120,19 @@
   <data name="Error saving settings" xml:space="preserve">
     <value>Error al guardar la configuración</value>
   </data>
+  <data name="Auto-Invoice Settings" xml:space="preserve">
+    <value>Configuración de Facturación Automática</value>
+  </data>
+  <data name="Show invoice prompt after sale" xml:space="preserve">
+    <value>Mostrar prompt de factura después de la venta</value>
+  </data>
+  <data name="Ask customer if they want an invoice after each sale (for customers with fiscal data)" xml:space="preserve">
+    <value>Preguntar al cliente si desea factura después de cada venta (para clientes con datos fiscales)</value>
+  </data>
+  <data name="Allow editing fiscal data in prompt" xml:space="preserve">
+    <value>Permitir editar datos fiscales en el prompt</value>
+  </data>
+  <data name="When disabled, only the email is shown in the invoice prompt" xml:space="preserve">
+    <value>Cuando está desactivado, solo se muestra el correo en el prompt de factura</value>
+  </data>
 </root>

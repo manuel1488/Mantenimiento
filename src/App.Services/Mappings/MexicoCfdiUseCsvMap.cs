@@ -10,5 +10,6 @@ public sealed class MexicoCfdiUseCsvMap : ClassMap<CreateMexicoCfdiUseDto>
     {
         Map(m => m.Code).Name("code");
         Map(m => m.Description).Name("description");
+        Map(m => m.FiscalRegimeCodes).Name("fiscal_regime_codes").Optional();
     }
 }

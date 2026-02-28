@@ -1,10 +1,12 @@
 ﻿@page "/customers/{Id:long}"
+@using App.Core.DTOs.Billing.Mexico
 @using App.Core.DTOs.Customer
 @using App.Core.DTOs.Settings
 @using App.Core.Interfaces
 @using Microsoft.AspNetCore.Authorization
 
 @inject ICustomerService CustomerService
+@inject IMexicoFiscalCatalogService FiscalCatalogService
 @inject IStringLocalizer<CustomerDetail> L
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -142,6 +144,54 @@
                     </MudGrid>
                 </MudItem>
             }
+            @if (_customer.CountryCode == "MX")
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Mexico Billing Preferences"]</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["Fiscal Regime"]" Variant="Variant.Text">
+                                @{
+                                    var regime = _fiscalRegimes.FirstOrDefault(r => r.Code == _customer.FiscalRegime);
+                                    @(regime != null ? $"{regime.Code} — {regime.Description}" : (_customer.FiscalRegime ?? "-"))
+                                }
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["Default CFDI Use"]" Variant="Variant.Text">
+                                @{
+                                    var cfdiUse = _cfdiUses.FirstOrDefault(u => u.Code == _customer.DefaultCfdiUse);
+                                    @(cfdiUse != null ? $"{cfdiUse.Code} — {cfdiUse.Description}" : (_customer.DefaultCfdiUse ?? "-"))
+                                }
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["Auto-Invoice"]" Variant="Variant.Text">
+                                @if (_customer.AutoInvoice)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">@L["Yes"]</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Default" Size="Size.Small" Icon="@Icons.Material.Filled.Cancel">@L["No"]</MudChip>
+                                }
+                            </MudField>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudField Label="@L["Send Invoice Email"]" Variant="Variant.Text">
+                                @if (_customer.SendInvoiceEmail)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.Email">@L["Yes"]</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Default" Size="Size.Small" Icon="@Icons.Material.Filled.Cancel">@L["No"]</MudChip>
+                                }
+                            </MudField>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+            }
         </MudGrid>
     }
 </MudContainer>
@@ -150,11 +200,22 @@
     [Parameter] public long Id { get; set; }
     private CustomerDto? _customer;
     private List<CountryDto> _countries = new();
+    private List<MexicoFiscalRegimeDto> _fiscalRegimes = new();
+    private List<MexicoCfdiUseDto> _cfdiUses = new();
     private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        _countries = (await LookupService.GetCountriesAsync()).ToList();
+        var countriesTask = LookupService.GetCountriesAsync();
+        var regimesTask = FiscalCatalogService.GetFiscalRegimesAsync();
+        var cfdiUsesTask = FiscalCatalogService.GetCfdiUsesAsync();
+
+        await Task.WhenAll(countriesTask, regimesTask, cfdiUsesTask);
+
+        _countries = countriesTask.Result.ToList();
+        _fiscalRegimes = regimesTask.Result.ToList();
+        _cfdiUses = cfdiUsesTask.Result.ToList();
+
         await LoadCustomer();
     }
 

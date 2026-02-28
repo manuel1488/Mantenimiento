@@ -120,4 +120,25 @@
   <data name="Please enter a valid email address" xml:space="preserve">
     <value>Please enter a valid email address</value>
   </data>
+  <data name="Mexico Billing Preferences" xml:space="preserve">
+    <value>Mexico Billing Preferences</value>
+  </data>
+  <data name="Fiscal Regime" xml:space="preserve">
+    <value>Fiscal Regime</value>
+  </data>
+  <data name="Auto-Invoice" xml:space="preserve">
+    <value>Auto-Invoice</value>
+  </data>
+  <data name="Automatically generate invoice after each sale" xml:space="preserve">
+    <value>Automatically generate invoice after each sale</value>
+  </data>
+  <data name="Default CFDI Use" xml:space="preserve">
+    <value>Default CFDI Use</value>
+  </data>
+  <data name="Send Invoice Email" xml:space="preserve">
+    <value>Send Invoice Email</value>
+  </data>
+  <data name="Automatically send the invoice email after generation" xml:space="preserve">
+    <value>Automatically send the invoice email after generation</value>
+  </data>
 </root>

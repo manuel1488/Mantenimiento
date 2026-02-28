@@ -5,21 +5,26 @@
 @using App.Core.DTOs.Product
 @using App.Core.DTOs.Location
 @using App.Core.DTOs.Settings
+@using App.Core.DTOs.Billing.Mexico
 @using App.Core.Enums.Shop
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Settings
 @using App.Core.Interfaces.Shop
+@using App.Core.Interfaces.Billing
 @using App.Services.Settings
 @using App.Shared.Services
 @using App.Web.Components.Shared
 @using App.Web.Components.Shared.Dialogs
 @using App.Web.Components.Shop.Sales
+@using App.Web.Components.Shop.Invoices
 
 @using Microsoft.AspNetCore.Authorization
 
 @using MudBlazor
 
 @inject ISaleService SaleService
+@inject IMexicoInvoiceService InvoiceService
+@inject IMexicoPacSettingsService PacSettingsService
 @inject IPaymentMethodService PaymentMethodService
 @inject ICustomerService CustomerService
 @inject IProductService ProductService
@@ -530,6 +535,7 @@ else
     private string _configurationError = string.Empty;
     private CashRegisterDto? _activeCashRegister;
     private CashRegisterSettingsDto? _cashSettings;
+    private MexicoPacSettingsDto? _pacSettings;
     private TimeZoneInfo? _companyTimeZone;
 
     // Autorización de descuentos
@@ -606,6 +612,7 @@ else
             await LoadRoundingSettings();
             await LoadPaymentMethods();
             await LoadDefaultCustomerAsync();
+            await LoadPacSettingsAsync();
             _focusPending = true;
         }
         catch (Exception ex)
@@ -629,6 +636,18 @@ else
         var result = await CashRegisterService.GetSettingsAsync();
         if (result.IsSuccess)
             _cashSettings = result.Value;
+    }
+
+    private async Task LoadPacSettingsAsync()
+    {
+        try
+        {
+            _pacSettings = await PacSettingsService.GetAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Could not load PAC settings in SalesPage");
+        }
     }
 
     private async Task LoadLocation()
@@ -1408,6 +1427,30 @@ else
                 L["Sale Receipt"],
                 new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, result.Value!.Id } });
 
+                // Auto-invoice logic
+                // Prompt threshold: MX customer with RFC is enough to ask
+                bool isMexicoWithRfc = _selectedCustomer!.CountryCode == "MX"
+                    && !string.IsNullOrEmpty(_selectedCustomer.TaxId);
+
+                if (isMexicoWithRfc && _pacSettings != null)
+                {
+                    if (_selectedCustomer.AutoInvoice)
+                    {
+                        // Silent auto-invoice: needs all CFDI fields (HasFiscalData) + PAC configured
+                        if (_selectedCustomer.HasFiscalData && _pacSettings.IsConfigured)
+                            await AutoGenerateInvoiceAsync(result.Value!.Id);
+                        else if (_pacSettings.AutoInvoicePromptEnabled)
+                            // Incomplete data or PAC not ready → fall back to prompt
+                            await ShowInvoicePromptAsync(result.Value!.Id, result.Value!.Total);
+                        else
+                            Snackbar.Add(L["Auto-invoice failed. You can generate it from sales history."], Severity.Warning);
+                    }
+                    else if (_pacSettings.AutoInvoicePromptEnabled)
+                    {
+                        await ShowInvoicePromptAsync(result.Value!.Id, result.Value!.Total);
+                    }
+                }
+
                 // Clear form for next sale
                 await ClearCartAndFormAsync();
             }
@@ -1427,6 +1470,57 @@ else
             _isBusy = false;
             StateHasChanged();
         }
+    }
+
+    private async Task AutoGenerateInvoiceAsync(long saleId)
+    {
+        try
+        {
+            var dto = new CreateMexicoInvoiceDto
+            {
+                SaleId = saleId,
+                CfdiUse = _selectedCustomer!.DefaultCfdiUse ?? "G03",
+                PaymentForm = "01",
+                PaymentMethod = "PUE",
+                CustomerRfc = _selectedCustomer.TaxId ?? string.Empty,
+                CustomerLegalName = _selectedCustomer.LegalName ?? string.Empty,
+                CustomerPostalCode = _selectedCustomer.PostalCode ?? string.Empty,
+                CustomerFiscalRegime = _selectedCustomer.FiscalRegime ?? string.Empty,
+                SendToEmail = _selectedCustomer.SendInvoiceEmail ? _selectedCustomer.Email : null
+            };
+
+            var invoiceResult = await InvoiceService.CreateAndStampAsync(dto);
+            if (invoiceResult.IsSuccess)
+                Snackbar.Add(L["Invoice generated automatically"] + $" ({invoiceResult.Value!.FolioDisplay})", Severity.Success);
+            else
+                Snackbar.Add(L["Auto-invoice failed. You can generate it from sales history."], Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error auto-generating invoice for sale {SaleId}", saleId);
+            Snackbar.Add(L["Auto-invoice error. You can generate it from sales history."], Severity.Warning);
+        }
+    }
+
+    private async Task ShowInvoicePromptAsync(long saleId, decimal saleTotal)
+    {
+        var parameters = new DialogParameters<InvoicePromptDialog>
+        {
+            { x => x.SaleId, saleId },
+            { x => x.SaleTotal, saleTotal },
+            { x => x.CustomerName, _selectedCustomer!.Name },
+            { x => x.CustomerRfc, _selectedCustomer.TaxId },
+            { x => x.CustomerLegalName, _selectedCustomer.LegalName },
+            { x => x.CustomerPostalCode, _selectedCustomer.PostalCode },
+            { x => x.CustomerFiscalRegime, _selectedCustomer.FiscalRegime },
+            { x => x.CustomerEmail, _selectedCustomer.Email },
+            { x => x.CustomerDefaultCfdiUse, _selectedCustomer.DefaultCfdiUse },
+            { x => x.CustomerSendEmail, _selectedCustomer.SendInvoiceEmail },
+            { x => x.AllowEditFiscalData, _pacSettings!.AllowEditFiscalDataInPrompt }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
+        await DialogService.ShowAsync<InvoicePromptDialog>(L["Invoice?"], parameters, options);
     }
 
     private async Task ClearCartAndFormAsync()

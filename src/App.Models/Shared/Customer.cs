@@ -67,4 +67,14 @@ public class Customer : BaseEntity<long>
     public string? FiscalRegime { get; set; }
 
     public bool HasFiscalData { get; set; }
+
+    /// <summary>Default c_UsoCFDI code (e.g. G03) pre-filled when generating invoices for this customer.</summary>
+    [StringLength(10)]
+    public string? DefaultCfdiUse { get; set; }
+
+    /// <summary>When true and HasFiscalData is set, an invoice is automatically generated after each sale.</summary>
+    public bool AutoInvoice { get; set; }
+
+    /// <summary>When true, the stamped invoice XML/PDF is automatically emailed to the customer.</summary>
+    public bool SendInvoiceEmail { get; set; }
 }

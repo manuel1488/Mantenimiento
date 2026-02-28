@@ -17,40 +17,6 @@
         <MudForm @ref="_form" @bind-IsValid="_isValid">
             <MudGrid Spacing="3">
 
-                <!-- Invoice Numbering -->
-                <MudItem xs="12">
-                    <MudText Typo="Typo.h6" Class="mb-3">@L["Invoice Numbering"]</MudText>
-                    <MudGrid Spacing="2">
-                        <MudItem xs="12" sm="4">
-                            <MudTextField @bind-Value="_model.InvoiceSerie"
-                                          Label="@L["Invoice Serie"]"
-                                          MaxLength="10"
-                                          Variant="Variant.Outlined"
-                                          ReadOnly="@(!_hasWriteAccess)"
-                                          HelperText="@L["Letter prefix for folio (e.g. A, B, F)"]" />
-                        </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudNumericField @bind-Value="_model.StartFolio"
-                                             Label="@L["Start Folio"]"
-                                             Min="1"
-                                             Variant="Variant.Outlined"
-                                             ReadOnly="@(!_hasWriteAccess)"
-                                             HelperText="@L["First folio number to use (applied when no invoices exist yet)"]" />
-                        </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudNumericField @bind-Value="_model.FolioLength"
-                                             Label="@L["Folio Length (zero-pad)"]"
-                                             Min="0"
-                                             Max="20"
-                                             Variant="Variant.Outlined"
-                                             ReadOnly="@(!_hasWriteAccess)"
-                                             HelperText="@L["Total digits padded with zeros. 0 = no padding. Example: length 6, folio 42 → 000042"]" />
-                        </MudItem>
-                    </MudGrid>
-                </MudItem>
-
-                <MudItem xs="12"><MudDivider /></MudItem>
-
                 <!-- PAC Provider -->
                 <MudItem xs="12">
                     <MudText Typo="Typo.h6" Class="mb-3">@L["PAC Provider (SW Sapien)"]</MudText>
@@ -291,10 +257,7 @@
                     User = _settings.User,
                     ProductionUrl = _settings.ProductionUrl,
                     TestUrl = _settings.TestUrl,
-                    IsProduction = _settings.IsProduction,
-                    InvoiceSerie = _settings.InvoiceSerie ?? "A",
-                    StartFolio = _settings.StartFolio,
-                    FolioLength = _settings.FolioLength
+                    IsProduction = _settings.IsProduction
                 };
             }
         }

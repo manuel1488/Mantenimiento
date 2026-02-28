@@ -357,6 +357,26 @@ public class MexicoFiscalCatalogService : IMexicoFiscalCatalogService
         }
     }
 
+    public async Task<IList<MexicoCfdiUseDto>> GetCfdiUsesByFiscalRegimeAsync(string fiscalRegimeCode)
+    {
+        try
+        {
+            await using var _context = await _contextFactory.CreateDbContextAsync();
+            var items = await _context.Set<MexicoCfdiUse>()
+                .AsNoTracking()
+                .Where(x => x.FiscalRegimeCodes == null || x.FiscalRegimeCodes.Contains(fiscalRegimeCode))
+                .OrderBy(x => x.Code)
+                .ToListAsync();
+
+            return items.Select(x => _mapper.Map<MexicoCfdiUseDto>(x)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting CFDI uses for fiscal regime {FiscalRegimeCode}", fiscalRegimeCode);
+            throw;
+        }
+    }
+
     public async Task<MexicoCfdiUseDto?> GetCfdiUseByIdAsync(int id)
     {
         try

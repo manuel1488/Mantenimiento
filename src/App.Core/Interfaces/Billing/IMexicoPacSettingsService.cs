@@ -7,6 +7,7 @@ public interface IMexicoPacSettingsService
 {
     Task<MexicoPacSettingsDto?> GetAsync();
     Task<Result<MexicoPacSettingsDto>> SaveAsync(UpdateMexicoPacSettingsDto dto);
+    Task<Result<MexicoPacSettingsDto>> UpdateBillingPreferencesAsync(UpdateMexicoBillingPreferencesDto dto);
 
     /// <summary>Returns the raw CSD certificate bytes (from Base64 stored value).</summary>
     Task<Result<byte[]>> GetCsdCertificateBytesAsync();

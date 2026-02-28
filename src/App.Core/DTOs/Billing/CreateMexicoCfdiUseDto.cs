@@ -1,3 +1,9 @@
-﻿namespace App.Core.DTOs.Billing;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class CreateMexicoCfdiUseDto : CreateMexicoFiscalCatalogDto { }
+namespace App.Core.DTOs.Billing;
+
+public class CreateMexicoCfdiUseDto : CreateMexicoFiscalCatalogDto
+{
+    [StringLength(500)]
+    public string? FiscalRegimeCodes { get; set; }
+}

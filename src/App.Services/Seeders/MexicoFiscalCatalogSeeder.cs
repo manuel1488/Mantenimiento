@@ -166,18 +166,44 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
     private async Task SeedCfdiUsesAsync()
     {
         await using var _context = await _contextFactory.CreateDbContextAsync();
+        var dtos = await _dataReader.GetCfdiUsesAsync();
 
         if (!await _context.MexicoCfdiUses.AsNoTracking().AnyAsync())
         {
-            var dtos = await _dataReader.GetCfdiUsesAsync();
             await BulkInsertAsync(
                 dtos,
                 dto => new MexicoCfdiUse
                 {
                     Code = dto.Code,
-                    Description = dto.Description
+                    Description = dto.Description,
+                    FiscalRegimeCodes = dto.FiscalRegimeCodes
                 },
                 "CFDI Uses");
+        }
+        else
+        {
+            // Update FiscalRegimeCodes for existing records that are missing it
+            var dtosMap = dtos.ToDictionary(d => d.Code);
+            var existing = await _context.MexicoCfdiUses
+                .Where(x => x.FiscalRegimeCodes == null)
+                .ToListAsync();
+
+            var now = _dateTime.Now;
+            foreach (var item in existing)
+            {
+                if (dtosMap.TryGetValue(item.Code, out var dto))
+                {
+                    item.FiscalRegimeCodes = dto.FiscalRegimeCodes;
+                    item.ModifiedBy = _systemUser;
+                    item.ModifiedAt = now;
+                }
+            }
+
+            if (existing.Count > 0)
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Updated FiscalRegimeCodes for {Count} CFDI Uses", existing.Count);
+            }
         }
     }
 

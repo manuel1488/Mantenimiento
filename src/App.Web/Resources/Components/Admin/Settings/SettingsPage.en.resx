@@ -68,6 +68,9 @@
     <value>Cash Register</value>
     <comment>Cash register settings tab</comment>
   </data>
+  <data name="Billing" xml:space="preserve">
+    <value>Billing</value>
+  </data>
   <data name="PAC Billing" xml:space="preserve">
     <value>PAC Billing</value>
   </data>

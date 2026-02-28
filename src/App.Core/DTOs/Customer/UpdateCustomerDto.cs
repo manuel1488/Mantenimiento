@@ -57,4 +57,14 @@ public class UpdateCustomerDto
     [Required]
     [StringLength(3)]
     public string CountryCode { get; set; } = null!;
+
+    // Mexico fiscal data
+    [StringLength(5)]
+    public string? FiscalRegime { get; set; }
+
+    [StringLength(10)]
+    public string? DefaultCfdiUse { get; set; }
+
+    public bool AutoInvoice { get; set; }
+    public bool SendInvoiceEmail { get; set; }
 }

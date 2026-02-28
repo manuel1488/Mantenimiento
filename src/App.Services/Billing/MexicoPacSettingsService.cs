@@ -58,9 +58,6 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
             settings.ProductionUrl = dto.ProductionUrl;
             settings.TestUrl = dto.TestUrl;
             settings.IsProduction = dto.IsProduction;
-            settings.InvoiceSerie = dto.InvoiceSerie ?? "A";
-            settings.StartFolio = dto.StartFolio;
-            settings.FolioLength = dto.FolioLength;
 
             // Only update sensitive fields if provided
             if (!string.IsNullOrEmpty(dto.Password))
@@ -82,6 +79,48 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
         {
             _logger.LogError(ex, "Error saving PAC settings");
             return Result<MexicoPacSettingsDto>.Failure("Error al guardar la configuración PAC");
+        }
+    }
+
+    public async Task<Result<MexicoPacSettingsDto>> UpdateBillingPreferencesAsync(UpdateMexicoBillingPreferencesDto dto)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var settings = await context.MexicoPacSettings.FirstOrDefaultAsync();
+
+            if (settings == null)
+            {
+                settings = new MexicoPacSettings
+                {
+                    ProviderName = "SW Sapien",
+                    ProductionUrl = "https://services.sw.com.mx",
+                    CreatedBy = "System",
+                    CreatedAt = DateTime.UtcNow,
+                    ModifiedBy = "System",
+                    ModifiedAt = DateTime.UtcNow
+                };
+                context.MexicoPacSettings.Add(settings);
+            }
+            else
+            {
+                settings.ModifiedBy = "System";
+                settings.ModifiedAt = DateTime.UtcNow;
+            }
+
+            settings.InvoiceSerie = dto.InvoiceSerie;
+            settings.StartFolio = dto.StartFolio;
+            settings.FolioLength = dto.FolioLength;
+            settings.AutoInvoicePromptEnabled = dto.AutoInvoicePromptEnabled;
+            settings.AllowEditFiscalDataInPrompt = dto.AllowEditFiscalDataInPrompt;
+
+            await context.SaveChangesAsync();
+            return Result<MexicoPacSettingsDto>.Success(MapToDto(settings));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving billing preferences");
+            return Result<MexicoPacSettingsDto>.Failure("Error al guardar las preferencias de facturación");
         }
     }
 
@@ -127,6 +166,8 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
         FolioLength = s.FolioLength,
         HasCsdCertificate = !string.IsNullOrEmpty(s.CsdCertificateBase64),
         HasCsdPrivateKey = !string.IsNullOrEmpty(s.CsdPrivateKeyBase64),
-        HasCsdPassword = !string.IsNullOrEmpty(s.CsdPassword)
+        HasCsdPassword = !string.IsNullOrEmpty(s.CsdPassword),
+        AutoInvoicePromptEnabled = s.AutoInvoicePromptEnabled,
+        AllowEditFiscalDataInPrompt = s.AllowEditFiscalDataInPrompt
     };
 }
