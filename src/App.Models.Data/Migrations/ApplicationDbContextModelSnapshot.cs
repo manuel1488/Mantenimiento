@@ -1506,7 +1506,7 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("varchar(2)");
 
                     b.Property<decimal>("Rate")
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(10,6)");
 
                     b.Property<string>("Type")
                         .HasMaxLength(20)
@@ -1528,7 +1528,7 @@ namespace App.Models.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_TaxRate_EffectiveDates", "EffectiveTo IS NULL OR EffectiveFrom < EffectiveTo");
 
-                            t.HasCheckConstraint("CK_TaxRate_Rate", "Rate >= 0 AND Rate <= 100");
+                            t.HasCheckConstraint("CK_TaxRate_Rate", "Rate >= 0 AND Rate <= 1");
                         });
                 });
 

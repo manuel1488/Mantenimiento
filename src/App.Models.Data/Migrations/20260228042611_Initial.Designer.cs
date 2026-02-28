@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260228003929_AddCfdiUseFiscalRegimeCodes")]
-    partial class AddCfdiUseFiscalRegimeCodes
+    [Migration("20260228042611_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -643,6 +643,58 @@ namespace App.Models.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("mx_product_services");
+                });
+
+            modelBuilder.Entity("App.Models.Billing.MexicoSatUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Symbol")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("mx_sat_units");
                 });
 
             modelBuilder.Entity("App.Models.Billing.MexicoStampAlertSettings", b =>
@@ -1457,7 +1509,7 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("varchar(2)");
 
                     b.Property<decimal>("Rate")
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(10,6)");
 
                     b.Property<string>("Type")
                         .HasMaxLength(20)
@@ -1479,7 +1531,7 @@ namespace App.Models.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_TaxRate_EffectiveDates", "EffectiveTo IS NULL OR EffectiveFrom < EffectiveTo");
 
-                            t.HasCheckConstraint("CK_TaxRate_Rate", "Rate >= 0 AND Rate <= 100");
+                            t.HasCheckConstraint("CK_TaxRate_Rate", "Rate >= 0 AND Rate <= 1");
                         });
                 });
 
@@ -3366,6 +3418,9 @@ namespace App.Models.Data.Migrations
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
 
+                    b.Property<int?>("MexicoSatUnitId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime(6)");
 
@@ -3378,6 +3433,8 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MexicoSatUnitId");
 
                     b.HasIndex("CountryCode", "Code", "IsDeleted")
                         .IsUnique();
@@ -3961,6 +4018,15 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("StockEntry");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.UnitMeasure", b =>
+                {
+                    b.HasOne("App.Models.Billing.MexicoSatUnit", "MexicoSatUnit")
+                        .WithMany()
+                        .HasForeignKey("MexicoSatUnitId");
+
+                    b.Navigation("MexicoSatUnit");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

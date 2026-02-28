@@ -36,9 +36,12 @@ public class TaxRateConfiguration : IEntityTypeConfiguration<TaxRate>
             .IsUnicode(false);
 
         // Validations for positive rates
+        builder.Property(e => e.Rate)
+            .HasColumnType("decimal(10,6)");
+
         builder.ToTable(t => t.HasCheckConstraint(
-            "CK_TaxRate_Rate", 
-            "Rate >= 0 AND Rate <= 100"));
+            "CK_TaxRate_Rate",
+            "Rate >= 0 AND Rate <= 1"));
 
         // Validations for effective dates
         builder.ToTable(t => t.HasCheckConstraint(

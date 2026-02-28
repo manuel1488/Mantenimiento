@@ -242,7 +242,8 @@
 
     private string FormatPercentage(decimal value)
     {
-        return (value / 100m).ToString("P2", CultureInfo.CurrentUICulture);
+        // value is stored as fraction (0.16); P2 format multiplies by 100 and adds %
+        return value.ToString("P2", CultureInfo.CurrentUICulture);
     }
 
     private async Task LoadCountries()

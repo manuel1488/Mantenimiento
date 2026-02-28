@@ -708,7 +708,7 @@ public class SaleService : ISaleService
 
                 decimal detailDiscountAmount = detailSubtotal * (detailDto.DiscountPercentage / 100);
                 decimal detailAfterDiscount = detailSubtotal - detailDiscountAmount;
-                decimal detailTaxAmount = detailAfterDiscount * (taxRate / 100);
+                decimal detailTaxAmount = detailAfterDiscount * taxRate;
                 decimal detailTotal = detailAfterDiscount + detailTaxAmount;
 
                 // Create sale detail

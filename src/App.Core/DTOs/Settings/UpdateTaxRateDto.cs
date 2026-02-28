@@ -9,7 +9,7 @@ public class UpdateTaxRateDto
     public string Name { get; set; } = null!;
 
     [Required]
-    [Range(0, 100)]
+    [Range(0, 1)]
     public decimal Rate { get; set; }
 
     public DateTime? EffectiveTo { get; set; }

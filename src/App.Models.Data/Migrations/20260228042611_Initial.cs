@@ -95,6 +95,8 @@ namespace App.Models.Data.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Description = table.Column<string>(type: "varchar(250)", maxLength: 250, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    FiscalRegimeCodes = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -147,14 +149,37 @@ namespace App.Models.Data.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     ProviderName = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    User = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    User = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Password = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                    Password = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Token = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ProductionUrl = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TestUrl = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsProduction = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    IssuerRfc = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerLegalName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerFiscalRegime = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    InvoiceSerie = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true, defaultValue: "A")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StartFolio = table.Column<long>(type: "bigint", nullable: false, defaultValue: 1L),
+                    FolioLength = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    CsdCertificateBase64 = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CsdPrivateKeyBase64 = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CsdPassword = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerPostalCode = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AutoInvoicePromptEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AllowEditFiscalDataInPrompt = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -254,6 +279,62 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "mx_sat_units",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Code = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Name = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Symbol = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_mx_sat_units", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "mx_stamp_alert_settings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    LowStampThreshold = table.Column<int>(type: "int", nullable: false),
+                    AlertEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AlertCooldownHours = table.Column<int>(type: "int", nullable: false),
+                    LastAlertSentAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_mx_stamp_alert_settings", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "sh_locations",
                 columns: table => new
                 {
@@ -339,19 +420,36 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "sh_unit_measures",
+                name: "sh_suppliers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LegalName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TaxId = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Phone = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Street = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExteriorNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    City = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    State = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PostalCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CountryCode = table.Column<string>(type: "varchar(3)", maxLength: 3, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Code = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
+                    Notes = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -365,7 +463,7 @@ namespace App.Models.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sh_unit_measures", x => x.Id);
+                    table.PrimaryKey("PK_sh_suppliers", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -436,6 +534,13 @@ namespace App.Models.Data.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CountryCode = table.Column<string>(type: "varchar(3)", unicode: false, maxLength: 3, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    FiscalRegime = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    HasFiscalData = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    DefaultCfdiUse = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AutoInvoice = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    SendInvoiceEmail = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -459,7 +564,10 @@ namespace App.Models.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaxWithdrawalAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    MaxWithdrawalAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    IsStrictWithdrawalLimit = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    MaxCashLimit = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    IsStrictCashLimit = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     DefaultInitialFund = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -740,7 +848,7 @@ namespace App.Models.Data.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Code = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Rate = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    Rate = table.Column<decimal>(type: "decimal(10,6)", nullable: false),
                     EffectiveFrom = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     EffectiveTo = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsDefault = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -764,7 +872,7 @@ namespace App.Models.Data.Migrations
                 {
                     table.PrimaryKey("PK_stg_tax_rates", x => x.Id);
                     table.CheckConstraint("CK_TaxRate_EffectiveDates", "EffectiveTo IS NULL OR EffectiveFrom < EffectiveTo");
-                    table.CheckConstraint("CK_TaxRate_Rate", "Rate >= 0 AND Rate <= 100");
+                    table.CheckConstraint("CK_TaxRate_Rate", "Rate >= 0 AND Rate <= 1");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -937,6 +1045,43 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "sh_unit_measures",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CountryCode = table.Column<string>(type: "varchar(3)", maxLength: 3, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Code = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MexicoSatUnitId = table.Column<int>(type: "int", nullable: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_unit_measures", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_unit_measures_mx_sat_units_MexicoSatUnitId",
+                        column: x => x.MexicoSatUnitId,
+                        principalTable: "mx_sat_units",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "id_cashier_profiles",
                 columns: table => new
                 {
@@ -1081,30 +1226,31 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "sh_products",
+                name: "sh_stock_entries",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Code = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                    MovementType = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Barcode = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                    MovementSubType = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    SupplierId = table.Column<long>(type: "bigint", nullable: true),
+                    SupplierName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                    DocumentNumber = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Brand = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                    Reference = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UnitMeasureId = table.Column<int>(type: "int", nullable: false),
-                    Cost = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    IsTaxable = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    MexicoProductServiceId = table.Column<int>(type: "int", nullable: true),
-                    Content = table.Column<decimal>(type: "decimal(10,3)", nullable: false, defaultValue: 1m),
-                    IsPartialSaleAllowed = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
-                    AllowCustomPricing = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Reason = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntryDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    AttachmentFileName = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AttachmentMimeType = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AttachmentData = table.Column<byte[]>(type: "LONGBLOB", nullable: true),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -1118,19 +1264,19 @@ namespace App.Models.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sh_products", x => x.Id);
+                    table.PrimaryKey("PK_sh_stock_entries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_sh_products_mx_product_services_MexicoProductServiceId",
-                        column: x => x.MexicoProductServiceId,
-                        principalTable: "mx_product_services",
+                        name: "FK_sh_stock_entries_sh_locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "sh_locations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_sh_products_sh_unit_measures_UnitMeasureId",
-                        column: x => x.UnitMeasureId,
-                        principalTable: "sh_unit_measures",
+                        name: "FK_sh_stock_entries_sh_suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "sh_suppliers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1186,6 +1332,60 @@ namespace App.Models.Data.Migrations
                         principalTable: "stg_countries",
                         principalColumn: "Code",
                         onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "sh_products",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Code = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Barcode = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Brand = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UnitMeasureId = table.Column<int>(type: "int", nullable: false),
+                    Cost = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    IsTaxable = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    MexicoProductServiceId = table.Column<int>(type: "int", nullable: true),
+                    Content = table.Column<decimal>(type: "decimal(10,3)", nullable: false, defaultValue: 1m),
+                    IsPartialSaleAllowed = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    AllowCustomPricing = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_products_mx_product_services_MexicoProductServiceId",
+                        column: x => x.MexicoProductServiceId,
+                        principalTable: "mx_product_services",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_sh_products_sh_unit_measures_UnitMeasureId",
+                        column: x => x.UnitMeasureId,
+                        principalTable: "sh_unit_measures",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1308,6 +1508,8 @@ namespace App.Models.Data.Migrations
                     MovementDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     RelatedParty = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    SupplierId = table.Column<long>(type: "bigint", nullable: true),
+                    StockEntryId = table.Column<long>(type: "bigint", nullable: true),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -1341,6 +1543,18 @@ namespace App.Models.Data.Migrations
                         name: "FK_sh_inventory_movements_sh_products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "sh_products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_sh_inventory_movements_sh_stock_entries_StockEntryId",
+                        column: x => x.StockEntryId,
+                        principalTable: "sh_stock_entries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_sh_inventory_movements_sh_suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "sh_suppliers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
@@ -1507,8 +1721,9 @@ namespace App.Models.Data.Migrations
                     CashRegisterId = table.Column<long>(type: "bigint", nullable: false),
                     MovementType = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    Reason = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                    Reason = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    WithdrawalNumber = table.Column<int>(type: "int", nullable: true),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
@@ -1593,24 +1808,111 @@ namespace App.Models.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "sh_stock_entry_items",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    StockEntryId = table.Column<long>(type: "bigint", nullable: false),
+                    ProductId = table.Column<long>(type: "bigint", nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(15,6)", nullable: false),
+                    UnitCost = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    InventoryMovementId = table.Column<long>(type: "bigint", nullable: true),
+                    CreatedBy = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ModifiedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<uint>(type: "int unsigned", nullable: false),
+                    DeletedBy = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sh_stock_entry_items", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_sh_stock_entry_items_sh_inventory_movements_InventoryMovemen~",
+                        column: x => x.InventoryMovementId,
+                        principalTable: "sh_inventory_movements",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_sh_stock_entry_items_sh_products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "sh_products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_sh_stock_entry_items_sh_stock_entries_StockEntryId",
+                        column: x => x.StockEntryId,
+                        principalTable: "sh_stock_entries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "mx_invoices",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SaleId = table.Column<long>(type: "bigint", nullable: false),
-                    CfdiUse = table.Column<string>(type: "varchar(5)", maxLength: 5, nullable: false)
+                    Serie = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PaymentMethod = table.Column<string>(type: "varchar(5)", maxLength: 5, nullable: false)
+                    Folio = table.Column<long>(type: "bigint", nullable: false),
+                    Uuid = table.Column<string>(type: "varchar(36)", unicode: false, maxLength: 36, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PaymentType = table.Column<string>(type: "varchar(5)", maxLength: 5, nullable: false)
+                    CfdiUse = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    FiscalRegime = table.Column<string>(type: "varchar(5)", maxLength: 5, nullable: false)
+                    PaymentForm = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false)
+                    PaymentMethod = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerRfc = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerLegalName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerPostalCode = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerFiscalRegime = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerRfc = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerLegalName = table.Column<string>(type: "varchar(150)", maxLength: 150, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerFiscalRegime = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuerPostalCode = table.Column<string>(type: "varchar(10)", unicode: false, maxLength: 10, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Currency = table.Column<string>(type: "varchar(5)", unicode: false, maxLength: 5, nullable: false, defaultValue: "MXN")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ExchangeRate = table.Column<decimal>(type: "decimal(18,6)", nullable: false, defaultValue: 1m),
+                    Status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false, defaultValue: "Draft")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsStamped = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    StampDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CancellationDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     CancellationReason = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CancellationStatus = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NoCertificadoSat = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NoCertificadoCfdi = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SelloSat = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SelloCfdi = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CadenaOriginalSat = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StampError = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -1865,10 +2167,33 @@ namespace App.Models.Data.Migrations
                 column: "InvoiceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_mx_invoices_IsStamped",
+                table: "mx_invoices",
+                column: "IsStamped");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_mx_invoices_SaleId",
                 table: "mx_invoices",
                 column: "SaleId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_mx_invoices_Serie_Folio",
+                table: "mx_invoices",
+                columns: new[] { "Serie", "Folio" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_mx_invoices_Status",
+                table: "mx_invoices",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_mx_invoices_Uuid",
+                table: "mx_invoices",
+                column: "Uuid",
+                unique: true,
+                filter: "Uuid IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_mx_payment_forms_Code",
@@ -1898,6 +2223,12 @@ namespace App.Models.Data.Migrations
                 name: "IX_mx_product_services_Id",
                 table: "mx_product_services",
                 column: "Id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_mx_sat_units_Code",
+                table: "mx_sat_units",
+                column: "Code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1971,6 +2302,16 @@ namespace App.Models.Data.Migrations
                 name: "IX_sh_inventory_movements_ProductId_LocationId_MovementDate",
                 table: "sh_inventory_movements",
                 columns: new[] { "ProductId", "LocationId", "MovementDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_inventory_movements_StockEntryId",
+                table: "sh_inventory_movements",
+                column: "StockEntryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_inventory_movements_SupplierId",
+                table: "sh_inventory_movements",
+                column: "SupplierId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sh_location_ticket_settings_LocationId",
@@ -2119,10 +2460,55 @@ namespace App.Models.Data.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
+                name: "IX_sh_stock_entries_DocumentNumber",
+                table: "sh_stock_entries",
+                column: "DocumentNumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_stock_entries_LocationId_EntryDate",
+                table: "sh_stock_entries",
+                columns: new[] { "LocationId", "EntryDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_stock_entries_SupplierId",
+                table: "sh_stock_entries",
+                column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_stock_entry_items_InventoryMovementId",
+                table: "sh_stock_entry_items",
+                column: "InventoryMovementId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_stock_entry_items_ProductId",
+                table: "sh_stock_entry_items",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_stock_entry_items_StockEntryId",
+                table: "sh_stock_entry_items",
+                column: "StockEntryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_suppliers_Name",
+                table: "sh_suppliers",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_suppliers_TaxId",
+                table: "sh_suppliers",
+                column: "TaxId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_sh_unit_measures_CountryCode_Code_IsDeleted",
                 table: "sh_unit_measures",
                 columns: new[] { "CountryCode", "Code", "IsDeleted" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sh_unit_measures_MexicoSatUnitId",
+                table: "sh_unit_measures",
+                column: "MexicoSatUnitId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sh_wholesale_tiers_IsActive_IsDeleted",
@@ -2290,6 +2676,9 @@ namespace App.Models.Data.Migrations
                 name: "mx_payment_methods");
 
             migrationBuilder.DropTable(
+                name: "mx_stamp_alert_settings");
+
+            migrationBuilder.DropTable(
                 name: "sh_cash_register_denominations");
 
             migrationBuilder.DropTable(
@@ -2297,9 +2686,6 @@ namespace App.Models.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "sh_inventory");
-
-            migrationBuilder.DropTable(
-                name: "sh_inventory_movements");
 
             migrationBuilder.DropTable(
                 name: "sh_location_ticket_settings");
@@ -2318,6 +2704,9 @@ namespace App.Models.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "sh_sale_payments");
+
+            migrationBuilder.DropTable(
+                name: "sh_stock_entry_items");
 
             migrationBuilder.DropTable(
                 name: "stg_cash_register_settings");
@@ -2365,10 +2754,10 @@ namespace App.Models.Data.Migrations
                 name: "sh_partial_sale_fractions");
 
             migrationBuilder.DropTable(
-                name: "sh_products");
+                name: "stg_payment_methods");
 
             migrationBuilder.DropTable(
-                name: "stg_payment_methods");
+                name: "sh_inventory_movements");
 
             migrationBuilder.DropTable(
                 name: "stg_countries");
@@ -2377,10 +2766,10 @@ namespace App.Models.Data.Migrations
                 name: "sh_sales");
 
             migrationBuilder.DropTable(
-                name: "mx_product_services");
+                name: "sh_products");
 
             migrationBuilder.DropTable(
-                name: "sh_unit_measures");
+                name: "sh_stock_entries");
 
             migrationBuilder.DropTable(
                 name: "sh_cash_registers");
@@ -2389,7 +2778,19 @@ namespace App.Models.Data.Migrations
                 name: "shd_customers");
 
             migrationBuilder.DropTable(
+                name: "mx_product_services");
+
+            migrationBuilder.DropTable(
+                name: "sh_unit_measures");
+
+            migrationBuilder.DropTable(
+                name: "sh_suppliers");
+
+            migrationBuilder.DropTable(
                 name: "sh_cash_stations");
+
+            migrationBuilder.DropTable(
+                name: "mx_sat_units");
 
             migrationBuilder.DropTable(
                 name: "sh_locations");

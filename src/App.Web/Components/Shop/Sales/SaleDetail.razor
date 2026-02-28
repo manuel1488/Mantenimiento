@@ -174,7 +174,7 @@
                                             <span>-</span>
                                         }
                                     </MudTd>
-                                    <MudTd DataLabel="@L["Tax"]">@contextItem.TaxRate.ToString("0.##")% (@contextItem.TaxAmount.ToString("C"))</MudTd>
+                                    <MudTd DataLabel="@L["Tax"]">@((contextItem.TaxRate * 100).ToString("0.##"))% (@contextItem.TaxAmount.ToString("C"))</MudTd>
                                     <MudTd DataLabel="@L["Subtotal"]">@contextItem.Subtotal.ToString("C")</MudTd>
                                     <MudTd DataLabel="@L["Total"]">@contextItem.Total.ToString("C")</MudTd>
                                 </RowTemplate>

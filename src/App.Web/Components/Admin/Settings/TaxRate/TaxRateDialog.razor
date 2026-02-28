@@ -41,7 +41,7 @@
 
                             <!-- Rate -->
                             <MudItem xs="12" md="6">
-                                <MudNumericField @bind-Value="_model.Rate"
+                                <MudNumericField @bind-Value="_ratePercent"
                                             Label="@L["Rate (%)"]"
                                             Required="true"
                                             RequiredError="@L["Rate is required"]"
@@ -157,6 +157,9 @@
     private DateTime? _effectiveFromLocal;
     private DateTime? _effectiveToLocal;
 
+    // UI percentage (0-100); converted to/from fraction (0-1) at save/load boundary
+    private decimal _ratePercent;
+
     private CreateTaxRateDto _model = new()
     {
         Rate = 0,
@@ -220,6 +223,9 @@
                     IsActive = _taxRate.IsActive
                 };
 
+                // Convert fraction rate to percentage for UI display
+                _ratePercent = _taxRate.Rate * 100;
+
                 // Convert UTC dates to local for display
                 _effectiveFromLocal = TimeZoneInfo.ConvertTimeFromUtc(_taxRate.EffectiveFrom, _currentTimeZone);
                 _effectiveToLocal = _taxRate.EffectiveTo.HasValue 
@@ -275,6 +281,9 @@
 
             try
             {
+                // Convert UI percentage back to fraction for storage
+                _model.Rate = _ratePercent / 100;
+
                 if (TaxRateId.HasValue)
                 {
                     var updateDto = new UpdateTaxRateDto

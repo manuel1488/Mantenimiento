@@ -545,7 +545,7 @@ else
     // State
     private bool _isBusy = false;
     private bool _focusPending = false;
-    private decimal _taxRate = 16; // Default tax rate
+    private decimal _taxRate = 0; // Effective tax rate as fraction (0.16 = 16%)
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -1125,7 +1125,7 @@ else
             {
                 decimal itemSubtotalPortion = i.Subtotal / (_subtotal > 0 ? _subtotal : 1);
                 decimal itemDiscountedSubtotal = baseImponible * itemSubtotalPortion;
-                return itemDiscountedSubtotal * (_taxRate / 100);
+                return itemDiscountedSubtotal * _taxRate;
             }
             return 0m;
         });

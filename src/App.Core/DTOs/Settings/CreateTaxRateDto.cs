@@ -17,7 +17,7 @@ public class CreateTaxRateDto
     public string Code { get; set; } = null!;
 
     [Required]
-    [Range(0, 100)]
+    [Range(0, 1)]
     public decimal Rate { get; set; }
 
     [Required]
