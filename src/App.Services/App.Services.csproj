@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\Xslt\cadenaoriginal_4_0.xslt" />
+    <EmbeddedResource Include="Resources\Xslt\SAT\**\*.xslt" />
     <EmbeddedResource Include="Resources\Xsd\cfdv40.xsd" />
     <EmbeddedResource Include="Resources\Xsd\tdCFDI.xsd" />
     <EmbeddedResource Include="Resources\Xsd\catCFDI.xsd" />

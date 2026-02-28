@@ -60,7 +60,7 @@ public class MexicoCfdiXmlService : IMexicoCfdiXmlService
                 var transform = new XslCompiledTransform();
                 var settings = new XsltSettings { EnableDocumentFunction = true, EnableScript = false };
                 using var reader = XmlReader.Create(new StringReader(xsltContent));
-                transform.Load(reader, settings, new XmlUrlResolver());
+                transform.Load(reader, settings, new EmbeddedXsltResolver(_logger));
                 _logger.LogInformation("XSLT compilado y cacheado correctamente");
                 return await Task.FromResult(transform);
             });
@@ -182,6 +182,50 @@ public class MexicoCfdiXmlService : IMexicoCfdiXmlService
     private sealed class Utf8StringWriter : StringWriter
     {
         public override Encoding Encoding => Encoding.UTF8;
+    }
+
+    private sealed class EmbeddedXsltResolver : XmlUrlResolver
+    {
+        private readonly ILogger _logger;
+
+        public EmbeddedXsltResolver(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public override object? GetEntity(Uri absoluteUri, string? role, Type? ofObjectToReturn)
+        {
+            try
+            {
+                var uriString = absoluteUri.ToString();
+
+                int satIndex = uriString.LastIndexOf("/SAT/", StringComparison.OrdinalIgnoreCase);
+                if (satIndex < 0)
+                    satIndex = uriString.LastIndexOf("\\SAT\\", StringComparison.OrdinalIgnoreCase);
+
+                if (satIndex < 0)
+                    return base.GetEntity(absoluteUri, role, ofObjectToReturn);
+
+                var relativePath = uriString.Substring(satIndex + 1)
+                    .Replace("/", ".")
+                    .Replace("\\", ".");
+
+                var resourceName = $"App.Services.Resources.Xslt.{relativePath}";
+                _logger.LogDebug("Resolving XSLT include: {Resource}", resourceName);
+
+                var stream = _assembly.GetManifestResourceStream(resourceName);
+                if (stream != null)
+                    return stream;
+
+                _logger.LogWarning("XSLT embedded resource not found: {Resource}", resourceName);
+                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resolving XSLT resource: {Uri}", absoluteUri);
+                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
+            }
+        }
     }
 
     #endregion
