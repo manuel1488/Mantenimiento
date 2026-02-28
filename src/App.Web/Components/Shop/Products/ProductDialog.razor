@@ -366,9 +366,9 @@
                                         ToStringFunc="@(x => x == null ? string.Empty : $"{x.Description} ({x.Code})")"
                                         Value="_selectedProductService"
                                         ValueChanged="OnProductServiceSelected"
-                                        MaxItems="null"                                
+                                        MaxItems="null"
                                         CoerceText="false"
-                                        CoerceValue="false"                                
+                                        CoerceValue="false"
                                         MinCharacters="0"
                                         ResetValueOnEmptyText="true"
                                         Clearable="true"
@@ -522,7 +522,7 @@
         var settings = await SettingsService.GetSettingsAsync();
         _isMexico = settings?.CountryCode == CountryCodes.Mexico;
         
-        // If Mexico, load initial SAT product/service list
+        // If Mexico, load initial SAT product/service and unit lists
         if (_isMexico)
         {
             try
@@ -632,6 +632,7 @@
                         Description = _product.MexicoProductServiceDescription!
                     };
                 }
+
 
                 // Load image if exists
                 var images = await ProductService.GetProductImagesAsync(ProductId.Value);

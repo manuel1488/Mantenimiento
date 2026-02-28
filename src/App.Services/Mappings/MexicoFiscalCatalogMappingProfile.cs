@@ -30,6 +30,10 @@ public class MexicoFiscalCatalogMappingProfile : Profile
         CreateMap<MexicoProductService, MexicoProductServiceDto>();
         CreateMap<CreateMexicoProductServiceDto, MexicoProductService>();
 
+        // SAT Units
+        CreateMap<MexicoSatUnit, MexicoSatUnitDto>();
+        CreateMap<CreateMexicoSatUnitDto, MexicoSatUnit>();
+
         // Update DTO
         CreateMap<UpdateMexicoFiscalCatalogDto, MexicoFiscalRegime>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));

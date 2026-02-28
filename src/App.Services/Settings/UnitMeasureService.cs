@@ -44,6 +44,7 @@ public class UnitMeasureService : IUnitMeasureService
             await using var _context = await _contextFactory.CreateDbContextAsync();
             
             var unitMeasures = await _context.UnitMeasures
+                .Include(u => u.MexicoSatUnit)
                 .AsNoTracking()
                 .Where(x => x.CountryCode == countryCode)
                 .OrderBy(x => x.Name)
@@ -66,6 +67,7 @@ public class UnitMeasureService : IUnitMeasureService
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var unitMeasure = await _context.UnitMeasures
+                .Include(u => u.MexicoSatUnit)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -89,6 +91,7 @@ public class UnitMeasureService : IUnitMeasureService
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             IQueryable<UnitMeasure> query = _context.UnitMeasures
+                .Include(u => u.MexicoSatUnit)
                 .AsNoTracking();
 
             // Apply filters

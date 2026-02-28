@@ -12,4 +12,5 @@ public interface IFiscalCatalogDataReader
     Task<IEnumerable<CreateMexicoPaymentMethodDto>> GetPaymentMethodsAsync();
     Task<IEnumerable<CreateMexicoCfdiUseDto>> GetCfdiUsesAsync();
     Task<IEnumerable<CreateMexicoProductServiceDto>> GetProductServicesAsync();
+    Task<IEnumerable<CreateMexicoSatUnitDto>> GetSatUnitsAsync();
 }

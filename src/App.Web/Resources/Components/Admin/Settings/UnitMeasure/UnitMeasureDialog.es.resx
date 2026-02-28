@@ -56,4 +56,13 @@
     <value>Error al guardar la unidad de medida</value>
     <comment>Mensaje de error cuando falla el guardado</comment>
   </data>
+  <data name="SAT Unit Code" xml:space="preserve">
+    <value>Clave Unidad SAT</value>
+  </data>
+  <data name="SAT unit code for invoicing (c_ClaveUnidad)" xml:space="preserve">
+    <value>Clave de unidad para facturación (c_ClaveUnidad)</value>
+  </data>
+  <data name="Error searching SAT units" xml:space="preserve">
+    <value>Error al buscar unidades SAT</value>
+  </data>
 </root>

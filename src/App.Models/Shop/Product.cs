@@ -53,6 +53,7 @@ public class Product : BaseEntity<long>
     [ForeignKey(nameof(MexicoProductServiceId))]
     public virtual MexicoProductService? MexicoProductService { get; set; }
 
+
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 
     public virtual ICollection<ProductPartialSurcharge> PartialSurcharges { get; set; } = new List<ProductPartialSurcharge>();

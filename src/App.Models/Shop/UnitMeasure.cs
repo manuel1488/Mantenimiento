@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Models.Billing;
 
 namespace App.Models.Shop;
 
@@ -23,4 +24,9 @@ public class UnitMeasure : BaseEntity<int>
 
     [StringLength(200)]
     public string? Description { get; set; }
+
+    public int? MexicoSatUnitId { get; set; }
+
+    [ForeignKey(nameof(MexicoSatUnitId))]
+    public virtual MexicoSatUnit? MexicoSatUnit { get; set; }
 }

@@ -34,6 +34,12 @@ public interface IMexicoFiscalCatalogService
     Task<MexicoCfdiUseDto> CreateCfdiUseAsync(CreateMexicoCfdiUseDto createDto);
     Task<MexicoCfdiUseDto> UpdateCfdiUseAsync(int id, UpdateMexicoFiscalCatalogDto updateDto);
 
+    // SAT Units
+    Task<(int TotalCount, IList<MexicoSatUnitDto> Items)> SearchSatUnitsAsync(
+        string? searchText = null,
+        int page = 1,
+        int pageSize = 50);
+
     // Product Services
     Task<IList<MexicoProductServiceDto>> GetProductServicesAsync();
     Task<MexicoProductServiceDto?> GetProductServiceByIdAsync(int id);

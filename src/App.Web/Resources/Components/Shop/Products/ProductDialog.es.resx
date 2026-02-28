@@ -123,6 +123,12 @@
   <data name="SAT Product/Service Code" xml:space="preserve">
     <value>Código de Producto/Servicio SAT</value>
   </data>
+  <data name="SAT Unit Code" xml:space="preserve">
+    <value>Clave Unidad SAT</value>
+  </data>
+  <data name="Error searching SAT units" xml:space="preserve">
+    <value>Error al buscar unidades SAT</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Guardar</value>
   </data>

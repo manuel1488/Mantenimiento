@@ -714,9 +714,9 @@ async Task InitializeDatabase(WebApplication app)
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
+    await mexicoFiscalSeeder.SeedAsync();
     await unitMeasureSeeder.SeedAsync();
     await generalSeeder.SeedAsync();
-    await mexicoFiscalSeeder.SeedAsync();
     await customerSeeder.SeedAsync();
     await paymentMethodSeeder.SeedAsync();
 }

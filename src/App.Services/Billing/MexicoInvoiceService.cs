@@ -86,6 +86,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                         .ThenInclude(p => p.UnitMeasure)
+                            .ThenInclude(u => u.MexicoSatUnit)
                 .FirstAsync(s => s.Id == dto.SaleId);
 
             // 4. Get next folio
@@ -485,7 +486,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         {
             var product = detail.Product;
             var satCode = product.MexicoProductService?.Code ?? DefaultProductServiceCode;
-            var unitCode = product.UnitMeasure?.Code ?? DefaultUnitCode;
+            var unitCode = product.UnitMeasure?.MexicoSatUnit?.Code ?? DefaultUnitCode;
 
             var concepto = new Concepto
             {

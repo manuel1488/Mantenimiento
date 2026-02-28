@@ -223,6 +223,20 @@ public class MexicoCfdiXmlService : IMexicoCfdiXmlService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error resolving XSLT resource: {Uri}", absoluteUri);
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 return base.GetEntity(absoluteUri, role, ofObjectToReturn);
             }
         }

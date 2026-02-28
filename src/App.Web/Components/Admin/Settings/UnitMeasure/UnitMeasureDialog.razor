@@ -1,10 +1,12 @@
-﻿@using App.Core.DTOs.Settings
+﻿@using App.Core.DTOs.Billing.Mexico
+@using App.Core.DTOs.Settings
 @using App.Core.DTOs.UnitMeasure
 @using App.Core.Interfaces
 
 @inject IUnitMeasureService UnitMeasureService
 @inject ILookupService LookupService
 @inject ICompanySettingsService CompanySettingsService
+@inject IMexicoFiscalCatalogService MexicoFiscalCatalogService
 @inject IStringLocalizer<UnitMeasureDialog> L
 @inject ISnackbar Snackbar
 @inject ILogger<UnitMeasureDialog> Logger
@@ -56,6 +58,30 @@
                                             Label="@L["Description"]"
                                             Lines="3" />
                             </MudItem>
+
+                            <!-- SAT Unit Code (Mexico only) -->
+                            @if (_isMexico)
+                            {
+                                <MudItem xs="12">
+                                    <MudAutocomplete T="MexicoSatUnitDto"
+                                        Label="@L["SAT Unit Code"]"
+                                        HelperText="@L["SAT unit code for invoicing (c_ClaveUnidad)"]"
+                                        SearchFunc="@SearchSatUnits"
+                                        ToStringFunc="@(x => x == null ? string.Empty : $"{x.Name} ({x.Code})")"
+                                        Value="_selectedSatUnit"
+                                        ValueChanged="OnSatUnitSelected"
+                                        MaxItems="null"
+                                        CoerceText="false"
+                                        CoerceValue="false"
+                                        MinCharacters="0"
+                                        ResetValueOnEmptyText="true"
+                                        Clearable="true"
+                                        Immediate="true"
+                                        Dense="true"
+                                        AdornmentIcon="@Icons.Material.Filled.Search"
+                                        Adornment="Adornment.Start"/>
+                                </MudItem>
+                            }
                         </MudGrid>
                     </MudForm>
                 </MudContainer>
@@ -105,8 +131,12 @@
     private List<CountryDto> _countries = new();
     private UnitMeasureDto? _unitMeasure;
     private bool IsNew => !UnitMeasureId.HasValue;
-    
-    private UpdateUnitMeasureDto _model = new() 
+    private bool _isMexico;
+    private MexicoSatUnitDto? _selectedSatUnit;
+    private IEnumerable<MexicoSatUnitDto> _initialSatUnits = Array.Empty<MexicoSatUnitDto>();
+    private const int SatUnitPageSize = 50;
+
+    private UpdateUnitMeasureDto _model = new()
     {
         CountryCode = "MX",
     };
@@ -114,7 +144,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadCountries();
-        
+
         // Try to use company's default country
         try
         {
@@ -122,11 +152,26 @@
             if (settings != null && !string.IsNullOrEmpty(settings.CountryCode))
             {
                 _model.CountryCode = settings.CountryCode;
+                _isMexico = settings.CountryCode == "MX";
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading company settings");
+        }
+
+        if (_isMexico)
+        {
+            try
+            {
+                var (_, items) = await MexicoFiscalCatalogService.SearchSatUnitsAsync(
+                    searchText: null, page: 1, pageSize: SatUnitPageSize);
+                _initialSatUnits = items;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading SAT units");
+            }
         }
 
         if (UnitMeasureId.HasValue)
@@ -161,8 +206,19 @@
                     CountryCode = _unitMeasure.CountryCode,
                     Code = _unitMeasure.Code,
                     Name = _unitMeasure.Name,
-                    Description = _unitMeasure.Description                    
+                    Description = _unitMeasure.Description,
+                    MexicoSatUnitId = _unitMeasure.MexicoSatUnitId
                 };
+
+                if (_unitMeasure.MexicoSatUnitId.HasValue)
+                {
+                    _selectedSatUnit = new MexicoSatUnitDto
+                    {
+                        Id = _unitMeasure.MexicoSatUnitId.Value,
+                        Code = _unitMeasure.MexicoSatUnitCode!,
+                        Name = _unitMeasure.MexicoSatUnitName!
+                    };
+                }
             }
         }
         catch (Exception ex)
@@ -176,6 +232,7 @@
     private async Task OnCountryChanged(string countryCode)
     {
         _model.CountryCode = countryCode;
+        _isMexico = countryCode == "MX";
         if (!string.IsNullOrEmpty(_model.Code))
         {
             await ValidateCode();
@@ -238,7 +295,8 @@
                         CountryCode = _model.CountryCode,
                         Code = _model.Code,
                         Name = _model.Name,
-                        Description = _model.Description
+                        Description = _model.Description,
+                        MexicoSatUnitId = _model.MexicoSatUnitId
                     };
                     
                     await UnitMeasureService.CreateUnitMeasureAsync(createDto);
@@ -258,5 +316,29 @@
                 StateHasChanged();
             }
         }
+    }
+
+    private async Task<IEnumerable<MexicoSatUnitDto>> SearchSatUnits(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return _initialSatUnits;
+
+        try
+        {
+            var (_, items) = await MexicoFiscalCatalogService.SearchSatUnitsAsync(value, 1, SatUnitPageSize);
+            return items;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching SAT units");
+            Snackbar.Add(L["Error searching SAT units"], Severity.Error);
+            return Array.Empty<MexicoSatUnitDto>();
+        }
+    }
+
+    private void OnSatUnitSelected(MexicoSatUnitDto? value)
+    {
+        _selectedSatUnit = value;
+        _model.MexicoSatUnitId = value?.Id;
     }
 }

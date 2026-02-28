@@ -18,4 +18,6 @@ public class CreateUnitMeasureDto
 
     [StringLength(200)]
     public string? Description { get; set; }
+
+    public int? MexicoSatUnitId { get; set; }
 }

@@ -35,7 +35,8 @@ public class CsvFiscalCatalogReader : IFiscalCatalogDataReader
             "payment_forms.csv",
             "payment_methods.csv",
             "cfdi_uses.csv",
-            "product_services.csv"
+            "product_services.csv",
+            "sat_units.csv"
         };
 
         foreach (var file in requiredFiles)
@@ -111,5 +112,10 @@ public class CsvFiscalCatalogReader : IFiscalCatalogDataReader
     public async Task<IEnumerable<CreateMexicoProductServiceDto>> GetProductServicesAsync()
     {
         return await ReadCsvFileAsync<CreateMexicoProductServiceDto, MexicoProductServiceCsvMap>("product_services.csv");
+    }
+
+    public async Task<IEnumerable<CreateMexicoSatUnitDto>> GetSatUnitsAsync()
+    {
+        return await ReadCsvFileAsync<CreateMexicoSatUnitDto, MexicoSatUnitCsvMap>("sat_units.csv");
     }
 }

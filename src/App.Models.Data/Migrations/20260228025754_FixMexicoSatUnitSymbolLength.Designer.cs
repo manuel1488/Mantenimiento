@@ -4,6 +4,7 @@ using App.Models.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260228025754_FixMexicoSatUnitSymbolLength")]
+    partial class FixMexicoSatUnitSymbolLength
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2672,6 +2675,9 @@ namespace App.Models.Data.Migrations
                     b.Property<int?>("MexicoProductServiceId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MexicoSatUnitId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2694,6 +2700,8 @@ namespace App.Models.Data.Migrations
                     b.HasIndex("Code");
 
                     b.HasIndex("MexicoProductServiceId");
+
+                    b.HasIndex("MexicoSatUnitId");
 
                     b.HasIndex("UnitMeasureId");
 
@@ -3415,9 +3423,6 @@ namespace App.Models.Data.Migrations
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
 
-                    b.Property<int?>("MexicoSatUnitId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime(6)");
 
@@ -3430,8 +3435,6 @@ namespace App.Models.Data.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MexicoSatUnitId");
 
                     b.HasIndex("CountryCode", "Code", "IsDeleted")
                         .IsUnique();
@@ -3843,6 +3846,10 @@ namespace App.Models.Data.Migrations
                         .HasForeignKey("MexicoProductServiceId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("App.Models.Billing.MexicoSatUnit", "MexicoSatUnit")
+                        .WithMany()
+                        .HasForeignKey("MexicoSatUnitId");
+
                     b.HasOne("App.Models.Shop.UnitMeasure", "UnitMeasure")
                         .WithMany()
                         .HasForeignKey("UnitMeasureId")
@@ -3850,6 +3857,8 @@ namespace App.Models.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("MexicoProductService");
+
+                    b.Navigation("MexicoSatUnit");
 
                     b.Navigation("UnitMeasure");
                 });
@@ -4015,15 +4024,6 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("StockEntry");
-                });
-
-            modelBuilder.Entity("App.Models.Shop.UnitMeasure", b =>
-                {
-                    b.HasOne("App.Models.Billing.MexicoSatUnit", "MexicoSatUnit")
-                        .WithMany()
-                        .HasForeignKey("MexicoSatUnitId");
-
-                    b.Navigation("MexicoSatUnit");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

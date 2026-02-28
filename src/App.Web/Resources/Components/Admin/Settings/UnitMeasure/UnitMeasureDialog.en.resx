@@ -56,4 +56,13 @@
     <value>Error saving unit measure</value>
     <comment>Error message when saving fails</comment>
   </data>
+  <data name="SAT Unit Code" xml:space="preserve">
+    <value>SAT Unit Code</value>
+  </data>
+  <data name="SAT unit code for invoicing (c_ClaveUnidad)" xml:space="preserve">
+    <value>SAT unit code for invoicing (c_ClaveUnidad)</value>
+  </data>
+  <data name="Error searching SAT units" xml:space="preserve">
+    <value>Error searching SAT units</value>
+  </data>
 </root>

@@ -544,6 +544,44 @@ public class MexicoFiscalCatalogService : IMexicoFiscalCatalogService
     }
     #endregion
 
+    #region SAT Units
+    public async Task<(int TotalCount, IList<MexicoSatUnitDto> Items)> SearchSatUnitsAsync(
+        string? searchText = null,
+        int page = 1,
+        int pageSize = 50)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.MexicoSatUnits.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query = query.Where(x =>
+                    x.Code.Contains(searchText) ||
+                    x.Name.Contains(searchText));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.Code)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => _mapper.Map<MexicoSatUnitDto>(x))
+                .ToListAsync();
+
+            return (totalCount, items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching SAT units");
+            throw;
+        }
+    }
+    #endregion
+
     #region Validation Methods
     public async Task<bool> ValidateUniqueCodeAsync<T>(string code, int? excludeId = null) where T : class
     {

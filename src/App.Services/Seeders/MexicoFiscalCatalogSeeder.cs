@@ -38,6 +38,7 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
             await SeedPaymentMethodsAsync();
             await SeedCfdiUsesAsync();
             await SeedProductServicesAsync();
+            await SeedSatUnitsAsync();
         }
         catch (Exception ex)
         {
@@ -210,7 +211,7 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
     private async Task SeedProductServicesAsync()
     {
         await using var _context = await _contextFactory.CreateDbContextAsync();
-        
+
         if (!await _context.MexicoProductServices.AsNoTracking().AnyAsync())
         {
             var dtos = await _dataReader.GetProductServicesAsync();
@@ -222,6 +223,25 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
                     Description = dto.Description
                 },
                 "Product Services");
+        }
+    }
+
+    private async Task SeedSatUnitsAsync()
+    {
+        await using var _context = await _contextFactory.CreateDbContextAsync();
+
+        if (!await _context.MexicoSatUnits.AsNoTracking().AnyAsync())
+        {
+            var dtos = await _dataReader.GetSatUnitsAsync();
+            await BulkInsertAsync(
+                dtos,
+                dto => new MexicoSatUnit
+                {
+                    Code = dto.Code,
+                    Name = dto.Name,
+                    Symbol = dto.Symbol
+                },
+                "SAT Units");
         }
     }
 }
