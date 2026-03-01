@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Adjustment Header" xml:space="preserve"><value>Adjustment Header</value></data>
+  <data name="Adjustment Type" xml:space="preserve"><value>Adjustment Type</value></data>
+  <data name="Adjustment type is required" xml:space="preserve"><value>Adjustment type is required</value></data>
+  <data name="Location" xml:space="preserve"><value>Location</value></data>
+  <data name="Location is required" xml:space="preserve"><value>Location is required</value></data>
+  <data name="Reference" xml:space="preserve"><value>Reference</value></data>
+  <data name="Adjustment Date" xml:space="preserve"><value>Adjustment Date</value></data>
+  <data name="Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="Reason is required" xml:space="preserve"><value>Reason is required</value></data>
+  <data name="Products" xml:space="preserve"><value>Products</value></data>
+  <data name="Scan barcode..." xml:space="preserve"><value>Scan barcode...</value></data>
+  <data name="Product" xml:space="preserve"><value>Product</value></data>
+  <data name="Current Stock" xml:space="preserve"><value>Current Stock</value></data>
+  <data name="New Quantity" xml:space="preserve"><value>New Quantity</value></data>
+  <data name="Remove row" xml:space="preserve"><value>Remove row</value></data>
+  <data name="Add Row" xml:space="preserve"><value>Add Row</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Processing" xml:space="preserve"><value>Processing...</value></data>
+  <data name="At least one product is required" xml:space="preserve"><value>At least one product is required</value></data>
+  <data name="Product already in the list" xml:space="preserve"><value>Product already in the list</value></data>
+  <data name="Product not found for barcode" xml:space="preserve"><value>Product not found for barcode</value></data>
+  <data name="Error searching products" xml:space="preserve"><value>Error searching products</value></data>
+  <data name="Error creating adjustment entry" xml:space="preserve"><value>Error creating adjustment entry</value></data>
+  <data name="Adjustment created successfully" xml:space="preserve"><value>Adjustment created successfully</value></data>
+  <data name="Collapse header" xml:space="preserve"><value>Collapse header</value></data>
+  <data name="Expand header" xml:space="preserve"><value>Expand header</value></data>
+  <data name="You don't have permission to view this page" xml:space="preserve"><value>You don't have permission to view this page</value></data>
+  <data name="Adjustment successful but stock is below minimum. Current: {0}, Minimum: {1}" xml:space="preserve"><value>Adjustment successful but stock is below minimum. Current: {0}, Minimum: {1}</value></data>
+  <data name="Adjustment successful but stock is above maximum. Current: {0}, Maximum: {1}" xml:space="preserve"><value>Adjustment successful but stock is above maximum. Current: {0}, Maximum: {1}</value></data>
+</root>

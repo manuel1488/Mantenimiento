@@ -1,0 +1,491 @@
+@using App.Core.Constants
+@using App.Core.DTOs.Inventory
+@using App.Core.DTOs.Location
+@using App.Core.DTOs.Product
+@using App.Core.Interfaces
+@using App.Web.Services
+@using MudBlazor
+
+@inject IStringLocalizer<CreateAdjustmentEntryDialog> L
+@inject IAdjustmentEntryService AdjustmentEntryService
+@inject IProductService ProductService
+@inject IInventoryQueryService InventoryQueryService
+@inject InventoryMovementService MovementService
+@inject InventoryEventsService InventoryEvents
+@inject ISnackbar Snackbar
+@inject ILogger<CreateAdjustmentEntryDialog> Logger
+@inject IJSRuntime JS
+
+<AuthorizeView Policy="@ApplicationClaims.Shop.ManageInventoryAdjustments">
+    <Authorized>
+        <MudDialog>
+            <DialogContent>
+                <MudForm @ref="_form">
+
+                    <!-- ─── Cabecera ─── -->
+                    <div class="d-flex align-center gap-2 mb-1">
+                        <span class="flex-grow-1 d-flex align-center gap-2"
+                              style="cursor:pointer"
+                              @onclick="ToggleHeader">
+                            <MudText Typo="Typo.subtitle1">@L["Adjustment Header"]</MudText>
+                            @if (!_headerExpanded)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="ma-0">
+                                    @MovementService.GetMovementSubTypeDisplay(_adjustmentType)
+                                </MudChip>
+                                @if (_locationId != 0)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="ma-0">
+                                        @(Locations.FirstOrDefault(l => l.Id == _locationId)?.Name ?? string.Empty)
+                                    </MudChip>
+                                }
+                            }
+                        </span>
+                        <MudIconButton Icon="@(_headerExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                                       Size="Size.Small"
+                                       OnClick="ToggleHeader"
+                                       title="@(_headerExpanded ? L["Collapse header"] : L["Expand header"])" />
+                    </div>
+                    <MudCollapse Expanded="_headerExpanded">
+                        <MudGrid>
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudSelect T="string"
+                                           Label="@L["Adjustment Type"]"
+                                           @bind-Value="_adjustmentType"
+                                           Required="true"
+                                           RequiredError="@L["Adjustment type is required"]"
+                                           Class="mb-2">
+                                    <MudSelectItem Value="@InventoryMovementSubType.PhysicalCount">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.PhysicalCount)</MudSelectItem>
+                                    <MudSelectItem Value="@InventoryMovementSubType.Shrinkage">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Shrinkage)</MudSelectItem>
+                                    <MudSelectItem Value="@InventoryMovementSubType.Damaged">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Damaged)</MudSelectItem>
+                                    <MudSelectItem Value="@InventoryMovementSubType.Expired">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Expired)</MudSelectItem>
+                                    <MudSelectItem Value="@InventoryMovementSubType.SystemAdjustment">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.SystemAdjustment)</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudSelect T="int"
+                                           Label="@L["Location"]"
+                                           @bind-Value="_locationId"
+                                           Required="true"
+                                           RequiredError="@L["Location is required"]"
+                                           Class="mb-2">
+                                    @foreach (var loc in Locations)
+                                    {
+                                        <MudSelectItem Value="@loc.Id">@loc.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudTextField T="string"
+                                              @bind-Value="_reference"
+                                              Label="@L["Reference"]"
+                                              MaxLength="50"
+                                              Class="mb-2" />
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudDatePicker @bind-Date="_adjustmentDate"
+                                               Label="@L["Adjustment Date"]"
+                                               Class="mb-2"
+                                               DateFormat="dd/MM/yyyy" />
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6" md="8">
+                                <MudTextField T="string"
+                                              @bind-Value="_reason"
+                                              Label="@L["Reason"]"
+                                              Required="true"
+                                              RequiredError="@L["Reason is required"]"
+                                              MaxLength="500"
+                                              Lines="2"
+                                              Class="mb-2" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudCollapse>
+
+                    <MudDivider Class="my-2" />
+
+                    <!-- ─── Productos ─── -->
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Products"]</MudText>
+
+                    <!-- Scanner field -->
+                    <div id="adjustment-scan-wrapper">
+                        <MudTextField T="string"
+                                      @bind-Value="_scanInput"
+                                      @onkeyup="OnScanKeyUp"
+                                      Placeholder="@L["Scan barcode..."]"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.QrCodeScanner"
+                                      Class="mb-3"
+                                      Style="max-width:360px;"
+                                      Immediate="true" />
+                    </div>
+
+                    <!-- Product grid (scrollable) -->
+                    <div id="adjustment-rows-scroll" style="overflow-y:auto; max-height:calc(100vh - 480px); min-height:120px;">
+                        <MudTable Items="_rows"
+                                  Dense="true"
+                                  Hover="true"
+                                  Class="mb-3">
+                            <HeaderContent>
+                                <MudTh Style="width:40px">#</MudTh>
+                                <MudTh>@L["Product"]</MudTh>
+                                <MudTh Style="width:120px">@L["Current Stock"]</MudTh>
+                                <MudTh Style="width:140px">@L["New Quantity"]</MudTh>
+                                <MudTh Style="width:48px"></MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="row">
+                                <MudTd>@(_rows.IndexOf(row) + 1)</MudTd>
+                                <MudTd>
+                                    <MudAutocomplete T="ProductDto"
+                                                     Value="row.Product"
+                                                     ValueChanged="@(p => OnRowProductChanged(row, p))"
+                                                     SearchFunc="@((v, t) => SearchProducts(v, t))"
+                                                     ToStringFunc="@(p => p == null ? string.Empty : $"{p.Code} - {p.Name}")"
+                                                     ResetValueOnEmptyText="true"
+                                                     ShowProgressIndicator="true"
+                                                     Dense="true"
+                                                     Style="min-width:220px" />
+                                </MudTd>
+                                <MudTd>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @(row.CurrentStock.HasValue ? row.CurrentStock.Value.ToString("N2") : "—")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd>
+                                    <MudNumericField T="decimal"
+                                                     @bind-Value="row.NewQuantity"
+                                                     Min="0M"
+                                                     Format="N2"
+                                                     HideSpinButtons="true"
+                                                     Margin="Margin.Dense" />
+                                </MudTd>
+                                <MudTd>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Size="Size.Small"
+                                                   Color="Color.Error"
+                                                   OnClick="@(() => RemoveRow(row))"
+                                                   title="@L["Remove row"]" />
+                                </MudTd>
+                            </RowTemplate>
+                            <NoRecordsContent>
+                                <MudText Typo="Typo.caption" Class="pa-2">—</MudText>
+                            </NoRecordsContent>
+                        </MudTable>
+                    </div>
+
+                    <MudButton Variant="Variant.Outlined"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               Size="Size.Small"
+                               OnClick="AddEmptyRow"
+                               Class="mt-2">
+                        @L["Add Row"]
+                    </MudButton>
+
+                </MudForm>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+                <MudButton Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           OnClick="Submit"
+                           Disabled="@_processing">
+                    @if (_processing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">@L["Processing"]</MudText>
+                    }
+                    else
+                    {
+                        @L["Save"]
+                    }
+                </MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    // ── Parameters ──────────────────────────────────────────────────────────
+
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public List<LocationDto> Locations { get; set; } = new();
+
+    // ── State ────────────────────────────────────────────────────────────────
+
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _headerExpanded = true;
+
+    // Header fields
+    private string _adjustmentType = InventoryMovementSubType.PhysicalCount;
+    private int _locationId;
+    private string? _reference;
+    private DateTime? _adjustmentDate = DateTime.Today;
+    private string _reason = string.Empty;
+
+    // Scan
+    private string _scanInput = string.Empty;
+
+    // Grid rows
+    private List<AdjustmentLineItem> _rows = [];
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
+
+    protected override void OnInitialized()
+    {
+        if (Locations.Count > 0)
+            _locationId = Locations[0].Id;
+
+        _rows.Add(new AdjustmentLineItem());
+    }
+
+    // ── Scanner ───────────────────────────────────────────────────────────────
+
+    private async Task OnScanKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key != "Enter" || string.IsNullOrWhiteSpace(_scanInput))
+            return;
+
+        var code = _scanInput.Trim();
+
+        try
+        {
+            var product = await ProductService.GetProductByBarcodeAsync(code)
+                       ?? await ProductService.GetProductByCodeAsync(code);
+
+            if (product == null)
+            {
+                Snackbar.Add(L["Product not found for barcode"], Severity.Warning);
+                await ClearScanFieldAsync();
+                return;
+            }
+
+            // Accumulate in existing row if product is already in the grid
+            var existing = _rows.FirstOrDefault(r => r.Product?.Id == product.Id);
+            if (existing != null)
+            {
+                await ClearScanFieldAsync();
+                StateHasChanged();
+                return;
+            }
+
+            // Reuse the first empty row if available
+            var emptyRow = _rows.FirstOrDefault(r => r.Product == null);
+            if (emptyRow != null)
+            {
+                emptyRow.Product = product;
+                await LoadRowStock(emptyRow);
+                _rows = [.._rows];
+                await ClearScanFieldAsync();
+                StateHasChanged();
+                return;
+            }
+
+            // No empty row — add a new one
+            var row = new AdjustmentLineItem { Product = product };
+            await LoadRowStock(row);
+            _rows = [.._rows, row];
+            await ClearScanFieldAsync();
+            StateHasChanged();
+            await ScrollRowsToBottom();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error scanning barcode {Code}", code);
+            Snackbar.Add(L["Error searching products"], Severity.Error);
+        }
+    }
+
+    private async Task ClearScanFieldAsync()
+    {
+        _scanInput = string.Empty;
+        await JS.InvokeVoidAsync("eval",
+            "var i=document.querySelector('#adjustment-scan-wrapper input');if(i){i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));}");
+    }
+
+    // ── Grid ─────────────────────────────────────────────────────────────────
+
+    private async Task AddEmptyRow()
+    {
+        _rows.Add(new AdjustmentLineItem());
+        await ScrollRowsToBottom();
+    }
+
+    private async Task ScrollRowsToBottom()
+    {
+        await Task.Yield();
+        await JS.InvokeVoidAsync("eval",
+            "var el=document.getElementById('adjustment-rows-scroll'); if(el) el.scrollTop=el.scrollHeight;");
+    }
+
+    private void RemoveRow(AdjustmentLineItem row)
+    {
+        _rows.Remove(row);
+    }
+
+    private async Task<IEnumerable<ProductDto>> SearchProducts(string value, CancellationToken token)
+    {
+        try
+        {
+            var (_, items) = await ProductService.GetProductsAsync(
+                searchString: string.IsNullOrEmpty(value) ? null : value,
+                pageSize: 30,
+                isActive: true);
+            return items;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching products");
+            return [];
+        }
+    }
+
+    private async Task OnRowProductChanged(AdjustmentLineItem row, ProductDto? product)
+    {
+        if (product != null)
+        {
+            // If the same product is already in another row, skip (adjustments are absolute qty)
+            var duplicate = _rows.FirstOrDefault(r => r != row && r.Product?.Id == product.Id);
+            if (duplicate != null)
+            {
+                Snackbar.Add(L["Product already in the list"], Severity.Warning);
+                row.Product = null;
+                row.CurrentStock = null;
+                row.NewQuantity = 0;
+                StateHasChanged();
+                return;
+            }
+        }
+
+        row.Product = product;
+        row.CurrentStock = null;
+        row.NewQuantity = 0;
+
+        if (product != null)
+            await LoadRowStock(row);
+
+        StateHasChanged();
+    }
+
+    private async Task LoadRowStock(AdjustmentLineItem row)
+    {
+        if (row.Product == null || _locationId == 0) return;
+
+        try
+        {
+            var stock = await InventoryQueryService.GetProductStockAsync(row.Product.Id, _locationId);
+            row.CurrentStock = stock?.LocationStock.FirstOrDefault(w => w.LocationId == _locationId)?.Quantity;
+            // Default new quantity to current stock (match original dialog behavior)
+            row.NewQuantity = row.CurrentStock ?? 0;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading stock for product {Id}", row.Product.Id);
+        }
+    }
+
+    // ── Submit ────────────────────────────────────────────────────────────────
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        var validRows = _rows.Where(r => r.Product != null).ToList();
+        if (validRows.Count == 0)
+        {
+            Snackbar.Add(L["At least one product is required"], Severity.Warning);
+            return;
+        }
+
+        _processing = true;
+
+        try
+        {
+            var dto = new CreateAdjustmentEntryDto
+            {
+                AdjustmentType = _adjustmentType,
+                LocationId = _locationId,
+                Reference = _reference,
+                Reason = _reason,
+                AdjustmentDate = _adjustmentDate.HasValue ? _adjustmentDate.Value.ToUniversalTime() : DateTime.UtcNow,
+                Items = validRows.Select(r => new CreateAdjustmentEntryItemDto
+                {
+                    ProductId = r.Product!.Id,
+                    NewQuantity = r.NewQuantity
+                }).ToList()
+            };
+
+            var result = await AdjustmentEntryService.CreateAdjustmentEntryAsync(dto);
+            if (result.IsSuccess)
+            {
+                var hasAlerts = result.Value.Items.Any(i => i.AlertType != null);
+                if (hasAlerts)
+                {
+                    foreach (var item in result.Value.Items.Where(i => i.AlertType == InventoryAlertType.LowStock))
+                    {
+                        Snackbar.Add(
+                            L["Adjustment successful but stock is below minimum. Current: {0}, Minimum: {1}",
+                              item.AlertCurrentStock?.ToString("N2") ?? "—",
+                              item.AlertThreshold?.ToString("N2") ?? "N/A"],
+                            Severity.Warning);
+                    }
+                    foreach (var item in result.Value.Items.Where(i => i.AlertType == InventoryAlertType.OverStock))
+                    {
+                        Snackbar.Add(
+                            L["Adjustment successful but stock is above maximum. Current: {0}, Maximum: {1}",
+                              item.AlertCurrentStock?.ToString("N2") ?? "—",
+                              item.AlertThreshold?.ToString("N2") ?? "N/A"],
+                            Severity.Info);
+                    }
+                    InventoryEvents.NotifyAlertsChanged();
+                }
+                else
+                {
+                    Snackbar.Add(L["Adjustment created successfully"], Severity.Success);
+                }
+
+                MudDialog.Close(DialogResult.Ok(result.Value));
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating adjustment entry");
+            Snackbar.Add(L["Error creating adjustment entry"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    // ── Header collapse ──────────────────────────────────────────────────────
+
+    private void ToggleHeader() => _headerExpanded = !_headerExpanded;
+
+    // ── Inner types ──────────────────────────────────────────────────────────
+
+    private sealed class AdjustmentLineItem
+    {
+        public ProductDto? Product { get; set; }
+        public decimal NewQuantity { get; set; }
+        public decimal? CurrentStock { get; set; }
+    }
+}

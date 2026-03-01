@@ -65,5 +65,10 @@ public class InventoryMovementConfiguration : IEntityTypeConfiguration<Inventory
             .WithMany()
             .HasForeignKey(e => e.StockEntryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.AdjustmentEntry)
+            .WithMany()
+            .HasForeignKey(e => e.AdjustmentEntryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
