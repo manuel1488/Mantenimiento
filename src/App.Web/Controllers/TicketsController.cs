@@ -67,6 +67,50 @@ public class TicketsController : ControllerBase
         }
     }
 
+    [HttpGet("cash-register/{id}")]
+    [Authorize(Policy = ApplicationClaims.Shop.ViewCashRegisterReport)]
+    public async Task<IActionResult> GetCashRegisterReportTicket(long id, bool download = false)
+    {
+        try
+        {
+            var pdfBytes = await _ticketService.GenerateCashRegisterReportTicketPdfAsync(id);
+
+            var contentDisposition = download
+                ? $"attachment; filename=cash_register_{id}.pdf"
+                : $"inline; filename=cash_register_{id}.pdf";
+
+            Response.Headers.Append("Content-Disposition", contentDisposition);
+            return File(pdfBytes, "application/pdf");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generando ticket de reporte de caja {Id}", id);
+            return StatusCode(500, "Error generando ticket");
+        }
+    }
+
+    [HttpGet("cash-register/{id}/letter")]
+    [Authorize(Policy = ApplicationClaims.Shop.ViewCashRegisterReport)]
+    public async Task<IActionResult> GetCashRegisterReportLetter(long id, bool download = false)
+    {
+        try
+        {
+            var pdfBytes = await _ticketService.GenerateCashRegisterReportLetterPdfAsync(id);
+
+            var contentDisposition = download
+                ? $"attachment; filename=cash_register_{id}.pdf"
+                : $"inline; filename=cash_register_{id}.pdf";
+
+            Response.Headers.Append("Content-Disposition", contentDisposition);
+            return File(pdfBytes, "application/pdf");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generando reporte carta de caja {Id}", id);
+            return StatusCode(500, "Error generando reporte");
+        }
+    }
+
     [HttpGet("configuration")]
     [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
     public async Task<ActionResult<TicketConfigurationDto>> GetConfiguration()

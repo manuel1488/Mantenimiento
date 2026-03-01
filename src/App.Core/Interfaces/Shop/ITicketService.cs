@@ -24,6 +24,26 @@ public interface ITicketService
     /// Obtiene la URL del ticket para un retiro (para imprimir desde el navegador)
     /// </summary>
     string GetWithdrawalTicketUrl(long movementId);
+
+    /// <summary>
+    /// Genera un PDF de ticket para el reporte de cierre de caja
+    /// </summary>
+    Task<byte[]> GenerateCashRegisterReportTicketPdfAsync(long cashRegisterId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Obtiene la URL del ticket para un reporte de caja (para imprimir desde el navegador)
+    /// </summary>
+    string GetCashRegisterReportTicketUrl(long cashRegisterId);
+
+    /// <summary>
+    /// Genera un PDF en tamaño carta para el reporte de cierre de caja
+    /// </summary>
+    Task<byte[]> GenerateCashRegisterReportLetterPdfAsync(long cashRegisterId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Obtiene la URL del reporte de caja en tamaño carta
+    /// </summary>
+    string GetCashRegisterReportLetterUrl(long cashRegisterId);
     
     /// <summary>
     /// Obtiene la configuración de tickets actual

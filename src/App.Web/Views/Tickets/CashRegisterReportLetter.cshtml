@@ -1,0 +1,301 @@
+@model App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
+@using App.Core.Enums.Shop
+@using App.Shared.Services
+@inject IDateTime DateTimeService
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Reporte de Caja</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            color: #333;
+            background: #fff;
+            padding: 32px;
+        }
+
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .report-header h1 { margin: 0; font-size: 22px; }
+        .report-header h2 { margin: 4px 0; font-size: 16px; color: #555; }
+        .report-header p { color: #666; margin: 4px 0 0 0; font-size: 12px; }
+
+        .company-logo {
+            max-height: 60px;
+            margin-bottom: 8px;
+        }
+
+        .info-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+        .info-table td { padding: 4px 8px; }
+
+        h3 { font-size: 14px; margin: 16px 0 8px 0; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        h4 { font-size: 13px; margin: 8px 0 4px 0; }
+
+        .report-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .report-table th { padding: 8px; text-align: left; background-color: #f5f5f5; border: 1px solid #ddd; font-size: 12px; }
+        .report-table td { padding: 7px 8px; border: 1px solid #ddd; font-size: 12px; }
+        .text-right { text-align: right; }
+        .summary-row { font-weight: bold; background-color: #f0f4f8; }
+        .surplus-row { font-weight: bold; color: #2e7d32; }
+        .shortage-row { font-weight: bold; color: #c62828; }
+
+        .notes-box {
+            margin: 16px 0;
+            padding: 12px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .signature-area {
+            margin-top: 48px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .signature-block { text-align: center; width: 200px; font-size: 12px; }
+        .signature-line { border-top: 1px solid #333; margin-bottom: 6px; }
+        .signature-label { color: #666; font-size: 11px; margin-top: 4px; }
+
+        .denominations-grid { display: flex; gap: 24px; }
+        .denominations-grid > div { flex: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="report-header">
+        @if (Model.ShowCompanyLogo && !string.IsNullOrEmpty(Model.CompanyLogoBase64))
+        {
+            <img src="data:image/png;base64,@Model.CompanyLogoBase64" alt="Logo" class="company-logo" /><br />
+        }
+        <h1>@(string.IsNullOrEmpty(Model.CompanyName) ? Model.Data.CompanyName : Model.CompanyName)</h1>
+        <h2>Reporte de Caja</h2>
+        <p>Registro #@Model.Data.CashRegisterId</p>
+    </div>
+
+    <!-- Session Info -->
+    @{
+        var openedStr = Model.TimeZone != null
+            ? DateTimeService.FormatToTimezone(Model.Data.OpenedAt, Model.TimeZone)
+            : Model.Data.OpenedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
+    }
+    <table class="info-table">
+        <tr>
+            <td><strong>Ubicación:</strong> @Model.Data.LocationName</td>
+            <td><strong>Cajero:</strong> @Model.Data.CashierName</td>
+        </tr>
+        <tr>
+            <td><strong>Abierta el:</strong> @openedStr</td>
+            <td>
+                @if (Model.Data.ClosedAt.HasValue)
+                {
+                    var closedStr = Model.TimeZone != null
+                        ? DateTimeService.FormatToTimezone(Model.Data.ClosedAt.Value, Model.TimeZone)
+                        : Model.Data.ClosedAt.Value.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
+                    <span><strong>Cerrada el:</strong> @closedStr</span>
+                }
+            </td>
+        </tr>
+        @if (!string.IsNullOrWhiteSpace(Model.Data.OpeningNotes))
+        {
+            <tr>
+                <td colspan="2"><strong>Notas de apertura:</strong> @Model.Data.OpeningNotes</td>
+            </tr>
+        }
+    </table>
+
+    <!-- Financial Summary -->
+    <h3>Resumen Financiero</h3>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th class="text-right">Importe</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Fondo Inicial</td>
+                <td class="text-right">@Model.Data.InitialFund.ToString("C2")</td>
+            </tr>
+            <tr>
+                <td>Ventas en Efectivo</td>
+                <td class="text-right">@Model.Data.TotalCashSales.ToString("C2")</td>
+            </tr>
+            <tr>
+                <td>Depósitos</td>
+                <td class="text-right">@Model.Data.TotalDeposits.ToString("C2")</td>
+            </tr>
+            <tr>
+                <td>Retiros</td>
+                <td class="text-right">(@Model.Data.TotalWithdrawals.ToString("C2"))</td>
+            </tr>
+            <tr class="summary-row">
+                <td>Efectivo Esperado</td>
+                <td class="text-right">@Model.Data.ExpectedCash.ToString("C2")</td>
+            </tr>
+            @{
+                var diffClass = Model.Data.Difference >= 0 ? "surplus-row" : "shortage-row";
+                var diffSign = Model.Data.Difference >= 0 ? "+" : "";
+            }
+            @if (Model.Data.CountedCash != 0)
+            {
+                <tr class="summary-row">
+                    <td>Efectivo Contado</td>
+                    <td class="text-right">@Model.Data.CountedCash.ToString("C2")</td>
+                </tr>
+                <tr class="@diffClass">
+                    <td>Diferencia</td>
+                    <td class="text-right">@diffSign@Model.Data.Difference.ToString("C2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Payment Breakdown -->
+    @if (Model.Data.PaymentSummary.Count > 0)
+    {
+        <h3>Formas de Pago</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Método de Pago</th>
+                    <th class="text-right">Transacciones</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ps in Model.Data.PaymentSummary)
+                {
+                    <tr>
+                        <td>@ps.PaymentMethodName</td>
+                        <td class="text-right">@ps.TransactionCount</td>
+                        <td class="text-right">@ps.TotalAmount.ToString("C2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Movements -->
+    @if (Model.Data.Movements.Count > 0)
+    {
+        <h3>Movimientos</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Motivo</th>
+                    <th class="text-right">Importe</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.Data.Movements)
+                {
+                    <tr>
+                        <td>@(m.Type == CashRegisterMovementType.Withdrawal ? "Retiro" : "Depósito")</td>
+                        <td>@m.Reason</td>
+                        <td class="text-right">@(m.Type == CashRegisterMovementType.Withdrawal ? "-" : "+")@m.Amount.ToString("C2")</td>
+                        <td>@m.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Denominations -->
+    @if (Model.Data.Denominations.Count > 0)
+    {
+        <h3>Conteo de Denominaciones</h3>
+        <div class="denominations-grid">
+            <div>
+                <h4>Billetes</h4>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Denominación</th>
+                            <th class="text-right">Cantidad</th>
+                            <th class="text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.Data.Denominations
+                            .Where(d => d.DenominationType == App.Core.Enums.Shop.DenominationType.Bill)
+                            .OrderByDescending(d => d.DenominationValue))
+                        {
+                            <tr>
+                                <td>@d.DenominationValue.ToString("C2")</td>
+                                <td class="text-right">@d.Quantity</td>
+                                <td class="text-right">@d.Subtotal.ToString("C2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h4>Monedas</h4>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Denominación</th>
+                            <th class="text-right">Cantidad</th>
+                            <th class="text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.Data.Denominations
+                            .Where(d => d.DenominationType == App.Core.Enums.Shop.DenominationType.Coin)
+                            .OrderByDescending(d => d.DenominationValue))
+                        {
+                            <tr>
+                                <td>@d.DenominationValue.ToString("C2")</td>
+                                <td class="text-right">@d.Quantity</td>
+                                <td class="text-right">@d.Subtotal.ToString("C2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Data.ClosingNotes))
+    {
+        <div class="notes-box">
+            <strong>Notas de cierre:</strong> @Model.Data.ClosingNotes
+        </div>
+    }
+
+    <!-- Signatures -->
+    <div class="signature-area">
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div>@Model.Data.CashierName</div>
+            <div class="signature-label">Firma del Cajero</div>
+        </div>
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div>__________________</div>
+            <div class="signature-label">Firma del Supervisor</div>
+        </div>
+    </div>
+
+</body>
+</html>

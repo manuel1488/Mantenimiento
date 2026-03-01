@@ -2,6 +2,7 @@
 using App.Core.DTOs.Shop;
 using App.Core.DTOs.Ticket;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
 using App.Models.Settings;
 using App.Shared.Services;
@@ -21,6 +22,7 @@ public class TicketService : ITicketService
     private readonly IMapper _mapper;
     private readonly IDateTime _dateTime;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ICashRegisterService _cashRegisterService;
 
     public TicketService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -29,7 +31,8 @@ public class TicketService : ITicketService
         ILogger<TicketService> logger,
         IMapper mapper,
         IDateTime dateTime,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ICashRegisterService cashRegisterService)
     {
         _contextFactory = contextFactory;
         _pdfService = pdfService;
@@ -38,6 +41,7 @@ public class TicketService : ITicketService
         _mapper = mapper;
         _dateTime = dateTime;
         _currentUserService = currentUserService;
+        _cashRegisterService = cashRegisterService;
     }
 
     public async Task<byte[]> GenerateSaleTicketPdfAsync(long saleId, CancellationToken cancellationToken = default)
@@ -219,6 +223,97 @@ public class TicketService : ITicketService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating withdrawal ticket PDF for movement {MovementId}", movementId);
+            throw;
+        }
+    }
+
+    public string GetCashRegisterReportTicketUrl(long cashRegisterId)
+    {
+        return $"/api/tickets/cash-register/{cashRegisterId}";
+    }
+
+    public async Task<byte[]> GenerateCashRegisterReportTicketPdfAsync(long cashRegisterId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var reportResult = await _cashRegisterService.GetReportDataAsync(cashRegisterId);
+            if (!reportResult.IsSuccess)
+                throw new InvalidOperationException($"Cash register report not found: {reportResult.Error}");
+
+            var config = await GetTicketConfigurationAsync();
+            var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+
+            var ticketDto = new App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
+            {
+                Data = reportResult.Value,
+                CompanyName = config.CompanyName,
+                CompanyLogoBase64 = config.ShowCompanyLogo ? config.CompanyLogoBase64 : null,
+                CompanyAddress = config.CompanyAddress,
+                CompanyPhone = config.CompanyPhone,
+                CompanyTaxId = config.CompanyTaxId,
+                ShowQRCode = false,
+                ShowCompanyLogo = config.ShowCompanyLogo,
+                CustomHeader = config.CustomHeader,
+                CustomFooter = null,
+                TicketWidth = config.TicketWidth,
+                Copies = config.DefaultCopies,
+                TimeZone = companyTimeZone
+            };
+
+            return await _pdfService.GenerateThermalTicketPdfFromViewAsync(
+                "/Views/Tickets/CashRegisterReportTicket.cshtml",
+                ticketDto,
+                config.TicketWidth,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating cash register report ticket PDF for register {CashRegisterId}", cashRegisterId);
+            throw;
+        }
+    }
+
+    public string GetCashRegisterReportLetterUrl(long cashRegisterId)
+    {
+        return $"/api/tickets/cash-register/{cashRegisterId}/letter";
+    }
+
+    public async Task<byte[]> GenerateCashRegisterReportLetterPdfAsync(long cashRegisterId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var reportResult = await _cashRegisterService.GetReportDataAsync(cashRegisterId);
+            if (!reportResult.IsSuccess)
+                throw new InvalidOperationException($"Cash register report not found: {reportResult.Error}");
+
+            var config = await GetTicketConfigurationAsync();
+            var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+
+            var ticketDto = new App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
+            {
+                Data = reportResult.Value,
+                CompanyName = config.CompanyName,
+                CompanyLogoBase64 = config.ShowCompanyLogo ? config.CompanyLogoBase64 : null,
+                CompanyAddress = config.CompanyAddress,
+                CompanyPhone = config.CompanyPhone,
+                CompanyTaxId = config.CompanyTaxId,
+                ShowQRCode = false,
+                ShowCompanyLogo = config.ShowCompanyLogo,
+                CustomHeader = config.CustomHeader,
+                CustomFooter = null,
+                TicketWidth = config.TicketWidth,
+                Copies = config.DefaultCopies,
+                TimeZone = companyTimeZone
+            };
+
+            return await _pdfService.GeneratePdfFromViewAsync(
+                "/Views/Tickets/CashRegisterReportLetter.cshtml",
+                ticketDto,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating cash register report letter PDF for register {CashRegisterId}", cashRegisterId);
             throw;
         }
     }

@@ -1,12 +1,14 @@
 @page "/shop/cash-register/report/{Id:long}"
 @using App.Core.DTOs.Shop
 @using App.Core.Enums.Shop
+@using App.Core.Interfaces
 @using App.Core.Interfaces.Shop
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewCashRegisterReport)]
 
 @inject ICashRegisterService CashRegisterService
+@inject ITicketService TicketService
 @inject IStringLocalizer<CashRegisterReportPage> L
 @inject ISnackbar Snackbar
 @inject ILogger<CashRegisterReportPage> Logger
@@ -436,7 +438,10 @@ else
 
     private async Task Print()
     {
-        await JSRuntime.InvokeVoidAsync("window.print");
+        if (_isTicket)
+            await JSRuntime.InvokeVoidAsync("printTicket", TicketService.GetCashRegisterReportTicketUrl(Id));
+        else
+            await JSRuntime.InvokeVoidAsync("printTicket", TicketService.GetCashRegisterReportLetterUrl(Id));
     }
 
     private void ToggleFormat()

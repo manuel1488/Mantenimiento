@@ -16,6 +16,7 @@
 @inject ILogger<CashRegisterPage> Logger
 @inject ITicketService TicketService
 @inject IJSRuntime JS
+@inject NavigationManager NavigationManager
 
 <PageTitle>@L["Cash Register"]</PageTitle>
 
@@ -317,7 +318,9 @@ else
         var result = await dialog.Result;
         if (result is { Canceled: false })
         {
+            var closedRegister = (CashRegisterDto)result.Data!;
             _register = null;
+            NavigationManager.NavigateTo($"/shop/cash-register/report/{closedRegister.Id}");
         }
     }
     #endregion
