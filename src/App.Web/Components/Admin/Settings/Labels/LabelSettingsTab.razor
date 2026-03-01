@@ -1,0 +1,142 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Constants
+@using App.Core.Interfaces.Settings
+@using App.Web.Services
+
+@inject ILabelSettingsService LabelSettingsService
+@inject IPermissionCheckService PermissionService
+@inject IStringLocalizer<LabelSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<LabelSettingsTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-2">@L["Label Settings"]</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary mb-4">
+                        @L["Configure label dimensions for bulk product labels (e.g. Brother DK-2205)."]
+                    </MudText>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudNumericField T="int"
+                                     @bind-Value="_model.WidthMm"
+                                     Label="@L["Width (mm)"]"
+                                     Min="20" Max="200"
+                                     Adornment="Adornment.End"
+                                     AdornmentText="mm"
+                                     HelperText="@L["Tape width (e.g. 62 mm for DK-2205)"]"
+                                     ReadOnly="@(!_hasWriteAccess)"
+                                     Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="4">
+                    <MudNumericField T="int"
+                                     @bind-Value="_model.HeightMm"
+                                     Label="@L["Height (mm)"]"
+                                     Min="10" Max="300"
+                                     Adornment="Adornment.End"
+                                     AdornmentText="mm"
+                                     HelperText="@L["Label height (use 0 for auto-cutter continuous roll)"]"
+                                     ReadOnly="@(!_hasWriteAccess)"
+                                     Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        @L["Current size: {0} mm × {1} mm", _model.WidthMm, _model.HeightMm]
+                    </MudAlert>
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex justify-end mt-8">
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageSettings">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       OnClick="SaveChangesAsync"
+                                       Disabled="@_processing"
+                                       Class="da-button-rounded">
+                                @if (_processing)
+                                {
+                                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                    <MudText Class="ms-2">@L["Saving"]</MudText>
+                                }
+                                else
+                                {
+                                    @L["Save Changes"]
+                                }
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _hasWriteAccess;
+    private UpdateLabelSettingsDto _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings);
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        var result = await LabelSettingsService.GetSettingsAsync();
+        if (result.IsSuccess)
+        {
+            _model = new UpdateLabelSettingsDto
+            {
+                WidthMm = result.Value.WidthMm,
+                HeightMm = result.Value.HeightMm
+            };
+        }
+        else
+        {
+            Snackbar.Add(result.Error ?? L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        _processing = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await LabelSettingsService.CreateOrUpdateSettingsAsync(_model);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Label settings updated successfully"], Severity.Success);
+                await LoadSettings();
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? L["Error updating settings"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving label settings");
+            Snackbar.Add(L["Error saving settings"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+}

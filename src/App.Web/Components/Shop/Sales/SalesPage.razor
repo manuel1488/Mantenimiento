@@ -545,6 +545,11 @@ else
     // State
     private bool _isBusy = false;
     private bool _focusPending = false;
+
+    // Bulk product barcode scan state (format: CODE|qty_millis|price_cents)
+    private decimal _pendingBulkQuantity = 0;
+    private decimal _pendingBulkPrice = 0;
+    private bool _hasPendingBulk = false;
     private decimal _taxRate = 0; // Effective tax rate as fraction (0.16 = 16%)
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -770,8 +775,19 @@ else
         {
             IEnumerable<ProductDto> products;
 
+            // Bulk product barcode (format: CODE|qty_millis|price_cents)
+            if (IsBulkProductBarcode(searchText))
+            {
+                var (code, qty, price) = ParseBulkBarcode(searchText);
+                _pendingBulkQuantity = qty;
+                _pendingBulkPrice = price;
+                _hasPendingBulk = true;
+
+                var bulkResult = await ProductService.GetProductsAsync(searchString: code, isActive: true, page: 1, pageSize: 5);
+                products = bulkResult.Item2.Where(p => p.Code == code).Take(1).ToList();
+            }
             // Primero, intentar buscar por código de barras exacto si el texto parece ser un código de barras
-            if (IsLikelyBarcode(searchText))
+            else if (IsLikelyBarcode(searchText))
             {
                 var productByBarcode = await ProductService.GetProductByBarcodeAsync(searchText);
                 if (productByBarcode != null)
@@ -846,6 +862,7 @@ else
             {
                 Snackbar.Add(L["Product {0} is out of stock", product.Name], Severity.Warning);
                 _selectedProduct = null;
+                _hasPendingBulk = false;
                 return;
             }
 
@@ -853,6 +870,52 @@ else
             if (locationStock == null || locationStock.Quantity <= 0)
             {
                 Snackbar.Add(L["Product {0} is not available in the selected location", product.Name], Severity.Warning);
+                _hasPendingBulk = false;
+                return;
+            }
+
+            // Bulk product barcode scan: add with the quantity and price from the label
+            if (_hasPendingBulk)
+            {
+                _hasPendingBulk = false;
+
+                if (_pendingBulkQuantity > locationStock.Quantity)
+                {
+                    Snackbar.Add(L["Insufficient stock for this quantity"], Severity.Warning);
+                }
+                else
+                {
+                    // Always use current product price, never the label price
+                    var unitPrice = product.Price;
+                    var currentTotal = Math.Round(unitPrice * _pendingBulkQuantity, 2);
+
+                    var bulkItem = new CartItem
+                    {
+                        ProductId = product.Id,
+                        ProductCode = product.Code,
+                        ProductName = product.Name,
+                        Brand = product.Brand,
+                        Description = product.Description,
+                        UnitMeasure = product.UnitMeasureName,
+                        Content = product.Content,
+                        IsPartialSaleAllowed = true,
+                        AllowCustomPricing = product.AllowCustomPricing,
+                        IsTaxable = product.IsTaxable,
+                        AvailableStock = locationStock.Quantity,
+                        Quantity = _pendingBulkQuantity,
+                        UnitPrice = unitPrice,
+                        OriginalPrice = unitPrice,
+                        DiscountPercentage = 0
+                    };
+
+                    _cart.Add(bulkItem);
+                    await UpdateCartItemAsync(bulkItem);
+                    Snackbar.Add(L["Bulk: {0} × {1} = {2}", product.Name, _pendingBulkQuantity.ToString("0.###"), currentTotal.ToString("C2")], Severity.Success);
+                }
+
+                _pendingBulkQuantity = 0;
+                _pendingBulkPrice = 0;
+                await ClearProductAutotocomplete();
                 return;
             }
 
@@ -1559,9 +1622,24 @@ else
 
     private bool IsLikelyBarcode(string text)
     {
-        return !string.IsNullOrWhiteSpace(text) && 
-            text.Length >= 8 && 
+        return !string.IsNullOrWhiteSpace(text) &&
+            text.Length >= 8 &&
             text.All(char.IsDigit);
+    }
+
+    private static bool IsBulkProductBarcode(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || !text.Contains('|')) return false;
+        var parts = text.Split('|');
+        return parts.Length == 3
+            && long.TryParse(parts[1], out _)
+            && long.TryParse(parts[2], out _);
+    }
+
+    private static (string Code, decimal Quantity, decimal Price) ParseBulkBarcode(string text)
+    {
+        var parts = text.Split('|');
+        return (parts[0].Trim(), long.Parse(parts[1]) / 1000m, long.Parse(parts[2]) / 100m);
     }
 
     private Color GetSaleTypeColor(SaleType saleType) => Color.Default;

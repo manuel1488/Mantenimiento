@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Label Settings" xml:space="preserve">
+    <value>Label Settings</value>
+  </data>
+  <data name="Configure label dimensions for bulk product labels (e.g. Brother DK-2205)." xml:space="preserve">
+    <value>Configure label dimensions for bulk product labels (e.g. Brother DK-2205).</value>
+  </data>
+  <data name="Width (mm)" xml:space="preserve">
+    <value>Width (mm)</value>
+  </data>
+  <data name="Height (mm)" xml:space="preserve">
+    <value>Height (mm)</value>
+  </data>
+  <data name="Tape width (e.g. 62 mm for DK-2205)" xml:space="preserve">
+    <value>Tape width (e.g. 62 mm for DK-2205)</value>
+  </data>
+  <data name="Label height (use 0 for auto-cutter continuous roll)" xml:space="preserve">
+    <value>Label height (use 0 for auto-cutter continuous roll)</value>
+  </data>
+  <data name="Current size: {0} mm × {1} mm" xml:space="preserve">
+    <value>Current size: {0} mm × {1} mm</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="Label settings updated successfully" xml:space="preserve">
+    <value>Label settings updated successfully</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Error updating settings" xml:space="preserve">
+    <value>Error updating settings</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+</root>

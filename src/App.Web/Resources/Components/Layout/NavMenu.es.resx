@@ -63,4 +63,10 @@
   <data name="Cash Stations" xml:space="preserve">
     <value>Cajas</value>
   </data>
+  <data name="Labeling" xml:space="preserve">
+    <value>Etiquetado</value>
+  </data>
+  <data name="Bulk Products" xml:space="preserve">
+    <value>Productos a Granel</value>
+  </data>
 </root>

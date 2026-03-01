@@ -16,6 +16,7 @@
 @using App.Web.Components.Admin.Settings.CashRegister
 @using App.Web.Components.Admin.Settings.Billing
 @using App.Web.Components.Admin.Settings.Pac
+@using App.Web.Components.Admin.Settings.Labels
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -108,6 +109,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewFiscalSettings">
                     <MudTabPanel Text="@L["PAC Billing"]" Icon="@Icons.Material.Filled.ReceiptLong">
                         <PacSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Labels"]" Icon="@Icons.Material.Filled.Label">
+                        <LabelSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

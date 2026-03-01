@@ -1,3 +1,17 @@
+window.createPdfBlobUrl = function(base64Data) {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const blob = new Blob([byteNumbers], { type: 'application/pdf' });
+    return URL.createObjectURL(blob);
+};
+
+window.revokeBlobUrl = function(url) {
+    if (url) URL.revokeObjectURL(url);
+};
+
 window.printTicket = async function(url) {
     // Verificar que la URL es válida
     if (!url || !url.startsWith('/')) {

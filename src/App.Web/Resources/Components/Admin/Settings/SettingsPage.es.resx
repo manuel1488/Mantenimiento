@@ -74,4 +74,7 @@
   <data name="PAC Billing" xml:space="preserve">
     <value>Facturación PAC</value>
   </data>
+  <data name="Labels" xml:space="preserve">
+    <value>Etiquetas</value>
+  </data>
 </root>

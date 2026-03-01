@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Bulk Labeling" xml:space="preserve">
+    <value>Etiquetado a Granel</value>
+  </data>
+  <data name="Print Labels" xml:space="preserve">
+    <value>Imprimir Etiquetas</value>
+  </data>
+  <data name="Label History" xml:space="preserve">
+    <value>Historial de Etiquetas</value>
+  </data>
+  <data name="Search product" xml:space="preserve">
+    <value>Buscar producto</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="Unit Price" xml:space="preserve">
+    <value>Precio Unitario</value>
+  </data>
+  <data name="Total Price" xml:space="preserve">
+    <value>Precio Total</value>
+  </data>
+  <data name="Label Count" xml:space="preserve">
+    <value>Cantidad de Etiquetas</value>
+  </data>
+  <data name="Batch / Lot Number" xml:space="preserve">
+    <value>Número de Lote</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notas</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Vista Previa</value>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Imprimir</value>
+  </data>
+  <data name="Save and Print" xml:space="preserve">
+    <value>Guardar e Imprimir</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Restablecer</value>
+  </data>
+  <data name="Label preview" xml:space="preserve">
+    <value>Vista previa de etiqueta</value>
+  </data>
+  <data name="Select a product and enter the quantity to preview the label." xml:space="preserve">
+    <value>Selecciona un producto e ingresa la cantidad para ver la vista previa de la etiqueta.</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>Lote</value>
+  </data>
+  <data name="Labels" xml:space="preserve">
+    <value>Etiquetas</value>
+  </data>
+  <data name="Label saved and print window opened." xml:space="preserve">
+    <value>Etiqueta guardada y ventana de impresión abierta.</value>
+  </data>
+  <data name="Product is required" xml:space="preserve">
+    <value>El producto es requerido</value>
+  </data>
+  <data name="Quantity must be greater than 0" xml:space="preserve">
+    <value>La cantidad debe ser mayor a 0</value>
+  </data>
+  <data name="Unit price must be greater than 0" xml:space="preserve">
+    <value>El precio unitario debe ser mayor a 0</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Labeling" xml:space="preserve">
+    <value>Etiquetado</value>
+  </data>
+  <data name="Bulk Products" xml:space="preserve">
+    <value>Productos a Granel</value>
+  </data>
+</root>

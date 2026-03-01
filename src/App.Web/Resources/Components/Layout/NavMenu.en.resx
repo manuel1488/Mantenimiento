@@ -63,4 +63,10 @@
   <data name="Cash Stations" xml:space="preserve">
     <value>Cash Stations</value>
   </data>
+  <data name="Labeling" xml:space="preserve">
+    <value>Labeling</value>
+  </data>
+  <data name="Bulk Products" xml:space="preserve">
+    <value>Bulk Products</value>
+  </data>
 </root>

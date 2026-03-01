@@ -76,6 +76,21 @@
         </Authorized>
     </AuthorizeView>
 
+    <!-- Sección Etiquetado (Labeling) -->
+    <AuthorizeView Policy="@ApplicationClaims.Labels.LabelsAccess">
+        <Authorized Context="labelsAuth">
+            <MudNavGroup Title="@L["Labeling"]"
+                        Icon="@Icons.Material.Filled.Label"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Labels.PrintLabels">
+                    <Authorized Context="printLabelsAuth">
+                        <MudNavLink Href="/labels/bulk">@L["Bulk Products"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
     <!-- Sección Management (Gestión) -->
     <AuthorizeView Policy="@ApplicationClaims.Shared.SharedAccess">
         <Authorized Context="customersAuth">

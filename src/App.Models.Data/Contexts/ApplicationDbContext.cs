@@ -31,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RoundingSettings> RoundingSettings { get; set; } = null!;
     public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
     public DbSet<CashRegisterSettings> CashRegisterSettings { get; set; } = null!;
+    public DbSet<LabelSettings> LabelSettings { get; set; } = null!;
     #endregion
 
     #region Shared
@@ -58,6 +59,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CashRegisterMovement> CashRegisterMovements { get; set; } = null!;
     public DbSet<CashRegisterDenomination> CashRegisterDenominations { get; set; } = null!;
     public DbSet<CashStation> CashStations { get; set; } = null!;
+    public DbSet<BulkLabelJob> BulkLabelJobs { get; set; } = null!;
     public DbSet<StockEntry> StockEntries { get; set; } = null!;
     public DbSet<StockEntryItem> StockEntryItems { get; set; } = null!;
     public DbSet<AdjustmentEntry> AdjustmentEntries { get; set; } = null!;

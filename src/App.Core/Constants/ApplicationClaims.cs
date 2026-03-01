@@ -165,6 +165,13 @@ public static class ApplicationClaims
         public const string GenerateReports = "Shared.Reports.Generate";
     }
 
+    public static class Labels
+    {
+        public const string LabelsAccess = "Labels.Access";
+        public const string ViewLabels = "Labels.View";
+        public const string PrintLabels = "Labels.Print";
+    }
+
     public static IEnumerable<string> GetAllClaims()
     {
         return typeof(ApplicationClaims)

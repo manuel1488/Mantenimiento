@@ -342,6 +342,13 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.ShopAccess, policy =>
             policy.RequireAssertion(context =>
                 context.User.HasClaim(c => c.Type.StartsWith("Shop."))));
+
+        // Labels policies
+        options.AddPolicy(ApplicationClaims.Labels.ViewLabels, policy => policy.RequireClaim(ApplicationClaims.Labels.ViewLabels));
+        options.AddPolicy(ApplicationClaims.Labels.PrintLabels, policy => policy.RequireClaim(ApplicationClaims.Labels.PrintLabels));
+        options.AddPolicy(ApplicationClaims.Labels.LabelsAccess, policy =>
+            policy.RequireAssertion(context =>
+                context.User.HasClaim(c => c.Type.StartsWith("Labels."))));
     });
 
     // Agregar Health Checks
@@ -631,6 +638,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddSingleton<RoleTranslationService>();
     services.AddScoped<IDiscountSettingsService, DiscountSettingsService>();
     services.AddScoped<IRoundingSettingsService, RoundingSettingsService>();
+    services.AddScoped<ILabelSettingsService, LabelSettingsService>();
     services.AddScoped<IPaymentMethodService, PaymentMethodService>();
     services.AddScoped<ISaleService, SaleService>();
     services.AddScoped<IPartialSaleFractionService, PartialSaleFractionService>();
@@ -653,6 +661,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
     services.AddScoped<ICashierProfileService, CashierProfileService>();
     services.AddScoped<ICashStationService, CashStationService>();
+    builder.Services.AddScoped<App.Services.Labels.BarcodeGeneratorService>();
+    builder.Services.AddScoped<IBulkLabelService, App.Services.Labels.BulkLabelService>();
 
     // Mexico CFDI billing
     services.AddHttpClient();
