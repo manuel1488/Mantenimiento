@@ -7,6 +7,8 @@
 @using MudBlazor
 
 @inject ITicketService TicketService
+@inject App.Web.Services.IThermalPrinterService ThermalPrinter
+@inject IJSRuntime JS
 @inject IStringLocalizer<TicketConfigurationTab> L
 @inject ISnackbar Snackbar
 @inject ILogger<TicketConfigurationTab> Logger
@@ -76,6 +78,85 @@
 
                                         <MudTextField @bind-Value="_model.CustomFooter" Label="@L["Custom Footer"]"
                                             HelperText="@L["HTML is supported"]" Class="mt-3" Lines="3" ReadOnly="@(!_hasManagePermission)" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" Class="mt-4">
+                                        <MudDivider Class="mb-4" />
+                                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Direct Thermal Printing"]</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                                            @L["Requires Epson TM Virtual Port Driver installed on each client terminal."]
+                                        </MudText>
+
+                                        @if (!_webSerialSupported)
+                                        {
+                                            <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
+                                                @L["Web Serial API not supported. Use Chrome or Edge browser."]
+                                            </MudAlert>
+                                        }
+
+                                        <MudSwitch T="bool" @bind-Value="_model.DirectPrintEnabled"
+                                            Label="@L["Enable direct thermal printing"]"
+                                            Color="Color.Primary"
+                                            Disabled="@(!_hasManagePermission || !_webSerialSupported)" />
+
+                                        @if (_model.DirectPrintEnabled)
+                                        {
+                                            <MudGrid Class="mt-2">
+                                                <MudItem xs="12">
+                                                    <div class="d-flex align-center gap-3 flex-wrap">
+                                                        <MudButton Variant="Variant.Outlined"
+                                                            StartIcon="@Icons.Material.Filled.SettingsInputComposite"
+                                                            Color="Color.Primary"
+                                                            OnClick="ConnectPort"
+                                                            Disabled="@_isConnecting">
+                                                            @if (_isConnecting)
+                                                            {
+                                                                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                                                @L["Connecting..."]
+                                                            }
+                                                            else
+                                                            {
+                                                                @L["Connect printer port"]
+                                                            }
+                                                        </MudButton>
+                                                        @if (!string.IsNullOrEmpty(_portDescription))
+                                                        {
+                                                            <MudChip T="string" Color="Color.Success" Size="Size.Small"
+                                                                Icon="@Icons.Material.Filled.CheckCircle">
+                                                                @_portDescription
+                                                            </MudChip>
+                                                        }
+                                                        else if (_portChecked)
+                                                        {
+                                                            <MudChip T="string" Color="Color.Default" Size="Size.Small"
+                                                                Icon="@Icons.Material.Filled.UsbOff">
+                                                                @L["No port selected"]
+                                                            </MudChip>
+                                                        }
+                                                    </div>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                                                        @L["Select the COM port assigned by Epson TM Virtual Port Assignment Tool. Chrome remembers the permission."]
+                                                    </MudText>
+                                                </MudItem>
+                                                <MudItem xs="12">
+                                                    <MudButton Variant="Variant.Outlined"
+                                                        StartIcon="@Icons.Material.Filled.Print"
+                                                        Color="Color.Secondary"
+                                                        OnClick="TestPrint"
+                                                        Disabled="@_isTesting">
+                                                        @if (_isTesting)
+                                                        {
+                                                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                                            @L["Printing test..."]
+                                                        }
+                                                        else
+                                                        {
+                                                            @L["Print test page"]
+                                                        }
+                                                    </MudButton>
+                                                </MudItem>
+                                            </MudGrid>
+                                        }
                                     </MudItem>
 
                                     <MudItem xs="12" Class="mt-4">
@@ -151,14 +232,40 @@
     private bool _isValid;
     private bool _loading = true;
     private bool _isSaving = false;
+    private bool _isTesting = false;
+    private bool _isConnecting = false;
     private bool _hasManagePermission = false;
+    private bool _webSerialSupported = true;
+    private bool _portChecked = false;
+    private string? _portDescription;
 
     protected override async Task OnInitializedAsync()
     {
         // Check permissions
         _hasManagePermission = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings);
-        
+
         await LoadConfiguration();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _webSerialSupported = await ThermalPrinter.IsSupportedAsync();
+            _portChecked = true;
+            if (_webSerialSupported)
+            {
+                // Check if a port is already granted
+                try
+                {
+                    var hasPorts = await JS.InvokeAsync<bool>("thermalPrint.hasPort");
+                    if (hasPorts)
+                        _portDescription = L["Port connected"];
+                }
+                catch { }
+            }
+            StateHasChanged();
+        }
     }
 
     private async Task LoadConfiguration()
@@ -238,7 +345,8 @@
                 CustomHeader = _model.CustomHeader,
                 CustomFooter = _model.CustomFooter,
                 TicketWidth = _model.TicketWidth,
-                DefaultCopies = _model.DefaultCopies
+                DefaultCopies = _model.DefaultCopies,
+                DirectPrintEnabled = _model.DirectPrintEnabled
             };
 
             await TicketService.UpdateTicketConfigurationAsync(_updateModel);
@@ -252,6 +360,55 @@
         finally
         {
             _isSaving = false;
+        }
+    }
+
+    private async Task ConnectPort()
+    {
+        try
+        {
+            _isConnecting = true;
+            var result = await ThermalPrinter.RequestPortAsync();
+            if (result.IsSuccess)
+            {
+                _portDescription = result.Value;
+                Snackbar.Add(L["Printer port connected"], Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(L["Port selection cancelled"], Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Connect port error");
+            Snackbar.Add(L["Error connecting port"], Severity.Error);
+        }
+        finally
+        {
+            _isConnecting = false;
+        }
+    }
+
+    private async Task TestPrint()
+    {
+        try
+        {
+            _isTesting = true;
+            var result = await ThermalPrinter.PrintTestPageAsync();
+            if (result.IsSuccess)
+                Snackbar.Add(L["Test page sent to printer"], Severity.Success);
+            else
+                Snackbar.Add(L["Printer not reachable: {0}", result.Error ?? ""], Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Test print error");
+            Snackbar.Add(L["Test print error"], Severity.Error);
+        }
+        finally
+        {
+            _isTesting = false;
         }
     }
 

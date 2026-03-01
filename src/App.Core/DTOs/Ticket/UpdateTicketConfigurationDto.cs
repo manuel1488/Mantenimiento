@@ -16,4 +16,6 @@ public class UpdateTicketConfigurationDto
     
     public int? TicketWidth { get; set; }
     public int? DefaultCopies { get; set; }
+
+    public bool? DirectPrintEnabled { get; set; }
 }

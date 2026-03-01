@@ -6,6 +6,7 @@
 @inject ICashRegisterService CashRegisterService
 @inject ITicketService TicketService
 @inject IJSRuntime JS
+@inject App.Web.Services.IThermalPrinterService ThermalPrinter
 @inject IStringLocalizer<MovementDialog> L
 @inject ISnackbar Snackbar
 @inject ILogger<MovementDialog> Logger
@@ -141,12 +142,16 @@
             {
                 try
                 {
-                    var ticketUrl = TicketService.GetWithdrawalTicketUrl(result.Value.Id);
-                    await JS.InvokeVoidAsync("printTicket", ticketUrl);
+                    var printResult = await ThermalPrinter.PrintWithdrawalAsync(result.Value.Id);
+                    if (!printResult.IsSuccess)
+                    {
+                        var ticketUrl = TicketService.GetWithdrawalTicketUrl(result.Value.Id);
+                        await JS.InvokeVoidAsync("printTicket", ticketUrl);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogWarning(ex, "Could not open withdrawal ticket print window");
+                    Logger.LogWarning(ex, "Could not print withdrawal ticket");
                 }
             }
 

@@ -46,6 +46,9 @@
 @inject IDateTime DateTimeService
 @inject ICurrentUserService CurrentUserService
 @inject ICashRegisterService CashRegisterService
+@inject ITicketService TicketService
+@inject IJSRuntime JS
+@inject App.Web.Services.IThermalPrinterService ThermalPrinter
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.CreateSale)]
 
@@ -1485,10 +1488,24 @@ else
                         cfg => cfg.VisibleStateDuration = 8000);
                 }
 
-                // Show receipt dialog or navigate to sale details
-                await DialogService.ShowAsync<SaleReceiptDialog>(
-                L["Sale Receipt"],
-                new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, result.Value!.Id } });
+                // 1st: direct thermal print via ePOS SDK (silent, no dialog)
+                var printResult = await ThermalPrinter.PrintSaleAsync(result.Value!.Id);
+                if (!printResult.IsSuccess)
+                {
+                    // 2nd: browser popup (silent with Chrome --kiosk-printing, or shows OS dialog otherwise)
+                    try
+                    {
+                        await JS.InvokeVoidAsync("printTicket", TicketService.GetSaleTicketUrl(result.Value!.Id));
+                    }
+                    catch (Exception printEx)
+                    {
+                        // 3rd: receipt modal as last resort
+                        Logger.LogWarning(printEx, "printTicket failed, opening receipt dialog");
+                        await DialogService.ShowAsync<SaleReceiptDialog>(
+                            L["Sale Receipt"],
+                            new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, result.Value!.Id } });
+                    }
+                }
 
                 // Auto-invoice logic
                 // Prompt threshold: MX customer with RFC is enough to ask

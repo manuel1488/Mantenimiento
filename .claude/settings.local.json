@@ -3,7 +3,9 @@
     "allow": [
       "Read(//c/Users/Manuel Alfaro/Documents/Desarrollos/Inventario/**)",
       "Bash(dotnet ef migrations add:*)",
-      "Bash(dotnet ef database update:*)"
+      "Bash(dotnet ef database update:*)",
+      "Bash(unzip:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

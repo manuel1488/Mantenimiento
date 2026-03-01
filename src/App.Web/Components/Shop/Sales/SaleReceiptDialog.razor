@@ -9,6 +9,7 @@
 
 @inject ISaleService SaleService
 @inject ITicketService TicketService
+@inject App.Web.Services.IThermalPrinterService ThermalPrinter
 @inject ICompanySettingsService CompanySettingsService
 @inject IStringLocalizer<SaleReceiptDialog> L
 @inject ISnackbar Snackbar
@@ -232,7 +233,9 @@
     {
         try
         {
-            await JS.InvokeVoidAsync("printTicket", _ticketUrl);
+            var result = await ThermalPrinter.PrintSaleAsync(SaleId);
+            if (!result.IsSuccess)
+                await JS.InvokeVoidAsync("printTicket", _ticketUrl);
         }
         catch (Exception ex)
         {

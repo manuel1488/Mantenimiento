@@ -33,4 +33,7 @@ public class TicketConfiguration : BaseEntity<int>
     public int TicketWidth { get; set; } = 80; // Ancho en mm
     
     public int DefaultCopies { get; set; } = 1;
+
+    // Direct thermal printing via Web Serial API
+    public bool DirectPrintEnabled { get; set; } = false;
 }

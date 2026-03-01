@@ -16,4 +16,6 @@ public class TicketConfigurationDto
     
     public int TicketWidth { get; set; } = 80; // Ancho en mm
     public int DefaultCopies { get; set; } = 1;
+
+    public bool DirectPrintEnabled { get; set; } = false;
 }

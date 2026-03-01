@@ -87,4 +87,55 @@
   <data name="Error saving configuration" xml:space="preserve">
     <value>Error saving configuration</value>
   </data>
+  <data name="Direct Thermal Printing" xml:space="preserve">
+    <value>Direct Thermal Printing</value>
+  </data>
+  <data name="Requires Epson TM Virtual Port Driver installed on each client terminal." xml:space="preserve">
+    <value>Requires Epson TM Virtual Port Driver installed on each client terminal.</value>
+  </data>
+  <data name="Web Serial API not supported. Use Chrome or Edge browser." xml:space="preserve">
+    <value>Web Serial API not supported. Use Chrome or Edge browser.</value>
+  </data>
+  <data name="Enable direct thermal printing" xml:space="preserve">
+    <value>Enable direct thermal printing</value>
+  </data>
+  <data name="Connect printer port" xml:space="preserve">
+    <value>Connect printer port</value>
+  </data>
+  <data name="Connecting..." xml:space="preserve">
+    <value>Connecting...</value>
+  </data>
+  <data name="Port connected" xml:space="preserve">
+    <value>Port connected</value>
+  </data>
+  <data name="No port selected" xml:space="preserve">
+    <value>No port selected</value>
+  </data>
+  <data name="Select the COM port assigned by Epson TM Virtual Port Assignment Tool. Chrome remembers the permission." xml:space="preserve">
+    <value>Select the COM port assigned by Epson TM Virtual Port Assignment Tool. Chrome remembers the permission.</value>
+  </data>
+  <data name="Print test page" xml:space="preserve">
+    <value>Print test page</value>
+  </data>
+  <data name="Printing test..." xml:space="preserve">
+    <value>Printing test...</value>
+  </data>
+  <data name="Test page sent to printer" xml:space="preserve">
+    <value>Test page sent to printer</value>
+  </data>
+  <data name="Printer not reachable: {0}" xml:space="preserve">
+    <value>Printer not reachable: {0}</value>
+  </data>
+  <data name="Test print error" xml:space="preserve">
+    <value>Test print error</value>
+  </data>
+  <data name="Printer port connected" xml:space="preserve">
+    <value>Printer port connected</value>
+  </data>
+  <data name="Port selection cancelled" xml:space="preserve">
+    <value>Port selection cancelled</value>
+  </data>
+  <data name="Error connecting port" xml:space="preserve">
+    <value>Error connecting port</value>
+  </data>
 </root>

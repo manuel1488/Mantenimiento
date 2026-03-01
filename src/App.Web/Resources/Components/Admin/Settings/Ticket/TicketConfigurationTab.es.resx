@@ -87,4 +87,55 @@
   <data name="Error saving configuration" xml:space="preserve">
     <value>Error al guardar la configuración</value>
   </data>
+  <data name="Direct Thermal Printing" xml:space="preserve">
+    <value>Impresión Térmica Directa</value>
+  </data>
+  <data name="Requires Epson TM Virtual Port Driver installed on each client terminal." xml:space="preserve">
+    <value>Requiere el driver Epson TM Virtual Port instalado en cada terminal cliente.</value>
+  </data>
+  <data name="Web Serial API not supported. Use Chrome or Edge browser." xml:space="preserve">
+    <value>Web Serial API no disponible. Use Chrome o Edge.</value>
+  </data>
+  <data name="Enable direct thermal printing" xml:space="preserve">
+    <value>Habilitar impresión térmica directa</value>
+  </data>
+  <data name="Connect printer port" xml:space="preserve">
+    <value>Conectar puerto de impresora</value>
+  </data>
+  <data name="Connecting..." xml:space="preserve">
+    <value>Conectando...</value>
+  </data>
+  <data name="Port connected" xml:space="preserve">
+    <value>Puerto conectado</value>
+  </data>
+  <data name="No port selected" xml:space="preserve">
+    <value>Sin puerto seleccionado</value>
+  </data>
+  <data name="Select the COM port assigned by Epson TM Virtual Port Assignment Tool. Chrome remembers the permission." xml:space="preserve">
+    <value>Selecciona el puerto COM asignado por Epson TM Virtual Port Assignment Tool. Chrome recuerda el permiso.</value>
+  </data>
+  <data name="Print test page" xml:space="preserve">
+    <value>Imprimir página de prueba</value>
+  </data>
+  <data name="Printing test..." xml:space="preserve">
+    <value>Imprimiendo prueba...</value>
+  </data>
+  <data name="Test page sent to printer" xml:space="preserve">
+    <value>Página de prueba enviada a la impresora</value>
+  </data>
+  <data name="Printer not reachable: {0}" xml:space="preserve">
+    <value>Impresora no disponible: {0}</value>
+  </data>
+  <data name="Test print error" xml:space="preserve">
+    <value>Error al imprimir página de prueba</value>
+  </data>
+  <data name="Printer port connected" xml:space="preserve">
+    <value>Puerto de impresora conectado</value>
+  </data>
+  <data name="Port selection cancelled" xml:space="preserve">
+    <value>Selección de puerto cancelada</value>
+  </data>
+  <data name="Error connecting port" xml:space="preserve">
+    <value>Error al conectar el puerto</value>
+  </data>
 </root>

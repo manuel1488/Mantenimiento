@@ -350,7 +350,8 @@ public class TicketService : ITicketService
                     CustomFooter = map.CustomFooter,
                     TicketWidth = map.TicketWidth,
                     DefaultCopies = map.DefaultCopies,
-                    CompanyLogoBase64 = map.CompanyLogoBase64
+                    CompanyLogoBase64 = map.CompanyLogoBase64,
+                    DirectPrintEnabled = map.DirectPrintEnabled
                 };
             }
             else
@@ -433,9 +434,12 @@ public class TicketService : ITicketService
             if (updateDto.TicketWidth.HasValue) 
                 config.TicketWidth = updateDto.TicketWidth.Value;
                 
-            if (updateDto.DefaultCopies.HasValue) 
+            if (updateDto.DefaultCopies.HasValue)
                 config.DefaultCopies = updateDto.DefaultCopies.Value;
-                
+
+            if (updateDto.DirectPrintEnabled.HasValue)
+                config.DirectPrintEnabled = updateDto.DirectPrintEnabled.Value;
+
             await context.SaveChangesAsync();
             
             return _mapper.Map<TicketConfigurationDto>(config);

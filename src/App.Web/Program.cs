@@ -651,6 +651,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<ISalesReportService, SalesReportService>();
     builder.Services.AddScoped<IDashboardService, DashboardService>();
     builder.Services.AddScoped<ITicketService, TicketService>();
+    builder.Services.AddScoped<IThermalPrinterService, ThermalPrinterService>();
     builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
     builder.Services.AddScoped<IProductCodeGeneratorService, ProductCodeGeneratorService>();
     builder.Services.AddScoped<IInventoryAlertEmailService, InventoryAlertEmailService>();
