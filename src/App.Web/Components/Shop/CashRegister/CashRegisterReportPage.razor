@@ -221,7 +221,7 @@ else
                     @foreach (var ps in _report.PaymentSummary)
                     {
                         <tr>
-                            <td>@ps.Name</td>
+                            <td>@ps.PaymentMethodName</td>
                             <td class="text-right">@ps.TransactionCount</td>
                             <td class="text-right">@ps.TotalAmount.ToString("C2")</td>
                         </tr>
