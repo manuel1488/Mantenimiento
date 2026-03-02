@@ -2,8 +2,12 @@
 window.posKeyboard = {
     _dotNetRef: null,
     _handler: null,
+    _scannerHandler: null,
+    _lastKeyTime: 0,
     register: function (dotNetRef) {
         this._dotNetRef = dotNetRef;
+
+        // F-key shortcuts (bubble phase)
         this._handler = async (e) => {
             const handled = ['F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F12'];
             if (!handled.includes(e.key)) return;
@@ -11,11 +15,39 @@ window.posKeyboard = {
             await this._dotNetRef.invokeMethodAsync('HandleKeyShortcut', e.key);
         };
         document.addEventListener('keydown', this._handler);
+
+        // Scanner Enter detection (capture phase — fires before MudAutocomplete)
+        const self = this;
+        this._scannerHandler = (e) => {
+            const input = document.querySelector('.product-search-autocomplete input');
+            if (!input || document.activeElement !== input) return;
+
+            if (e.key !== 'Enter') {
+                self._lastKeyTime = Date.now();
+                return;
+            }
+
+            const elapsed = Date.now() - self._lastKeyTime;
+            const text = input.value;
+            if (elapsed < 150 && text) {
+                // Fast input = barcode scanner: intercept Enter and handle directly
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                if (self._dotNetRef) {
+                    self._dotNetRef.invokeMethodAsync('HandleScannerEnter', text);
+                }
+            }
+        };
+        document.addEventListener('keydown', this._scannerHandler, true);
     },
     unregister: function () {
         if (this._handler) {
             document.removeEventListener('keydown', this._handler);
             this._handler = null;
+        }
+        if (this._scannerHandler) {
+            document.removeEventListener('keydown', this._scannerHandler, true);
+            this._scannerHandler = null;
         }
         if (this._dotNetRef) {
             this._dotNetRef.dispose();

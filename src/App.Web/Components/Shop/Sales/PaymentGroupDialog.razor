@@ -58,6 +58,7 @@
                         Step="0.01M"
                         Variant="Variant.Outlined" Margin="Margin.Dense"
                         HideSpinButtons="true"
+                        AutoFocus="@(_items.IndexOf(item) == 0)"
                         Immediate="true"
                         Style="flex:1;" />
                     @if (PaymentMethod.Type == PaymentMethodType.Transfer || PaymentMethod.Type == PaymentMethodType.Check)

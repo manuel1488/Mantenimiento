@@ -145,6 +145,7 @@ else
                 <div>
                     <MudAutocomplete T="ProductDto" Label="@L["Search Products"]"
                         @ref="_productAutocomplete"
+                        Class="product-search-autocomplete"
                         Value="_selectedProduct"
                         SearchFunc="@SearchProducts"
                         ToStringFunc="@(p => p == null ? string.Empty : $"{p.Name} ({p.Code}) - {p.Brand} - {p.Description}{(p.Content > 0 ? $" ({p.Content}{p.UnitMeasureName})" : "")}")"
@@ -597,6 +598,42 @@ else
 
     [JSInvokable]
     public Task HandleKeyShortcut(string key) => InvokeAsync(() => HandleKeyShortcutAsync(key));
+
+    [JSInvokable]
+    public Task HandleScannerEnter(string text) => InvokeAsync(() => HandleScannerEnterAsync(text));
+
+    private async Task HandleScannerEnterAsync(string text)
+    {
+        if (_isBusy || _selectedCustomer == null || string.IsNullOrWhiteSpace(text)) return;
+
+        ProductDto? product = null;
+
+        if (IsBulkProductBarcode(text))
+        {
+            var (code, qty, price) = ParseBulkBarcode(text);
+            _pendingBulkQuantity = qty;
+            _pendingBulkPrice = price;
+            _hasPendingBulk = true;
+            var result = await ProductService.GetProductsAsync(searchString: code, isActive: true, page: 1, pageSize: 5);
+            product = result.Item2.FirstOrDefault(p => p.Code == code);
+        }
+        else if (IsLikelyBarcode(text))
+        {
+            product = await ProductService.GetProductByBarcodeAsync(text);
+        }
+
+        if (product == null)
+        {
+            var result = await ProductService.GetProductsAsync(searchString: text, isActive: true, page: 1, pageSize: 5);
+            if (result.Item2.Count == 1)
+                product = result.Item2.First();
+        }
+
+        if (product != null)
+            await ProductSelectedAsync(product);
+        else
+            Snackbar.Add(L["No products found"], Severity.Warning);
+    }
 
     private async Task HandleKeyShortcutAsync(string key)
     {
