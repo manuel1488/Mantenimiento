@@ -192,4 +192,28 @@
   <data name="Error searching SAT product services" xml:space="preserve">
     <value>Error al buscar servicios de productos SAT</value>
   </data>
+  <data name="Stock Levels" xml:space="preserve">
+    <value>Niveles de Stock</value>
+  </data>
+  <data name="No inventory records found" xml:space="preserve">
+    <value>No hay registros de inventario</value>
+  </data>
+  <data name="Min" xml:space="preserve">
+    <value>Mín</value>
+  </data>
+  <data name="Max" xml:space="preserve">
+    <value>Máx</value>
+  </data>
+  <data name="Current stock" xml:space="preserve">
+    <value>Stock actual</value>
+  </data>
+  <data name="Stock levels saved" xml:space="preserve">
+    <value>Niveles de stock guardados</value>
+  </data>
+  <data name="Error loading stock levels" xml:space="preserve">
+    <value>Error al cargar los niveles de stock</value>
+  </data>
+  <data name="Error saving stock levels" xml:space="preserve">
+    <value>Error al guardar los niveles de stock</value>
+  </data>
 </root>

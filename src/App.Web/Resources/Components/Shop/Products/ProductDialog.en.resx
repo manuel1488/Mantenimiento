@@ -192,4 +192,28 @@
   <data name="Error searching SAT product services" xml:space="preserve">
     <value>Error searching SAT product services</value>
   </data>
+  <data name="Stock Levels" xml:space="preserve">
+    <value>Stock Levels</value>
+  </data>
+  <data name="No inventory records found" xml:space="preserve">
+    <value>No inventory records found</value>
+  </data>
+  <data name="Min" xml:space="preserve">
+    <value>Min</value>
+  </data>
+  <data name="Max" xml:space="preserve">
+    <value>Max</value>
+  </data>
+  <data name="Current stock" xml:space="preserve">
+    <value>Current stock</value>
+  </data>
+  <data name="Stock levels saved" xml:space="preserve">
+    <value>Stock levels saved</value>
+  </data>
+  <data name="Error loading stock levels" xml:space="preserve">
+    <value>Error loading stock levels</value>
+  </data>
+  <data name="Error saving stock levels" xml:space="preserve">
+    <value>Error saving stock levels</value>
+  </data>
 </root>

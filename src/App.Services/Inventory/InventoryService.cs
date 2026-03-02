@@ -88,14 +88,40 @@ public class InventoryService : IInventoryService
                         x.Location.IsActive)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (inventory == null)
-                return MovementOperationResult.Failure(L["Invalid product or location"]);
-
             // Determinar si es adición o sustracción de inventario
             var isAddition = createDto.MovementType is
                 InventoryMovementType.StockIn or
                 InventoryMovementType.Purchase or
                 InventoryMovementType.Return;
+
+            if (inventory == null)
+            {
+                // For addition movements on a new product, auto-create the inventory record at zero
+                if (!isAddition)
+                    return MovementOperationResult.Failure(L["Invalid product or location"]);
+
+                var product = await _context.Products
+                    .FirstOrDefaultAsync(p => p.Id == createDto.ProductId && p.IsActive, cancellationToken);
+                var location = await _context.Locations
+                    .FirstOrDefaultAsync(l => l.Id == createDto.LocationId && l.IsActive, cancellationToken);
+
+                if (product == null || location == null)
+                    return MovementOperationResult.Failure(L["Invalid product or location"]);
+
+                inventory = new App.Models.Shop.Inventory
+                {
+                    ProductId = createDto.ProductId,
+                    LocationId = createDto.LocationId,
+                    Quantity = 0,
+                    IndividualUnits = 0,
+                    Product = product,
+                    Location = location,
+                    CreatedBy = _currentUserService.FullName ?? "Unknown",
+                    CreatedAt = _dateTime.Now
+                };
+                _context.Inventory.Add(inventory);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
 
             // Calculate units for both individual and container quantities
             decimal quantityToMove = createDto.Quantity;
@@ -550,9 +576,32 @@ public class InventoryService : IInventoryService
 
             if (inventory == null)
             {
-                throw new InvalidOperationException(
-                    L["Inventory not found for product {0} in location {1}",
-                        productId, locationId]);
+                // Auto-create inventory at 0 so min/max can be set before any stock movement
+                var product = await _context.Products.Include(p => p.UnitMeasure)
+                    .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive, cancellationToken);
+                var location = await _context.Locations
+                    .FirstOrDefaultAsync(l => l.Id == locationId && l.IsActive, cancellationToken);
+
+                if (product == null || location == null)
+                    throw new InvalidOperationException(
+                        L["Inventory not found for product {0} in location {1}", productId, locationId]);
+
+                var now = _dateTime.Now;
+                var user = _currentUserService.FullName ?? "Unknown";
+                inventory = new App.Models.Shop.Inventory
+                {
+                    ProductId = productId,
+                    LocationId = locationId,
+                    Quantity = 0,
+                    IndividualUnits = 0,
+                    Product = product,
+                    Location = location,
+                    CreatedBy = user,
+                    CreatedAt = now,
+                    ModifiedBy = user,
+                    ModifiedAt = now
+                };
+                _context.Inventory.Add(inventory);
             }
 
             // Validate max stock vs min stock

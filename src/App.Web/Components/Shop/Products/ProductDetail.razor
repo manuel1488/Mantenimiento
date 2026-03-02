@@ -1,4 +1,5 @@
 @page "/shop/products/{Id:long}"
+@using App.Core.DTOs.Inventory
 @using App.Core.DTOs.Product
 @using App.Core.DTOs.Shop
 @using App.Core.Interfaces
@@ -6,6 +7,7 @@
 @using App.Core.Constants
 
 @inject IProductService ProductService
+@inject IInventoryQueryService InventoryQueryService
 @inject IProductWholesalePriceService WholesalePriceService
 @inject IProductPartialSurchargeService SurchargeService
 @inject IStringLocalizer<ProductDetail> L
@@ -222,6 +224,33 @@
                                     </MudItem>
                                 }
 
+                                <!-- Niveles de Stock -->
+                                <MudItem xs="12">
+                                    <MudDivider Class="my-4" />
+                                    <MudText Typo="Typo.h6" Class="mb-4">@L["Stock Levels"]</MudText>
+                                    @if (_stockLevels.Count == 0)
+                                    {
+                                        <MudText Color="Color.Secondary">@L["No inventory records found"]</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudTable Items="@_stockLevels" Dense="true" Hover="true" Elevation="0">
+                                            <HeaderContent>
+                                                <MudTh>@L["Location"]</MudTh>
+                                                <MudTh>@L["Stock"]</MudTh>
+                                                <MudTh>@L["Min"]</MudTh>
+                                                <MudTh>@L["Max"]</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate Context="sl">
+                                                <MudTd>@sl.LocationName</MudTd>
+                                                <MudTd>@sl.Quantity.ToString("0.##")</MudTd>
+                                                <MudTd>@(sl.MinStock.HasValue ? sl.MinStock.Value.ToString("0.##") : "-")</MudTd>
+                                                <MudTd>@(sl.MaxStock.HasValue ? sl.MaxStock.Value.ToString("0.##") : "-")</MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    }
+                                </MudItem>
+
                                 <!-- Información de Auditoría -->
                                 <MudItem xs="12">
                                     <MudDivider Class="my-4"/>
@@ -273,6 +302,7 @@
     private ProductDto? _product;
     private IList<ProductWholesalePriceDto> _wholesalePrices = [];
     private IList<ProductPartialSurchargeDto> _surcharges = [];
+    private List<ProductWarehouseStockDto> _stockLevels = [];
     private TimeZoneInfo? _companyTimeZone;
     private bool _loading = true;
     private bool _isMexico;
@@ -300,6 +330,9 @@
                 var surchargeResult = await SurchargeService.GetSurchargesForProductAsync(Id);
                 if (surchargeResult.IsSuccess)
                     _surcharges = surchargeResult.Value;
+
+                var stock = await InventoryQueryService.GetProductStockAsync(Id);
+                _stockLevels = stock?.LocationStock ?? [];
             }
         }
         catch (Exception ex)

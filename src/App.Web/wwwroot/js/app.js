@@ -1,3 +1,29 @@
+// POS keyboard shortcuts — F2/F3 focus, F4-F9 payment methods, F12 complete sale
+window.posKeyboard = {
+    _dotNetRef: null,
+    _handler: null,
+    register: function (dotNetRef) {
+        this._dotNetRef = dotNetRef;
+        this._handler = async (e) => {
+            const handled = ['F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F12'];
+            if (!handled.includes(e.key)) return;
+            e.preventDefault();
+            await this._dotNetRef.invokeMethodAsync('HandleKeyShortcut', e.key);
+        };
+        document.addEventListener('keydown', this._handler);
+    },
+    unregister: function () {
+        if (this._handler) {
+            document.removeEventListener('keydown', this._handler);
+            this._handler = null;
+        }
+        if (this._dotNetRef) {
+            this._dotNetRef.dispose();
+            this._dotNetRef = null;
+        }
+    }
+};
+
 // File download helper — called from Blazor via JS interop
 window.downloadFile = (fileName, contentType, base64Data) => {
     const link = document.createElement('a');

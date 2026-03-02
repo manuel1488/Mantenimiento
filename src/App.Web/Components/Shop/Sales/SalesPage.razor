@@ -50,6 +50,8 @@
 @inject IJSRuntime JS
 @inject App.Web.Services.IThermalPrinterService ThermalPrinter
 
+@implements IAsyncDisposable
+
 @attribute [Authorize(Policy = ApplicationClaims.Shop.CreateSale)]
 
 <PageTitle>@L["Sales Terminal"]</PageTitle>
@@ -94,7 +96,7 @@ else
             <MudText Typo="Typo.subtitle1" Style="white-space:nowrap; font-weight:600; flex-shrink:0;">@L["Public Sale"]</MudText>
 
             <div style="flex:1; max-width:420px;">
-                <MudAutocomplete T="CustomerDto" Context="ath" Label="@L["Customer"]" @bind-Value="_selectedCustomer"
+                <MudAutocomplete T="CustomerDto" @ref="_customerAutocomplete" Context="ath" Label="@L["Customer"]" @bind-Value="_selectedCustomer"
                     SearchFunc="@SearchCustomers"
                     ToStringFunc="@(c => c == null ? string.Empty : c.Name)"
                     AdornmentIcon="@Icons.Material.Filled.Search"
@@ -107,6 +109,7 @@ else
                     CoerceValue="false"
                     OnClearButtonClick="@(() => _selectedCustomer = null)"
                     OnBlur="@(() => CustomerSelectedAsync(_selectedCustomer))"
+                    HelperText="F2"
                     Margin="Margin.Dense"
                     Variant="Variant.Outlined">
                     <MoreItemsTemplate>
@@ -155,6 +158,7 @@ else
                         DebounceInterval="300"
                         OnClearButtonClick="@(() => _selectedProduct = null)"
                         SelectValueOnTab="true"
+                        HelperText="F3"
                         ValueChanged="@(async (ProductDto product) => await ProductSelectedAsync(product))">
                         <ItemTemplate Context="product">
                             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -368,8 +372,10 @@ else
                     {
                         <!-- Payment method buttons – 4 columns -->
                         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; margin-bottom:8px;">
-                            @foreach (var pm in _availablePaymentMethods)
+                            @for (var i = 0; i < _availablePaymentMethods.Count; i++)
                             {
+                                var pm = _availablePaymentMethods[i];
+                                var keyLabel = GetPaymentMethodKey(i);
                                 <MudButton Variant="Variant.Outlined"
                                     Color="Color.Default"
                                     Size="Size.Small"
@@ -377,7 +383,11 @@ else
                                     Style="height:44px; text-transform:none; font-size:10px; flex-direction:row; gap:4px; padding:4px 6px; justify-content:flex-start;"
                                     Disabled="@IsPaymentButtonDisabled(pm)">
                                     <MudIcon Icon="@pm.Icon" Size="Size.Small" />
-                                    <span style="line-height:1.1; text-align:left;">@pm.Name</span>
+                                    <span style="flex:1; line-height:1.1; text-align:left;">@pm.Name</span>
+                                    @if (!string.IsNullOrEmpty(keyLabel))
+                                    {
+                                        <kbd class="pos-kbd">@keyLabel</kbd>
+                                    }
                                 </MudButton>
                             }
                         </div>
@@ -449,6 +459,7 @@ else
                             {
                                 <MudIcon Icon="@Icons.Material.Filled.Payment" Class="mr-2" />
                                 @L["Complete Sale"]
+                                <kbd class="pos-kbd" style="margin-left:8px;">F12</kbd>
                             }
                         </MudButton>
 
@@ -471,6 +482,9 @@ else
 
 @code {
     private MudAutocomplete<ProductDto> _productAutocomplete = null!;
+    private MudAutocomplete<CustomerDto> _customerAutocomplete = null!;
+    private DotNetObjectReference<SalesPage>? _dotNetRef;
+
     // Form model and validation
     private CreateSaleDto _model = new()
     {
@@ -557,12 +571,77 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("posKeyboard.register", _dotNetRef);
+        }
         if (_focusPending)
         {
             _focusPending = false;
             await _productAutocomplete.FocusAsync();
         }
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef is null) return; // prerender phase — listener was never registered
+        try
+        {
+            await JS.InvokeVoidAsync("posKeyboard.unregister");
+        }
+        catch (JSDisconnectedException) { /* circuit already gone — safe to ignore */ }
+        _dotNetRef.Dispose();
+        _dotNetRef = null;
+    }
+
+    [JSInvokable]
+    public Task HandleKeyShortcut(string key) => InvokeAsync(() => HandleKeyShortcutAsync(key));
+
+    private async Task HandleKeyShortcutAsync(string key)
+    {
+        if (_isBusy || _activeCashRegister == null || !_configurationValid) return;
+
+        switch (key)
+        {
+            case "F2":
+                await _customerAutocomplete.FocusAsync();
+                break;
+            case "F3":
+                if (_selectedCustomer != null)
+                    await _productAutocomplete.FocusAsync();
+                break;
+            case "F4":
+            case "F5":
+            case "F6":
+            case "F7":
+            case "F8":
+            case "F9":
+                var idx = key[1] - '4'; // F4=0, F5=1, F6=2, ...
+                if (idx >= 0 && idx < _availablePaymentMethods.Count)
+                {
+                    var pm = _availablePaymentMethods[idx];
+                    if (!IsPaymentButtonDisabled(pm))
+                        await OpenPaymentGroupDialog(pm);
+                }
+                break;
+            case "F12":
+                if (IsFormValid())
+                    await ProcessSale();
+                break;
+        }
+    }
+
+    private static string GetPaymentMethodKey(int index) => index switch
+    {
+        0 => "F4",
+        1 => "F5",
+        2 => "F6",
+        3 => "F7",
+        4 => "F8",
+        5 => "F9",
+        _ => string.Empty
+    };
 
     protected override async Task OnInitializedAsync()
     {

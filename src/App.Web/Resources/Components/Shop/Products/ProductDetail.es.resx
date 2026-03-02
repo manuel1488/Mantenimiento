@@ -114,4 +114,22 @@
   <data name="Surcharge" xml:space="preserve">
     <value>Recargo</value>
   </data>
+  <data name="Stock Levels" xml:space="preserve">
+    <value>Niveles de Stock</value>
+  </data>
+  <data name="No inventory records found" xml:space="preserve">
+    <value>No hay registros de inventario</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="Min" xml:space="preserve">
+    <value>Mín</value>
+  </data>
+  <data name="Max" xml:space="preserve">
+    <value>Máx</value>
+  </data>
 </root>
