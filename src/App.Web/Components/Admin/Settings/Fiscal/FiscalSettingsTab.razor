@@ -1,11 +1,13 @@
 ﻿@using App.Core.DTOs.Settings
 @using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces
+@using App.Core.Interfaces.Billing
 @using App.Core.Validators
 @using App.Core.Constants
 @using App.Web.Services
 
 @inject ITaxSettingsService TaxSettingsService
+@inject ICfdiPostalCodeService CfdiPostalCodeService
 @inject IMexicoFiscalCatalogService MexicoFiscalCatalogService
 @inject IPermissionCheckService PermissionService
 @inject ILookupService LookupService
@@ -108,8 +110,30 @@
                         <MudItem xs="12" md="6">
                             <MudTextField Value="_model.PostalCode"
                                     ReadOnly="@(!_hasWriteAccess)"
-                                    ValueChanged="(string? value) => { _model.PostalCode = value; StateHasChanged(); }"
+                                    ValueChanged="@((string? value) => OnPostalCodeChanged(value))"
                                     Label="@L["Postal Code"]"/>
+                            @if (_model.CountryCode == "MX" && !string.IsNullOrEmpty(_model.PostalCode))
+                            {
+                                @if (_postalCodeTz != null)
+                                {
+                                    <MudAlert Severity="Severity.Info" Dense="true" Class="mt-1">
+                                        <MudText Typo="Typo.caption">
+                                            <b>@L["Timezone"]:</b> @_postalCodeTz.TimeZoneName
+                                            — UTC@(_postalCodeTz.OffsetWinter > 0 ? "+" : "")@_postalCodeTz.OffsetWinter
+                                            @if (_postalCodeTz.OffsetWinter != _postalCodeTz.OffsetSummer)
+                                            {
+                                                <span>/ UTC@(_postalCodeTz.OffsetSummer > 0 ? "+" : "")@_postalCodeTz.OffsetSummer @L["DST"]</span>
+                                            }
+                                        </MudText>
+                                    </MudAlert>
+                                }
+                                else if (_postalCodeNotFound)
+                                {
+                                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-1">
+                                        <MudText Typo="Typo.caption">@L["PostalCodeTimezoneNotFound"]</MudText>
+                                    </MudAlert>
+                                }
+                            }
                         </MudItem>
                     </MudGrid>
                 </MudItem>
@@ -259,6 +283,10 @@
     private List<MexicoPaymentMethodDto> _paymentMethods = new();
     private List<MexicoPaymentFormDto> _paymentForms = new();
 
+    // Postal code timezone preview
+    private CfdiPostalCodeDto? _postalCodeTz;
+    private bool _postalCodeNotFound;
+
     protected override async Task OnInitializedAsync()
     {
         // Check permissions
@@ -271,6 +299,7 @@
         await LoadMexicoFiscalCatalogsAsync();
 
         await LoadSettings();
+        await RefreshPostalCodeTimezoneAsync();
     }
 
     private async Task LoadMexicoFiscalCatalogsAsync()
@@ -286,6 +315,35 @@
         {
             Logger.LogError(ex, "Error loading Mexico fiscal catalogs");
             Snackbar.Add(L["Error loading fiscal catalogs"], Severity.Error);
+        }
+    }
+
+    private async Task OnPostalCodeChanged(string? value)
+    {
+        _model.PostalCode = value;
+        await RefreshPostalCodeTimezoneAsync();
+        StateHasChanged();
+    }
+
+    private async Task RefreshPostalCodeTimezoneAsync()
+    {
+        if (_model.CountryCode != "MX" || string.IsNullOrWhiteSpace(_model.PostalCode))
+        {
+            _postalCodeTz = null;
+            _postalCodeNotFound = false;
+            return;
+        }
+
+        var result = await CfdiPostalCodeService.GetByCodeAsync(_model.PostalCode);
+        if (result.IsSuccess)
+        {
+            _postalCodeTz = result.Value;
+            _postalCodeNotFound = false;
+        }
+        else
+        {
+            _postalCodeTz = null;
+            _postalCodeNotFound = true;
         }
     }
 

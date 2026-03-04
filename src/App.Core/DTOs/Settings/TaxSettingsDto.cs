@@ -21,6 +21,12 @@ public class TaxSettingsDto
     public string? CaHstNumber { get; set; }
     public string? CaQstNumber { get; set; }
     
+    // Postal code timezone info (read-only, populated from CFDI catalog)
+    public string? PostalCodeTimeZoneName { get; set; }
+    public string? PostalCodeIanaTimeZoneId { get; set; }
+    public int? PostalCodeOffsetWinter { get; set; }
+    public int? PostalCodeOffsetSummer { get; set; }
+
     public string CreatedBy { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public string? ModifiedBy { get; set; }

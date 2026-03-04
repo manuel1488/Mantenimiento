@@ -51,4 +51,15 @@ public class TaxSettings : BaseEntity<int>
 
     [StringLength(20)]
     public string? CaQstNumber { get; set; }
+
+    // Postal code timezone info (populated from CFDI postal code catalog)
+    [StringLength(100)]
+    public string? PostalCodeTimeZoneName { get; set; }
+
+    [StringLength(100)]
+    public string? PostalCodeIanaTimeZoneId { get; set; }
+
+    public int? PostalCodeOffsetWinter { get; set; }
+
+    public int? PostalCodeOffsetSummer { get; set; }
 }

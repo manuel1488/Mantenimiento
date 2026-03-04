@@ -82,6 +82,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MexicoProductService> MexicoProductServices { get; set; } = null!;
     public DbSet<MexicoSatUnit> MexicoSatUnits { get; set; } = null!;
     public DbSet<MexicoStampAlertSettings> MexicoStampAlertSettings { get; set; } = null!;
+    public DbSet<CfdiPostalCode> CfdiPostalCodes { get; set; } = null!;
     #endregion
 
     protected override void OnModelCreating(ModelBuilder builder)

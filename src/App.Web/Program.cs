@@ -616,6 +616,18 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     });
 
     services.AddScoped<IMexicoFiscalSeeder, MexicoFiscalCatalogSeeder>();
+    services.AddScoped<ICfdiPostalCodeService, CfdiPostalCodeService>();
+    services.AddScoped<ICfdiPostalCodeSeeder>(sp =>
+    {
+        var dataPath = configuration["FiscalCatalogs:DataPath"]
+            ?? throw new ArgumentNullException("FiscalCatalogs:DataPath", "FiscalCatalogs:DataPath configuration is required");
+        return new CfdiPostalCodeSeeder(
+            sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
+            sp.GetRequiredService<ILogger<CfdiPostalCodeSeeder>>(),
+            sp.GetRequiredService<IDateTime>(),
+            Path.Combine(dataPath, "cfdi_postal_codes.csv")
+        );
+    });
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();
 
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();
@@ -721,12 +733,14 @@ async Task InitializeDatabase(WebApplication app)
     var unitMeasureSeeder = scope.ServiceProvider.GetRequiredService<IUnitMeasureSeeder>();
     var generalSeeder = scope.ServiceProvider.GetRequiredService<IGeneralSeeder>();
     var mexicoFiscalSeeder = scope.ServiceProvider.GetRequiredService<IMexicoFiscalSeeder>();
+    var cfdiPostalCodeSeeder = scope.ServiceProvider.GetRequiredService<ICfdiPostalCodeSeeder>();
     var customerSeeder = scope.ServiceProvider.GetRequiredService<ICustomerSeeder>();
     var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<IPaymentMethodSeeder>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
     await mexicoFiscalSeeder.SeedAsync();
+    await cfdiPostalCodeSeeder.SeedAsync();
     await unitMeasureSeeder.SeedAsync();
     await generalSeeder.SeedAsync();
     await customerSeeder.SeedAsync();

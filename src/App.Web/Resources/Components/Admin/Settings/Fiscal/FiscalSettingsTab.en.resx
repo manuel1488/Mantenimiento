@@ -90,4 +90,13 @@
     <data name="Error saving settings" xml:space="preserve">
         <value>Error saving settings</value>
     </data>
+    <data name="Timezone" xml:space="preserve">
+        <value>Timezone</value>
+    </data>
+    <data name="DST" xml:space="preserve">
+        <value>(Summer)</value>
+    </data>
+    <data name="PostalCodeTimezoneNotFound" xml:space="preserve">
+        <value>Postal code not found in SAT catalog — timezone will use company default</value>
+    </data>
 </root>

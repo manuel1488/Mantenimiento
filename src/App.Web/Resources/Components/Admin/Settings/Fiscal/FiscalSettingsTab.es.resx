@@ -90,4 +90,13 @@
     <data name="Error saving settings" xml:space="preserve">
         <value>Error al guardar la configuración</value>
     </data>
+    <data name="Timezone" xml:space="preserve">
+        <value>Zona horaria</value>
+    </data>
+    <data name="DST" xml:space="preserve">
+        <value>(Verano)</value>
+    </data>
+    <data name="PostalCodeTimezoneNotFound" xml:space="preserve">
+        <value>Código postal no encontrado en catálogo SAT — se usará zona horaria predeterminada de la empresa</value>
+    </data>
 </root>

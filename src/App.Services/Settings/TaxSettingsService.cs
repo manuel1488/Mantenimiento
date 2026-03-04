@@ -91,6 +91,40 @@ public class TaxSettingsService : ITaxSettingsService
             // Update properties
             _mapper.Map(updateDto, settings);
 
+            // Populate postal code timezone from CFDI catalog (MX only)
+            if (string.Equals(settings.CountryCode, "MX", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(settings.PostalCode))
+            {
+                var postalCodeRecord = await _context.CfdiPostalCodes
+                    .AsNoTracking()
+                    .Where(x => x.Code == settings.PostalCode)
+                    .Select(x => new { x.TimeZoneName, x.IanaTimeZoneId, x.OffsetWinter, x.OffsetSummer })
+                    .FirstOrDefaultAsync();
+
+                if (postalCodeRecord != null)
+                {
+                    settings.PostalCodeTimeZoneName = postalCodeRecord.TimeZoneName;
+                    settings.PostalCodeIanaTimeZoneId = postalCodeRecord.IanaTimeZoneId;
+                    settings.PostalCodeOffsetWinter = postalCodeRecord.OffsetWinter;
+                    settings.PostalCodeOffsetSummer = postalCodeRecord.OffsetSummer;
+                }
+                else
+                {
+                    _logger.LogWarning("Postal code {PostalCode} not found in CFDI catalog — timezone fields cleared", settings.PostalCode);
+                    settings.PostalCodeTimeZoneName = null;
+                    settings.PostalCodeIanaTimeZoneId = null;
+                    settings.PostalCodeOffsetWinter = null;
+                    settings.PostalCodeOffsetSummer = null;
+                }
+            }
+            else if (!string.Equals(settings.CountryCode, "MX", StringComparison.OrdinalIgnoreCase))
+            {
+                settings.PostalCodeTimeZoneName = null;
+                settings.PostalCodeIanaTimeZoneId = null;
+                settings.PostalCodeOffsetWinter = null;
+                settings.PostalCodeOffsetSummer = null;
+            }
+
             // Update audit fields
             settings.ModifiedBy = _currentUserService.FullName ?? "Unknown";
             settings.ModifiedAt = _dateTime.Now;

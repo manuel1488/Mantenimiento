@@ -135,9 +135,20 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
             try
             {
-                // 6. Build Comprobante — resolve local time from company timezone
-                var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
-                var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, companyTimeZone);
+                // 6. Build Comprobante — resolve local time from issuer postal code timezone
+                // Using postal code timezone ensures the CFDI Fecha matches the issuer's local time,
+                // preventing PAC rejection when the issuer is in a different timezone than Mexico City.
+                TimeZoneInfo issuerTimeZone;
+                if (!string.IsNullOrEmpty(taxSettings.PostalCodeIanaTimeZoneId))
+                {
+                    issuerTimeZone = TimeZoneInfo.FindSystemTimeZoneById(taxSettings.PostalCodeIanaTimeZoneId);
+                }
+                else
+                {
+                    _logger.LogWarning("Postal code timezone not configured — falling back to company timezone for CFDI Fecha");
+                    issuerTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+                }
+                var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
                 var comprobante = BuildComprobante(invoice, sale, serie, folio, folioLength, dto, issueDate);
 
                 // 7. Generate XML
