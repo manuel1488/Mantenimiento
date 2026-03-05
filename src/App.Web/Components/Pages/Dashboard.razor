@@ -16,7 +16,7 @@
 @inject ISnackbar Snackbar
 @inject ILogger<Dashboard> Logger
 
-@attribute [Authorize]
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewDashboard)]
 
 <PageTitle>@L["Dashboard"]</PageTitle>
 

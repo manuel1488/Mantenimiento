@@ -20,9 +20,11 @@
                 <UsersTab />
             </MudTabPanel>
         </AuthorizeView>
-        @* <MudTabPanel Text="@L["Roles"]">
-            <RolesTab />
-        </MudTabPanel> *@
+        <AuthorizeView Policy="@ApplicationClaims.Admin.ViewRoles">
+            <MudTabPanel Text="@L["Roles"]">
+                <RolesTab />
+            </MudTabPanel>
+        </AuthorizeView>
         <AuthorizeView Policy="@ApplicationClaims.Admin.ManageUsers">
             <MudTabPanel Text="@L["Permissions"]">
                 <PermissionsTab />

@@ -327,6 +327,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shared.ManageSuppliers, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageSuppliers));
         options.AddPolicy(ApplicationClaims.Shared.DeleteSuppliers, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteSuppliers));
 
+        options.AddPolicy(ApplicationClaims.Shared.ViewDashboard, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewDashboard));
         options.AddPolicy(ApplicationClaims.Shared.ViewReports, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewReports));
         options.AddPolicy(ApplicationClaims.Shared.GenerateReports, policy => policy.RequireClaim(ApplicationClaims.Shared.GenerateReports));
 

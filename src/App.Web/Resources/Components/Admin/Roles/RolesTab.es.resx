@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Roles" xml:space="preserve">
+    <value>Perfiles</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="No roles found" xml:space="preserve">
+    <value>No se encontraron perfiles</value>
+  </data>
+  <data name="Loading..." xml:space="preserve">
+    <value>Cargando...</value>
+  </data>
+  <data name="New Role" xml:space="preserve">
+    <value>Nuevo Perfil</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Edit Role" xml:space="preserve">
+    <value>Editar Perfil</value>
+  </data>
+  <data name="Permissions" xml:space="preserve">
+    <value>Permisos</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Delete Role" xml:space="preserve">
+    <value>Eliminar Perfil</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Usuarios</value>
+  </data>
+  <data name="Permissions for role {0}" xml:space="preserve">
+    <value>Permisos del perfil {0}</value>
+  </data>
+  <data name="Are you sure you want to delete the role {0}?" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar el perfil {0}?</value>
+  </data>
+  <data name="Role created successfully" xml:space="preserve">
+    <value>Perfil creado correctamente</value>
+  </data>
+  <data name="Role updated successfully" xml:space="preserve">
+    <value>Perfil actualizado correctamente</value>
+  </data>
+  <data name="Role deleted successfully" xml:space="preserve">
+    <value>Perfil eliminado correctamente</value>
+  </data>
+  <data name="Error creating role" xml:space="preserve">
+    <value>Error al crear el perfil</value>
+  </data>
+  <data name="Error updating role" xml:space="preserve">
+    <value>Error al actualizar el perfil</value>
+  </data>
+  <data name="Error deleting role" xml:space="preserve">
+    <value>Error al eliminar el perfil</value>
+  </data>
+</root>

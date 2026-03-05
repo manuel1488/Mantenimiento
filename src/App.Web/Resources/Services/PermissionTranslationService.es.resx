@@ -10,6 +10,9 @@
   <data name="Module.Shared" xml:space="preserve">
     <value>Compartido</value>
   </data>
+  <data name="Module.Labels" xml:space="preserve">
+    <value>Etiquetas</value>
+  </data>
   
   <!-- Permission Types -->
   <data name="Permission.Access" xml:space="preserve">
@@ -81,6 +84,30 @@
     <value>Recibir Correos de Alertas de Inventario</value>
     <comment>Permiso para recibir notificaciones por correo electrónico cuando los niveles de inventario alcanzan umbrales críticos (stock mín/máx)</comment>
   </data>
+  <data name="Permission.Print" xml:space="preserve">
+    <value>Imprimir</value>
+  </data>
+  <data name="Permission.ViewDailySummary" xml:space="preserve">
+    <value>Ver Resumen Diario</value>
+  </data>
+  <data name="Permission.ExportDailySummary" xml:space="preserve">
+    <value>Exportar Resumen Diario</value>
+  </data>
+  <data name="Permission.ReceiveAlerts" xml:space="preserve">
+    <value>Recibir Alertas</value>
+  </data>
+  <data name="Permission.Withdraw" xml:space="preserve">
+    <value>Retirar</value>
+  </data>
+  <data name="Permission.ViewReport" xml:space="preserve">
+    <value>Ver Reporte</value>
+  </data>
+  <data name="Permission.BulkImport" xml:space="preserve">
+    <value>Importación Masiva</value>
+  </data>
+  <data name="Permission.ResetPassword" xml:space="preserve">
+    <value>Restablecer Contraseña</value>
+  </data>
   <data name="Feature.Prices" xml:space="preserve">
     <value>Precios</value>
   </data>
@@ -131,6 +158,33 @@
   </data>
   <data name="Feature.Customers" xml:space="preserve">
     <value>Clientes</value>
+  </data>
+  <data name="Feature.StampBalance" xml:space="preserve">
+    <value>Saldo de Timbres</value>
+  </data>
+  <data name="Feature.CashRegister" xml:space="preserve">
+    <value>Caja</value>
+  </data>
+  <data name="Feature.BillingSettings" xml:space="preserve">
+    <value>Configuración de Facturación</value>
+  </data>
+  <data name="Feature.BranchSettings" xml:space="preserve">
+    <value>Configuración de Sucursales</value>
+  </data>
+  <data name="Feature.TicketSettings" xml:space="preserve">
+    <value>Configuración de Tickets</value>
+  </data>
+  <data name="Feature.Cashiers" xml:space="preserve">
+    <value>Perfiles de Cajero</value>
+  </data>
+  <data name="Feature.CashStations" xml:space="preserve">
+    <value>Estaciones de Caja</value>
+  </data>
+  <data name="Feature.Suppliers" xml:space="preserve">
+    <value>Proveedores</value>
+  </data>
+  <data name="Feature.Dashboard" xml:space="preserve">
+    <value>Panel de Control</value>
   </data>
   <data name="Feature.Reports" xml:space="preserve">
     <value>Reportes</value>

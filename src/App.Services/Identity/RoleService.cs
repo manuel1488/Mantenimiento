@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 using App.Core.Identity.Interfaces;
+using App.Models.Identity;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +12,16 @@ namespace App.Services.Identity;
 public class RoleService : IRoleService
 {
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IStringLocalizer<RoleService> _localizer;
 
     public RoleService(
         RoleManager<IdentityRole> roleManager,
+        UserManager<ApplicationUser> userManager,
         IStringLocalizer<RoleService> localizer)
     {
         _roleManager = roleManager;
+        _userManager = userManager;
         _localizer = localizer;
     }
 
@@ -56,9 +60,9 @@ public class RoleService : IRoleService
         return claims.Select(c => c.Value).ToList();
     }
 
-    public async Task<bool> UpdateRoleClaimsAsync(string roleId, IEnumerable<string> claims)
+    public async Task<bool> UpdateRoleClaimsAsync(string roleName, IEnumerable<string> claims)
     {
-        var role = await _roleManager.FindByIdAsync(roleId);
+        var role = await _roleManager.FindByNameAsync(roleName);
         if (role == null) return false;
 
         var currentClaims = await _roleManager.GetClaimsAsync(role);
@@ -82,5 +86,21 @@ public class RoleService : IRoleService
             .Where(r => r.Name != null)
             .Select(r => r.Name!)
             .ToListAsync();
+    }
+
+    public async Task<IList<(string Id, string Name, int UserCount)>> GetRolesWithDetailsAsync()
+    {
+        var roles = await _roleManager.Roles
+            .Where(r => r.Name != null)
+            .ToListAsync();
+
+        var result = new List<(string Id, string Name, int UserCount)>();
+        foreach (var role in roles)
+        {
+            var users = await _userManager.GetUsersInRoleAsync(role.Name!);
+            result.Add((role.Id, role.Name!, users.Count));
+        }
+
+        return result;
     }
 }

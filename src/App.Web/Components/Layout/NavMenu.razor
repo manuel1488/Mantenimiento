@@ -8,10 +8,14 @@
 </MudDrawerHeader>
 
 <MudNavMenu>
-    <MudNavLink Icon="@Icons.Material.Filled.Dashboard"
-                Href="/dashboard" Match="NavLinkMatch.All">
-        @L["Dashboard"]
-    </MudNavLink>
+    <AuthorizeView Policy="@ApplicationClaims.Shared.ViewDashboard">
+        <Authorized Context="dashAuth">
+            <MudNavLink Icon="@Icons.Material.Filled.Dashboard"
+                        Href="/dashboard" Match="NavLinkMatch.All">
+                @L["Dashboard"]
+            </MudNavLink>
+        </Authorized>
+    </AuthorizeView>
 
     <!-- Sección Shop (Tienda) -->
     <AuthorizeView Policy="@ApplicationClaims.Shop.ShopAccess">

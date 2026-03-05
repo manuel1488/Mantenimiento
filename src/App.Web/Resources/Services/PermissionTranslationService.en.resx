@@ -10,6 +10,9 @@
   <data name="Module.Shared" xml:space="preserve">
     <value>Shared</value>
   </data>
+  <data name="Module.Labels" xml:space="preserve">
+    <value>Labels</value>
+  </data>
   
   <!-- Permission Types -->
   <data name="Permission.Access" xml:space="preserve">
@@ -81,6 +84,30 @@
     <value>Receive Inventory Alert Emails</value>
     <comment>Permission to receive email notifications when inventory levels reach critical thresholds (min/max stock)</comment>
   </data>
+  <data name="Permission.Print" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Permission.ViewDailySummary" xml:space="preserve">
+    <value>View Daily Summary</value>
+  </data>
+  <data name="Permission.ExportDailySummary" xml:space="preserve">
+    <value>Export Daily Summary</value>
+  </data>
+  <data name="Permission.ReceiveAlerts" xml:space="preserve">
+    <value>Receive Alerts</value>
+  </data>
+  <data name="Permission.Withdraw" xml:space="preserve">
+    <value>Withdraw</value>
+  </data>
+  <data name="Permission.ViewReport" xml:space="preserve">
+    <value>View Report</value>
+  </data>
+  <data name="Permission.BulkImport" xml:space="preserve">
+    <value>Bulk Import</value>
+  </data>
+  <data name="Permission.ResetPassword" xml:space="preserve">
+    <value>Reset Password</value>
+  </data>
   <data name="Feature.Prices" xml:space="preserve">
     <value>Prices</value>
   </data>
@@ -131,6 +158,33 @@
   </data>
   <data name="Feature.Customers" xml:space="preserve">
     <value>Customers</value>
+  </data>
+  <data name="Feature.StampBalance" xml:space="preserve">
+    <value>Stamp Balance</value>
+  </data>
+  <data name="Feature.CashRegister" xml:space="preserve">
+    <value>Cash Register</value>
+  </data>
+  <data name="Feature.BillingSettings" xml:space="preserve">
+    <value>Billing Settings</value>
+  </data>
+  <data name="Feature.BranchSettings" xml:space="preserve">
+    <value>Branch Settings</value>
+  </data>
+  <data name="Feature.TicketSettings" xml:space="preserve">
+    <value>Ticket Settings</value>
+  </data>
+  <data name="Feature.Cashiers" xml:space="preserve">
+    <value>Cashier Profiles</value>
+  </data>
+  <data name="Feature.CashStations" xml:space="preserve">
+    <value>Cash Stations</value>
+  </data>
+  <data name="Feature.Suppliers" xml:space="preserve">
+    <value>Suppliers</value>
+  </data>
+  <data name="Feature.Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
   </data>
   <data name="Feature.Reports" xml:space="preserve">
     <value>Reports</value>

@@ -160,6 +160,9 @@ public static class ApplicationClaims
         public const string ManageSuppliers = "Shared.Suppliers.Manage";
         public const string DeleteSuppliers = "Shared.Suppliers.Delete";
 
+        // Dashboard
+        public const string ViewDashboard = "Shared.Dashboard.View";
+
         // Reportes Generales
         public const string ViewReports = "Shared.Reports.View";
         public const string GenerateReports = "Shared.Reports.Generate";

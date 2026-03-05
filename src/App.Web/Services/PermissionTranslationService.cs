@@ -16,6 +16,7 @@ public class PermissionTranslationService
         "Shop" => L["Module.Shop"],
         "Admin" => L["Module.Admin"],
         "Shared" => L["Module.Shared"],
+        "Labels" => L["Module.Labels"],
         _ => moduleName
     };
 
@@ -49,10 +50,18 @@ public class PermissionTranslationService
             "Generate" => L["Permission.Generate"],
             "Access" => L["Permission.Access"],
             "Close" => L["Permission.Close"],
+            "Print" => L["Permission.Print"],
             "ViewReports" => L["Permission.ViewReports"],
             "Authorize" => L["Permission.Authorize"],
             "ViewHistory" => L["Permission.ViewHistory"],
+            "ViewDailySummary" => L["Permission.ViewDailySummary"],
+            "ExportDailySummary" => L["Permission.ExportDailySummary"],
+            "ReceiveAlerts" => L["Permission.ReceiveAlerts"],
             "ReceiveEmails" => L["Permission.ReceiveEmails"],
+            "Withdraw" => L["Permission.Withdraw"],
+            "ViewReport" => L["Permission.ViewReport"],
+            "BulkImport" => L["Permission.BulkImport"],
+            "ResetPassword" => L["Permission.ResetPassword"],
             _ => L[$"Permission.{action}"]
         };
     }
@@ -76,28 +85,32 @@ public class PermissionTranslationService
             "InventoryInputs" => L["Feature.InventoryInputs"],
             "InventoryAdjustments" => L["Feature.InventoryAdjustments"],
             "InventoryAlerts" => L["Feature.InventoryAlerts"],
-            "InventoryAlertsReceiveEmails" => L["Feature.InventoryAlertsReceiveEmails"],
+            "InventoryAlertsReceiveEmails" => L["Feature.InventoryAlerts"],
             "Prices" => L["Feature.Prices"],
-            "Discounts" => L["Feature.Discounts"],
+            "Discounts" or "Disccounts" => L["Feature.Discounts"],
             "Sales" => L["Feature.Sales"],
             "Invoice" => L["Feature.Invoice"],
+            "StampBalance" => L["Feature.StampBalance"],
             "Warehouses" => L["Feature.Warehouses"],
-            "Orders" => L["Feature.Orders"],
-            "Quotes" => L["Feature.Quotes"],
-            "Services" => L["Feature.Services"],
-            "Vehicles" => L["Feature.Vehicles"],
+            "CashRegister" => L["Feature.CashRegister"],
             "Users" => L["Feature.Users"],
             "Roles" => L["Feature.Roles"],
             "Settings" => L["Feature.Settings"],
             "FiscalSettings" => L["Feature.FiscalSettings"],
+            "BillingSettings" => L["Feature.BillingSettings"],
             "WarehouseSettings" => L["Feature.WarehouseSettings"],
+            "BranchSettings" => L["Feature.BranchSettings"],
             "EmailSettings" => L["Feature.EmailSettings"],
             "TaxRates" => L["Feature.TaxRates"],
             "UnitMeasures" => L["Feature.UnitMeasures"],
             "InitialSetup" => L["Feature.InitialSetup"],
             "Audit" => L["Feature.Audit"],
             "Permissions" => L["Feature.Permissions"],
+            "TicketSettings" => L["Feature.TicketSettings"],
+            "Cashiers" => L["Feature.Cashiers"],
+            "CashStations" => L["Feature.CashStations"],
             "Customers" => L["Feature.Customers"],
+            "Suppliers" => L["Feature.Suppliers"],
             "Reports" => L["Feature.Reports"],
             _ => L[$"Feature.{feature}"]
         };
@@ -110,16 +123,17 @@ public class PermissionTranslationService
             return permission;
 
         var module = parts[0];
-        
+
         // Special handling for module access permissions like "Shop.Access"
         if (parts.Length == 2 && parts[1] == "Access")
-        {
-            // Format: "Access to [Module Name]"
             return string.Format(L["Permission.ModuleAccess"], GetModuleDisplayName(module));
-        }
-        
+
+        // Labels and similar 2-part non-access permissions like "Labels.View", "Labels.Print"
+        if (parts.Length == 2)
+            return $"{GetModuleDisplayName(module)} - {GetPermissionDisplayName(permission)}";
+
         var feature = GetFeatureDisplayName(permission);
-        var action = parts.Length > 2 ? GetPermissionDisplayName(permission) : L["Permission.Access"];
+        var action = GetPermissionDisplayName(permission);
 
         return $"{feature} - {action}";
     }

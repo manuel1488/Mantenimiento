@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New Role" xml:space="preserve">
+    <value>Nuevo Perfil</value>
+  </data>
+  <data name="Edit Role" xml:space="preserve">
+    <value>Editar Perfil</value>
+  </data>
+  <data name="Role Name" xml:space="preserve">
+    <value>Nombre del Perfil</value>
+  </data>
+  <data name="Role name is required" xml:space="preserve">
+    <value>El nombre del perfil es obligatorio</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+</root>
