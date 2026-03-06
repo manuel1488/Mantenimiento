@@ -152,7 +152,7 @@
     {
         var parameters = new DialogParameters<RoleDialog>
         {
-            { x => x.Model, new RoleDialogModel { Id = role.Id, Name = role.Name, Description = role.Description } },
+            { x => x.Model, new RoleDialogModel { Id = role.Id, Name = role.Name } },
             { x => x.IsNew, false }
         };
 
