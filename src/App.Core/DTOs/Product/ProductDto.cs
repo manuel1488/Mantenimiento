@@ -12,6 +12,7 @@ public class ProductDto : AuditableDto
     public string Brand { get; set; } = null!;
     public int UnitMeasureId { get; set; }
     public string UnitMeasureName { get; set; } = null!;
+    public string UnitMeasureCode { get; set; } = null!;
     public decimal Cost { get; set; }
     public decimal Price { get; set; }
     public bool IsTaxable { get; set; }

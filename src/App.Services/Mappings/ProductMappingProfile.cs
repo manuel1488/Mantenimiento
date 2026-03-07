@@ -12,6 +12,8 @@ public class ProductMappingProfile : Profile
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.UnitMeasureName,
                 opt => opt.MapFrom(src => src.UnitMeasure.Name))
+            .ForMember(dest => dest.UnitMeasureCode,
+                opt => opt.MapFrom(src => src.UnitMeasure.Code))
             .ForMember(dest => dest.MexicoProductServiceCode,
                 opt => opt.MapFrom(src => src.MexicoProductService != null ? src.MexicoProductService.Code : null))
             .ForMember(dest => dest.MexicoProductServiceDescription,
