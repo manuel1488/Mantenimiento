@@ -88,7 +88,8 @@ public class ProductService : IProductService
         int pageSize = 10,
         string? searchString = null,
         int? unitMeasureId = null,
-        bool? isActive = null)
+        bool? isActive = null,
+        bool? isPartialSaleAllowed = null)
     {
         try
         {
@@ -118,6 +119,11 @@ public class ProductService : IProductService
             if (isActive.HasValue)
             {
                 query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            if (isPartialSaleAllowed.HasValue)
+            {
+                query = query.Where(x => x.IsPartialSaleAllowed == isPartialSaleAllowed.Value);
             }
 
             // Get total count

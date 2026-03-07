@@ -35,6 +35,8 @@ services:
         reservations:
           cpus: ${CPU_RESERVATION}
           memory: ${MEMORY_RESERVATION}
+    # Espera a que MySQL esté healthy antes de iniciar la app.
+    # Sin esto, la app crashea al intentar conectarse durante ServerVersion.AutoDetect.
     depends_on:
       db:
         condition: service_healthy
@@ -77,10 +79,16 @@ services:
         reservations:
           cpus: ${CPU_RESERVATION}
           memory: ${MEMORY_RESERVATION}
+    # Espera a que MySQL esté healthy antes de iniciar la app.
+    # Sin esto, la app crashea al intentar conectarse durante ServerVersion.AutoDetect.
+    depends_on:
+      db:
+        condition: service_healthy
     profiles:
       - production
 
-  # Base de datos solo para desarrollo
+  # Base de datos para desarrollo y producción (cuando no se usa BD externa).
+  # MySQL no está expuesto al host — solo accesible dentro de app-network.
   db:
     build:
       context: .
@@ -93,6 +101,8 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    # Puerto NO expuesto intencionalmente — MySQL solo es accesible dentro de app-network.
+    # Descomentar solo para debugging local temporal.
     #ports:
     #  - "${MYSQL_PORT}:3306"
     volumes:
@@ -108,6 +118,24 @@ services:
 networks:
   app-network:
     driver: bridge
+    ipam:
+      config:
+        # Subnet fija dentro de 172.17.0.0/16 para compatibilidad con CSF Firewall
+        # en el VPS de Neubox (DOCKER_NETWORK4 = "172.17.0.0/16" en /etc/csf/csf.conf).
+        #
+        # REQUISITO EN EL SERVIDOR — /etc/docker/daemon.json debe contener:
+        #   {
+        #     "bip": "172.26.0.1/16",
+        #       <- mueve docker0 fuera de 172.17.x.x para liberar ese rango
+        #     "default-address-pools": [{"base": "172.17.0.0/16", "size": 24}],
+        #       <- user-defined networks usan subnets /24 dentro de 172.17.0.0/16
+        #     "userland-proxy": false
+        #       <- requerido para que el tráfico use iptables directamente;
+        #          sin esto, CSF bloquea docker-proxy en la cadena OUTPUT
+        #   }
+        # Si se omite esta config, la app devuelve 502 Bad Gateway detrás de nginx.
+        - subnet: 172.17.100.0/24
+          gateway: 172.17.100.1
 
 volumes:
   mysql-data:

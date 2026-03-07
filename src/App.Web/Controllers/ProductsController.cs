@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 
 using App.Core.Constants;
+using App.Core.DTOs.Product;
 using App.Core.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
@@ -29,6 +30,28 @@ public class ProductsController : ControllerBase
         _productService = productService;
         L = localizer;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Searches and returns a paginated list of products.
+    /// Used by external apps (e.g. AppEtiquetado) to query the product catalog.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = ApplicationClaims.Shop.ViewProducts)]
+    public async Task<ActionResult<object>> GetProducts(
+        [FromQuery] string? search = null,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] bool? isActive = null,
+        [FromQuery] bool? isPartialSaleAllowed = null)
+    {
+        var (totalCount, items) = await _productService.GetProductsAsync(
+            page: 1,
+            pageSize: pageSize,
+            searchString: search,
+            isActive: isActive,
+            isPartialSaleAllowed: isPartialSaleAllowed);
+
+        return Ok(new { items, totalCount });
     }
 
     /// <summary>

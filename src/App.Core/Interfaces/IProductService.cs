@@ -14,7 +14,8 @@ public interface IProductService
         int pageSize = 10,
         string? searchString = null,
         int? unitMeasureId = null,
-        bool? isActive = null);
+        bool? isActive = null,
+        bool? isPartialSaleAllowed = null);
 
     /// <summary>
     /// Gets a product by barcode

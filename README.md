@@ -115,6 +115,72 @@ El archivo `mysql/init/01-init.sql` se ejecuta automáticamente cuando el conten
 - Las credenciales en el script deben coincidir con las variables de entorno
 - Para múltiples scripts, se ejecutan en orden alfabético (01-, 02-, etc.)
 
+### Configuración del Servidor (VPS Neubox con CSF Firewall)
+
+El servidor de producción usa **CSF (ConfigServer Security Firewall)** que administra iptables y puede interferir con Docker. Para que la app funcione correctamente se requieren dos configuraciones en el servidor:
+
+#### 1. Habilitar soporte Docker en CSF
+
+En `/etc/csf/csf.conf` cambiar (por defecto viene en `0`):
+
+```
+DOCKER = "1"
+DOCKER_DEVICE = "docker0"
+DOCKER_NETWORK4 = "172.17.0.0/16"
+```
+
+#### 2. Configurar Docker daemon
+
+Crear o editar `/etc/docker/daemon.json`:
+
+```json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "bip": "172.26.0.1/16",
+  "default-address-pools": [
+    {"base": "172.17.0.0/16", "size": 24}
+  ],
+  "userland-proxy": false
+}
+```
+
+**Por qué cada opción:**
+
+| Opción | Razón |
+|--------|-------|
+| `bip` | Mueve la red interna de `docker0` a `172.26.0.0/16`, liberando `172.17.0.0/16` para user-defined networks |
+| `default-address-pools` | Fuerza que `app-network` use subnets dentro de `172.17.0.0/16`, rango que CSF tiene permitido en `DOCKER_NETWORK4` |
+| `userland-proxy: false` | Sin esto, CSF bloquea el proceso `docker-proxy` en la cadena OUTPUT causando 502. Con `false`, el tráfico usa iptables directamente |
+
+Después de aplicar la configuración, reiniciar ambos servicios:
+
+```bash
+systemctl restart docker
+csf -r
+```
+
+#### 3. Contexto Docker Remoto (SSH)
+
+Para desplegar desde tu máquina local sin conectarse manualmente al servidor:
+
+```bash
+# Crear el contexto una sola vez
+docker context create cleeny --docker "host=ssh://user@servidor"
+
+# Construir imagen en el servidor remoto
+docker --context cleeny compose --profile production --env-file .env.production build --no-cache
+
+# Desplegar
+docker --context cleeny compose --profile production --env-file .env.production up -d
+
+# Ver logs
+docker --context cleeny compose --profile production logs -f
+```
+
 ### Ambientes y Comandos
 
 #### Desarrollo
@@ -139,14 +205,17 @@ docker compose --profile development --env-file .\.env.development down -v
 #### Producción
 
 ```bash
-# Construir imágenes
-docker compose --profile production --env-file .\.env.production build --no-cache
+# Construir imágenes (en servidor remoto vía SSH context)
+docker --context cleeny compose --profile production --env-file .env.production build --no-cache
 
 # Iniciar servicios
-docker compose --profile production --env-file .\.env.production up -d
+docker --context cleeny compose --profile production --env-file .env.production up -d
+
+# Ver logs
+docker --context cleeny compose --profile production logs -f
 
 # Detener servicios
-docker compose --profile production --env-file .\.env.production down
+docker --context cleeny compose --profile production --env-file .env.production down
 ```
 
 ### Servicios y Puertos
