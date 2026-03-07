@@ -351,7 +351,8 @@ public class TicketService : ITicketService
                     TicketWidth = map.TicketWidth,
                     DefaultCopies = map.DefaultCopies,
                     CompanyLogoBase64 = map.CompanyLogoBase64,
-                    DirectPrintEnabled = map.DirectPrintEnabled
+                    DirectPrintEnabled = map.DirectPrintEnabled,
+                    PrintFlushDelayMs = map.PrintFlushDelayMs
                 };
             }
             else
@@ -439,6 +440,9 @@ public class TicketService : ITicketService
 
             if (updateDto.DirectPrintEnabled.HasValue)
                 config.DirectPrintEnabled = updateDto.DirectPrintEnabled.Value;
+
+            if (updateDto.PrintFlushDelayMs.HasValue)
+                config.PrintFlushDelayMs = updateDto.PrintFlushDelayMs.Value;
 
             await context.SaveChangesAsync();
             

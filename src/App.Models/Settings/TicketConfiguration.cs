@@ -36,4 +36,10 @@ public class TicketConfiguration : BaseEntity<int>
 
     // Direct thermal printing via Web Serial API
     public bool DirectPrintEnabled { get; set; } = false;
+
+    /// <summary>
+    /// Milliseconds to wait after writing ESC/POS bytes before closing the serial port.
+    /// Increase when printing logos or large receipts to avoid truncation.
+    /// </summary>
+    public int PrintFlushDelayMs { get; set; } = 200;
 }

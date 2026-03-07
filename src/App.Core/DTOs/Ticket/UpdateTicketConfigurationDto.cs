@@ -18,4 +18,5 @@ public class UpdateTicketConfigurationDto
     public int? DefaultCopies { get; set; }
 
     public bool? DirectPrintEnabled { get; set; }
+    public int? PrintFlushDelayMs { get; set; }
 }

@@ -40,12 +40,12 @@ window.thermalPrint = {
         } catch { return false; }
     },
 
-    printSale: async function (data) {
-        return window.thermalPrint._send(window.thermalPrint._buildSale(data));
+    printSale: async function (data, flushDelayMs) {
+        return window.thermalPrint._send(await window.thermalPrint._buildSale(data), flushDelayMs);
     },
 
-    printWithdrawal: async function (data) {
-        return window.thermalPrint._send(window.thermalPrint._buildWithdrawal(data));
+    printWithdrawal: async function (data, flushDelayMs) {
+        return window.thermalPrint._send(window.thermalPrint._buildWithdrawal(data), flushDelayMs);
     },
 
     printTest: async function () {
@@ -54,7 +54,7 @@ window.thermalPrint = {
 
     // ── Serial port send ───────────────────────────────────────────────────
 
-    _send: async function (bytes) {
+    _send: async function (bytes, safetyBufferMs) {
         try {
             const ports = await navigator.serial.getPorts();
             if (ports.length === 0) return false;
@@ -64,10 +64,16 @@ window.thermalPrint = {
 
             const writer = port.writable.getWriter();
             await writer.write(new Uint8Array(bytes));
+            // Wait until the stream has accepted the write into its buffer
+            await writer.ready;
             writer.releaseLock();
 
-            // Allow buffer to flush before closing
-            await new Promise(r => setTimeout(r, 300));
+            // Calculate minimum time to transmit all bytes at 9600 baud (960 bytes/sec, 8N1)
+            // then add the user-configured safety buffer on top
+            const transmitMs = Math.ceil(bytes.length / 960 * 1000);
+            const totalDelay = transmitMs + (safetyBufferMs || 200);
+            await new Promise(r => setTimeout(r, totalDelay));
+
             await port.close();
             return true;
         } catch (e) {
@@ -152,6 +158,58 @@ window.thermalPrint = {
         return dst;
     },
 
+    // ── Raster image → ESC/POS bytes (GS v 0) ────────────────────────────
+
+    /**
+     * Converts a base64 image (or data URL) to ESC/POS raster bytes.
+     * targetWidth: desired width in dots (printer dots, e.g. 300 for ~37mm on 203dpi).
+     * Returns a flat byte array ready to splice into the output buffer.
+     */
+    _imageToEscPos: function (base64Src, targetWidth) {
+        return new Promise(function (resolve) {
+            const img = new Image();
+            img.onload = function () {
+                const w = targetWidth;
+                const h = Math.round(img.height * (w / img.width));
+
+                const canvas = document.createElement('canvas');
+                canvas.width  = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+
+                const pixels = ctx.getImageData(0, 0, w, h).data;
+                const bytesPerRow = Math.ceil(w / 8);
+                const raster = [];
+
+                for (let row = 0; row < h; row++) {
+                    for (let col = 0; col < bytesPerRow; col++) {
+                        let byte = 0;
+                        for (let bit = 0; bit < 8; bit++) {
+                            const x = col * 8 + bit;
+                            if (x < w) {
+                                const idx = (row * w + x) * 4;
+                                const gray = 0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2];
+                                if (gray < 128) byte |= (0x80 >> bit);
+                            }
+                        }
+                        raster.push(byte);
+                    }
+                }
+
+                const xL = bytesPerRow & 0xFF;
+                const xH = (bytesPerRow >> 8) & 0xFF;
+                const yL = h & 0xFF;
+                const yH = (h >> 8) & 0xFF;
+                resolve([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH].concat(raster));
+            };
+            img.onerror = function () { resolve([]); };
+            img.src = base64Src.startsWith('data:') ? base64Src : 'data:image/png;base64,' + base64Src;
+        });
+    },
+
     // ── QR Code ESC/POS sequence ───────────────────────────────────────────
 
     _qr: function (text) {
@@ -170,7 +228,7 @@ window.thermalPrint = {
 
     // ── Receipt builders ───────────────────────────────────────────────────
 
-    _buildSale: function (data) {
+    _buildSale: async function (data) {
         const cfg = data.config;
         const s = data.sale;
         const W = 48;
@@ -185,6 +243,16 @@ window.thermalPrint = {
         if (cfg.customHeader) {
             add(out, b.center);
             add(out, t._line(cfg.customHeader));
+        }
+
+        // Company logo
+        if (cfg.showCompanyLogo && cfg.companyLogoBase64) {
+            const logoBytes = await t._imageToEscPos(cfg.companyLogoBase64, 300);
+            if (logoBytes.length > 0) {
+                add(out, b.center);
+                add(out, logoBytes);
+                add(out, b.lf);
+            }
         }
 
         // Company name — bold + double height

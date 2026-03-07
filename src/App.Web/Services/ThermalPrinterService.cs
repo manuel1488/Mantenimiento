@@ -89,7 +89,9 @@ public class ThermalPrinterService : IThermalPrinterService
                     companyTaxId = config.CompanyTaxId,
                     customHeader = config.CustomHeader,
                     customFooter = config.CustomFooter,
-                    showQrCode = config.ShowQRCode
+                    showQrCode = config.ShowQRCode,
+                    showCompanyLogo = config.ShowCompanyLogo,
+                    companyLogoBase64 = config.CompanyLogoBase64
                 },
                 sale = new
                 {
@@ -117,7 +119,7 @@ public class ThermalPrinterService : IThermalPrinterService
                 }
             };
 
-            var success = await _js.InvokeAsync<bool>("thermalPrint.printSale", data);
+            var success = await _js.InvokeAsync<bool>("thermalPrint.printSale", data, config.PrintFlushDelayMs);
             return success ? Result.Success() : Result.Failure("Printer did not confirm success");
         }
         catch (Exception ex)
@@ -169,7 +171,7 @@ public class ThermalPrinterService : IThermalPrinterService
                 }
             };
 
-            var success = await _js.InvokeAsync<bool>("thermalPrint.printWithdrawal", data);
+            var success = await _js.InvokeAsync<bool>("thermalPrint.printWithdrawal", data, config.PrintFlushDelayMs);
             return success ? Result.Success() : Result.Failure("Printer did not confirm success");
         }
         catch (Exception ex)

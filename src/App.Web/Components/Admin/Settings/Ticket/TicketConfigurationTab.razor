@@ -102,6 +102,13 @@
                                         @if (_model.DirectPrintEnabled)
                                         {
                                             <MudGrid Class="mt-2">
+                                                <MudItem xs="12" sm="6">
+                                                    <MudNumericField @bind-Value="_model.PrintFlushDelayMs"
+                                                        Label="@L["Safety buffer after print (ms)"]"
+                                                        HelperText="@L["Added on top of the auto-calculated transmission time. Increase if receipts are cut off on slow hardware (default 200 ms)."]"
+                                                        Min="0" Max="3000" Step="50"
+                                                        ReadOnly="@(!_hasManagePermission)" />
+                                                </MudItem>
                                                 <MudItem xs="12">
                                                     <div class="d-flex align-center gap-3 flex-wrap">
                                                         <MudButton Variant="Variant.Outlined"
@@ -346,7 +353,8 @@
                 CustomFooter = _model.CustomFooter,
                 TicketWidth = _model.TicketWidth,
                 DefaultCopies = _model.DefaultCopies,
-                DirectPrintEnabled = _model.DirectPrintEnabled
+                DirectPrintEnabled = _model.DirectPrintEnabled,
+                PrintFlushDelayMs = _model.PrintFlushDelayMs
             };
 
             await TicketService.UpdateTicketConfigurationAsync(_updateModel);

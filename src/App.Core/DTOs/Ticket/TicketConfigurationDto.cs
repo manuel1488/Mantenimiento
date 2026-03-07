@@ -18,4 +18,5 @@ public class TicketConfigurationDto
     public int DefaultCopies { get; set; } = 1;
 
     public bool DirectPrintEnabled { get; set; } = false;
+    public int PrintFlushDelayMs { get; set; } = 200;
 }
