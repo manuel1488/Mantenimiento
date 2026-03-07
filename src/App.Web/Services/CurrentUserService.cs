@@ -6,6 +6,7 @@ using App.Models.Identity;
 using App.Shared.Services;
 
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -15,6 +16,7 @@ namespace App.Web.Services;
 public class CurrentUserService : ICurrentUserService
 {
     private readonly AuthenticationStateProvider? _authenticationStateProvider;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
     private readonly IServiceProvider _serviceProvider;
     private readonly IMemoryCache _cache;
     private const string USER_CACHE_KEY_PREFIX = "CurrentUser_";
@@ -27,9 +29,11 @@ public class CurrentUserService : ICurrentUserService
     public CurrentUserService(
         AuthenticationStateProvider? authenticationStateProvider = null,
         IServiceProvider? serviceProvider = null,
-        IMemoryCache? cache = null)
+        IMemoryCache? cache = null,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         _authenticationStateProvider = authenticationStateProvider;
+        _httpContextAccessor = httpContextAccessor;
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
@@ -38,14 +42,20 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
+            // Primary: HttpContext (works for both API controllers and Blazor initial render)
+            var httpUserId = _httpContextAccessor?.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (httpUserId != null)
+                return httpUserId;
+
+            // Fallback: AuthenticationStateProvider (Blazor async circuit)
             if (_authenticationStateProvider == null)
                 throw new InvalidOperationException("AuthenticationStateProvider is not initialized");
 
             try
             {
                 var authState = _authenticationStateProvider.GetAuthenticationStateAsync().Result;
-                var user = authState.User;
-                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 return userId ?? throw new InvalidOperationException("No user ID found");
             }
             catch
