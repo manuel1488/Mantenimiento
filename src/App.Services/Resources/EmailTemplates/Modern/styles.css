@@ -1,0 +1,47 @@
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 10pt; margin: 0; padding: 20px; color: #2d3748; line-height: 1.5; background: #f0f0f0; }
+.modern-invoice { padding: 30px; max-width: 680px; margin: 0 auto; background: #fff; }
+.top-bar { height: 8px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%); margin: -30px -30px 30px -30px; }
+.invoice-header { display: table; width: 100%; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+.company { display: table-cell; vertical-align: top; width: 60%; }
+.company-logo { max-width: 80px; max-height: 60px; object-fit: contain; margin-bottom: 8px; display: block; }
+.company-info h1 { margin: 0 0 10px 0; font-size: 18pt; font-weight: 700; color: #1a202c; }
+.company-details p { margin: 2px 0; font-size: 9pt; color: #64748b; }
+.invoice-number { display: table-cell; vertical-align: top; text-align: right; width: 40%; }
+.invoice-number .label { font-size: 11pt; font-weight: 700; color: #64748b; letter-spacing: 2px; }
+.invoice-number .number { font-size: 22pt; font-weight: 700; color: #3b82f6; margin: 5px 0; }
+.invoice-number .date { font-size: 10pt; color: #64748b; }
+.invoice-number .stamp-date { font-size: 9pt; color: #8b5cf6; margin-top: 5px; font-weight: 600; }
+.client-section { background: #f8fafc; padding: 15px; margin-bottom: 20px; border-left: 4px solid #3b82f6; }
+.section-label { font-size: 9pt; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-bottom: 8px; }
+.client-name { font-size: 12pt; font-weight: 600; color: #1a202c; margin-bottom: 4px; }
+.client-info { font-size: 9pt; color: #64748b; }
+.client-info span { margin-right: 8px; }
+.modern-items { width: 100%; border-collapse: collapse; margin: 20px 0; }
+.modern-items thead { background: #1a202c; color: white; }
+.modern-items th { padding: 12px 10px; text-align: left; font-size: 9pt; font-weight: 600; letter-spacing: 0.5px; }
+.modern-items th.text-right { text-align: right; }
+.modern-items tbody tr { border-bottom: 1px solid #e2e8f0; }
+.modern-items td { padding: 12px 10px; font-size: 9pt; }
+.item-desc { font-weight: 500; color: #1a202c; }
+.item-code { font-size: 8pt; color: #94a3b8; margin-top: 2px; }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.payment-summary-section { display: table; width: 100%; margin: 20px 0; }
+.payment-details { display: table-cell; vertical-align: top; width: 50%; background: #f8fafc; padding: 15px; border-left: 4px solid #8b5cf6; }
+.payment-item { margin: 8px 0; font-size: 9pt; }
+.payment-label { font-weight: 600; color: #64748b; margin-right: 5px; }
+.summary { display: table-cell; vertical-align: top; width: 50%; padding-left: 20px; }
+.summary-row { display: table; width: 100%; padding: 8px 15px; font-size: 10pt; }
+.summary-row span { display: table-cell; }
+.summary-row span:last-child { text-align: right; }
+.summary-row.total { background: #1a202c; color: white; font-weight: 700; font-size: 12pt; margin-top: 8px; }
+.stamp-section { margin-top: 20px; padding: 15px; background: #f0f9ff; border: 1px solid #bae6fd; }
+.stamp-label { font-size: 10pt; font-weight: 700; color: #0369a1; margin-bottom: 10px; letter-spacing: 1px; }
+.stamp-grid { display: table; width: 100%; }
+.stamp-item { display: table-cell; font-size: 8pt; width: 50%; padding: 4px; }
+.stamp-key { font-weight: 600; color: #0369a1; margin-bottom: 2px; }
+.stamp-value { color: #64748b; word-break: break-all; }
+.print-info { text-align: center; margin-top: 20px; padding: 8px; font-size: 8pt; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+.print-info p { margin: 3px 0; }
+.footer-brand { margin-top: 5px; font-size: 7pt; color: #cbd5e1; }
+.footer-brand a { color: #cbd5e1; text-decoration: none; }

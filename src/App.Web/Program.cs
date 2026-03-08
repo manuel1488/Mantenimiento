@@ -633,7 +633,11 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
 
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();
     services.AddScoped<IEmailService, EmailService>();
+    services.AddScoped<IEmailTemplateSettingsService, EmailTemplateSettingsService>();
     services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+    services.AddScoped<IEmailTemplateSeeder>(sp => new EmailTemplateSeeder(
+        sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
+        sp.GetRequiredService<ILogger<EmailTemplateSeeder>>()));
 
     services.AddSingleton<IFileProvider>(new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
@@ -737,6 +741,7 @@ async Task InitializeDatabase(WebApplication app)
     var cfdiPostalCodeSeeder = scope.ServiceProvider.GetRequiredService<ICfdiPostalCodeSeeder>();
     var customerSeeder = scope.ServiceProvider.GetRequiredService<ICustomerSeeder>();
     var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<IPaymentMethodSeeder>();
+    var emailTemplateSeeder = scope.ServiceProvider.GetRequiredService<IEmailTemplateSeeder>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
@@ -746,6 +751,7 @@ async Task InitializeDatabase(WebApplication app)
     await generalSeeder.SeedAsync();
     await customerSeeder.SeedAsync();
     await paymentMethodSeeder.SeedAsync();
+    await emailTemplateSeeder.SeedAsync();
 }
 
 #endregion

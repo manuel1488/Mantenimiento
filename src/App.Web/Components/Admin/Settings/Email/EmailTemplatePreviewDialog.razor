@@ -1,0 +1,103 @@
+@using MudBlazor
+
+<MudDialog ClassContent="preview-dialog-content" ClassActions="preview-dialog-actions" Class="preview-dialog-wrapper">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Preview" Class="mr-2" />
+            @L["Template Preview"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center pa-8">
+                <MudProgressCircular Size="Size.Large" Indeterminate="true" Color="Color.Primary" />
+            </div>
+        }
+        else
+        {
+            <div class="preview-layout">
+                <MudAlert Severity="Severity.Info" Dense="true" Class="preview-alert">
+                    <MudText Typo="Typo.body2">@L["This preview uses sample data. The actual email will use real invoice data."]</MudText>
+                </MudAlert>
+                <div class="preview-container">
+                    @if (!string.IsNullOrEmpty(HtmlContent))
+                    {
+                        <iframe srcdoc="@HtmlContent"
+                                class="preview-iframe"
+                                sandbox="allow-same-origin">
+                        </iframe>
+                    }
+                    else if (!string.IsNullOrEmpty(PreviewUrl))
+                    {
+                        <iframe src="@PreviewUrl"
+                                class="preview-iframe"
+                                sandbox="allow-same-origin">
+                        </iframe>
+                    }
+                </div>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="@(() => MudDialog.Close())">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .preview-dialog-wrapper {
+        height: 90vh !important;
+        max-height: 90vh !important;
+    }
+    .preview-dialog-content {
+        padding: 0 !important;
+        overflow: hidden !important;
+        height: calc(90vh - 120px) !important;
+        max-height: calc(90vh - 120px) !important;
+        min-height: 600px !important;
+    }
+    .preview-dialog-actions {
+        padding: 16px 24px !important;
+    }
+    .preview-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .preview-alert {
+        margin: 0.75rem 1.5rem 0.5rem 1.5rem !important;
+        flex-shrink: 0;
+    }
+    .preview-container {
+        flex: 1;
+        min-height: 0;
+        border: 1px solid var(--mud-palette-lines-default);
+        background: white;
+        margin: 0 1.5rem 0.75rem 1.5rem;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .preview-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    /// <summary>Rendered HTML to show via srcdoc (preferred)</summary>
+    [Parameter] public string? HtmlContent { get; set; }
+
+    /// <summary>Fallback URL when no rendered HTML is available</summary>
+    [Parameter] public string? PreviewUrl { get; set; }
+
+    /// <summary>Template name (unused in rendering, informational only)</summary>
+    [Parameter] public string? TemplateName { get; set; }
+
+    [Inject] IStringLocalizer<EmailTemplatePreviewDialog> L { get; set; } = null!;
+
+    private bool _loading = false;
+}

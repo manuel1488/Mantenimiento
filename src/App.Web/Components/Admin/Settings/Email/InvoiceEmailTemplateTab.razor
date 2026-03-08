@@ -1,0 +1,177 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using Microsoft.Extensions.Localization
+@using MudBlazor
+
+@inject IEmailTemplateSettingsService TemplateSettingsService
+@inject IEmailTemplateService EmailTemplateService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IStringLocalizer<InvoiceEmailTemplateTab> L
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        @L["Customize the HTML used in invoice emails. If no custom template is saved, the default file is used."]
+    </MudText>
+    <MudButton Variant="Variant.Outlined"
+               Color="Color.Secondary"
+               StartIcon="@Icons.Material.Filled.Style"
+               OnClick="OpenPresetsDialog">
+        @L["Presets"]
+    </MudButton>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudDataGrid T="TemplateRow"
+                 Items="@_rows"
+                 SortMode="SortMode.None"
+                 Filterable="false"
+                 Dense="true"
+                 Hover="true">
+        <Columns>
+            <PropertyColumn Property="x => x.DisplayName" Title="@L["Template"]" />
+            <TemplateColumn Title="@L["Status"]" Sortable="false">
+                <CellTemplate>
+                    @if (context.Item.HasCustom)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">@L["Custom"]</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@L["Default"]</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="@L["Actions"]" Sortable="false">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Preview"
+                                   Color="Color.Info"
+                                   Size="Size.Small"
+                                   OnClick="@(() => OpenPreview(context.Item.Name))"
+                                   title="@L["Preview"]" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   Size="Size.Small"
+                                   OnClick="@(() => OpenEditor(context.Item))"
+                                   title="@L["Edit"]" />
+                    @if (context.Item.HasCustom)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.RestartAlt"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => ResetAsync(context.Item.Name))"
+                                       title="@L["Reset to default"]" />
+                    }
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+}
+
+@code {
+    private static readonly (string Name, string DisplayName)[] KnownTemplates =
+    [
+        ("invoice-cfdi", "Factura CFDI (Correo electrónico)")
+    ];
+
+    private List<TemplateRow> _rows = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _rows = new();
+
+        foreach (var (name, displayName) in KnownTemplates)
+        {
+            var result = await TemplateSettingsService.GetAsync(name);
+            _rows.Add(new TemplateRow
+            {
+                Name = name,
+                DisplayName = displayName,
+                HasCustom = result.IsSuccess,
+                HtmlContent = result.IsSuccess ? result.Value.HtmlContent : string.Empty,
+                CssContent = result.IsSuccess ? result.Value.CssContent : string.Empty
+            });
+        }
+
+        _loading = false;
+    }
+
+    private async Task OpenPresetsDialog()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<EmailTemplatePresetsDialog>(L["Presets"], new DialogParameters<EmailTemplatePresetsDialog>
+        {
+            { x => x.TemplateName, KnownTemplates[0].Name }
+        }, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            Snackbar.Add(L["Template saved"], Severity.Success);
+            await LoadAsync();
+        }
+    }
+
+    private async Task OpenEditor(TemplateRow row)
+    {
+        var parameters = new DialogParameters<EmailTemplateEditorDialog>
+        {
+            { x => x.TemplateName, row.Name },
+            { x => x.InitialHtml, row.HtmlContent },
+            { x => x.InitialCss, row.CssContent }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<EmailTemplateEditorDialog>(L["Edit Template"], parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            Snackbar.Add(L["Template saved"], Severity.Success);
+            await LoadAsync();
+        }
+    }
+
+    private async Task OpenPreview(string name)
+    {
+        var sampleData = EmailTemplateSampleData.GetSampleData(name, "es");
+        var html = await EmailTemplateService.GetTemplateAsync(name, sampleData);
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<EmailTemplatePreviewDialog>(L["Preview"], new DialogParameters<EmailTemplatePreviewDialog>
+        {
+            { x => x.HtmlContent, html },
+            { x => x.PreviewUrl, null }
+        }, options);
+    }
+
+    private async Task ResetAsync(string name)
+    {
+        var result = await TemplateSettingsService.DeleteAsync(name);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Template reset to default"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    public class TemplateRow
+    {
+        public string Name { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public bool HasCustom { get; set; }
+        public string HtmlContent { get; set; } = string.Empty;
+        public string CssContent { get; set; } = string.Empty;
+    }
+}

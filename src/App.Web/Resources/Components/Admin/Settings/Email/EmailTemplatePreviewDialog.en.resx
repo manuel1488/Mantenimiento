@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Template Preview" xml:space="preserve">
+    <value>Template Preview</value>
+  </data>
+  <data name="This preview uses sample data. The actual email will use real invoice data." xml:space="preserve">
+    <value>This preview uses sample data. The actual email will use real invoice data.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+</root>

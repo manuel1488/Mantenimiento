@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factura Electrónica - {{ folio }}</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 20px; color: #000; background: #f0f0f0; }
+.compact-invoice { padding: 15px; max-width: 680px; margin: 0 auto; background: #fff; }
+.header-table { width: 100%; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; border-collapse: collapse; }
+.company-cell { width: 65%; vertical-align: top; padding: 4px; }
+.company-name { font-size: 14pt; font-weight: bold; margin-bottom: 3px; }
+.company-rfc { font-size: 9pt; color: #333; margin-bottom: 2px; }
+.company-regime { font-size: 8pt; color: #666; }
+.invoice-cell { width: 35%; text-align: right; vertical-align: top; padding: 4px; }
+.invoice-label { font-size: 10pt; font-weight: bold; color: #666; }
+.invoice-folio { font-size: 16pt; font-weight: bold; margin: 3px 0; }
+.invoice-date { font-size: 9pt; color: #666; }
+.cert-date { font-size: 8pt; color: #6d28d9; margin-top: 3px; }
+.info-grid { width: 100%; margin: 10px 0; font-size: 8pt; background: #f5f5f5; border-collapse: collapse; }
+.info-grid td { padding: 6px 8px; vertical-align: top; }
+.compact-items { width: 100%; border-collapse: collapse; margin: 10px 0; }
+.compact-items thead { background: #333; color: white; }
+.compact-items th { padding: 6px; text-align: left; font-size: 8pt; }
+.compact-items th.text-right { text-align: right; }
+.compact-items tbody tr { border-bottom: 1px solid #ddd; }
+.compact-items td { padding: 5px 6px; font-size: 8pt; }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.compact-totals { width: 260px; margin-left: auto; margin-top: 10px; font-size: 9pt; border-collapse: collapse; }
+.compact-totals td { padding: 3px 8px; }
+.compact-totals .total-row { background: #333; color: white; font-size: 10pt; }
+.compact-stamp { margin-top: 15px; padding: 10px; background: #f0f9ff; border: 1px solid #bae6fd; font-size: 7pt; }
+.stamp-title { font-size: 8pt; font-weight: bold; color: #0369a1; margin-bottom: 5px; }
+.compact-footer { margin-top: 15px; padding: 6px; text-align: center; font-size: 7pt; color: #666; border-top: 1px solid #ddd; }
+.compact-footer p { margin: 2px 0; }
+.footer-brand { margin-top: 5px; font-size: 6pt; color: #bbb; }
+.footer-brand a { color: #bbb; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="compact-invoice">
+
+  <table class="header-table">
+    <tr>
+      <td class="company-cell">
+        {{ if company_logo_url && company_logo_url != "" }}
+        <img src="{{ company_logo_url }}" alt="Logo" style="max-width:60px; max-height:50px; object-fit:contain; margin-bottom:5px; display:block;" />
+        {{ end }}
+        <div class="company-name">{{ issuer_legal_name }}</div>
+        <div class="company-rfc">RFC: {{ issuer_rfc }}</div>
+        <div class="company-regime">{{ issuer_fiscal_regime }}</div>
+      </td>
+      <td class="invoice-cell">
+        <div class="invoice-label">CFDI DE INGRESO</div>
+        <div class="invoice-folio">{{ folio }}</div>
+        <div class="invoice-date">{{ issue_date }}</div>
+        <div class="cert-date">Cert: {{ stamp_date }}</div>
+        <div style="font-size:8pt; color:#666; margin-top:2px;">CP: {{ issuer_postal_code }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="info-grid">
+    <tr>
+      <td width="50%">
+        <strong>Cliente:</strong> {{ customer_legal_name }}<br>
+        <strong>RFC:</strong> {{ customer_rfc }}<br>
+        <strong>C.P.:</strong> {{ customer_postal_code }}<br>
+        <strong>Régimen:</strong> {{ customer_fiscal_regime }}<br>
+        <strong>Uso CFDI:</strong> {{ cfdi_use }}
+      </td>
+      <td width="50%">
+        <strong>Forma de Pago:</strong> {{ payment_form }}<br>
+        <strong>Método:</strong> {{ payment_method }}
+      </td>
+    </tr>
+  </table>
+
+  <table class="compact-items">
+    <thead>
+      <tr>
+        <th width="7%">Cant.</th>
+        <th width="11%">Clave SAT</th>
+        <th width="44%">Descripción</th>
+        <th width="13%" class="text-right">Precio U.</th>
+        <th width="11%" class="text-right">Desc.</th>
+        <th width="14%" class="text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ for item in items }}
+      <tr>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td class="text-center">{{ item.sat_code }}</td>
+        <td>{{ item.description }}</td>
+        <td class="text-right">$ {{ item.unit_price }}</td>
+        <td class="text-right">{{ if item.has_discount }}$ {{ item.discount }}{{ end }}</td>
+        <td class="text-right">$ {{ item.amount }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+
+  <table class="compact-totals">
+    <tr><td>Subtotal:</td><td class="text-right">$ {{ subtotal }} {{ currency }}</td></tr>
+    <tr><td>IVA:</td><td class="text-right">$ {{ tax_amount }} {{ currency }}</td></tr>
+    <tr class="total-row"><td><strong>TOTAL:</strong></td><td class="text-right"><strong>$ {{ total }} {{ currency }}</strong></td></tr>
+  </table>
+
+  <div class="compact-stamp">
+    <div class="stamp-title">TIMBRE FISCAL DIGITAL</div>
+    <strong>UUID:</strong> {{ uuid }}<br>
+    <strong>Certificación:</strong> {{ stamp_date }}<br>
+    <strong>No. Certificado SAT:</strong> {{ no_cert_sat }}<br>
+    <strong>No. Serie CSD:</strong> {{ no_cert_cfdi }}
+  </div>
+
+  <div class="compact-footer">
+    <p>© {{ date_year }} {{ app_name }}. Todos los derechos reservados.</p>
+    <div class="footer-brand">Generado con <a href="https://www.tworockets.com.mx" target="_blank">Two Rockets Solutions</a></div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Choose a preset to apply as your invoice email template. This will overwrite the current custom template." xml:space="preserve">
+    <value>Choose a preset to apply as your invoice email template. This will overwrite the current custom template.</value>
+  </data>
+  <data name="Presets" xml:space="preserve">
+    <value>Presets</value>
+  </data>
+  <data name="Selected" xml:space="preserve">
+    <value>Selected</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Preset file not found" xml:space="preserve">
+    <value>Preset file not found</value>
+  </data>
+</root>

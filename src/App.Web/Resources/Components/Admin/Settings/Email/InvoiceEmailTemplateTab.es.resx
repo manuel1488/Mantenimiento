@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Customize the HTML used in invoice emails. If no custom template is saved, the default file is used." xml:space="preserve">
+    <value>Personaliza el HTML del correo de factura. Si no hay plantilla personalizada guardada se usa el archivo predeterminado.</value>
+  </data>
+  <data name="Template" xml:space="preserve">
+    <value>Plantilla</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Personalizado</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Reset to default" xml:space="preserve">
+    <value>Restablecer predeterminado</value>
+  </data>
+  <data name="Edit Template" xml:space="preserve">
+    <value>Editar Plantilla</value>
+  </data>
+  <data name="Template saved" xml:space="preserve">
+    <value>Plantilla guardada</value>
+  </data>
+  <data name="Template reset to default" xml:space="preserve">
+    <value>Plantilla restablecida al archivo predeterminado</value>
+  </data>
+  <data name="Presets" xml:space="preserve">
+    <value>Presets</value>
+  </data>
+</root>

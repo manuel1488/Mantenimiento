@@ -1,0 +1,30 @@
+body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 20px; color: #000; background: #f0f0f0; }
+.compact-invoice { padding: 15px; max-width: 680px; margin: 0 auto; background: #fff; }
+.header-table { width: 100%; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; border-collapse: collapse; }
+.company-cell { width: 65%; vertical-align: top; padding: 4px; }
+.company-name { font-size: 14pt; font-weight: bold; margin-bottom: 3px; }
+.company-rfc { font-size: 9pt; color: #333; margin-bottom: 2px; }
+.company-regime { font-size: 8pt; color: #666; }
+.invoice-cell { width: 35%; text-align: right; vertical-align: top; padding: 4px; }
+.invoice-label { font-size: 10pt; font-weight: bold; color: #666; }
+.invoice-folio { font-size: 16pt; font-weight: bold; margin: 3px 0; }
+.invoice-date { font-size: 9pt; color: #666; }
+.cert-date { font-size: 8pt; color: #6d28d9; margin-top: 3px; }
+.info-grid { width: 100%; margin: 10px 0; font-size: 8pt; background: #f5f5f5; border-collapse: collapse; }
+.info-grid td { padding: 6px 8px; vertical-align: top; }
+.compact-items { width: 100%; border-collapse: collapse; margin: 10px 0; }
+.compact-items thead { background: #333; color: white; }
+.compact-items th { padding: 6px; text-align: left; font-size: 8pt; }
+.compact-items th.text-right { text-align: right; }
+.compact-items tbody tr { border-bottom: 1px solid #ddd; }
+.compact-items td { padding: 5px 6px; font-size: 8pt; }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.compact-totals { width: 260px; margin-left: auto; margin-top: 10px; font-size: 9pt; border-collapse: collapse; }
+.compact-totals td { padding: 3px 8px; }
+.compact-totals .total-row { background: #333; color: white; font-size: 10pt; }
+.compact-stamp { margin-top: 15px; padding: 10px; background: #f0f9ff; border: 1px solid #bae6fd; font-size: 7pt; }
+.stamp-title { font-size: 8pt; font-weight: bold; color: #0369a1; margin-bottom: 5px; }
+.compact-footer { margin-top: 15px; padding: 6px; text-align: center; font-size: 7pt; color: #666; border-top: 1px solid #ddd; }
+.compact-footer p { margin: 2px 0; }
+.footer-brand { margin-top: 5px; font-size: 6pt; color: #bbb; }
+.footer-brand a { color: #bbb; text-decoration: none; }

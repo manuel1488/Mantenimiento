@@ -440,6 +440,25 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 ? invoice.Folio.ToString()
                 : $"{invoice.Serie}{invoice.Folio}";
 
+            // Load sale items with SAT product service codes
+            var saleDetails = await context.SaleDetails
+                .AsNoTracking()
+                .Include(d => d.Product)
+                    .ThenInclude(p => p.MexicoProductService)
+                .Where(d => d.SaleId == invoice.SaleId)
+                .ToListAsync();
+
+            var items = saleDetails.Select(d => new Dictionary<string, object>
+            {
+                { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? "01010101") },
+                { "description", d.Product.Name },
+                { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                { "unit_price", d.UnitPrice.ToString("N2") },
+                { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
+                { "has_discount", (object)(d.DiscountAmount > 0) },
+                { "amount", d.Total.ToString("N2") }
+            }).ToList<object>();
+
             var attachments = new List<EmailAttachment>();
 
             var xmlFile = await context.MexicoInvoiceFiles
@@ -472,15 +491,37 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             {
                 { "culture", CultureInfo.CurrentUICulture.Name },
                 { "app_name", _applicationOptions.Name },
-                { "folio", folio },
-                { "uuid", invoice.Uuid ?? string.Empty },
-                { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
-                { "customer_legal_name", invoice.CustomerLegalName },
-                { "customer_rfc", invoice.CustomerRfc },
+                // Issuer
                 { "issuer_legal_name", invoice.IssuerLegalName },
                 { "issuer_rfc", invoice.IssuerRfc },
-                { "total", invoice.Total.ToString("C2") },
-                { "has_pdf", pdfFile != null }
+                { "issuer_fiscal_regime", invoice.IssuerFiscalRegime },
+                { "issuer_postal_code", invoice.IssuerPostalCode },
+                // CFDI header
+                { "folio", folio },
+                { "issue_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
+                { "uuid", invoice.Uuid ?? string.Empty },
+                { "payment_form", invoice.PaymentForm },
+                { "payment_method", invoice.PaymentMethod },
+                { "currency", invoice.Currency },
+                // Receptor
+                { "customer_legal_name", invoice.CustomerLegalName },
+                { "customer_rfc", invoice.CustomerRfc },
+                { "customer_fiscal_regime", invoice.CustomerFiscalRegime },
+                { "customer_postal_code", invoice.CustomerPostalCode },
+                { "cfdi_use", invoice.CfdiUse },
+                // Amounts
+                { "subtotal", invoice.Subtotal.ToString("N2") },
+                { "tax_amount", invoice.TaxAmount.ToString("N2") },
+                { "total", invoice.Total.ToString("N2") },
+                // Timbre
+                { "no_cert_cfdi", invoice.NoCertificadoCfdi ?? string.Empty },
+                { "no_cert_sat", invoice.NoCertificadoSat ?? string.Empty },
+                { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty },
+                // Items and attachments
+                { "items", (object)items },
+                { "has_pdf", (object)(pdfFile != null) },
+                { "date_year", (object)DateTime.UtcNow.Year },
+                { "company_logo_url", $"{_applicationOptions.BaseUrl.TrimEnd('/')}/images/logo.webp" }
             };
 
             var body = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", emailData);

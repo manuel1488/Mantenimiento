@@ -77,4 +77,7 @@
   <data name="Labels" xml:space="preserve">
     <value>Etiquetas</value>
   </data>
+  <data name="Invoice Template" xml:space="preserve">
+    <value>Plantilla de Factura</value>
+  </data>
 </root>

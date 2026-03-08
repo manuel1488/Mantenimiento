@@ -5,7 +5,8 @@
       "Bash(dotnet ef migrations add:*)",
       "Bash(dotnet ef database update:*)",
       "Bash(unzip:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(xargs grep:*)"
     ],
     "deny": [],
     "ask": []

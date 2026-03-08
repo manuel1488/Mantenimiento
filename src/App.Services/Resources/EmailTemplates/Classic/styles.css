@@ -1,0 +1,35 @@
+body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 20px; color: #000; background: #f0f0f0; }
+.invoice-container { padding: 15px; max-width: 680px; margin: 0 auto; background: #fff; box-sizing: border-box; }
+.header { display: table; width: 100%; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+.header-left { display: table-cell; vertical-align: top; width: 55%; }
+.header-right { display: table-cell; vertical-align: top; width: 45%; }
+.issuer-info h1 { margin: 0 0 5px 0; font-size: 12pt; font-weight: bold; }
+.issuer-info p { margin: 2px 0; font-size: 8pt; color: #333; }
+.invoice-box { background: #c0c0c0; padding: 3px 8px; text-align: center; margin-bottom: 2px; }
+.box-title { font-weight: bold; font-size: 8pt; }
+.box-content { font-size: 8pt; }
+.data-section { display: table; width: 100%; margin-bottom: 15px; border-spacing: 5px; }
+.receptor-box, .fiscal-box { display: table-cell; border: 1px solid #808080; width: 50%; vertical-align: top; }
+.box-header { background: #c0c0c0; padding: 5px 8px; font-weight: bold; font-size: 8pt; text-align: center; }
+.box-body { padding: 8px; }
+.box-body p { margin: 2px 0; font-size: 8pt; }
+.fiscal-item { margin: 5px 0; }
+.fiscal-label { background: #c0c0c0; padding: 2px 5px; font-size: 7pt; font-weight: bold; margin-bottom: 2px; }
+.fiscal-value { padding: 2px 5px; font-size: 8pt; }
+.items-section { margin: 15px 0; }
+.items-table { width: 100%; border-collapse: collapse; border: 1px solid #808080; }
+.items-table thead { background: #c0c0c0; }
+.items-table th { padding: 6px 4px; text-align: center; font-size: 7pt; font-weight: bold; border: 1px solid #808080; }
+.items-table td { padding: 5px 4px; font-size: 8pt; border: 1px solid #808080; }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.payment-totals-section { display: table; width: 100%; margin: 15px 0; }
+.payment-info { display: table-cell; width: 55%; font-size: 8pt; vertical-align: top; }
+.payment-info p { margin: 3px 0; }
+.totals-box { display: table-cell; width: 45%; border: 1px solid #808080; vertical-align: top; }
+.totals-header { background: #c0c0c0; padding: 5px 8px; text-align: center; font-weight: bold; font-size: 8pt; }
+.totals-table { width: 100%; font-size: 8pt; }
+.totals-table td { padding: 4px 8px; border-bottom: 1px solid #e0e0e0; }
+.totals-table .total-row td { border-top: 2px solid #808080; padding-top: 6px; font-weight: bold; }
+.footer { border-top: 1px solid #ccc; padding: 10px 0; font-size: 7pt; color: #666; text-align: center; margin-top: 15px; }
+.footer-brand { margin-top: 5px; font-size: 6pt; color: #bbb; }
+.footer-brand a { color: #bbb; text-decoration: none; }

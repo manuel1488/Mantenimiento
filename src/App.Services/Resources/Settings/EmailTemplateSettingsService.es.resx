@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Template not found" xml:space="preserve">
+    <value>Plantilla no encontrada</value>
+  </data>
+  <data name="Error retrieving template" xml:space="preserve">
+    <value>Error al obtener la plantilla</value>
+  </data>
+  <data name="Error saving template" xml:space="preserve">
+    <value>Error al guardar la plantilla</value>
+  </data>
+  <data name="Error deleting template" xml:space="preserve">
+    <value>Error al eliminar la plantilla</value>
+  </data>
+</root>

@@ -116,6 +116,11 @@
                         <LabelSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ManageEmailSettings">
+                    <MudTabPanel Text="@L["Invoice Template"]" Icon="@Icons.Material.Filled.MarkEmailRead">
+                        <InvoiceEmailTemplateTab />
+                    </MudTabPanel>
+                </AuthorizeView>
             </MudTabs>
         </MudCardContent>
     </MudCard>

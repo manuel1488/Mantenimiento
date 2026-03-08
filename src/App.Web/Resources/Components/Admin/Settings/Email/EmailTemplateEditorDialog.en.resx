@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="HTML Template" xml:space="preserve">
+    <value>HTML Template</value>
+  </data>
+  <data name="HTML content is required" xml:space="preserve">
+    <value>HTML content is required</value>
+  </data>
+  <data name="Available Variables" xml:space="preserve">
+    <value>Available Variables</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Error rendering preview" xml:space="preserve">
+    <value>Error rendering preview</value>
+  </data>
+</root>

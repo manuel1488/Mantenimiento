@@ -1,0 +1,83 @@
+<div class="compact-invoice">
+
+  <table class="header-table">
+    <tr>
+      <td class="company-cell">
+        {{ if company_logo_url && company_logo_url != "" }}
+        <img src="{{ company_logo_url }}" alt="Logo" style="max-width:60px; max-height:50px; object-fit:contain; margin-bottom:5px; display:block;" />
+        {{ end }}
+        <div class="company-name">{{ issuer_legal_name }}</div>
+        <div class="company-rfc">RFC: {{ issuer_rfc }}</div>
+        <div class="company-regime">{{ issuer_fiscal_regime }}</div>
+      </td>
+      <td class="invoice-cell">
+        <div class="invoice-label">CFDI DE INGRESO</div>
+        <div class="invoice-folio">{{ folio }}</div>
+        <div class="invoice-date">{{ issue_date }}</div>
+        <div class="cert-date">Cert: {{ stamp_date }}</div>
+        <div style="font-size:8pt; color:#666; margin-top:2px;">CP: {{ issuer_postal_code }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="info-grid">
+    <tr>
+      <td width="50%">
+        <strong>Cliente:</strong> {{ customer_legal_name }}<br>
+        <strong>RFC:</strong> {{ customer_rfc }}<br>
+        <strong>C.P.:</strong> {{ customer_postal_code }}<br>
+        <strong>Régimen:</strong> {{ customer_fiscal_regime }}<br>
+        <strong>Uso CFDI:</strong> {{ cfdi_use }}
+      </td>
+      <td width="50%">
+        <strong>Forma de Pago:</strong> {{ payment_form }}<br>
+        <strong>Método:</strong> {{ payment_method }}
+      </td>
+    </tr>
+  </table>
+
+  <table class="compact-items">
+    <thead>
+      <tr>
+        <th width="7%">Cant.</th>
+        <th width="11%">Clave SAT</th>
+        <th width="44%">Descripción</th>
+        <th width="13%" class="text-right">Precio U.</th>
+        <th width="11%" class="text-right">Desc.</th>
+        <th width="14%" class="text-right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ for item in items }}
+      <tr>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td class="text-center">{{ item.sat_code }}</td>
+        <td>{{ item.description }}</td>
+        <td class="text-right">$ {{ item.unit_price }}</td>
+        <td class="text-right">{{ if item.has_discount }}$ {{ item.discount }}{{ end }}</td>
+        <td class="text-right">$ {{ item.amount }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+
+  <table class="compact-totals">
+    <tr><td>Subtotal:</td><td class="text-right">$ {{ subtotal }} {{ currency }}</td></tr>
+    <tr><td>IVA:</td><td class="text-right">$ {{ tax_amount }} {{ currency }}</td></tr>
+    <tr class="total-row"><td><strong>TOTAL:</strong></td><td class="text-right"><strong>$ {{ total }} {{ currency }}</strong></td></tr>
+  </table>
+
+  <div class="compact-stamp">
+    <div class="stamp-title">TIMBRE FISCAL DIGITAL</div>
+    <strong>UUID:</strong> {{ uuid }}<br>
+    <strong>Certificación:</strong> {{ stamp_date }}<br>
+    <strong>No. Certificado SAT:</strong> {{ no_cert_sat }}<br>
+    <strong>No. Serie CSD:</strong> {{ no_cert_cfdi }}
+  </div>
+
+  <div class="compact-footer">
+    <p>© {{ date_year }} {{ app_name }}. Todos los derechos reservados.</p>
+    <div class="footer-brand">Generado con <a href="https://www.tworockets.com.mx" target="_blank">Two Rockets Solutions</a></div>
+  </div>
+
+</div>

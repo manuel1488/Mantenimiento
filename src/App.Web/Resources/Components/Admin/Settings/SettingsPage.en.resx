@@ -77,4 +77,7 @@
   <data name="Labels" xml:space="preserve">
     <value>Labels</value>
   </data>
+  <data name="Invoice Template" xml:space="preserve">
+    <value>Invoice Template</value>
+  </data>
 </root>

@@ -1,0 +1,159 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using Microsoft.Extensions.Localization
+@using MudBlazor
+@using App.Services.Resources.EmailTemplates
+
+@inject IEmailTemplateSettingsService TemplateSettingsService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<EmailTemplatePresetsDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+            @L["Choose a preset to apply as your invoice email template. This will overwrite the current custom template."]
+        </MudText>
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <MudGrid Spacing="3">
+                @foreach (var preset in _presets)
+                {
+                    var p = preset;
+                    <MudItem xs="12" sm="4">
+                        <MudCard Elevation="2" Style="@($"cursor:pointer; border: 2px solid {(p.Key == _selected ? "var(--mud-palette-primary)" : "transparent")};")">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">@p.Value.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@p.Value.Description</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent Style="padding-top:0;">
+                                <div style="height:120px; background:#f5f5f5; border:1px solid #e0e0e0; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;"
+                                     @onclick="@(() => SelectPreset(p.Key))">
+                                    @if (p.Value.Thumbnail != null)
+                                    {
+                                        <iframe srcdoc="@p.Value.Thumbnail"
+                                                style="width:200%; height:200%; transform:scale(0.5); transform-origin:top left; border:none; pointer-events:none;"
+                                                sandbox="allow-same-origin">
+                                        </iframe>
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@p.Value.Icon" Style="font-size:48px; color:#ccc;" />
+                                    }
+                                </div>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="@(p.Key == _selected ? Variant.Filled : Variant.Outlined)"
+                                           Color="Color.Primary"
+                                           FullWidth="true"
+                                           OnClick="@(() => SelectPreset(p.Key))">
+                                    @(p.Key == _selected ? L["Selected"] : L["Select"])
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Check"
+                   OnClick="ApplyAsync"
+                   Disabled="@(string.IsNullOrEmpty(_selected) || _applying)">
+            @if (_applying)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            @L["Apply"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string TemplateName { get; set; } = string.Empty;
+
+    private string? _selected;
+    private bool _applying;
+    private bool _loading = true;
+
+    private record PresetInfo(string Name, string Description, string Icon, string? Thumbnail,
+        string HtmlContent = "", string CssContent = "");
+
+    private Dictionary<string, PresetInfo> _presets = new()
+    {
+        ["classic"] = new("Clásico",  "Formato tradicional con recuadros grises",  Icons.Material.Filled.ViewHeadline, null),
+        ["compact"] = new("Compacto", "Diseño minimalista con encabezado oscuro",  Icons.Material.Filled.TableRows,    null),
+        ["modern"]  = new("Moderno",  "Diseño elegante con barra de color azul",   Icons.Material.Filled.AutoAwesome,  null),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var sampleData = EmailTemplateSampleData.GetSampleData(TemplateName, "es");
+
+        var sources = new Dictionary<string, (string Html, string Css)>
+        {
+            ["classic"] = (DefaultEmailTemplates.ClassicHtml, DefaultEmailTemplates.ClassicCss),
+            ["compact"] = (DefaultEmailTemplates.CompactHtml, DefaultEmailTemplates.CompactCss),
+            ["modern"]  = (DefaultEmailTemplates.ModernHtml,  DefaultEmailTemplates.ModernCss),
+        };
+
+        foreach (var (key, (html, css)) in sources)
+        {
+            try
+            {
+                var fullHtml = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>" +
+                               css + "</style></head><body>" + html + "</body></html>";
+                var template = Scriban.Template.Parse(fullHtml);
+                var rendered = await template.RenderAsync(sampleData);
+                _presets[key] = _presets[key] with { Thumbnail = rendered, HtmlContent = html, CssContent = css };
+            }
+            catch
+            {
+                _presets[key] = _presets[key] with { HtmlContent = html, CssContent = css };
+            }
+        }
+
+        _loading = false;
+    }
+
+    private void SelectPreset(string key) => _selected = key;
+
+    private async Task ApplyAsync()
+    {
+        if (string.IsNullOrEmpty(_selected)) return;
+
+        _applying = true;
+        try
+        {
+            var preset = _presets[_selected];
+            var result = await TemplateSettingsService.SaveAsync(new SaveEmailTemplateSettingsDto
+            {
+                Name = TemplateName,
+                HtmlContent = preset.HtmlContent,
+                CssContent = preset.CssContent
+            });
+
+            if (result.IsSuccess)
+                MudDialog.Close(DialogResult.Ok(true));
+            else
+                Snackbar.Add(result.Error, Severity.Error);
+        }
+        finally
+        {
+            _applying = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -8,6 +8,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\EmailTemplates\**\*.html" />
+    <EmbeddedResource Include="Resources\EmailTemplates\**\*.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Resources\Xslt\cadenaoriginal_4_0.xslt" />
     <EmbeddedResource Include="Resources\Xslt\SAT\**\*.xslt" />
     <EmbeddedResource Include="Resources\Xsd\cfdv40.xsd" />

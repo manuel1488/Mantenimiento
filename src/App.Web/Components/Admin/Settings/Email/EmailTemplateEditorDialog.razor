@@ -1,0 +1,199 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using Microsoft.Extensions.Localization
+@using MudBlazor
+@using App.Services.Email
+
+@inject IEmailTemplateSettingsService TemplateSettingsService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IStringLocalizer<EmailTemplateEditorDialog> L
+
+<MudDialog Style="height: 90vh;">
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudGrid Spacing="3">
+
+                <MudItem xs="12" md="8">
+                    <MudText Typo="Typo.h6" Class="mb-1">@L["HTML Body"]</MudText>
+                    <MudTextField @bind-Value="_htmlContent"
+                                  Lines="20"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="@L["HTML content is required"]"
+                                  Style="font-family: monospace; font-size: 12px;"
+                                  FullWidth="true" />
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="mb-1">@L["CSS Styles"]</MudText>
+                    <MudTextField @bind-Value="_cssContent"
+                                  Lines="20"
+                                  Variant="Variant.Outlined"
+                                  Style="font-family: monospace; font-size: 12px;"
+                                  FullWidth="true" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudExpansionPanels Elevation="0">
+                        <MudExpansionPanel Text="@L["Available Variables"]" Dense="true">
+                            <MudSimpleTable Dense="true" Style="max-height: 240px; overflow-y: auto;">
+                                <tbody>
+                                    @foreach (var v in Variables)
+                                    {
+                                        <tr>
+                                            <td><code style="font-size:12px; color:#c0392b;">@("{{ " + v.Key + " }}")</code></td>
+                                            <td><MudText Typo="Typo.body2" Color="Color.Secondary">@v.Value</MudText></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </MudExpansionPanel>
+                    </MudExpansionPanels>
+                </MudItem>
+
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Secondary"
+                   StartIcon="@Icons.Material.Filled.Preview"
+                   OnClick="PreviewAsync"
+                   Disabled="@(string.IsNullOrWhiteSpace(_htmlContent) || _previewing)">
+            @if (_previewing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            @L["Preview"]
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   OnClick="SaveAsync"
+                   Disabled="@(!_isValid || _saving)">
+            @if (_saving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string TemplateName { get; set; } = string.Empty;
+    [Parameter] public string InitialHtml { get; set; } = string.Empty;
+    [Parameter] public string InitialCss { get; set; } = string.Empty;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _saving;
+    private bool _previewing;
+    private string _htmlContent = string.Empty;
+    private string _cssContent = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Legacy: if InitialHtml is a full HTML page, extract CSS + body
+        if (InitialHtml.TrimStart().StartsWith("<!DOCTYPE", StringComparison.OrdinalIgnoreCase))
+        {
+            var (body, css) = EmailTemplateService.ExtractCssAndBody(InitialHtml);
+            _htmlContent = body;
+            _cssContent = css;
+        }
+        else
+        {
+            _htmlContent = InitialHtml;
+            _cssContent = InitialCss;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        var result = await TemplateSettingsService.SaveAsync(new SaveEmailTemplateSettingsDto
+        {
+            Name = TemplateName,
+            HtmlContent = _htmlContent,
+            CssContent = _cssContent
+        });
+
+        if (result.IsSuccess)
+            MudDialog.Close(DialogResult.Ok(true));
+        else
+            Snackbar.Add(result.Error, Severity.Error);
+
+        _saving = false;
+    }
+
+    private async Task PreviewAsync()
+    {
+        _previewing = true;
+        try
+        {
+            var sampleData = EmailTemplateSampleData.GetSampleData(TemplateName, "es");
+            var fullHtml = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>" +
+                           _cssContent + "</style></head><body>" + _htmlContent + "</body></html>";
+            var template = Scriban.Template.Parse(fullHtml);
+            var rendered = await template.RenderAsync(sampleData);
+
+            var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };
+            await DialogService.ShowAsync<EmailTemplatePreviewDialog>(L["Preview"],
+                new DialogParameters<EmailTemplatePreviewDialog>
+                {
+                    { x => x.HtmlContent, rendered },
+                    { x => x.PreviewUrl, null }
+                }, options);
+        }
+        catch
+        {
+            Snackbar.Add(L["Error rendering preview"], Severity.Error);
+        }
+        _previewing = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private static readonly Dictionary<string, string> Variables = new()
+    {
+        { "issuer_legal_name",     "Razón social del emisor" },
+        { "issuer_rfc",            "RFC del emisor" },
+        { "issuer_fiscal_regime",  "Régimen fiscal del emisor" },
+        { "issuer_postal_code",    "CP del emisor" },
+        { "folio",                 "Folio de la factura" },
+        { "issue_date",            "Fecha de emisión" },
+        { "uuid",                  "UUID / Folio Fiscal" },
+        { "payment_form",          "Forma de pago" },
+        { "payment_method",        "Método de pago" },
+        { "currency",              "Moneda (MXN, USD…)" },
+        { "customer_legal_name",   "Razón social del receptor" },
+        { "customer_rfc",          "RFC del receptor" },
+        { "customer_fiscal_regime","Régimen fiscal del receptor" },
+        { "customer_postal_code",  "CP del receptor" },
+        { "cfdi_use",              "Uso CFDI" },
+        { "subtotal",              "Subtotal" },
+        { "tax_amount",            "Monto IVA" },
+        { "total",                 "Total" },
+        { "no_cert_cfdi",          "No. certificado emisor" },
+        { "no_cert_sat",           "No. certificado SAT" },
+        { "stamp_date",            "Fecha de timbrado" },
+        { "has_pdf",               "true si se adjunta PDF" },
+        { "date_year",             "Año actual" },
+        { "app_name",              "Nombre de la aplicación" },
+        { "company_logo_url",      "URL absoluta del logo (vacío si no hay)" },
+        { "items",                 "Lista de conceptos (loop: for item in items)" },
+        { "item.sat_code",         "Clave SAT del concepto" },
+        { "item.description",      "Descripción" },
+        { "item.quantity",         "Cantidad" },
+        { "item.unit_price",       "Precio unitario" },
+        { "item.discount",         "Descuento (si aplica)" },
+        { "item.has_discount",     "true si tiene descuento" },
+        { "item.amount",           "Importe" },
+    };
+}

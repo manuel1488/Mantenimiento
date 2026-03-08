@@ -32,6 +32,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
     public DbSet<CashRegisterSettings> CashRegisterSettings { get; set; } = null!;
     public DbSet<LabelSettings> LabelSettings { get; set; } = null!;
+    public DbSet<EmailTemplateSettings> EmailTemplateSettings { get; set; } = null!;
     #endregion
 
     #region Shared

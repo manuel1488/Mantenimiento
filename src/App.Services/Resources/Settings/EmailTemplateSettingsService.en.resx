@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Template not found" xml:space="preserve">
+    <value>Template not found</value>
+  </data>
+  <data name="Error retrieving template" xml:space="preserve">
+    <value>Error retrieving template</value>
+  </data>
+  <data name="Error saving template" xml:space="preserve">
+    <value>Error saving template</value>
+  </data>
+  <data name="Error deleting template" xml:space="preserve">
+    <value>Error deleting template</value>
+  </data>
+</root>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factura Electrónica - {{ folio }}</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 20px; color: #000; background: #f0f0f0; }
+.invoice-container { padding: 15px; max-width: 680px; margin: 0 auto; background: #fff; box-sizing: border-box; }
+.header { display: table; width: 100%; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+.header-left { display: table-cell; vertical-align: top; width: 55%; }
+.header-right { display: table-cell; vertical-align: top; width: 45%; }
+.issuer-info h1 { margin: 0 0 5px 0; font-size: 12pt; font-weight: bold; }
+.issuer-info p { margin: 2px 0; font-size: 8pt; color: #333; }
+.invoice-box { background: #c0c0c0; padding: 3px 8px; text-align: center; margin-bottom: 2px; }
+.box-title { font-weight: bold; font-size: 8pt; }
+.box-content { font-size: 8pt; }
+.data-section { display: table; width: 100%; margin-bottom: 15px; border-spacing: 5px; }
+.receptor-box, .fiscal-box { display: table-cell; border: 1px solid #808080; width: 50%; vertical-align: top; }
+.box-header { background: #c0c0c0; padding: 5px 8px; font-weight: bold; font-size: 8pt; text-align: center; }
+.box-body { padding: 8px; }
+.box-body p { margin: 2px 0; font-size: 8pt; }
+.fiscal-item { margin: 5px 0; }
+.fiscal-label { background: #c0c0c0; padding: 2px 5px; font-size: 7pt; font-weight: bold; margin-bottom: 2px; }
+.fiscal-value { padding: 2px 5px; font-size: 8pt; }
+.items-section { margin: 15px 0; }
+.items-table { width: 100%; border-collapse: collapse; border: 1px solid #808080; }
+.items-table thead { background: #c0c0c0; }
+.items-table th { padding: 6px 4px; text-align: center; font-size: 7pt; font-weight: bold; border: 1px solid #808080; }
+.items-table td { padding: 5px 4px; font-size: 8pt; border: 1px solid #808080; }
+.text-center { text-align: center; } .text-right { text-align: right; }
+.payment-totals-section { display: table; width: 100%; margin: 15px 0; }
+.payment-info { display: table-cell; width: 55%; font-size: 8pt; vertical-align: top; }
+.payment-info p { margin: 3px 0; }
+.totals-box { display: table-cell; width: 45%; border: 1px solid #808080; vertical-align: top; }
+.totals-header { background: #c0c0c0; padding: 5px 8px; text-align: center; font-weight: bold; font-size: 8pt; }
+.totals-table { width: 100%; font-size: 8pt; }
+.totals-table td { padding: 4px 8px; border-bottom: 1px solid #e0e0e0; }
+.totals-table .total-row td { border-top: 2px solid #808080; padding-top: 6px; font-weight: bold; }
+.footer { border-top: 1px solid #ccc; padding: 10px 0; font-size: 7pt; color: #666; text-align: center; margin-top: 15px; }
+.footer-brand { margin-top: 5px; font-size: 6pt; color: #bbb; }
+.footer-brand a { color: #bbb; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="invoice-container">
+
+  <div class="header">
+    <div class="header-left">
+      {{ if company_logo_url && company_logo_url != "" }}
+      <img src="{{ company_logo_url }}" alt="Logo" style="max-width:80px; max-height:60px; object-fit:contain; margin-bottom:6px; display:block;" />
+      {{ end }}
+      <div class="issuer-info">
+        <h1>{{ issuer_legal_name }}</h1>
+        <p>RFC: {{ issuer_rfc }}</p>
+        <p>Régimen Fiscal: {{ issuer_fiscal_regime }}</p>
+        <p>Lugar de Expedición: {{ issuer_postal_code }}</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="invoice-box"><div class="box-title">CFDI DE INGRESO</div></div>
+      <div class="invoice-box"><div class="box-title">FOLIO</div><div class="box-content">{{ folio }}</div></div>
+      <div class="invoice-box"><div class="box-title">FECHA DE EMISIÓN</div><div class="box-content">{{ issue_date }}</div></div>
+      <div class="invoice-box"><div class="box-title">FECHA DE CERTIFICACIÓN</div><div class="box-content">{{ stamp_date }}</div></div>
+    </div>
+  </div>
+
+  <div class="data-section">
+    <div class="receptor-box">
+      <div class="box-header">Receptor del Comprobante Fiscal</div>
+      <div class="box-body">
+        <p><strong>{{ customer_legal_name }}</strong></p>
+        <p>RFC: {{ customer_rfc }}</p>
+        <p>C.P.: {{ customer_postal_code }}</p>
+        <p>Régimen: {{ customer_fiscal_regime }}</p>
+        <p>Uso CFDI: {{ cfdi_use }}</p>
+      </div>
+    </div>
+    <div class="fiscal-box">
+      <div class="box-header">Folio Fiscal</div>
+      <div class="box-body">
+        <p style="font-size:7pt; word-break:break-all;">{{ uuid }}</p>
+        <div class="fiscal-item">
+          <div class="fiscal-label">No. Serie Certificado SAT</div>
+          <div class="fiscal-value">{{ no_cert_sat }}</div>
+        </div>
+        <div class="fiscal-item">
+          <div class="fiscal-label">No. de Serie del CSD</div>
+          <div class="fiscal-value">{{ no_cert_cfdi }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="items-section">
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th width="8%">Cantidad</th>
+          <th width="12%">Clave SAT</th>
+          <th width="45%">Descripción</th>
+          <th width="12%">Precio U.</th>
+          <th width="10%">Descuento</th>
+          <th width="13%">Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ for item in items }}
+        <tr>
+          <td class="text-center">{{ item.quantity }}</td>
+          <td class="text-center">{{ item.sat_code }}</td>
+          <td>{{ item.description }}</td>
+          <td class="text-right">$ {{ item.unit_price }}</td>
+          <td class="text-right">{{ if item.has_discount }}$ {{ item.discount }}{{ end }}</td>
+          <td class="text-right">$ {{ item.amount }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="payment-totals-section">
+    <div class="payment-info">
+      <p><strong>Forma de pago:</strong> {{ payment_form }}</p>
+      <p><strong>Método de pago:</strong> {{ payment_method }}</p>
+    </div>
+    <div class="totals-box">
+      <div class="totals-header">TOTALES</div>
+      <table class="totals-table">
+        <tr><td>Subtotal</td><td class="text-right">$ {{ subtotal }} {{ currency }}</td></tr>
+        <tr><td>IVA</td><td class="text-right">$ {{ tax_amount }} {{ currency }}</td></tr>
+        <tr class="total-row"><td><strong>Total:</strong></td><td class="text-right"><strong>$ {{ total }} {{ currency }}</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    © {{ date_year }} {{ app_name }}. Todos los derechos reservados.
+    <div class="footer-brand">Generado con <a href="https://www.tworockets.com.mx" target="_blank">Two Rockets Solutions</a></div>
+  </div>
+
+</div>
+</body>
+</html>

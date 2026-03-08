@@ -1,0 +1,93 @@
+<div class="modern-invoice">
+  <div class="top-bar"></div>
+
+  <div class="invoice-header">
+    <div class="company">
+      {{ if company_logo_url && company_logo_url != "" }}
+      <img src="{{ company_logo_url }}" alt="Logo" class="company-logo" />
+      {{ end }}
+      <div class="company-info">
+        <h1>{{ issuer_legal_name }}</h1>
+        <div class="company-details">
+          <p>RFC: {{ issuer_rfc }}</p>
+          <p>Régimen Fiscal: {{ issuer_fiscal_regime }}</p>
+          <p>C.P. {{ issuer_postal_code }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="invoice-number">
+      <div class="label">CFDI DE INGRESO</div>
+      <div class="number">{{ folio }}</div>
+      <div class="date">{{ issue_date }}</div>
+      <div class="stamp-date">Certificación: {{ stamp_date }}</div>
+    </div>
+  </div>
+
+  <div class="client-section">
+    <div class="section-label">CLIENTE</div>
+    <div class="client-name">{{ customer_legal_name }}</div>
+    <div class="client-info">
+      <span>RFC: {{ customer_rfc }}</span>
+      <span>•</span>
+      <span>C.P. {{ customer_postal_code }}</span>
+      <span>•</span>
+      <span>Régimen: {{ customer_fiscal_regime }}</span>
+      <span>•</span>
+      <span>Uso CFDI: {{ cfdi_use }}</span>
+    </div>
+  </div>
+
+  <table class="modern-items">
+    <thead>
+      <tr>
+        <th width="7%">CANT.</th>
+        <th width="54%">DESCRIPCIÓN</th>
+        <th width="13%" class="text-right">PRECIO U.</th>
+        <th width="12%" class="text-right">DESCUENTO</th>
+        <th width="14%" class="text-right">TOTAL</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ for item in items }}
+      <tr>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td>
+          <div class="item-desc">{{ item.description }}</div>
+          <div class="item-code">{{ item.sat_code }}</div>
+        </td>
+        <td class="text-right">$ {{ item.unit_price }}</td>
+        <td class="text-right">{{ if item.has_discount }}$ {{ item.discount }}{{ end }}</td>
+        <td class="text-right"><strong>$ {{ item.amount }}</strong></td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+
+  <div class="payment-summary-section">
+    <div class="payment-details">
+      <div class="section-label">PAGO</div>
+      <div class="payment-item"><span class="payment-label">Forma de pago:</span>{{ payment_form }}</div>
+      <div class="payment-item"><span class="payment-label">Método de pago:</span>{{ payment_method }}</div>
+    </div>
+    <div class="summary">
+      <div class="summary-row"><span>Subtotal</span><span>$ {{ subtotal }} {{ currency }}</span></div>
+      <div class="summary-row"><span>IVA</span><span>$ {{ tax_amount }} {{ currency }}</span></div>
+      <div class="summary-row total"><span>TOTAL</span><span>$ {{ total }} {{ currency }}</span></div>
+    </div>
+  </div>
+
+  <div class="stamp-section">
+    <div class="stamp-label">TIMBRE FISCAL DIGITAL</div>
+    <div class="stamp-grid">
+      <div class="stamp-item"><div class="stamp-key">UUID</div><div class="stamp-value">{{ uuid }}</div></div>
+      <div class="stamp-item"><div class="stamp-key">Certificación</div><div class="stamp-value">{{ stamp_date }}</div></div>
+      <div class="stamp-item"><div class="stamp-key">No. Certificado SAT</div><div class="stamp-value">{{ no_cert_sat }}</div></div>
+      <div class="stamp-item"><div class="stamp-key">No. Serie CSD</div><div class="stamp-value">{{ no_cert_cfdi }}</div></div>
+    </div>
+  </div>
+
+  <div class="print-info">
+    <p>© {{ date_year }} {{ app_name }}. Todos los derechos reservados.</p>
+    <div class="footer-brand">Generado con <a href="https://www.tworockets.com.mx" target="_blank">Two Rockets Solutions</a></div>
+  </div>
+</div>

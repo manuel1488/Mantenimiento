@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Customize the HTML used in invoice emails. If no custom template is saved, the default file is used." xml:space="preserve">
+    <value>Customize the HTML used in invoice emails. If no custom template is saved, the default file is used.</value>
+  </data>
+  <data name="Template" xml:space="preserve">
+    <value>Template</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Reset to default" xml:space="preserve">
+    <value>Reset to default</value>
+  </data>
+  <data name="Edit Template" xml:space="preserve">
+    <value>Edit Template</value>
+  </data>
+  <data name="Template saved" xml:space="preserve">
+    <value>Template saved</value>
+  </data>
+  <data name="Template reset to default" xml:space="preserve">
+    <value>Template reset to default file</value>
+  </data>
+  <data name="Presets" xml:space="preserve">
+    <value>Presets</value>
+  </data>
+</root>
