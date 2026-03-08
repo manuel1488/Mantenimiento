@@ -223,11 +223,27 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
                 await context.SaveChangesAsync();
 
-                // 12. Generate and save PDF (non-blocking — don't fail if PDF fails)
+                // 12. Generate and save PDF using the configured invoice template
                 try
                 {
-                    var pdfDto = await BuildInvoiceDtoFromEntity(invoice);
-                    var html = await BuildInvoiceHtmlAsync(pdfDto, stampedXml);
+                    var folioDisplay = string.IsNullOrEmpty(invoice.Serie)
+                        ? invoice.Folio.ToString()
+                        : $"{invoice.Serie}{invoice.Folio}";
+                    var pdfItems = sale.Details.Select(d => (object)new Dictionary<string, object>
+                    {
+                        { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
+                        { "description", d.Product.Name },
+                        { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                        { "unit_price", d.UnitPrice.ToString("N2") },
+                        { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
+                        { "has_discount", (object)(d.DiscountAmount > 0) },
+                        { "amount", d.Total.ToString("N2") }
+                    }).ToList();
+                    var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
+                    var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+                    var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
+                        discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty);
+                    var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
                     var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
                     context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
                     {
@@ -440,25 +456,6 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 ? invoice.Folio.ToString()
                 : $"{invoice.Serie}{invoice.Folio}";
 
-            // Load sale items with SAT product service codes
-            var saleDetails = await context.SaleDetails
-                .AsNoTracking()
-                .Include(d => d.Product)
-                    .ThenInclude(p => p.MexicoProductService)
-                .Where(d => d.SaleId == invoice.SaleId)
-                .ToListAsync();
-
-            var items = saleDetails.Select(d => new Dictionary<string, object>
-            {
-                { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? "01010101") },
-                { "description", d.Product.Name },
-                { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
-                { "unit_price", d.UnitPrice.ToString("N2") },
-                { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
-                { "has_discount", (object)(d.DiscountAmount > 0) },
-                { "amount", d.Total.ToString("N2") }
-            }).ToList<object>();
-
             var attachments = new List<EmailAttachment>();
 
             var xmlFile = await context.MexicoInvoiceFiles
@@ -487,44 +484,38 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 });
             }
 
-            var emailData = new Dictionary<string, object>
+            var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync("images/logo.webp");
+            var hasLogo = logoBytes.Length > 0;
+
+            var notificationData = new Dictionary<string, object>
             {
-                { "culture", CultureInfo.CurrentUICulture.Name },
+                { "culture", "es" },
                 { "app_name", _applicationOptions.Name },
-                // Issuer
-                { "issuer_legal_name", invoice.IssuerLegalName },
-                { "issuer_rfc", invoice.IssuerRfc },
-                { "issuer_fiscal_regime", invoice.IssuerFiscalRegime },
-                { "issuer_postal_code", invoice.IssuerPostalCode },
-                // CFDI header
                 { "folio", folio },
-                { "issue_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
                 { "uuid", invoice.Uuid ?? string.Empty },
-                { "payment_form", invoice.PaymentForm },
-                { "payment_method", invoice.PaymentMethod },
-                { "currency", invoice.Currency },
-                // Receptor
+                { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
                 { "customer_legal_name", invoice.CustomerLegalName },
                 { "customer_rfc", invoice.CustomerRfc },
-                { "customer_fiscal_regime", invoice.CustomerFiscalRegime },
-                { "customer_postal_code", invoice.CustomerPostalCode },
-                { "cfdi_use", invoice.CfdiUse },
-                // Amounts
-                { "subtotal", invoice.Subtotal.ToString("N2") },
-                { "tax_amount", invoice.TaxAmount.ToString("N2") },
+                { "issuer_legal_name", invoice.IssuerLegalName },
+                { "issuer_rfc", invoice.IssuerRfc },
                 { "total", invoice.Total.ToString("N2") },
-                // Timbre
-                { "no_cert_cfdi", invoice.NoCertificadoCfdi ?? string.Empty },
-                { "no_cert_sat", invoice.NoCertificadoSat ?? string.Empty },
-                { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty },
-                // Items and attachments
-                { "items", (object)items },
+                { "currency", invoice.Currency },
                 { "has_pdf", (object)(pdfFile != null) },
                 { "date_year", (object)DateTime.UtcNow.Year },
-                { "company_logo_url", $"{_applicationOptions.BaseUrl.TrimEnd('/')}/images/logo.webp" }
+                { "company_logo_url", hasLogo ? "cid:logo" : string.Empty }
             };
+            var body = await _emailTemplateService.GetTemplateAsync("invoice-cfdi-notification", notificationData);
 
-            var body = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", emailData);
+            var linkedResources = new List<EmailLinkedResource>();
+            if (hasLogo)
+            {
+                linkedResources.Add(new EmailLinkedResource
+                {
+                    ContentId = "logo",
+                    Content = logoBytes,
+                    ContentType = logoMime
+                });
+            }
 
             var message = new EmailMessage
             {
@@ -532,7 +523,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Subject = _localizer["Electronic Invoice {0} - {1}", folio, invoice.IssuerLegalName],
                 Body = body,
                 IsHtml = true,
-                Attachments = attachments
+                Attachments = attachments,
+                LinkedResources = linkedResources
             };
 
             var result = await _emailService.SendAsync(message);
@@ -812,6 +804,83 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             ModifiedAt = i.ModifiedAt,
             ModifiedBy = i.ModifiedBy
         });
+
+    private Dictionary<string, object> BuildInvoiceTemplateData(
+        MexicoInvoice invoice, string folioDisplay, List<object> items, bool hasPdf,
+        decimal discountTotal = 0, string logoBase64 = "", string serie = "")
+    {
+        var qrCode = string.Empty;
+        if (!string.IsNullOrEmpty(invoice.Uuid) && !string.IsNullOrEmpty(invoice.SelloCfdi))
+        {
+            var fe = invoice.SelloCfdi.Length >= 8
+                ? invoice.SelloCfdi[^8..]
+                : invoice.SelloCfdi;
+            var qrUrl = $"https://verificacfdi.facturaelectronica.sat.gob.mx/default.aspx" +
+                        $"?id={invoice.Uuid}" +
+                        $"&re={invoice.IssuerRfc}" +
+                        $"&rr={invoice.CustomerRfc}" +
+                        $"&tt={invoice.Total:F6}" +
+                        $"&fe={fe}";
+            qrCode = GenerateQrCodeBase64(qrUrl);
+        }
+
+        return new Dictionary<string, object>
+        {
+            { "culture", CultureInfo.CurrentUICulture.Name },
+            { "app_name", _applicationOptions.Name },
+            { "issuer_legal_name", invoice.IssuerLegalName },
+            { "issuer_rfc", invoice.IssuerRfc },
+            { "issuer_fiscal_regime", invoice.IssuerFiscalRegime },
+            { "issuer_postal_code", invoice.IssuerPostalCode },
+            { "serie", serie },
+            { "folio", invoice.Folio.ToString() },
+            { "folio_display", folioDisplay },
+            { "issue_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
+            { "uuid", invoice.Uuid ?? string.Empty },
+            { "payment_form", invoice.PaymentForm },
+            { "payment_method", invoice.PaymentMethod },
+            { "currency", invoice.Currency },
+            { "customer_legal_name", invoice.CustomerLegalName },
+            { "customer_rfc", invoice.CustomerRfc },
+            { "customer_fiscal_regime", invoice.CustomerFiscalRegime },
+            { "customer_postal_code", invoice.CustomerPostalCode },
+            { "cfdi_use", invoice.CfdiUse },
+            { "subtotal", invoice.Subtotal.ToString("N2") },
+            { "tax_amount", invoice.TaxAmount.ToString("N2") },
+            { "total", invoice.Total.ToString("N2") },
+            { "no_cert_cfdi", invoice.NoCertificadoCfdi ?? string.Empty },
+            { "no_cert_sat", invoice.NoCertificadoSat ?? string.Empty },
+            { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty },
+            { "cadena_original", invoice.CadenaOriginalSat ?? string.Empty },
+            { "sello_cfdi", invoice.SelloCfdi ?? string.Empty },
+            { "sello_sat", invoice.SelloSat ?? string.Empty },
+            { "qr_code", qrCode },
+            { "discount", discountTotal.ToString("N2") },
+            { "items", (object)items },
+            { "has_pdf", (object)hasPdf },
+            { "date_year", (object)DateTime.UtcNow.Year },
+            { "company_logo_url", string.IsNullOrEmpty(logoBase64)
+                ? $"{_applicationOptions.BaseUrl.TrimEnd('/')}/images/logo.webp"
+                : logoBase64 }
+        };
+    }
+
+    private static string GenerateQrCodeBase64(string text)
+    {
+        try
+        {
+            using var qrGenerator = new QRCoder.QRCodeGenerator();
+            using var qrCodeData = qrGenerator.CreateQrCode(text, QRCoder.QRCodeGenerator.ECCLevel.M);
+            var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
+            var bytes = qrCode.GetGraphic(3);
+            return "data:image/png;base64," + Convert.ToBase64String(bytes);
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
 
     private Task<string> BuildInvoiceHtmlAsync(MexicoInvoiceDto dto, string stampedXml)
     {

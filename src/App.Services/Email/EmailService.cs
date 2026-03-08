@@ -87,9 +87,17 @@ public class EmailService : IEmailService
             // Add attachments if any
             foreach (var attachment in message.Attachments)
             {
-                builder.Attachments.Add(attachment.FileName, 
-                    attachment.Content, 
+                builder.Attachments.Add(attachment.FileName,
+                    attachment.Content,
                     ContentType.Parse(attachment.ContentType));
+            }
+
+            // Add linked resources (inline images via CID)
+            foreach (var lr in message.LinkedResources)
+            {
+                var entity = builder.LinkedResources.Add(lr.ContentId, lr.Content, ContentType.Parse(lr.ContentType));
+                entity.ContentId = lr.ContentId;
+                entity.ContentDisposition = new ContentDisposition(ContentDisposition.Inline);
             }
 
             mimeMessage.Body = builder.ToMessageBody();

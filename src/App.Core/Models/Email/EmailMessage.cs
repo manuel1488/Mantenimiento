@@ -12,6 +12,7 @@ public class EmailMessage
     public string Body { get; set; } = string.Empty;
     public bool IsHtml { get; set; }
     public ICollection<EmailAttachment> Attachments { get; set; } = new List<EmailAttachment>();
+    public ICollection<EmailLinkedResource> LinkedResources { get; set; } = new List<EmailLinkedResource>();
     public IDictionary<string, string> Headers { get; set; } = new Dictionary<string, string>();
     public EmailPriority Priority { get; set; } = EmailPriority.Normal;
 }

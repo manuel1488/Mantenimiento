@@ -149,6 +149,54 @@ public class EmailTemplateService : IEmailTemplateService
         return (body, css);
     }
 
+    public async Task<string> GetStaticFileBase64Async(string relativePath)
+    {
+        var fileInfo = _fileProvider.GetFileInfo(relativePath);
+        if (!fileInfo.Exists) return string.Empty;
+
+        using var stream = fileInfo.CreateReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        var ext = Path.GetExtension(relativePath).TrimStart('.').ToLowerInvariant();
+        var mime = ext switch
+        {
+            "webp" => "image/webp",
+            "png"  => "image/png",
+            "jpg" or "jpeg" => "image/jpeg",
+            "gif"  => "image/gif",
+            "svg"  => "image/svg+xml",
+            _      => "application/octet-stream"
+        };
+
+        return $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+    }
+
+    public async Task<(byte[] Bytes, string MimeType)> GetStaticFileBytesAsync(string relativePath)
+    {
+        var fileInfo = _fileProvider.GetFileInfo(relativePath);
+        if (!fileInfo.Exists) return (Array.Empty<byte>(), string.Empty);
+
+        using var stream = fileInfo.CreateReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        var ext = Path.GetExtension(relativePath).TrimStart('.').ToLowerInvariant();
+        var mime = ext switch
+        {
+            "webp" => "image/webp",
+            "png"  => "image/png",
+            "jpg" or "jpeg" => "image/jpeg",
+            "gif"  => "image/gif",
+            "svg"  => "image/svg+xml",
+            _      => "application/octet-stream"
+        };
+
+        return (bytes, mime);
+    }
+
     private async Task<string?> GetFileTemplateAsync(string templateName, string cultureName)
     {
         // Try specific culture (e.g. es-MX)

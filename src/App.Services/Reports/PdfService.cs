@@ -41,11 +41,16 @@ public class PdfService : IPdfService
                 Format = PaperFormat.Letter,
                 PrintBackground = true,
                 PreferCSSPageSize = true,
+                DisplayHeaderFooter = true,
+                HeaderTemplate = "<span></span>",
+                FooterTemplate = "<div style=\"width:100%;font-family:Arial,sans-serif;font-size:8px;color:#999;text-align:center;padding:0 20px;\">" +
+                                 "Página <span class=\"pageNumber\"></span> de <span class=\"totalPages\"></span>" +
+                                 "</div>",
                 MarginOptions = new MarginOptions
                 {
                     Top = "20px",
                     Right = "20px",
-                    Bottom = "20px",
+                    Bottom = "32px",
                     Left = "20px"
                 }
             };

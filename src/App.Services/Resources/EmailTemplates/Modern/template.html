@@ -17,6 +17,7 @@
     </div>
     <div class="invoice-number">
       <div class="label">CFDI DE INGRESO</div>
+      {{ if serie && serie != "" }}<div class="serie">SERIE: {{ serie }}</div>{{ end }}
       <div class="number">{{ folio }}</div>
       <div class="date">{{ issue_date }}</div>
       <div class="stamp-date">Certificación: {{ stamp_date }}</div>
@@ -71,6 +72,7 @@
     </div>
     <div class="summary">
       <div class="summary-row"><span>Subtotal</span><span>$ {{ subtotal }} {{ currency }}</span></div>
+      <div class="summary-row"><span>Descuento</span><span>-$ {{ discount }} {{ currency }}</span></div>
       <div class="summary-row"><span>IVA</span><span>$ {{ tax_amount }} {{ currency }}</span></div>
       <div class="summary-row total"><span>TOTAL</span><span>$ {{ total }} {{ currency }}</span></div>
     </div>
@@ -86,8 +88,35 @@
     </div>
   </div>
 
+  <div class="modern-fiscal">
+    <div class="fiscal-badges">
+      <span class="fiscal-badge">EFECTOS FISCALES AL PAGO</span>
+      <span class="fiscal-badge">{{ issuer_fiscal_regime }}</span>
+    </div>
+    <div class="cadena-card">
+      <div class="cadena-title">Cadena Original del Complemento de Certificación Digital del SAT</div>
+      <div class="cadena-text">{{ cadena_original }}</div>
+    </div>
+    <div class="seals-flex">
+      {{ if qr_code && qr_code != "" }}
+      <div class="qr-wrap"><img src="{{ qr_code }}" alt="QR" class="qr-image" /></div>
+      {{ end }}
+      <div class="seals-wrap">
+        <div class="seal-block">
+          <div class="seal-header">Sello digital del CFDI</div>
+          <div class="seal-text">{{ sello_cfdi }}</div>
+        </div>
+        <div class="seal-block">
+          <div class="seal-header">Sello Digital del SAT</div>
+          <div class="seal-text">{{ sello_sat }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="print-info">
+    <p>Este documento es una representación impresa de un CFDI &nbsp;|&nbsp; Cert: {{ stamp_date }}</p>
     <p>© {{ date_year }} {{ app_name }}. Todos los derechos reservados.</p>
-    <div class="footer-brand">Generado con <a href="https://www.tworockets.com.mx" target="_blank">Two Rockets Solutions</a></div>
+    <p style="margin-top:4px;">Servicio de facturación electrónica proveído por <a href="https://www.tworockets.com.mx" style="color:#94a3b8;">Two Rockets Software Solutions</a></p>
   </div>
 </div>

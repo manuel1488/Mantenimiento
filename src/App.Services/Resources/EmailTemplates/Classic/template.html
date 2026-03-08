@@ -14,6 +14,7 @@
     </div>
     <div class="header-right">
       <div class="invoice-box"><div class="box-title">CFDI DE INGRESO</div></div>
+      {{ if serie && serie != "" }}<div class="invoice-box"><div class="box-title">SERIE</div><div class="box-content">{{ serie }}</div></div>{{ end }}
       <div class="invoice-box"><div class="box-title">FOLIO</div><div class="box-content">{{ folio }}</div></div>
       <div class="invoice-box"><div class="box-title">FECHA DE EMISIÓN</div><div class="box-content">{{ issue_date }}</div></div>
       <div class="invoice-box"><div class="box-title">FECHA DE CERTIFICACIÓN</div><div class="box-content">{{ stamp_date }}</div></div>
@@ -83,15 +84,47 @@
       <div class="totals-header">TOTALES</div>
       <table class="totals-table">
         <tr><td>Subtotal</td><td class="text-right">$ {{ subtotal }} {{ currency }}</td></tr>
+        <tr><td>Descuento</td><td class="text-right">-$ {{ discount }} {{ currency }}</td></tr>
         <tr><td>IVA</td><td class="text-right">$ {{ tax_amount }} {{ currency }}</td></tr>
         <tr class="total-row"><td><strong>Total:</strong></td><td class="text-right"><strong>$ {{ total }} {{ currency }}</strong></td></tr>
       </table>
     </div>
   </div>
 
-  <div class="footer">
-    © {{ date_year }} {{ app_name }}. Todos los derechos reservados.
-    <div class="footer-brand">Generado con <a href="https://www.tworockets.com.mx" target="_blank">Two Rockets Solutions</a></div>
+  <div class="fiscal-footer">
+    <div class="fiscal-row">
+      <div class="fiscal-cell">EFECTOS FISCALES AL PAGO</div>
+      <div class="fiscal-cell"><strong>CONTRIBUYENTE DEL RÉGIMEN FISCAL</strong><br/>{{ issuer_fiscal_regime }}</div>
+    </div>
+    <div class="cadena-section">
+      <p><strong>Cadena Original del Complemento de Certificación Digital del SAT</strong></p>
+      <p class="cadena-text">{{ cadena_original }}</p>
+    </div>
+    <table class="seals-table">
+      <tr>
+        <td class="qr-cell" rowspan="2">
+          {{ if qr_code && qr_code != "" }}
+          <img src="{{ qr_code }}" alt="QR" class="qr-image" />
+          {{ end }}
+        </td>
+        <td class="seal-cell">
+          <div class="seal-header">Sello digital del CFDI</div>
+          <div class="seal-text">{{ sello_cfdi }}</div>
+        </td>
+      </tr>
+      <tr>
+        <td class="seal-cell">
+          <div class="seal-header">Sello Digital del SAT</div>
+          <div class="seal-text">{{ sello_sat }}</div>
+        </td>
+      </tr>
+    </table>
+    <div class="footer-note">
+      <p>Este documento es una representación impresa de un CFDI</p>
+      <p><strong>Fecha de Certificación:</strong> {{ stamp_date }}</p>
+      <p>© {{ date_year }} {{ app_name }}. Todos los derechos reservados.</p>
+      <p style="margin-top:4px;">Servicio de facturación electrónica proveído por <a href="https://www.tworockets.com.mx" style="color:#555;">Two Rockets Software Solutions</a></p>
+    </div>
   </div>
 
 </div>

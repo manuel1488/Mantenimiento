@@ -1,5 +1,5 @@
-body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 20px; color: #000; background: #f0f0f0; }
-.compact-invoice { padding: 15px; max-width: 680px; margin: 0 auto; background: #fff; }
+body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 0; color: #000; background: #fff; }
+.compact-invoice { padding: 15px; width: 100%; box-sizing: border-box; background: #fff; }
 .header-table { width: 100%; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; border-collapse: collapse; }
 .company-cell { width: 65%; vertical-align: top; padding: 4px; }
 .company-name { font-size: 14pt; font-weight: bold; margin-bottom: 3px; }
@@ -24,7 +24,15 @@ body { font-family: Arial, sans-serif; font-size: 9pt; margin: 0; padding: 20px;
 .compact-totals .total-row { background: #333; color: white; font-size: 10pt; }
 .compact-stamp { margin-top: 15px; padding: 10px; background: #f0f9ff; border: 1px solid #bae6fd; font-size: 7pt; }
 .stamp-title { font-size: 8pt; font-weight: bold; color: #0369a1; margin-bottom: 5px; }
-.compact-footer { margin-top: 15px; padding: 6px; text-align: center; font-size: 7pt; color: #666; border-top: 1px solid #ddd; }
+.compact-fiscal { margin-top: 15px; font-size: 7pt; }
+.fiscal-bar { background: #333; color: #fff; padding: 5px 8px; font-weight: bold; font-size: 7pt; text-align: center; margin-bottom: 6px; }
+.cadena-block { padding: 6px 8px; background: #f5f5f5; border: 1px solid #ccc; margin-bottom: 6px; font-size: 6pt; word-wrap: break-word; }
+.cadena-text { font-family: 'Courier New', monospace; font-size: 5.5pt; line-height: 1.3; word-break: break-all; }
+.seals-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: 6px; }
+.qr-cell { width: 110px; vertical-align: top; text-align: center; padding: 4px; border: 1px solid #ccc; background: #fafafa; }
+.qr-image { max-width: 90px; max-height: 90px; width: 100%; height: auto; }
+.seal-cell { vertical-align: top; padding: 5px; border: 1px solid #ccc; background: #fafafa; overflow: hidden; }
+.seal-header { font-weight: bold; font-size: 6.5pt; color: #333; }
+.seal-text { font-family: 'Courier New', monospace; font-size: 4.5pt; line-height: 1.3; word-break: break-all; word-wrap: break-word; overflow-wrap: break-word; display: block; }
+.compact-footer { margin-top: 8px; padding: 6px; text-align: center; font-size: 7pt; color: #666; border-top: 1px solid #ddd; }
 .compact-footer p { margin: 2px 0; }
-.footer-brand { margin-top: 5px; font-size: 6pt; color: #bbb; }
-.footer-brand a { color: #bbb; text-decoration: none; }
