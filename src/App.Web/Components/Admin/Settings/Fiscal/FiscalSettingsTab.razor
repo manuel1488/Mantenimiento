@@ -9,6 +9,7 @@
 @inject ITaxSettingsService TaxSettingsService
 @inject ICfdiPostalCodeService CfdiPostalCodeService
 @inject IMexicoFiscalCatalogService MexicoFiscalCatalogService
+@inject IMexicoPacSettingsService PacSettingsService
 @inject IPermissionCheckService PermissionService
 @inject ILookupService LookupService
 @inject IStringLocalizer<FiscalSettingsTab> L
@@ -192,6 +193,89 @@
                             </MudItem>
                         </MudGrid>
                     </MudItem>
+
+                    <MudItem xs="12"><MudDivider /></MudItem>
+
+                    <!-- CSD Digital Certificate -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Class="mb-3">@L["CSD Digital Certificate"]</MudText>
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.body2" Class="mb-2">
+                                    @L["Certificate (.cer)"] —
+                                    @if (_pacSettings?.HasCsdCertificate == true)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">@L["Uploaded"]</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning">@L["Not uploaded"]</MudChip>
+                                    }
+                                </MudText>
+                                @if (_hasWriteAccess)
+                                {
+                                    <MudFileUpload T="IBrowserFile"
+                                                   FilesChanged="OnCertificateFileChanged"
+                                                   Accept=".cer,.pem">
+                                        <ActivatorContent>
+                                            <MudButton Variant="Variant.Outlined"
+                                                       StartIcon="@Icons.Material.Filled.Upload"
+                                                       Color="Color.Primary">
+                                                @L["Upload Certificate"]
+                                            </MudButton>
+                                        </ActivatorContent>
+                                    </MudFileUpload>
+                                    @if (!string.IsNullOrEmpty(_certFileName))
+                                    {
+                                        <MudText Typo="Typo.caption" Class="mt-1">@_certFileName</MudText>
+                                    }
+                                }
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.body2" Class="mb-2">
+                                    @L["Private Key (.key)"] —
+                                    @if (_pacSettings?.HasCsdPrivateKey == true)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">@L["Uploaded"]</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning">@L["Not uploaded"]</MudChip>
+                                    }
+                                </MudText>
+                                @if (_hasWriteAccess)
+                                {
+                                    <MudFileUpload T="IBrowserFile"
+                                                   FilesChanged="OnPrivateKeyFileChanged"
+                                                   Accept=".key">
+                                        <ActivatorContent>
+                                            <MudButton Variant="Variant.Outlined"
+                                                       StartIcon="@Icons.Material.Filled.Key"
+                                                       Color="Color.Primary">
+                                                @L["Upload Private Key"]
+                                            </MudButton>
+                                        </ActivatorContent>
+                                    </MudFileUpload>
+                                    @if (!string.IsNullOrEmpty(_keyFileName))
+                                    {
+                                        <MudText Typo="Typo.caption" Class="mt-1">@_keyFileName</MudText>
+                                    }
+                                }
+                            </MudItem>
+
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="_csdPassword"
+                                              Label="@L["CSD Password"]"
+                                              InputType="InputType.Password"
+                                              MaxLength="200"
+                                              Variant="Variant.Outlined"
+                                              ReadOnly="@(!_hasWriteAccess)"
+                                              placeholder="@(_pacSettings?.HasCsdPassword == true ? "••••••••••••••••" : string.Empty)"
+                                              HelperText="@(_pacSettings?.HasCsdPassword == true ? L["Password saved — enter to change"].Value : L["Password to decrypt the private key"].Value)" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudItem>
                 }
                 else if (_model.CountryCode == "CA")
                 {
@@ -287,6 +371,14 @@
     private CfdiPostalCodeDto? _postalCodeTz;
     private bool _postalCodeNotFound;
 
+    // CSD certificate (Mexico only)
+    private MexicoPacSettingsDto? _pacSettings;
+    private string? _certFileName;
+    private string? _keyFileName;
+    private string? _csdCertBase64;
+    private string? _csdKeyBase64;
+    private string? _csdPassword;
+
     protected override async Task OnInitializedAsync()
     {
         // Check permissions
@@ -300,6 +392,7 @@
 
         await LoadSettings();
         await RefreshPostalCodeTimezoneAsync();
+        _pacSettings = await PacSettingsService.GetAsync();
     }
 
     private async Task LoadMexicoFiscalCatalogsAsync()
@@ -458,6 +551,73 @@
         }
     }
 
+    private async Task OnCertificateFileChanged(IBrowserFile? file)
+    {
+        if (file == null) return;
+        try
+        {
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(ms);
+            _csdCertBase64 = Convert.ToBase64String(ms.ToArray());
+            _certFileName = file.Name;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error reading certificate file");
+            Snackbar.Add(L["Error reading file"], Severity.Error);
+        }
+    }
+
+    private async Task OnPrivateKeyFileChanged(IBrowserFile? file)
+    {
+        if (file == null) return;
+        try
+        {
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(ms);
+            _csdKeyBase64 = Convert.ToBase64String(ms.ToArray());
+            _keyFileName = file.Name;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error reading private key file");
+            Snackbar.Add(L["Error reading file"], Severity.Error);
+        }
+    }
+
+    private async Task SaveCsdAsync()
+    {
+        if (_csdCertBase64 == null && _csdKeyBase64 == null && string.IsNullOrEmpty(_csdPassword))
+            return;
+
+        var dto = new UpdateMexicoPacSettingsDto
+        {
+            ProviderName = _pacSettings?.ProviderName ?? "SW Sapien",
+            User = _pacSettings?.User,
+            ProductionUrl = _pacSettings?.ProductionUrl ?? "https://services.sw.com.mx",
+            TestUrl = _pacSettings?.TestUrl,
+            IsProduction = _pacSettings?.IsProduction ?? false,
+            CsdCertificateBase64 = _csdCertBase64,
+            CsdPrivateKeyBase64 = _csdKeyBase64,
+            CsdPassword = _csdPassword
+        };
+
+        var result = await PacSettingsService.SaveAsync(dto);
+        if (result.IsSuccess)
+        {
+            _pacSettings = result.Value;
+            _csdCertBase64 = null;
+            _csdKeyBase64 = null;
+            _csdPassword = null;
+            _certFileName = null;
+            _keyFileName = null;
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
     private async Task SaveChangesAsync()
     {
         await _form.Validate();
@@ -472,6 +632,7 @@
                 if (_isValid)
                 {
                     await TaxSettingsService.UpdateSettingsAsync(_model);
+                    await SaveCsdAsync();
                     Snackbar.Add(L["Settings updated successfully"], Severity.Success);
                     await LoadSettings();
                 }

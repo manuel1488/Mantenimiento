@@ -97,88 +97,6 @@
                     </MudGrid>
                 </MudItem>
 
-                <MudItem xs="12"><MudDivider /></MudItem>
-
-                <!-- CSD Certificate -->
-                <MudItem xs="12">
-                    <MudText Typo="Typo.h6" Class="mb-3">@L["CSD Digital Certificate"]</MudText>
-                    <MudGrid Spacing="2">
-                        <MudItem xs="12" sm="6">
-                            <MudText Typo="Typo.body2" Class="mb-2">
-                                @L["Certificate (.cer)"] —
-                                @if (_settings?.HasCsdCertificate == true)
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Success">@L["Uploaded"]</MudChip>
-                                }
-                                else
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">@L["Not uploaded"]</MudChip>
-                                }
-                            </MudText>
-                            @if (_hasWriteAccess)
-                            {
-                                <MudFileUpload T="IBrowserFile"
-                                               FilesChanged="OnCertificateFileChanged"
-                                               Accept=".cer,.pem">
-                                    <ActivatorContent>
-                                        <MudButton Variant="Variant.Outlined"
-                                                   StartIcon="@Icons.Material.Filled.Upload"
-                                                   Color="Color.Primary">
-                                            @L["Upload Certificate"]
-                                        </MudButton>
-                                    </ActivatorContent>
-                                </MudFileUpload>
-                                @if (!string.IsNullOrEmpty(_certFileName))
-                                {
-                                    <MudText Typo="Typo.caption" Class="mt-1">@_certFileName</MudText>
-                                }
-                            }
-                        </MudItem>
-
-                        <MudItem xs="12" sm="6">
-                            <MudText Typo="Typo.body2" Class="mb-2">
-                                @L["Private Key (.key)"] —
-                                @if (_settings?.HasCsdPrivateKey == true)
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Success">@L["Uploaded"]</MudChip>
-                                }
-                                else
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">@L["Not uploaded"]</MudChip>
-                                }
-                            </MudText>
-                            @if (_hasWriteAccess)
-                            {
-                                <MudFileUpload T="IBrowserFile"
-                                               FilesChanged="OnPrivateKeyFileChanged"
-                                               Accept=".key">
-                                    <ActivatorContent>
-                                        <MudButton Variant="Variant.Outlined"
-                                                   StartIcon="@Icons.Material.Filled.Key"
-                                                   Color="Color.Primary">
-                                            @L["Upload Private Key"]
-                                        </MudButton>
-                                    </ActivatorContent>
-                                </MudFileUpload>
-                                @if (!string.IsNullOrEmpty(_keyFileName))
-                                {
-                                    <MudText Typo="Typo.caption" Class="mt-1">@_keyFileName</MudText>
-                                }
-                            }
-                        </MudItem>
-
-                        <MudItem xs="12" sm="6">
-                            <MudTextField @bind-Value="_model.CsdPassword"
-                                          Label="@L["CSD Password"]"
-                                          InputType="InputType.Password"
-                                          MaxLength="200"
-                                          Variant="Variant.Outlined"
-                                          ReadOnly="@(!_hasWriteAccess)"
-                                          placeholder="@(string.IsNullOrEmpty(_model.CsdPassword) && _settings?.HasCsdPassword == true ? "••••••••••••••••" : string.Empty)"
-                                          HelperText="@(string.IsNullOrEmpty(_model.CsdPassword) && _settings?.HasCsdPassword == true ? L["Password saved — enter to change"].Value : L["Password to decrypt the private key"].Value)" />
-                        </MudItem>
-                    </MudGrid>
-                </MudItem>
 
                 <!-- Status badge -->
                 @if (_settings != null)
@@ -235,9 +153,6 @@
     private MexicoPacSettingsDto? _settings;
     private UpdateMexicoPacSettingsDto _model = new();
 
-    private string? _certFileName;
-    private string? _keyFileName;
-
     protected override async Task OnInitializedAsync()
     {
         _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageFiscalSettings);
@@ -265,40 +180,6 @@
         {
             Logger.LogError(ex, "Error loading PAC settings");
             Snackbar.Add(L["Error loading settings"], Severity.Error);
-        }
-    }
-
-    private async Task OnCertificateFileChanged(IBrowserFile? file)
-    {
-        if (file == null) return;
-        try
-        {
-            using var ms = new MemoryStream();
-            await file.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(ms);
-            _model.CsdCertificateBase64 = Convert.ToBase64String(ms.ToArray());
-            _certFileName = file.Name;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error reading certificate file");
-            Snackbar.Add(L["Error reading file"], Severity.Error);
-        }
-    }
-
-    private async Task OnPrivateKeyFileChanged(IBrowserFile? file)
-    {
-        if (file == null) return;
-        try
-        {
-            using var ms = new MemoryStream();
-            await file.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(ms);
-            _model.CsdPrivateKeyBase64 = Convert.ToBase64String(ms.ToArray());
-            _keyFileName = file.Name;
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error reading private key file");
-            Snackbar.Add(L["Error reading file"], Severity.Error);
         }
     }
 

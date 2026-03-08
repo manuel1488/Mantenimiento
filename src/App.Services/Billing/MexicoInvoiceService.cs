@@ -4,13 +4,18 @@ using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Billing;
 using App.Core.Models.Cfdi.V40;
+using App.Core.Models.Email;
+using App.Core.Options;
 using App.Models.Billing;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using App.Core.DTOs.Settings;
 using App.Shared.Services;
+using System.Globalization;
 
 namespace App.Services.Billing;
 
@@ -24,6 +29,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private readonly ITaxSettingsService _taxSettingsService;
     private readonly IMexicoStampAlertService _stampAlertService;
     private readonly IPdfService _pdfService;
+    private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _emailTemplateService;
+    private readonly IStringLocalizer<MexicoInvoiceService> _localizer;
+    private readonly ApplicationOptions _applicationOptions;
     private readonly IDateTime _dateTime;
     private readonly ICompanySettingsService _companySettingsService;
     private readonly ILogger<MexicoInvoiceService> _logger;
@@ -42,6 +51,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         ITaxSettingsService taxSettingsService,
         IMexicoStampAlertService stampAlertService,
         IPdfService pdfService,
+        IEmailService emailService,
+        IEmailTemplateService emailTemplateService,
+        IStringLocalizer<MexicoInvoiceService> localizer,
+        IOptions<ApplicationOptions> applicationOptions,
         IDateTime dateTime,
         ICompanySettingsService companySettingsService,
         ILogger<MexicoInvoiceService> logger)
@@ -54,6 +67,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         _taxSettingsService = taxSettingsService;
         _stampAlertService = stampAlertService;
         _pdfService = pdfService;
+        _emailService = emailService;
+        _emailTemplateService = emailTemplateService;
+        _localizer = localizer;
+        _applicationOptions = applicationOptions.Value;
         _dateTime = dateTime;
         _companySettingsService = companySettingsService;
         _logger = logger;
@@ -407,9 +424,91 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
     public async Task<Result> SendByEmailAsync(long invoiceId, string email)
     {
-        // Placeholder — email sending implemented in Phase 2
         _logger.LogInformation("Email send requested for invoice {InvoiceId} to {Email}", invoiceId, email);
-        return await Task.FromResult(Result.Success());
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var invoice = await context.MexicoInvoices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == invoiceId);
+
+            if (invoice == null)
+                return Result.Failure("Factura no encontrada");
+
+            var folio = string.IsNullOrEmpty(invoice.Serie)
+                ? invoice.Folio.ToString()
+                : $"{invoice.Serie}{invoice.Folio}";
+
+            var attachments = new List<EmailAttachment>();
+
+            var xmlFile = await context.MexicoInvoiceFiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "XML");
+            if (xmlFile != null)
+            {
+                attachments.Add(new EmailAttachment
+                {
+                    FileName = $"CFDI_{folio}.xml",
+                    Content = xmlFile.FileData,
+                    ContentType = "application/xml"
+                });
+            }
+
+            var pdfFile = await context.MexicoInvoiceFiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "PDF");
+            if (pdfFile != null)
+            {
+                attachments.Add(new EmailAttachment
+                {
+                    FileName = $"CFDI_{folio}.pdf",
+                    Content = pdfFile.FileData,
+                    ContentType = "application/pdf"
+                });
+            }
+
+            var emailData = new Dictionary<string, object>
+            {
+                { "culture", CultureInfo.CurrentUICulture.Name },
+                { "app_name", _applicationOptions.Name },
+                { "folio", folio },
+                { "uuid", invoice.Uuid ?? string.Empty },
+                { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
+                { "customer_legal_name", invoice.CustomerLegalName },
+                { "customer_rfc", invoice.CustomerRfc },
+                { "issuer_legal_name", invoice.IssuerLegalName },
+                { "issuer_rfc", invoice.IssuerRfc },
+                { "total", invoice.Total.ToString("C2") },
+                { "has_pdf", pdfFile != null }
+            };
+
+            var body = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", emailData);
+
+            var message = new EmailMessage
+            {
+                To = email,
+                Subject = _localizer["Electronic Invoice {0} - {1}", folio, invoice.IssuerLegalName],
+                Body = body,
+                IsHtml = true,
+                Attachments = attachments
+            };
+
+            var result = await _emailService.SendAsync(message);
+            if (!result.Success)
+            {
+                _logger.LogWarning("Email send failed for invoice {InvoiceId}: {Error}", invoiceId, result.Error);
+                return Result.Failure(result.Error ?? "Error al enviar el correo");
+            }
+
+            _logger.LogInformation("Invoice {InvoiceId} email sent successfully to {Email}", invoiceId, email);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending invoice {InvoiceId} by email to {Email}", invoiceId, email);
+            return Result.Failure("Error al enviar el correo de la factura");
+        }
     }
 
     public async Task<Result> CancelAsync(long invoiceId, string reason)

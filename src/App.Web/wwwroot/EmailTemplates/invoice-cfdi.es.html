@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Factura Electrónica - {{ app_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #E53935;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 { margin: 0 0 8px 0; font-size: 22px; }
+        .header p { margin: 0; font-size: 14px; opacity: 0.9; }
+        .content {
+            padding: 24px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        .invoice-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 18px;
+            margin: 20px 0;
+        }
+        .invoice-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .invoice-box td {
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .invoice-box td:first-child {
+            color: #555;
+            width: 45%;
+        }
+        .invoice-box td:last-child {
+            font-weight: bold;
+        }
+        .total-row td {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            font-size: 16px;
+            color: #E53935;
+        }
+        .attachments-note {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        .footer {
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📄 Factura Electrónica CFDI</h1>
+        <p>{{ app_name }}</p>
+    </div>
+
+    <div class="content">
+        <p>Estimado(a) <strong>{{ customer_legal_name }}</strong>,</p>
+        <p>Adjunto a este correo encontrará su factura electrónica (CFDI) emitida por <strong>{{ issuer_legal_name }}</strong>.</p>
+
+        <div class="invoice-box">
+            <table>
+                <tr>
+                    <td>Folio:</td>
+                    <td>{{ folio }}</td>
+                </tr>
+                <tr>
+                    <td>UUID:</td>
+                    <td style="font-size: 12px; word-break: break-all;">{{ uuid }}</td>
+                </tr>
+                <tr>
+                    <td>Fecha de Timbrado:</td>
+                    <td>{{ stamp_date }}</td>
+                </tr>
+                <tr>
+                    <td>RFC Receptor:</td>
+                    <td>{{ customer_rfc }}</td>
+                </tr>
+                <tr>
+                    <td>RFC Emisor:</td>
+                    <td>{{ issuer_rfc }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total:</td>
+                    <td>{{ total }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="attachments-note">
+            ✅ Se adjuntan los archivos XML{{ has_pdf ? " y PDF" : "" }} de su factura electrónica.
+        </div>
+
+        <p>Si tiene alguna duda sobre esta factura, favor de contactarnos.</p>
+    </div>
+
+    <div class="footer">
+        <p>© {{ app_name }}. Todos los derechos reservados.</p>
+        <p>Este es un mensaje automático. Por favor no responda a este correo.</p>
+    </div>
+</body>
+</html>
