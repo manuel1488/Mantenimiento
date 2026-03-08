@@ -7,6 +7,7 @@
 @inject IEmailTemplateSettingsService TemplateSettingsService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<EmailTemplatePresetsDialog> L
+@inject NavigationManager NavigationManager
 
 <MudDialog>
     <DialogContent>
@@ -99,7 +100,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var sampleData = EmailTemplateSampleData.GetSampleData(TemplateName, "es");
+        var sampleData = EmailTemplateSampleData.GetSampleData(TemplateName, "es", NavigationManager.BaseUri);
 
         var sources = new Dictionary<string, (string Html, string Css)>
         {

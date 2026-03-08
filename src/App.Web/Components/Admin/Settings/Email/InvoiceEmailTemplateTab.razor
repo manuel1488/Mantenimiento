@@ -8,6 +8,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IStringLocalizer<InvoiceEmailTemplateTab> L
+@inject NavigationManager NavigationManager
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
     <MudText Typo="Typo.body2" Color="Color.Secondary">
@@ -141,7 +142,7 @@ else
 
     private async Task OpenPreview(string name)
     {
-        var sampleData = EmailTemplateSampleData.GetSampleData(name, "es");
+        var sampleData = EmailTemplateSampleData.GetSampleData(name, "es", NavigationManager.BaseUri);
         var html = await EmailTemplateService.GetTemplateAsync(name, sampleData);
 
         var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };

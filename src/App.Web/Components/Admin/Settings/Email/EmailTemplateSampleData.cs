@@ -4,7 +4,7 @@ namespace App.Web.Components.Admin.Settings.Email;
 
 internal static class EmailTemplateSampleData
 {
-    public static Dictionary<string, object> GetSampleData(string templateName, string language) =>
+    public static Dictionary<string, object> GetSampleData(string templateName, string language, string baseUrl = "") =>
         templateName switch
         {
             "invoice-cfdi" => new Dictionary<string, object>
@@ -34,7 +34,7 @@ internal static class EmailTemplateSampleData
                 { "has_pdf", true },
                 { "date_year", "2026" },
                 { "app_name", "Cleeny" },
-                { "company_logo_url", "" },
+                { "company_logo_url", string.IsNullOrEmpty(baseUrl) ? "" : baseUrl.TrimEnd('/') + "/images/logo.webp" },
                 {
                     "items", new List<object>
                     {

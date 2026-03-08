@@ -8,6 +8,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IStringLocalizer<EmailTemplateEditorDialog> L
+@inject NavigationManager NavigationManager
 
 <MudDialog Style="height: 90vh;">
     <DialogContent>
@@ -137,7 +138,7 @@
         _previewing = true;
         try
         {
-            var sampleData = EmailTemplateSampleData.GetSampleData(TemplateName, "es");
+            var sampleData = EmailTemplateSampleData.GetSampleData(TemplateName, "es", NavigationManager.BaseUri);
             var fullHtml = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>" +
                            _cssContent + "</style></head><body>" + _htmlContent + "</body></html>";
             var template = Scriban.Template.Parse(fullHtml);

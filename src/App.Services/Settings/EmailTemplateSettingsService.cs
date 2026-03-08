@@ -107,6 +107,8 @@ public class EmailTemplateSettingsService : IEmailTemplateSettingsService
             if (entity == null)
                 return Result.Failure(_localizer["Template not found"]);
 
+            entity.DeletedBy = _currentUserService.UserId;
+            entity.DeletedAt = _dateTime.Now;
             context.EmailTemplateSettings.Remove(entity);
             await context.SaveChangesAsync();
             return Result.Success();

@@ -149,7 +149,7 @@ public class EmailTemplateService : IEmailTemplateService
         return (body, css);
     }
 
-    private Task<string?> GetFileTemplateAsync(string templateName, string cultureName)
+    private async Task<string?> GetFileTemplateAsync(string templateName, string cultureName)
     {
         // Try specific culture (e.g. es-MX)
         string path = Path.Combine(TemplatesPath, $"{templateName}.{cultureName}.html");
@@ -171,11 +171,11 @@ public class EmailTemplateService : IEmailTemplateService
         }
 
         if (!fileInfo.Exists)
-            return Task.FromResult<string?>(null);
+            return null;
 
         _logger.LogInformation("Using file template: {Path}", fileInfo.PhysicalPath ?? fileInfo.Name);
 
         using var reader = new StreamReader(fileInfo.CreateReadStream());
-        return reader.ReadToEndAsync().ContinueWith(t => (string?)t.Result);
+        return await reader.ReadToEndAsync();
     }
 }
