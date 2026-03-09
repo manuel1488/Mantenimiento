@@ -243,6 +243,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Initialize current user service to avoid deadlock when accessing ActiveLocationId synchronously
+        await CurrentUserService.EnsureInitializedAsync();
+
         _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
 
         // Set default date range to current month

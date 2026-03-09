@@ -386,6 +386,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Total = i.Total,
                 CfdiUse = i.CfdiUse,
                 CancellationStatus = i.CancellationStatus,
+                CancellationDate = i.CancellationDate,
                 HasCancellationAcuse = i.CancellationAcuse != null,
                 StampError = i.StampError,
                 CreatedAt = i.CreatedAt,
@@ -430,14 +431,44 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
     public async Task<Result<byte[]>> GetPdfAsync(long invoiceId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var file = await context.MexicoInvoiceFiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "PDF");
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-        return file == null
-            ? Result<byte[]>.Failure("No se encontró el PDF de la factura")
-            : Result<byte[]>.Success(file.FileData);
+            var invoice = await context.MexicoInvoices
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == invoiceId);
+
+            if (invoice == null)
+                return Result<byte[]>.Failure("Factura no encontrada");
+
+            var file = await context.MexicoInvoiceFiles
+                .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "PDF");
+
+            if (file == null)
+                return Result<byte[]>.Failure("No se encontró el PDF de la factura");
+
+            if (invoice.Status == "Cancelled")
+            {
+                var watermarkedPdf = await RegenerateCancelledPdfAsync(invoice, context);
+                if (watermarkedPdf != null)
+                {
+                    file.FileData = watermarkedPdf;
+                    file.ModifiedAt = _dateTime.Now;
+                    file.ModifiedBy = "System";
+                    await context.SaveChangesAsync();
+                    return Result<byte[]>.Success(watermarkedPdf);
+                }
+                // regeneration failed → return original PDF without watermark
+            }
+
+            return Result<byte[]>.Success(file.FileData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving PDF for invoice {InvoiceId}", invoiceId);
+            return Result<byte[]>.Failure("Error al obtener el PDF de la factura");
+        }
     }
 
     public async Task<Result> SendByEmailAsync(long invoiceId, string email)
@@ -660,7 +691,13 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 return Result.Failure("La factura no está en estado de cancelación pendiente");
 
             if (string.IsNullOrEmpty(invoice.CancellationReason))
+            {
+                invoice.CancellationStatus = "Error";
+                invoice.ModifiedAt = _dateTime.Now;
+                invoice.ModifiedBy = "System";
+                await context.SaveChangesAsync();
                 return Result.Failure("La factura no tiene motivo de cancelación registrado");
+            }
 
             _logger.LogInformation(
                 "Refreshing cancellation status for invoice {InvoiceId} UUID {Uuid}",
@@ -980,9 +1017,156 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             ModifiedBy = i.ModifiedBy
         });
 
+    private async Task<byte[]?> RegenerateCancelledPdfAsync(
+        MexicoInvoice invoice, ApplicationDbContext context)
+    {
+        try
+        {
+            var sale = await context.Sales
+                .Include(s => s.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.MexicoProductService)
+                .FirstOrDefaultAsync(s => s.Id == invoice.SaleId);
+
+            if (sale == null)
+            {
+                _logger.LogWarning(
+                    "Sale {SaleId} not found while regenerating cancelled PDF for invoice {InvoiceId}",
+                    invoice.SaleId, invoice.Id);
+                return null;
+            }
+
+            var folioDisplay = string.IsNullOrEmpty(invoice.Serie)
+                ? invoice.Folio.ToString()
+                : $"{invoice.Serie}{invoice.Folio}";
+
+            var pdfItems = sale.Details.Select(d => (object)new Dictionary<string, object>
+            {
+                { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
+                { "description", d.Product.Name },
+                { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                { "unit_price", d.UnitPrice.ToString("N2") },
+                { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
+                { "has_discount", (object)(d.DiscountAmount > 0) },
+                { "amount", d.Total.ToString("N2") }
+            }).ToList();
+
+            var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
+            var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+            var cancellationDate = invoice.CancellationDate.HasValue
+                ? invoice.CancellationDate.Value.ToString("dd/MM/yyyy")
+                : string.Empty;
+
+            var pdfData = BuildInvoiceTemplateData(
+                invoice, folioDisplay, pdfItems, hasPdf: true,
+                discountTotal: discountTotal, logoBase64: logoBase64,
+                serie: invoice.Serie ?? string.Empty,
+                isCancelled: true,
+                cancellationDate: cancellationDate);
+
+            var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
+            html = InjectCancellationWatermark(html, cancellationDate);
+            return await _pdfService.GeneratePdfFromHtmlAsync(html);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to regenerate cancelled PDF for invoice {InvoiceId}", invoice.Id);
+            return null;
+        }
+    }
+
+    private static string InjectCancellationWatermark(string html, string cancellationDate)
+    {
+        // Skip if the template already rendered the watermark
+        if (html.Contains("watermark-overlay", StringComparison.OrdinalIgnoreCase) ||
+            html.Contains("cfdi-cancel-overlay", StringComparison.OrdinalIgnoreCase))
+            return html;
+
+        const string css = """
+            .cfdi-cancel-overlay {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                pointer-events: none;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .cfdi-cancel-text {
+                font-size: 100px;
+                font-weight: 900;
+                color: rgba(192, 57, 43, 0.20);
+                text-transform: uppercase;
+                letter-spacing: 8px;
+                transform: rotate(-40deg);
+                white-space: nowrap;
+                font-family: Arial Black, Arial, sans-serif;
+                user-select: none;
+                text-align: center;
+                line-height: 1.2;
+            }
+            .cfdi-cancel-banner {
+                margin: 0 12px 0 12px;
+                padding: 8px 14px;
+                background-color: #fdecea;
+                border-left: 4px solid #c0392b;
+                font-size: 12px;
+                color: #c0392b;
+                font-weight: bold;
+            }
+            """;
+
+        var dateSpan = string.IsNullOrEmpty(cancellationDate)
+            ? string.Empty
+            : $"<br><span style=\"font-size:28px;letter-spacing:4px;\">{cancellationDate}</span>";
+
+        var overlay = $"""
+            <div class="cfdi-cancel-overlay">
+                <div class="cfdi-cancel-text">CANCELADA{dateSpan}</div>
+            </div>
+            """;
+
+        var banner = $"""
+            <div class="cfdi-cancel-banner">
+                &#x26A0; FACTURA CANCELADA ante el SAT{(string.IsNullOrEmpty(cancellationDate) ? "" : $" — Fecha: {cancellationDate}")}
+            </div>
+            """;
+
+        // Inject CSS before </style> (or before </head> if no style block)
+        if (html.Contains("</style>", StringComparison.OrdinalIgnoreCase))
+        {
+            html = html.Replace("</style>", css + "\n</style>",
+                StringComparison.OrdinalIgnoreCase);
+        }
+        else
+        {
+            html = html.Replace("</head>",
+                $"<style>\n{css}\n</style>\n</head>",
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Inject watermark overlay right after <body> opening tag
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"<body([^>]*)>",
+            m => m.Value + "\n" + overlay,
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Inject cancellation banner as first child of .container div
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            @"(<div[^>]+class=""container""[^>]*>)",
+            m => m.Value + "\n" + banner,
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        return html;
+    }
+
     private Dictionary<string, object> BuildInvoiceTemplateData(
         MexicoInvoice invoice, string folioDisplay, List<object> items, bool hasPdf,
-        decimal discountTotal = 0, string logoBase64 = "", string serie = "")
+        decimal discountTotal = 0, string logoBase64 = "", string serie = "",
+        bool isCancelled = false, string cancellationDate = "")
     {
         var qrCode = string.Empty;
         if (!string.IsNullOrEmpty(invoice.Uuid) && !string.IsNullOrEmpty(invoice.SelloCfdi))
@@ -1034,6 +1218,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             { "items", (object)items },
             { "has_pdf", (object)hasPdf },
             { "date_year", (object)DateTime.UtcNow.Year },
+            { "is_cancelled", (object)isCancelled },
+            { "cancellation_date", cancellationDate },
             { "company_logo_url", string.IsNullOrEmpty(logoBase64)
                 ? $"{_applicationOptions.BaseUrl.TrimEnd('/')}/images/logo.webp"
                 : logoBase64 }

@@ -155,6 +155,12 @@
                         <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
                             @GetStatusText(context.Status)
                         </MudChip>
+                        @if (context.CancellationDate.HasValue)
+                        {
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
+                                @context.CancellationDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                            </MudText>
+                        }
                     </MudTd>
                     <MudTd Style="text-align: center;">
                         <div class="d-flex justify-center align-center gap-2">
