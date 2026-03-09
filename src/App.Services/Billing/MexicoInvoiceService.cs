@@ -1,5 +1,6 @@
 using System.Text;
 using App.Core.Common;
+using App.Core.DTOs.Billing;
 using App.Core.DTOs.Billing.Mexico;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
@@ -342,10 +343,17 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         if (!string.IsNullOrWhiteSpace(searchString))
         {
             var s = searchString.Trim();
-            query = query.Where(i =>
-                i.CustomerRfc.Contains(s) ||
-                i.CustomerLegalName.Contains(s) ||
-                (i.Uuid != null && i.Uuid.Contains(s)));
+            if (long.TryParse(s, out var saleIdSearch))
+            {
+                query = query.Where(i => i.SaleId == saleIdSearch);
+            }
+            else
+            {
+                query = query.Where(i =>
+                    i.CustomerRfc.Contains(s) ||
+                    i.CustomerLegalName.Contains(s) ||
+                    (i.Uuid != null && i.Uuid.Contains(s)));
+            }
         }
 
         if (startDate.HasValue)
@@ -525,6 +533,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 { "culture", "es" },
                 { "app_name", _applicationOptions.Name },
                 { "folio", folio },
+                { "serie", invoice.Serie ?? string.Empty },
+                { "folio_number", invoice.Folio.ToString() },
                 { "uuid", invoice.Uuid ?? string.Empty },
                 { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
                 { "customer_legal_name", invoice.CustomerLegalName },
@@ -824,6 +834,49 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             return Result.Failure("Esta venta ya tiene una factura generada");
 
         return Result.Success();
+    }
+
+    public async Task<Result<SaleForInvoicingDto>> GetSaleInfoForInvoicingAsync(long saleId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var sale = await context.Sales
+                .AsNoTracking()
+                .Include(s => s.Customer)
+                .FirstOrDefaultAsync(s => s.Id == saleId);
+
+            if (sale == null)
+                return Result<SaleForInvoicingDto>.Failure("Venta no encontrada");
+
+            if (sale.Status == SaleStatus.Cancelled)
+                return Result<SaleForInvoicingDto>.Failure("No se puede facturar una venta cancelada");
+
+            var alreadyInvoiced = await context.MexicoInvoices
+                .AsNoTracking()
+                .AnyAsync(i => i.SaleId == saleId && i.Status != "StampError");
+
+            if (alreadyInvoiced)
+                return Result<SaleForInvoicingDto>.Failure("Esta venta ya tiene una factura generada");
+
+            var dto = new SaleForInvoicingDto
+            {
+                SaleId = sale.Id,
+                Total = sale.Total,
+                SaleDate = sale.CreatedAt,
+                CustomerName = sale.Customer?.Name ?? string.Empty,
+                CustomerEmail = sale.Customer?.Email,
+                CustomerSendInvoiceEmail = sale.Customer?.SendInvoiceEmail ?? false
+            };
+
+            return Result<SaleForInvoicingDto>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving sale info for invoicing {SaleId}", saleId);
+            return Result<SaleForInvoicingDto>.Failure("Error al obtener la información de la venta");
+        }
     }
 
     #region Private helpers

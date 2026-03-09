@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Invoice Past Sale" xml:space="preserve">
+    <value>Invoice Past Sale</value>
+  </data>
+  <data name="Enter the sale number to invoice" xml:space="preserve">
+    <value>Enter the sale number to invoice</value>
+  </data>
+  <data name="Sale #" xml:space="preserve">
+    <value>Sale #</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Sale found" xml:space="preserve">
+    <value>Sale found</value>
+  </data>
+  <data name="Sale date" xml:space="preserve">
+    <value>Sale date</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Generate Invoice" xml:space="preserve">
+    <value>Generate Invoice</value>
+  </data>
+  <data name="Generating..." xml:space="preserve">
+    <value>Generating...</value>
+  </data>
+  <data name="Receptor Fiscal Data" xml:space="preserve">
+    <value>Receptor Fiscal Data</value>
+  </data>
+  <data name="RFC" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="RFC is required" xml:space="preserve">
+    <value>RFC is required</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Postal Code</value>
+  </data>
+  <data name="Postal code is required" xml:space="preserve">
+    <value>Postal code is required</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Legal Name</value>
+  </data>
+  <data name="Legal name is required" xml:space="preserve">
+    <value>Legal name is required</value>
+  </data>
+  <data name="Fiscal Regime" xml:space="preserve">
+    <value>Fiscal Regime</value>
+  </data>
+  <data name="Fiscal regime is required" xml:space="preserve">
+    <value>Fiscal regime is required</value>
+  </data>
+  <data name="CFDI Use" xml:space="preserve">
+    <value>CFDI Use</value>
+  </data>
+  <data name="CFDI use is required" xml:space="preserve">
+    <value>CFDI use is required</value>
+  </data>
+  <data name="Payment Form" xml:space="preserve">
+    <value>Payment Form</value>
+  </data>
+  <data name="Payment form is required" xml:space="preserve">
+    <value>Payment form is required</value>
+  </data>
+  <data name="Payment Method" xml:space="preserve">
+    <value>Payment Method</value>
+  </data>
+  <data name="Payment method is required" xml:space="preserve">
+    <value>Payment method is required</value>
+  </data>
+  <data name="PUE - Single payment" xml:space="preserve">
+    <value>PUE - Single payment</value>
+  </data>
+  <data name="PPD - Installments" xml:space="preserve">
+    <value>PPD - Installments</value>
+  </data>
+  <data name="Send to Email (optional)" xml:space="preserve">
+    <value>Send to Email (optional)</value>
+  </data>
+  <data name="Invoice generated successfully" xml:space="preserve">
+    <value>Invoice generated successfully</value>
+  </data>
+  <data name="Invoice saved with stamp error. Review it in the invoices list." xml:space="preserve">
+    <value>Invoice saved with stamp error. Review it in the invoices list.</value>
+  </data>
+  <data name="Error generating invoice" xml:space="preserve">
+    <value>Error generating invoice</value>
+  </data>
+  <data name="Error searching for sale" xml:space="preserve">
+    <value>Error searching for sale</value>
+  </data>
+  <data name="Error loading catalogs" xml:space="preserve">
+    <value>Error loading catalogs</value>
+  </data>
+</root>

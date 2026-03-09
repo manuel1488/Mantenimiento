@@ -180,7 +180,7 @@
                                                 <MudIconButton Icon="@Icons.Material.Filled.Receipt"
                                                                Size="Size.Small"
                                                                Color="Color.Success"
-                                                               OnClick="@(() => OpenInvoiceDialog(context))" />
+                                                               OnClick="@(() => Navigation.NavigateTo($"/shop/invoices?saleId={context.Id}"))" />
                                             </MudTooltip>
                                         }
                                         else

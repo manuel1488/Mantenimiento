@@ -1,4 +1,4 @@
-@using App.Core.Constants
+@using App.Core.DTOs.Billing
 @using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Billing
@@ -7,53 +7,96 @@
 @inject IMexicoInvoiceService InvoiceService
 @inject IMexicoFiscalCatalogService FiscalCatalogService
 @inject ISnackbar Snackbar
-@inject IStringLocalizer<CreateInvoiceDialog> L
-@inject ILogger<CreateInvoiceDialog> Logger
+@inject IStringLocalizer<PostSaleInvoiceDialog> L
+@inject ILogger<PostSaleInvoiceDialog> Logger
 
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Receipt" Class="mr-2" />
-            @L["Generate Invoice"] - @L["Sale #"]@SaleId
+            <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Class="mr-2" />
+            @L["Invoice Past Sale"]
         </MudText>
     </TitleContent>
     <DialogContent>
-        @if (_loading)
+        @if (_step == 1)
         {
-            <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
-        }
+            <!-- Step 1: Sale lookup -->
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mb-3">@L["Enter the sale number to invoice"]</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="8">
+                    <MudNumericField T="long"
+                                     @bind-Value="_saleId"
+                                     Label="@L["Sale #"]"
+                                     Variant="Variant.Outlined"
+                                     Min="1"
+                                     Immediate="true" />
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="LookupSale"
+                               Disabled="@(_searching || _saleId <= 0)"
+                               FullWidth="true">
+                        @if (_searching)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        @L["Search"]
+                    </MudButton>
+                </MudItem>
 
-        @if (_existingInvoice != null)
-        {
-            <MudAlert Severity="Severity.Info" Class="mb-4">
-                @L["This sale already has an invoice"] (@_existingInvoice.FolioDisplay)
-                @if (_existingInvoice.IsStamped)
+                @if (_lookupError != null)
                 {
-                    <text> - UUID: @_existingInvoice.Uuid</text>
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Error" Dense="true">@_lookupError</MudAlert>
+                    </MudItem>
                 }
-            </MudAlert>
+
+                @if (_saleInfo != null)
+                {
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Success" Dense="true">
+                            <MudText Typo="Typo.body2"><b>@L["Sale found"]</b></MudText>
+                            <MudText Typo="Typo.caption">
+                                @L["Sale date"]: @_saleInfo.SaleDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                &nbsp;·&nbsp;
+                                @L["Total"]: <b>@_saleInfo.Total.ToString("C")</b>
+                                @if (!string.IsNullOrEmpty(_saleInfo.CustomerName))
+                                {
+                                    <text>&nbsp;·&nbsp;@L["Customer"]: <b>@_saleInfo.CustomerName</b></text>
+                                }
+                            </MudText>
+                        </MudAlert>
+                    </MudItem>
+                }
+            </MudGrid>
         }
         else
         {
+            <!-- Step 2: Fiscal form -->
+            @if (_loadingCatalogs)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+            }
+
+            <!-- Sale summary -->
+            @if (_saleInfo != null)
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                    @L["Sale #"]@_saleInfo.SaleId
+                    &nbsp;·&nbsp;
+                    @_saleInfo.SaleDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                    &nbsp;·&nbsp;
+                    <b>@_saleInfo.Total.ToString("C")</b>
+                </MudAlert>
+            }
+
             <MudForm @ref="_form" @bind-IsValid="_isValid">
                 <MudGrid Spacing="2">
-                    <!-- Sale info summary -->
                     <MudItem xs="12">
-                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Sale Information"]</MudText>
-                        <MudGrid Spacing="1">
-                            <MudItem xs="6">
-                                <MudText Typo="Typo.body2">@L["Customer"]: <b>@CustomerName</b></MudText>
-                            </MudItem>
-                            <MudItem xs="6">
-                                <MudText Typo="Typo.body2">@L["Total"]: <b>@SaleTotal.ToString("C")</b></MudText>
-                            </MudItem>
-                        </MudGrid>
-                        <MudDivider Class="my-3" />
-                    </MudItem>
-
-                    <!-- Receptor fiscal data -->
-                    <MudItem xs="12">
-                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Receptor Fiscal Data"]</MudText>
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">@L["Receptor Fiscal Data"]</MudText>
                     </MudItem>
 
                     <MudItem xs="12" sm="6">
@@ -102,7 +145,6 @@
                         </MudSelect>
                     </MudItem>
 
-                    <!-- CFDI -->
                     <MudItem xs="12" sm="6">
                         <MudSelect @bind-Value="_dto.CfdiUse"
                                    Label="@L["CFDI Use"]"
@@ -158,20 +200,22 @@
     <DialogActions>
         <MudButton OnClick="Cancel" Disabled="@_processing">@L["Cancel"]</MudButton>
 
-        @if (_existingInvoice != null)
+        @if (_step == 1)
         {
             <MudButton Color="Color.Primary"
                        Variant="Variant.Filled"
-                       OnClick="Cancel">
-                @L["Close"]
+                       OnClick="GoToFiscalForm"
+                       Disabled="@(_saleInfo == null)">
+                @L["Continue"]
             </MudButton>
         }
         else
         {
+            <MudButton OnClick="GoBack" Disabled="@_processing">@L["Back"]</MudButton>
             <MudButton Color="Color.Primary"
                        Variant="Variant.Filled"
                        OnClick="GenerateInvoice"
-                       Disabled="@(_processing || !_isValid || _loading)">
+                       Disabled="@(_processing || !_isValid || _loadingCatalogs)">
                 @if (_processing)
                 {
                     <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
@@ -189,86 +233,101 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
-    [Parameter] public long SaleId { get; set; }
-    [Parameter] public decimal SaleTotal { get; set; }
-    [Parameter] public string CustomerName { get; set; } = string.Empty;
-    [Parameter] public string? CustomerRfc { get; set; }
-    [Parameter] public string? CustomerLegalName { get; set; }
-    [Parameter] public string? CustomerPostalCode { get; set; }
-    [Parameter] public string? CustomerFiscalRegime { get; set; }
-    [Parameter] public string? CustomerEmail { get; set; }
+    #region Fields
+    private int _step = 1;
+    private long _saleId;
+    private bool _searching;
+    private bool _loadingCatalogs;
+    private bool _processing;
+    private string? _lookupError;
+    private SaleForInvoicingDto? _saleInfo;
 
     private MudForm _form = null!;
     private bool _isValid;
-    private bool _loading;
-    private bool _processing;
-    private MexicoInvoiceDto? _existingInvoice;
-
     private CreateMexicoInvoiceDto _dto = new();
+
     private List<MexicoFiscalRegimeDto> _fiscalRegimes = [];
     private List<MexicoCfdiUseDto> _allCfdiUses = [];
     private List<MexicoCfdiUseDto> _filteredCfdiUses = [];
     private List<MexicoPaymentFormDto> _paymentForms = [];
+    #endregion
 
-    protected override async Task OnInitializedAsync()
+    #region Methods
+    private void Cancel() => MudDialog.Cancel();
+
+    private void GoBack()
     {
-        _loading = true;
+        _step = 1;
+        _saleInfo = null;
+        _lookupError = null;
+    }
+
+    private async Task LookupSale()
+    {
+        _searching = true;
+        _lookupError = null;
+        _saleInfo = null;
         try
         {
-            // Pre-fill DTO from customer data
-            _dto.SaleId = SaleId;
-            _dto.CustomerRfc = CustomerRfc ?? string.Empty;
-            _dto.CustomerLegalName = CustomerLegalName ?? string.Empty;
-            _dto.CustomerPostalCode = CustomerPostalCode ?? string.Empty;
-            _dto.CustomerFiscalRegime = CustomerFiscalRegime ?? string.Empty;
-            _dto.SendToEmail = CustomerEmail;
-            _dto.PaymentMethod = "PUE";
-
-            // Load catalogs and check existing invoice in parallel
-            _fiscalRegimes = (await FiscalCatalogService.GetFiscalRegimesAsync()).ToList();
-            _allCfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();
-            _paymentForms = (await FiscalCatalogService.GetPaymentFormsAsync()).ToList();
-            _existingInvoice = await InvoiceService.GetBySaleIdAsync(SaleId);
-
-            // Filter CFDI uses by pre-filled regime (if any)
-            await ApplyCfdiFilter(_dto.CustomerFiscalRegime);
-
-            // Default CFDI use
-            if (string.IsNullOrEmpty(_dto.CfdiUse) && _filteredCfdiUses.Any(u => u.Code == "G03"))
-                _dto.CfdiUse = "G03";
+            var result = await InvoiceService.GetSaleInfoForInvoicingAsync(_saleId);
+            if (result.IsSuccess)
+                _saleInfo = result.Value;
+            else
+                _lookupError = result.Error;
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading create invoice dialog");
-            Snackbar.Add(L["Error loading data"], Severity.Error);
+            Logger.LogError(ex, "Error looking up sale {SaleId}", _saleId);
+            _lookupError = L["Error searching for sale"];
         }
         finally
         {
-            _loading = false;
+            _searching = false;
+        }
+    }
+
+    private async Task GoToFiscalForm()
+    {
+        if (_saleInfo == null) return;
+
+        _loadingCatalogs = true;
+        _step = 2;
+        _dto = new CreateMexicoInvoiceDto
+        {
+            SaleId = _saleInfo.SaleId,
+            PaymentMethod = "PUE",
+            CfdiUse = "G03",
+            SendToEmail = _saleInfo.CustomerSendInvoiceEmail ? _saleInfo.CustomerEmail : null
+        };
+
+        try
+        {
+            _fiscalRegimes = (await FiscalCatalogService.GetFiscalRegimesAsync()).ToList();
+            _allCfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();
+            _filteredCfdiUses = [];
+            _paymentForms = (await FiscalCatalogService.GetPaymentFormsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading fiscal catalogs");
+            Snackbar.Add(L["Error loading catalogs"], Severity.Error);
+        }
+        finally
+        {
+            _loadingCatalogs = false;
         }
     }
 
     private async Task OnFiscalRegimeChanged(string regime)
     {
         _dto.CustomerFiscalRegime = regime;
-        await ApplyCfdiFilter(regime);
+        _filteredCfdiUses = string.IsNullOrEmpty(regime)
+            ? _allCfdiUses
+            : (await FiscalCatalogService.GetCfdiUsesByFiscalRegimeAsync(regime)).ToList();
 
-        // Clear selected use if it's not valid for the new regime
         if (!string.IsNullOrEmpty(_dto.CfdiUse) && !_filteredCfdiUses.Any(u => u.Code == _dto.CfdiUse))
             _dto.CfdiUse = string.Empty;
     }
-
-    private async Task ApplyCfdiFilter(string? regime)
-    {
-        if (string.IsNullOrEmpty(regime))
-        {
-            _filteredCfdiUses = _allCfdiUses;
-            return;
-        }
-        _filteredCfdiUses = (await FiscalCatalogService.GetCfdiUsesByFiscalRegimeAsync(regime)).ToList();
-    }
-
-    private void Cancel() => MudDialog.Cancel();
 
     private async Task GenerateInvoice()
     {
@@ -298,7 +357,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error generating invoice for sale {SaleId}", SaleId);
+            Logger.LogError(ex, "Error generating invoice for sale {SaleId}", _dto.SaleId);
             Snackbar.Add(L["Error generating invoice"], Severity.Error);
         }
         finally
@@ -306,4 +365,5 @@
             _processing = false;
         }
     }
+    #endregion
 }

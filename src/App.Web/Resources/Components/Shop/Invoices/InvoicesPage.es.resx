@@ -156,4 +156,7 @@
   <data name="Download Cancellation Acuse" xml:space="preserve">
     <value>Descargar acuse de cancelación</value>
   </data>
+  <data name="Invoice Past Sale" xml:space="preserve">
+    <value>Facturar Venta Anterior</value>
+  </data>
 </root>

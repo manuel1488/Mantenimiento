@@ -1,4 +1,5 @@
 using App.Core.Common;
+using App.Core.DTOs.Billing;
 using App.Core.DTOs.Billing.Mexico;
 
 namespace App.Core.Interfaces.Billing;
@@ -54,4 +55,7 @@ public interface IMexicoInvoiceService
 
     /// <summary>Validates that a sale can be invoiced (completed, not already invoiced, etc.).</summary>
     Task<Result> ValidateSaleForInvoicingAsync(long saleId);
+
+    /// <summary>Returns basic sale info for the post-sale invoicing flow (lookup step).</summary>
+    Task<Result<SaleForInvoicingDto>> GetSaleInfoForInvoicingAsync(long saleId);
 }

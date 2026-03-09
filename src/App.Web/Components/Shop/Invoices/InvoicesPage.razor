@@ -23,6 +23,16 @@
     <MudGrid>
         <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
             <MudText Typo="Typo.h4">@L["Invoices"]</MudText>
+            <AuthorizeView Policy="@ApplicationClaims.Shop.CreateInvoice">
+                <Authorized>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.ReceiptLong"
+                               OnClick="OpenPostSaleInvoiceDialog">
+                        @L["Invoice Past Sale"]
+                    </MudButton>
+                </Authorized>
+            </AuthorizeView>
         </MudItem>
 
         <!-- Cancellation monitor banner -->
@@ -81,6 +91,7 @@
                 <MudGrid Spacing="3">
                     <MudItem xs="12" sm="6" md="3">
                         <MudTextField T="string"
+                                      Value="@_searchString"
                                       ValueChanged="@(s => OnSearch(s))"
                                       Placeholder="@L["Search by folio, RFC, or UUID"]"
                                       Adornment="Adornment.Start"
@@ -277,6 +288,9 @@
 </style>
 
 @code {
+    [SupplyParameterFromQuery(Name = "saleId")]
+    public long? SaleIdFilter { get; set; }
+
     private MudTable<MexicoInvoiceSummaryDto> _table = null!;
     private bool _loading;
     private string _searchString = "";
@@ -288,8 +302,16 @@
 
     protected override void OnInitialized()
     {
-        var today = DateTime.Today;
-        _dateRange = new DateRange(new DateTime(today.Year, today.Month, 1), today);
+        if (SaleIdFilter.HasValue)
+        {
+            _searchString = SaleIdFilter.Value.ToString();
+            _dateRange = new DateRange(null, null);
+        }
+        else
+        {
+            var today = DateTime.Today;
+            _dateRange = new DateRange(new DateTime(today.Year, today.Month, 1), today);
+        }
     }
 
     private async Task<TableData<MexicoInvoiceSummaryDto>> LoadServerData(TableState state, CancellationToken _)
@@ -413,6 +435,17 @@
         {
             Snackbar.Add(result.Error, Severity.Error);
         }
+    }
+
+    private async Task OpenPostSaleInvoiceDialog()
+    {
+        var dialog = await DialogService.ShowAsync<PostSaleInvoiceDialog>(
+            L["Invoice Past Sale"],
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false });
+
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+            await _table.ReloadServerData();
     }
 
     private async Task DownloadAcuse(MexicoInvoiceSummaryDto invoice)
