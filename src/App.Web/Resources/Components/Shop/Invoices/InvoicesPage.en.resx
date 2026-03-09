@@ -99,4 +99,61 @@
   <data name="Cancelling" xml:space="preserve">
     <value>Cancelling</value>
   </data>
+  <data name="invoice(s) awaiting receiver acceptance from SAT" xml:space="preserve">
+    <value>invoice(s) awaiting receiver acceptance from SAT</value>
+  </data>
+  <data name="Last check" xml:space="preserve">
+    <value>Last check</value>
+  </data>
+  <data name="updated" xml:space="preserve">
+    <value>updated</value>
+  </data>
+  <data name="Not yet checked this session — background service checks every 2 hours" xml:space="preserve">
+    <value>Not yet checked this session — background service checks every 2 hours</value>
+  </data>
+  <data name="Verify with SAT" xml:space="preserve">
+    <value>Verify with SAT</value>
+  </data>
+  <data name="Cancellation status refreshed" xml:space="preserve">
+    <value>Cancellation status refreshed</value>
+  </data>
+  <data name="Error refreshing cancellation status" xml:space="preserve">
+    <value>Error refreshing cancellation status</value>
+  </data>
+  <data name="just now" xml:space="preserve">
+    <value>just now</value>
+  </data>
+  <data name="min ago" xml:space="preserve">
+    <value>min ago</value>
+  </data>
+  <data name="h ago" xml:space="preserve">
+    <value>h ago</value>
+  </data>
+  <data name="This action will send a cancellation request to SAT. The invoice will be cancelled or pending acceptance depending on the reason." xml:space="preserve">
+    <value>This action will send a cancellation request to SAT. The invoice will be cancelled or pending acceptance depending on the reason.</value>
+  </data>
+  <data name="Cancellation Reason" xml:space="preserve">
+    <value>Cancellation Reason</value>
+  </data>
+  <data name="Comprobante emitido con errores con relación" xml:space="preserve">
+    <value>Comprobante emitido con errores con relación</value>
+  </data>
+  <data name="Comprobante emitido con errores sin relación" xml:space="preserve">
+    <value>Comprobante emitido con errores sin relación</value>
+  </data>
+  <data name="No se llevó a cabo la operación" xml:space="preserve">
+    <value>No se llevó a cabo la operación</value>
+  </data>
+  <data name="Operación nominativa relacionada en una factura global" xml:space="preserve">
+    <value>Operación nominativa relacionada en una factura global</value>
+  </data>
+  <data name="Replacement Invoice UUID" xml:space="preserve">
+    <value>Replacement Invoice UUID</value>
+  </data>
+  <data name="Cancellation sent to SAT" xml:space="preserve">
+    <value>Cancellation sent to SAT</value>
+  </data>
+  <data name="Download Cancellation Acuse" xml:space="preserve">
+    <value>Download Cancellation Acuse</value>
+  </data>
 </root>

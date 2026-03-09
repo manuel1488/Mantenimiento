@@ -38,6 +38,7 @@ using App.Shared.Services.Implementation;
 using App.Web.Components;
 using App.Web.Components.Account;
 using App.Web.Services;
+using App.Web.Services.Background;
 using App.Web.Middleware;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -690,6 +691,10 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<ISwSapienService, SwSapienService>();
     services.AddScoped<IMexicoInvoiceService, MexicoInvoiceService>();
     services.AddScoped<IMexicoStampAlertService, MexicoStampAlertService>();
+
+    // Cancellation monitor — singleton so UI can inject and call TriggerAsync
+    services.AddSingleton<CancellationMonitorService>();
+    services.AddHostedService(sp => sp.GetRequiredService<CancellationMonitorService>());
 }
 
 /// <summary>

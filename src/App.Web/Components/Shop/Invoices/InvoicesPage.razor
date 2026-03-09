@@ -2,10 +2,12 @@
 @using App.Core.Constants
 @using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces.Billing
+@using App.Web.Services.Background
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 
 @inject IMexicoInvoiceService InvoiceService
+@inject CancellationMonitorService CancellationMonitor
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IStringLocalizer<InvoicesPage> L
@@ -22,6 +24,56 @@
         <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
             <MudText Typo="Typo.h4">@L["Invoices"]</MudText>
         </MudItem>
+
+        <!-- Cancellation monitor banner -->
+        @if (_hasPendingCancellations)
+        {
+            <MudItem xs="12" Class="mb-2">
+                <MudAlert Severity="Severity.Warning"
+                          Icon="@Icons.Material.Filled.HourglassTop"
+                          NoIcon="false"
+                          Dense="true"
+                          Class="d-flex align-center">
+                    <div class="d-flex align-center justify-space-between" style="width:100%">
+                        <div>
+                            <MudText Typo="Typo.body2" Class="mb-0">
+                                <b>@_pendingCancellationCount</b>
+                                @(L["invoice(s) awaiting receiver acceptance from SAT"])
+                            </MudText>
+                            @if (CancellationMonitor.LastRunAt.HasValue)
+                            {
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                                    @L["Last check"]: @FormatRelativeTime(CancellationMonitor.LastRunAt.Value)
+                                    @if (CancellationMonitor.LastRunUpdated > 0)
+                                    {
+                                        <span> · @CancellationMonitor.LastRunUpdated @L["updated"]</span>
+                                    }
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                                    @L["Not yet checked this session — background service checks every 2 hours"]
+                                </MudText>
+                            }
+                        </div>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Warning"
+                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Sync"
+                                   OnClick="RefreshCancellationStatus"
+                                   Disabled="@(_refreshingCancellations || CancellationMonitor.IsRunning)"
+                                   Class="ml-4">
+                            @if (_refreshingCancellations || CancellationMonitor.IsRunning)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            }
+                            @L["Verify with SAT"]
+                        </MudButton>
+                    </div>
+                </MudAlert>
+            </MudItem>
+        }
 
         <!-- Filters -->
         <MudItem xs="12" Class="mb-3">
@@ -136,6 +188,17 @@
                                 </MudTooltip>
                             }
 
+                            <!-- Download Acuse (available when cancellation has been processed) -->
+                            @if (context.HasCancellationAcuse)
+                            {
+                                <MudTooltip Text="@L["Download Cancellation Acuse"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AssignmentTurnedIn"
+                                                   Size="Size.Small"
+                                                   Color="Color.Warning"
+                                                   OnClick="@(() => DownloadAcuse(context))" />
+                                </MudTooltip>
+                            }
+
                             <!-- Cancel (only fully stamped) -->
                             @if (context.Status == "Stamped" && string.IsNullOrEmpty(context.CancellationStatus))
                             {
@@ -145,7 +208,7 @@
                                             <MudIconButton Icon="@Icons.Material.Filled.Cancel"
                                                            Size="Size.Small"
                                                            Color="Color.Error"
-                                                           OnClick="@(() => ConfirmCancel(context))" />
+                                                           OnClick="@(() => OpenCancelDialog(context))" />
                                         </MudTooltip>
                                     </Authorized>
                                 </AuthorizeView>
@@ -164,6 +227,45 @@
     </MudGrid>
 </MudContainer>
 
+<!-- Cancel Invoice Dialog -->
+<MudDialog @bind-Visible="_cancelDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Cancel Invoice"] @_invoiceToCancel?.FolioDisplay</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            @L["This action will send a cancellation request to SAT. The invoice will be cancelled or pending acceptance depending on the reason."]
+        </MudAlert>
+
+        <MudSelect T="string" @bind-Value="_cancelReason" Label="@L["Cancellation Reason"]" Variant="Variant.Outlined" Class="mb-3" FullWidth>
+            <MudSelectItem T="string" Value="@("01")">01 - @L["Comprobante emitido con errores con relación"]</MudSelectItem>
+            <MudSelectItem T="string" Value="@("02")">02 - @L["Comprobante emitido con errores sin relación"]</MudSelectItem>
+            <MudSelectItem T="string" Value="@("03")">03 - @L["No se llevó a cabo la operación"]</MudSelectItem>
+            <MudSelectItem T="string" Value="@("04")">04 - @L["Operación nominativa relacionada en una factura global"]</MudSelectItem>
+        </MudSelect>
+
+        @if (_cancelReason == "01")
+        {
+            <MudTextField @bind-Value="_cancelReplacementUuid"
+                          Label="@L["Replacement Invoice UUID"]"
+                          Variant="Variant.Outlined"
+                          Placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                          FullWidth />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _cancelDialogOpen = false)" Disabled="_cancelProcessing">@L["Keep"]</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="ExecuteCancel"
+                   Disabled="@(_cancelProcessing || (_cancelReason == "01" && string.IsNullOrWhiteSpace(_cancelReplacementUuid)))">
+            @if (_cancelProcessing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            @L["Cancel Invoice"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
 <style>
     .gap-2 > * + * { margin-left: 8px; }
 </style>
@@ -174,6 +276,9 @@
     private string _searchString = "";
     private DateRange _dateRange = new();
     private string? _selectedStatus;
+    private bool _hasPendingCancellations;
+    private int _pendingCancellationCount;
+    private bool _refreshingCancellations;
 
     protected override void OnInitialized()
     {
@@ -194,6 +299,8 @@
                 endDate: _dateRange.End,
                 status: _selectedStatus);
 
+            _pendingCancellationCount = items.Count(i => i.Status == "CancellationPending");
+            _hasPendingCancellations = _pendingCancellationCount > 0;
             return new TableData<MexicoInvoiceSummaryDto> { TotalItems = total, Items = items };
         }
         catch (Exception ex)
@@ -205,6 +312,26 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task RefreshCancellationStatus()
+    {
+        _refreshingCancellations = true;
+        try
+        {
+            await CancellationMonitor.TriggerAsync();
+            Snackbar.Add(L["Cancellation status refreshed"], Severity.Success);
+            await _table.ReloadServerData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error refreshing cancellation status");
+            Snackbar.Add(L["Error refreshing cancellation status"], Severity.Error);
+        }
+        finally
+        {
+            _refreshingCancellations = false;
         }
     }
 
@@ -250,32 +377,49 @@
             Convert.ToBase64String(result.Value!));
     }
 
-    private async Task ConfirmCancel(MexicoInvoiceSummaryDto invoice)
-    {
-        var parameters = new DialogParameters<MudMessageBox>
-        {
-            { x => x.Message, L["Cancel invoice"].ToString() + $" {invoice.FolioDisplay}? " + L["This action cannot be undone"].ToString() }
-        };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small };
-        var dialog = await DialogService.ShowMessageBox(
-            L["Confirm Cancellation"],
-            L["Are you sure you want to cancel this invoice?"],
-            yesText: L["Cancel Invoice"],
-            cancelText: L["Keep"]);
+    private string _cancelReason = "02";
+    private string? _cancelReplacementUuid;
+    private MexicoInvoiceSummaryDto? _invoiceToCancel;
+    private bool _cancelDialogOpen;
+    private bool _cancelProcessing;
 
-        if (dialog == true)
+    private void OpenCancelDialog(MexicoInvoiceSummaryDto invoice)
+    {
+        _invoiceToCancel = invoice;
+        _cancelReason = "02";
+        _cancelReplacementUuid = null;
+        _cancelDialogOpen = true;
+    }
+
+    private async Task ExecuteCancel()
+    {
+        if (_invoiceToCancel == null) return;
+        _cancelProcessing = true;
+        var result = await InvoiceService.CancelAsync(_invoiceToCancel.Id, _cancelReason, _cancelReplacementUuid);
+        _cancelProcessing = false;
+        _cancelDialogOpen = false;
+        if (result.IsSuccess)
         {
-            var result = await InvoiceService.CancelAsync(invoice.Id, "Cancelación solicitada");
-            if (result.IsSuccess)
-            {
-                Snackbar.Add(L["Invoice cancellation requested"], Severity.Success);
-                await _table.ReloadServerData();
-            }
-            else
-            {
-                Snackbar.Add(result.Error, Severity.Error);
-            }
+            Snackbar.Add(L["Cancellation sent to SAT"], Severity.Success);
+            await _table.ReloadServerData();
         }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task DownloadAcuse(MexicoInvoiceSummaryDto invoice)
+    {
+        var result = await InvoiceService.GetCancellationAcuseAsync(invoice.Id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+        await JS.InvokeVoidAsync("downloadFile",
+            $"Acuse_Cancelacion_{invoice.FolioDisplay}.xml", "application/xml",
+            Convert.ToBase64String(result.Value!));
     }
 
     private Color GetStatusColor(string status) => status switch
@@ -299,4 +443,16 @@
     };
 
     private string FormatDate(DateTime dt) => dt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+    private string FormatRelativeTime(DateTime utcTime)
+    {
+        var elapsed = DateTime.UtcNow - utcTime;
+        if (elapsed.TotalMinutes < 1)
+            return L["just now"];
+        if (elapsed.TotalMinutes < 60)
+            return $"{(int)elapsed.TotalMinutes} {L["min ago"]}";
+        if (elapsed.TotalHours < 24)
+            return $"{(int)elapsed.TotalHours} {L["h ago"]}";
+        return utcTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+    }
 }

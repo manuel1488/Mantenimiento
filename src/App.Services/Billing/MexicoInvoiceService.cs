@@ -1,3 +1,4 @@
+using System.Text;
 using App.Core.Common;
 using App.Core.DTOs.Billing.Mexico;
 using App.Core.Enums.Shop;
@@ -385,6 +386,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Total = i.Total,
                 CfdiUse = i.CfdiUse,
                 CancellationStatus = i.CancellationStatus,
+                HasCancellationAcuse = i.CancellationAcuse != null,
                 StampError = i.StampError,
                 CreatedAt = i.CreatedAt,
                 CreatedBy = i.CreatedBy,
@@ -544,7 +546,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         }
     }
 
-    public async Task<Result> CancelAsync(long invoiceId, string reason)
+    public async Task<Result> CancelAsync(long invoiceId, string cancellationReason, string? replacementUuid = null)
     {
         try
         {
@@ -553,24 +555,197 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             if (invoice == null)
                 return Result.Failure("Factura no encontrada");
 
-            if (!invoice.IsStamped)
+            if (!invoice.IsStamped || string.IsNullOrEmpty(invoice.Uuid))
                 return Result.Failure("Solo se pueden cancelar facturas timbradas");
 
-            // Mark as cancellation pending (SAT cancellation flow is async)
+            if (invoice.Status == "Cancelled")
+                return Result.Failure("La factura ya fue cancelada");
+
+            var validReasons = new[] { "01", "02", "03", "04" };
+            if (!validReasons.Contains(cancellationReason))
+                return Result.Failure("Motivo de cancelación inválido. Use 01, 02, 03 o 04");
+
+            if (cancellationReason == "01" && string.IsNullOrEmpty(replacementUuid))
+                return Result.Failure("El motivo 01 requiere el UUID de la factura sustituta");
+
+            // Mark as pending before calling PAC
             invoice.CancellationStatus = "Pending";
-            invoice.CancellationReason = reason;
+            invoice.CancellationReason = cancellationReason;
+            invoice.ReplacementUuid = replacementUuid;
             invoice.CancellationDate = _dateTime.Now;
             invoice.Status = "CancellationPending";
             invoice.ModifiedAt = _dateTime.Now;
+            await context.SaveChangesAsync();
+
+            _logger.LogInformation("Sending cancellation request to PAC for invoice {InvoiceId} UUID {Uuid}",
+                invoiceId, invoice.Uuid);
+
+            // Call PAC
+            var cancelResult = await _pacService.CancelCfdiAsync(
+                invoice.Uuid!,
+                invoice.IssuerRfc,
+                invoice.CustomerRfc,
+                invoice.Total,
+                cancellationReason,
+                replacementUuid);
+
+            if (!cancelResult.IsSuccess)
+            {
+                // Revert status on PAC failure
+                invoice.CancellationStatus = null;
+                invoice.CancellationReason = null;
+                invoice.ReplacementUuid = null;
+                invoice.CancellationDate = null;
+                invoice.Status = "Stamped";
+                invoice.ModifiedAt = _dateTime.Now;
+                await context.SaveChangesAsync();
+                return Result.Failure(cancelResult.Error!);
+            }
+
+            var data = cancelResult.Value!;
+
+            // Extract UUID status code from PAC response
+            var uuidStatusCode = string.Empty;
+            if (data.Uuid != null && data.Uuid.TryGetValue(invoice.Uuid!, out var statusCode))
+                uuidStatusCode = statusCode;
+
+            // Update invoice with acuse and PAC response data
+            invoice.CancellationAcuse = data.Acuse;
+            invoice.CancellationStatusSat = data.StatusSat;
+            invoice.CancellationIsCancelable = data.IsCancelable;
+            invoice.CancellationUuidStatusCode = uuidStatusCode;
+            invoice.ModifiedAt = _dateTime.Now;
+
+            // If SAT confirms immediate cancellation (code 201 or 202)
+            if (uuidStatusCode is "201" or "202" || data.StatusSat == "Cancelado")
+            {
+                invoice.Status = "Cancelled";
+                invoice.CancellationStatus = "Accepted";
+                _logger.LogInformation("Invoice {InvoiceId} cancelled immediately by SAT (code {Code})",
+                    invoiceId, uuidStatusCode);
+            }
+            // Code 204 = pending receiver acceptance
+            else if (uuidStatusCode == "204")
+            {
+                invoice.Status = "CancellationPending";
+                invoice.CancellationStatus = "Pending";
+                _logger.LogInformation("Invoice {InvoiceId} cancellation pending receiver acceptance", invoiceId);
+            }
+            else
+            {
+                _logger.LogInformation("Invoice {InvoiceId} cancellation sent, status code: {Code}", invoiceId, uuidStatusCode);
+            }
 
             await context.SaveChangesAsync();
-            _logger.LogInformation("Cancellation requested for invoice {InvoiceId}", invoiceId);
+            _logger.LogInformation("Cancellation processed for invoice {InvoiceId}", invoiceId);
             return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling invoice {InvoiceId}", invoiceId);
             return Result.Failure($"Error al cancelar: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> RefreshCancellationStatusAsync(long invoiceId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var invoice = await context.MexicoInvoices.FindAsync(invoiceId);
+            if (invoice == null)
+                return Result.Failure("Factura no encontrada");
+
+            if (invoice.CancellationStatus != "Pending" || string.IsNullOrEmpty(invoice.Uuid))
+                return Result.Failure("La factura no está en estado de cancelación pendiente");
+
+            if (string.IsNullOrEmpty(invoice.CancellationReason))
+                return Result.Failure("La factura no tiene motivo de cancelación registrado");
+
+            _logger.LogInformation(
+                "Refreshing cancellation status for invoice {InvoiceId} UUID {Uuid}",
+                invoiceId, invoice.Uuid);
+
+            var checkResult = await _pacService.CheckCancellationStatusAsync(
+                invoice.Uuid,
+                invoice.IssuerRfc,
+                invoice.CustomerRfc,
+                invoice.Total,
+                invoice.CancellationReason,
+                invoice.ReplacementUuid);
+
+            if (!checkResult.IsSuccess)
+            {
+                _logger.LogWarning(
+                    "PAC returned error when checking cancellation status for invoice {InvoiceId}: {Error}",
+                    invoiceId, checkResult.Error);
+                return Result.Failure(checkResult.Error!);
+            }
+
+            var data = checkResult.Value!;
+
+            var uuidStatusCode = string.Empty;
+            if (data.Uuid != null && data.Uuid.TryGetValue(invoice.Uuid, out var code))
+                uuidStatusCode = code;
+
+            invoice.CancellationAcuse = data.Acuse ?? invoice.CancellationAcuse;
+            invoice.CancellationStatusSat = data.StatusSat ?? invoice.CancellationStatusSat;
+            invoice.CancellationIsCancelable = data.IsCancelable ?? invoice.CancellationIsCancelable;
+            if (!string.IsNullOrEmpty(uuidStatusCode))
+                invoice.CancellationUuidStatusCode = uuidStatusCode;
+            invoice.ModifiedAt = _dateTime.Now;
+
+            if (uuidStatusCode is "201" or "202" || data.StatusSat == "Cancelado")
+            {
+                invoice.Status = "Cancelled";
+                invoice.CancellationStatus = "Accepted";
+                _logger.LogInformation(
+                    "Invoice {InvoiceId} cancellation accepted by SAT (code {Code})",
+                    invoiceId, uuidStatusCode);
+            }
+            else if (data.StatusCancelation == "Rechazado" || uuidStatusCode == "205")
+            {
+                invoice.Status = "Stamped";
+                invoice.CancellationStatus = "Rejected";
+                _logger.LogInformation(
+                    "Invoice {InvoiceId} cancellation rejected (code {Code}, statusCancelation {SC})",
+                    invoiceId, uuidStatusCode, data.StatusCancelation);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "Invoice {InvoiceId} cancellation still pending (code {Code})",
+                    invoiceId, uuidStatusCode);
+            }
+
+            await context.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refreshing cancellation status for invoice {InvoiceId}", invoiceId);
+            return Result.Failure($"Error al consultar estado de cancelación: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<byte[]>> GetCancellationAcuseAsync(long invoiceId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var invoice = await context.MexicoInvoices.FindAsync(invoiceId);
+            if (invoice == null)
+                return Result<byte[]>.Failure("Factura no encontrada");
+
+            if (string.IsNullOrEmpty(invoice.CancellationAcuse))
+                return Result<byte[]>.Failure("No hay acuse de cancelación disponible para esta factura");
+
+            return Result<byte[]>.Success(Encoding.UTF8.GetBytes(invoice.CancellationAcuse));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving cancellation acuse for invoice {InvoiceId}", invoiceId);
+            return Result<byte[]>.Failure("Error al obtener el acuse de cancelación");
         }
     }
 

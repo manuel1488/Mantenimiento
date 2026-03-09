@@ -32,8 +32,22 @@ public interface IMexicoInvoiceService
     /// <summary>Sends the invoice by email to the specified address.</summary>
     Task<Result> SendByEmailAsync(long invoiceId, string email);
 
-    /// <summary>Requests cancellation via SAT/PAC.</summary>
-    Task<Result> CancelAsync(long invoiceId, string reason);
+    /// <summary>
+    /// Sends a cancellation request to SAT via PAC and stores the acuse.
+    /// </summary>
+    /// <param name="invoiceId">Invoice to cancel.</param>
+    /// <param name="cancellationReason">SAT reason code: 01 (con relación), 02 (sin relación), 03 (no se llevó a cabo), 04 (nominativa global).</param>
+    /// <param name="replacementUuid">Replacement invoice UUID — required when reason is "01".</param>
+    Task<Result> CancelAsync(long invoiceId, string cancellationReason, string? replacementUuid = null);
+
+    /// <summary>Returns the SAT cancellation acknowledgment XML bytes for download.</summary>
+    Task<Result<byte[]>> GetCancellationAcuseAsync(long invoiceId);
+
+    /// <summary>
+    /// Queries SAT via PAC and updates status on a CancellationPending invoice.
+    /// Updates to Cancelled/Accepted, Stamped/Rejected, or leaves as Pending.
+    /// </summary>
+    Task<Result> RefreshCancellationStatusAsync(long invoiceId);
 
     /// <summary>Returns the next folio number for the configured serie.</summary>
     Task<long> GetNextFolioAsync();

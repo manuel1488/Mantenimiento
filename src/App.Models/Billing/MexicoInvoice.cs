@@ -95,11 +95,33 @@ public class MexicoInvoice : BaseEntity<long>
     // Cancellation
     public DateTime? CancellationDate { get; set; }
 
-    [StringLength(100)]
+    /// <summary>SAT reason code: 01, 02, 03, 04.</summary>
+    [StringLength(2)]
     public string? CancellationReason { get; set; }
 
+    /// <summary>Replacement invoice UUID (required for reason 01).</summary>
+    [StringLength(36)]
+    public string? ReplacementUuid { get; set; }
+
+    /// <summary>Pending / Accepted / Rejected / null.</summary>
     [StringLength(20)]
     public string? CancellationStatus { get; set; }
+
+    /// <summary>SAT-signed cancellation acknowledgment XML from PAC.</summary>
+    [Column(TypeName = "mediumtext")]
+    public string? CancellationAcuse { get; set; }
+
+    /// <summary>SAT invoice status at cancellation time: "Cancelado", "Vigente".</summary>
+    [StringLength(50)]
+    public string? CancellationStatusSat { get; set; }
+
+    /// <summary>"Cancelable sin aceptación", "Cancelable con aceptación", "No cancelable".</summary>
+    [StringLength(100)]
+    public string? CancellationIsCancelable { get; set; }
+
+    /// <summary>UUID status code returned by PAC: 201, 202, 204, etc.</summary>
+    [StringLength(10)]
+    public string? CancellationUuidStatusCode { get; set; }
 
     // Digital seals from PAC
     [StringLength(20)]

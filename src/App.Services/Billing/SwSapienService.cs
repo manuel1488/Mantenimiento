@@ -226,4 +226,156 @@ public class SwSapienService : ISwSapienService
             .Replace("services.sw.com.mx", "api.sw.com.mx")
             .TrimEnd('/');
 
+    // ── Cancellation ─────────────────────────────────────────────────────────
+
+    public async Task<Result<SwSapienCancelData>> CancelCfdiAsync(
+        string uuid,
+        string issuerRfc,
+        string receiverRfc,
+        decimal total,
+        string cancellationReason,
+        string? replacementUuid = null)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var settings = await context.MexicoPacSettings.FirstOrDefaultAsync();
+
+            if (settings == null)
+                return Result<SwSapienCancelData>.Failure("No hay configuración PAC disponible");
+
+            if (string.IsNullOrEmpty(settings.CsdCertificateBase64))
+                return Result<SwSapienCancelData>.Failure("No hay certificado CSD configurado");
+
+            if (string.IsNullOrEmpty(settings.CsdPrivateKeyBase64))
+                return Result<SwSapienCancelData>.Failure("No hay llave privada CSD configurada");
+
+            if (string.IsNullOrEmpty(settings.CsdPassword))
+                return Result<SwSapienCancelData>.Failure("No hay contraseña del CSD configurada");
+
+            var apiUrl = (settings.IsProduction
+                ? settings.ProductionUrl
+                : (settings.TestUrl ?? settings.ProductionUrl)).TrimEnd('/');
+
+            var tokenResult = await GetTokenAsync(settings.Token, settings.User, settings.Password, apiUrl);
+            if (!tokenResult.IsSuccess)
+                return Result<SwSapienCancelData>.Failure(tokenResult.Error!);
+
+            return await CancelCfdiInternalAsync(
+                apiUrl, tokenResult.Value!,
+                uuid, issuerRfc, receiverRfc, total,
+                cancellationReason, replacementUuid,
+                settings.CsdCertificateBase64, settings.CsdPrivateKeyBase64, settings.CsdPassword);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling CFDI {Uuid}", uuid);
+            return Result<SwSapienCancelData>.Failure($"Error al cancelar: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<SwSapienCancelData>> CheckCancellationStatusAsync(
+        string uuid,
+        string issuerRfc,
+        string receiverRfc,
+        decimal total,
+        string cancellationReason,
+        string? replacementUuid = null)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var settings = await context.MexicoPacSettings.FirstOrDefaultAsync();
+
+            if (settings == null)
+                return Result<SwSapienCancelData>.Failure("No hay configuración PAC disponible");
+
+            if (string.IsNullOrEmpty(settings.CsdCertificateBase64))
+                return Result<SwSapienCancelData>.Failure("No hay certificado CSD configurado");
+
+            if (string.IsNullOrEmpty(settings.CsdPrivateKeyBase64))
+                return Result<SwSapienCancelData>.Failure("No hay llave privada CSD configurada");
+
+            if (string.IsNullOrEmpty(settings.CsdPassword))
+                return Result<SwSapienCancelData>.Failure("No hay contraseña del CSD configurada");
+
+            var apiUrl = (settings.IsProduction
+                ? settings.ProductionUrl
+                : (settings.TestUrl ?? settings.ProductionUrl)).TrimEnd('/');
+
+            var tokenResult = await GetTokenAsync(settings.Token, settings.User, settings.Password, apiUrl);
+            if (!tokenResult.IsSuccess)
+                return Result<SwSapienCancelData>.Failure(tokenResult.Error!);
+
+            return await CancelCfdiInternalAsync(
+                apiUrl, tokenResult.Value!,
+                uuid, issuerRfc, receiverRfc, total,
+                cancellationReason, replacementUuid,
+                settings.CsdCertificateBase64, settings.CsdPrivateKeyBase64, settings.CsdPassword);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking cancellation status for CFDI {Uuid}", uuid);
+            return Result<SwSapienCancelData>.Failure($"Error al consultar estado de cancelación: {ex.Message}");
+        }
+    }
+
+    private async Task<Result<SwSapienCancelData>> CancelCfdiInternalAsync(
+        string apiUrl, string token,
+        string uuid, string issuerRfc, string receiverRfc, decimal total,
+        string motivo, string? folioSustitucion,
+        string b64Cer, string b64Key, string password)
+    {
+        try
+        {
+            var http = _httpClientFactory.CreateClient();
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var request = new SwSapienCancelRequest
+            {
+                Rfc = issuerRfc,
+                RfcReceptor = receiverRfc,
+                Total = total.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                Uuid = uuid,
+                Motivo = motivo,
+                FolioSustitucion = motivo == "01" ? folioSustitucion : null,
+                B64Cer = b64Cer,
+                B64Key = b64Key,
+                Password = password
+            };
+
+            var jsonBody = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            var cancelUrl = $"{apiUrl}/cfdi33/cancel/csd/status";
+            _logger.LogInformation("Calling PAC cancel endpoint: {Url} for UUID: {Uuid}", cancelUrl, uuid);
+
+            var response = await http.PostAsync(cancelUrl,
+                new StringContent(jsonBody, Encoding.UTF8, "application/json"));
+
+            var json = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug("PAC cancel response: {Response}", json);
+
+            var cancelResponse = JsonSerializer.Deserialize<SwSapienCancelResponse>(json, _jsonOptions);
+            if (cancelResponse?.Status != "success" || cancelResponse.Data == null)
+            {
+                var error = $"{cancelResponse?.Message} {cancelResponse?.MessageDetail}".Trim();
+                _logger.LogError("PAC cancellation error: {Error}", error);
+                return Result<SwSapienCancelData>.Failure(
+                    error.Length > 0 ? error : "Error desconocido del PAC al cancelar");
+            }
+
+            _logger.LogInformation("CFDI cancellation response received. StatusSat: {StatusSat}",
+                cancelResponse.Data.StatusSat);
+            return Result<SwSapienCancelData>.Success(cancelResponse.Data);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling PAC cancellation endpoint");
+            return Result<SwSapienCancelData>.Failure($"Error en cancelación: {ex.Message}");
+        }
+    }
+
 }
