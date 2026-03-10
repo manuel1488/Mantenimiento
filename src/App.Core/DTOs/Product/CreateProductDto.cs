@@ -30,6 +30,8 @@ public class CreateProductDto
 
     public bool AllowCustomPricing { get; set; } = false;
 
+    public bool RequiresInventory { get; set; } = true;
+
     [Required]
     public int UnitMeasureId { get; set; }
 

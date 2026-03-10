@@ -33,6 +33,8 @@ public class UpdateProductDto
 
     public bool AllowCustomPricing { get; set; }
 
+    public bool RequiresInventory { get; set; }
+
     [Range(0, double.MaxValue)]
     public decimal Cost { get; set; }
 

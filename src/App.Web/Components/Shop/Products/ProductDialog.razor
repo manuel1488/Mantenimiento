@@ -240,6 +240,13 @@
                                         Color="Color.Primary" />
                             </MudItem>
 
+                            <MudItem xs="12">
+                                <MudCheckBox T="bool"
+                                        @bind-Value="_model.RequiresInventory"
+                                        Label="@L["Requires Inventory"]"
+                                        Color="Color.Primary" />
+                            </MudItem>
+
                             <!-- Wholesale Pricing Section -->
                             <MudItem xs="12">
                                 <MudPaper Class="pa-3" Elevation="0" Style="background-color: var(--mud-palette-background-grey);">
@@ -620,6 +627,7 @@
                     Content = _product.Content,
                     IsPartialSaleAllowed = _product.IsPartialSaleAllowed,
                     AllowCustomPricing = _product.AllowCustomPricing,
+                    RequiresInventory = _product.RequiresInventory,
                     Barcode = _product.Barcode
                 };
 
@@ -763,7 +771,8 @@
                         MexicoProductServiceId = _model.MexicoProductServiceId,
                         Content = _model.Content,
                         IsPartialSaleAllowed = _model.IsPartialSaleAllowed,
-                        AllowCustomPricing = _model.AllowCustomPricing
+                        AllowCustomPricing = _model.AllowCustomPricing,
+                        RequiresInventory = _model.RequiresInventory
                     };
 
                     var updatedProduct = await ProductService.UpdateProductAsync(ProductId.Value, updateDto);

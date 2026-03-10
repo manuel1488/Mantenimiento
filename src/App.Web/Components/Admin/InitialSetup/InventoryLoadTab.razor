@@ -239,7 +239,7 @@
                     page: 1,
                     pageSize: 50,
                     isActive: true);
-                return productItems;
+                return productItems.Where(p => p.RequiresInventory);
             }
 
             // Si hay texto de búsqueda, usar la lógica de búsqueda existente
@@ -247,7 +247,7 @@
                 searchString: value,
                 pageSize: 50,
                 isActive: true);
-            return searchItems;
+            return searchItems.Where(p => p.RequiresInventory);
         }
         catch (Exception ex)
         {

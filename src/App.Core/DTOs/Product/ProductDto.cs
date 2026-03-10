@@ -20,6 +20,7 @@ public class ProductDto : AuditableDto
     public decimal Content { get; set; }
     public bool IsPartialSaleAllowed { get; set; }
     public bool AllowCustomPricing { get; set; }
+    public bool RequiresInventory { get; set; }
     public int? MexicoProductServiceId { get; set; }
     public string? MexicoProductServiceCode { get; set; }
     public string? MexicoProductServiceDescription { get; set; }

@@ -300,9 +300,19 @@ public class SaleService : ISaleService
             context.Sales.Add(sale);
             await context.SaveChangesAsync();
 
-            // Process inventory for each detail
+            // Process inventory for each detail that requires inventory tracking
+            var saleProductIds = detailsToProcess.Select(d => d.ProductId).ToList();
+            var productInventoryFlags = await context.Products
+                .AsNoTracking()
+                .Where(p => saleProductIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.RequiresInventory })
+                .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
+
             foreach (var detail in detailsToProcess)
             {
+                if (productInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
+                    continue;
+
                 var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
                 {
                     ProductId = detail.ProductId,
@@ -429,9 +439,19 @@ public class SaleService : ISaleService
             // Use LocationId from the sale entity
             int? locationId = sale.LocationId;
 
-            // Return inventory
+            // Return inventory for products that require inventory tracking
+            var cancelProductIds = sale.Details.Select(d => d.ProductId).ToList();
+            var cancelInventoryFlags = await context.Products
+                .AsNoTracking()
+                .Where(p => cancelProductIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.RequiresInventory })
+                .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
+
             foreach (var detail in sale.Details)
             {
+                if (cancelInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
+                    continue;
+
                 var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
                 {
                     ProductId = detail.ProductId,
@@ -626,18 +646,19 @@ public class SaleService : ISaleService
                     L["One or more products not found: {0}", string.Join(", ", missingProductIds)]);
             }
 
-            // Check stock availability for all products
+            // Check stock availability for all products that require inventory
             var insufficientStockProducts = new List<string>();
             foreach (var detailDto in createDto.Details)
             {
+                var product = products[detailDto.ProductId];
+                if (!product.RequiresInventory)
+                    continue;
+
                 var stockAvailable = await _inventoryService.ValidateStockAvailabilityAsync(
                     detailDto.ProductId, locationId.Value, detailDto.Quantity);
 
                 if (!stockAvailable)
-                {
-                    var product = products[detailDto.ProductId];
                     insufficientStockProducts.Add(product.Name);
-                }
             }
 
             if (insufficientStockProducts.Any())

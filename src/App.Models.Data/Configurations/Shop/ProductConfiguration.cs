@@ -29,5 +29,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(e => e.IsPartialSaleAllowed)
             .HasDefaultValue(false);
+
+        builder.Property(e => e.RequiresInventory)
+            .HasDefaultValue(true);
     }
 }

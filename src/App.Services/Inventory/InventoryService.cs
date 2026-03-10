@@ -676,6 +676,12 @@ public class InventoryService : IInventoryService
                         L["Product not found or inactive"]);
                 }
 
+                if (!product.RequiresInventory)
+                {
+                    return InventoryOperationResult<InventoryMovementDto>.Error(
+                        L["This product does not require inventory tracking"]);
+                }
+
                 var location = await context.Locations
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == loadDto.LocationId && x.IsActive,

@@ -47,6 +47,8 @@ public class Product : BaseEntity<long>
 
     public bool AllowCustomPricing { get; set; } = false;
 
+    public bool RequiresInventory { get; set; } = true;
+
     [ForeignKey(nameof(UnitMeasureId))]
     public virtual UnitMeasure UnitMeasure { get; set; } = null!;
 
