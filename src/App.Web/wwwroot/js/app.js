@@ -56,6 +56,11 @@ window.posKeyboard = {
     }
 };
 
+// Open a URL in a new browser tab — called from Blazor via JS interop
+window.openInNewTab = (url) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+};
+
 // File download helper — called from Blazor via JS interop
 window.downloadFile = (fileName, contentType, base64Data) => {
     const link = document.createElement('a');

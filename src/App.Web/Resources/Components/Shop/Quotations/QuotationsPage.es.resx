@@ -22,6 +22,8 @@
   <data name="Status" xml:space="preserve"><value>Estado</value></data>
   <data name="Actions" xml:space="preserve"><value>Acciones</value></data>
   <data name="Edit" xml:space="preserve"><value>Editar</value></data>
+  <data name="Preview PDF" xml:space="preserve"><value>Vista previa PDF</value></data>
+  <data name="Download PDF" xml:space="preserve"><value>Descargar PDF</value></data>
   <data name="Send by email" xml:space="preserve"><value>Enviar por email</value></data>
   <data name="Mark as Accepted" xml:space="preserve"><value>Marcar como aceptada</value></data>
   <data name="Mark as Rejected" xml:space="preserve"><value>Marcar como rechazada</value></data>

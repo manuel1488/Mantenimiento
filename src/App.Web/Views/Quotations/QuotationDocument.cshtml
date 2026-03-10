@@ -13,15 +13,16 @@
     <title>@L["Quotation"] @Model.QuotationNumber</title>
     <style>
         :root {
-            --primary-color: #E53935;
-            --secondary-color: #757575;
+            --primary-color: #1A6868;
+            --primary-light: #E0F2F1;
+            --secondary-color: #546E7A;
         }
 
         body {
             font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
             padding: 24px;
-            color: #333;
+            color: #263238;
             font-size: 13px;
         }
 
@@ -29,9 +30,9 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 28px;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 18px;
+            margin-bottom: 24px;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 16px;
         }
 
         .logo {
@@ -62,81 +63,120 @@
 
         .meta-grid {
             display: flex;
-            gap: 40px;
-            margin-bottom: 22px;
+            gap: 32px;
+            margin-bottom: 20px;
         }
 
         .meta-block { flex: 1; }
 
         .meta-label {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--secondary-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            font-weight: 500;
         }
 
         .meta-value {
             font-size: 14px;
             font-weight: 500;
             margin-top: 2px;
+            color: #263238;
         }
 
         .validity-badge {
             display: inline-block;
-            background: #FFF3E0;
-            color: #E65100;
-            border: 1px solid #FF9800;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
             border-radius: 4px;
-            padding: 2px 8px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 2px 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
         .customer-section {
+            flex: 1;
             background: #F5F5F5;
             border-radius: 8px;
-            padding: 14px 18px;
-            margin-bottom: 22px;
+            padding: 12px 16px;
         }
 
-        .customer-section-title {
-            font-size: 11px;
+        .fiscal-section {
+            flex: 1;
+            background: var(--primary-light);
+            border-radius: 8px;
+            padding: 12px 16px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .section-title {
+            font-size: 10px;
             color: var(--secondary-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            font-weight: 500;
             margin-bottom: 6px;
         }
 
-        .customer-name { font-size: 16px; font-weight: 600; }
+        .customer-name { font-size: 15px; font-weight: 600; color: #263238; }
+        .customer-legal { font-size: 12px; color: var(--secondary-color); margin-top: 1px; }
 
-        .customer-email {
-            font-size: 12px;
+        .customer-detail {
+            font-size: 11px;
+            color: #546E7A;
+            margin-top: 3px;
+        }
+
+        .fiscal-row {
+            display: flex;
+            gap: 24px;
+            margin-top: 4px;
+        }
+
+        .fiscal-item { }
+        .fiscal-item-label {
+            font-size: 10px;
             color: var(--secondary-color);
-            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .fiscal-item-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 1px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         thead tr { background: var(--primary-color); color: white; }
 
         thead th {
-            padding: 10px 12px;
+            padding: 9px 12px;
             text-align: left;
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
 
         thead th.text-right { text-align: right; }
 
-        tbody tr:nth-child(even) { background: #FAFAFA; }
+        tbody tr:nth-child(even) { background: #F8FAFB; }
 
         tbody td {
-            padding: 9px 12px;
-            border-bottom: 1px solid #EEEEEE;
+            padding: 8px 12px;
+            border-bottom: 1px solid #ECEFF1;
             font-size: 12px;
         }
 
@@ -145,10 +185,10 @@
         .totals-section {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
         }
 
-        .totals-table { width: 300px; }
+        .totals-table { width: 280px; }
 
         .totals-table td {
             padding: 5px 12px;
@@ -164,11 +204,11 @@
 
         .totals-table .total-row {
             border-top: 2px solid var(--primary-color);
-            font-weight: bold;
         }
 
         .totals-table .total-row td {
             font-size: 15px;
+            font-weight: bold;
             color: var(--primary-color);
             padding-top: 8px;
         }
@@ -178,14 +218,15 @@
             border-left: 4px solid var(--primary-color);
             border-radius: 4px;
             padding: 12px 16px;
-            margin-bottom: 22px;
+            margin-bottom: 20px;
         }
 
         .notes-title {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--secondary-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            font-weight: 500;
             margin-bottom: 4px;
         }
 
@@ -193,13 +234,14 @@
             font-size: 12px;
             line-height: 1.5;
             white-space: pre-wrap;
+            color: #37474F;
         }
 
         .footer {
             text-align: center;
             font-size: 11px;
             color: var(--secondary-color);
-            border-top: 1px solid #EEEEEE;
+            border-top: 1px solid #CFD8DC;
             padding-top: 12px;
             margin-top: 8px;
         }
@@ -238,12 +280,51 @@
         </div>
     </div>
 
-    <div class="customer-section">
-        <div class="customer-section-title">@L["Customer"]</div>
-        <div class="customer-name">@Model.CustomerName</div>
-        @if (!string.IsNullOrEmpty(Model.CustomerEmail))
+    <div class="info-row">
+        @* Customer block *@
+        <div class="customer-section">
+            <div class="section-title">@L["Customer"]</div>
+            <div class="customer-name">@Model.CustomerName</div>
+            @if (!string.IsNullOrEmpty(Model.CustomerLegalName) && Model.CustomerLegalName != Model.CustomerName)
+            {
+                <div class="customer-legal">@Model.CustomerLegalName</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.CustomerEmail))
+            {
+                <div class="customer-detail">✉ @Model.CustomerEmail</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.CustomerPhone))
+            {
+                <div class="customer-detail">☎ @Model.CustomerPhone</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.CustomerAddress))
+            {
+                <div class="customer-detail">@Model.CustomerAddress</div>
+            }
+        </div>
+
+        @* Fiscal block — only shown when customer has fiscal data *@
+        @if (Model.CustomerHasFiscalData && !string.IsNullOrEmpty(Model.CustomerTaxId))
         {
-            <div class="customer-email">@Model.CustomerEmail</div>
+            <div class="fiscal-section">
+                <div class="section-title">@L["Fiscal Data"]</div>
+                <div class="fiscal-row">
+                    @if (!string.IsNullOrEmpty(Model.CustomerTaxId))
+                    {
+                        <div class="fiscal-item">
+                            <div class="fiscal-item-label">@L["Tax ID"]</div>
+                            <div class="fiscal-item-value">@Model.CustomerTaxId</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.CustomerFiscalRegime))
+                    {
+                        <div class="fiscal-item">
+                            <div class="fiscal-item-label">@L["Fiscal Regime"]</div>
+                            <div class="fiscal-item-value">@Model.CustomerFiscalRegime</div>
+                        </div>
+                    }
+                </div>
+            </div>
         }
     </div>
 

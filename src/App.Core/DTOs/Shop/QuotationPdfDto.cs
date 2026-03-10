@@ -4,7 +4,13 @@ public class QuotationPdfDto
 {
     public string QuotationNumber { get; set; } = null!;
     public string CustomerName { get; set; } = null!;
+    public string? CustomerLegalName { get; set; }
     public string? CustomerEmail { get; set; }
+    public string? CustomerPhone { get; set; }
+    public string? CustomerAddress { get; set; }
+    public string? CustomerTaxId { get; set; }
+    public string? CustomerFiscalRegime { get; set; }
+    public bool CustomerHasFiscalData { get; set; }
     public DateTime QuoteDate { get; set; }
     public DateTime ValidUntil { get; set; }
     public string? Notes { get; set; }

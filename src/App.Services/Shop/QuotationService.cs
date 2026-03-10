@@ -487,11 +487,31 @@ public class QuotationService : IQuotationService
             ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
             : string.Empty;
 
+        var c = quotation.Customer;
+
+        // Build address string from available fields
+        var addressParts = new[]
+        {
+            string.IsNullOrWhiteSpace(c.Street) ? null
+                : c.Street + (!string.IsNullOrWhiteSpace(c.ExteriorNumber) ? $" #{c.ExteriorNumber}" : string.Empty),
+            c.Neighborhood,
+            c.City,
+            c.State,
+            c.PostalCode
+        }.Where(p => !string.IsNullOrWhiteSpace(p));
+        var address = string.Join(", ", addressParts);
+
         var model = new QuotationPdfDto
         {
             QuotationNumber = quotation.QuotationNumber,
-            CustomerName = quotation.Customer.Name,
-            CustomerEmail = quotation.Customer.Email,
+            CustomerName = c.Name,
+            CustomerLegalName = c.LegalName,
+            CustomerEmail = c.Email,
+            CustomerPhone = c.Phone,
+            CustomerAddress = string.IsNullOrWhiteSpace(address) ? null : address,
+            CustomerTaxId = c.TaxId,
+            CustomerFiscalRegime = c.FiscalRegime,
+            CustomerHasFiscalData = c.HasFiscalData,
             QuoteDate = quotation.QuoteDate,
             ValidUntil = quotation.ValidUntil,
             Notes = quotation.Notes,

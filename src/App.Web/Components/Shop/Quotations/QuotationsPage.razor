@@ -10,6 +10,7 @@
 @inject IStringLocalizer<QuotationsPage> L
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewQuotations)]
 
@@ -103,6 +104,16 @@
                                         }
                                     </Authorized>
                                 </AuthorizeView>
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Size="Size.Small"
+                                               Color="Color.Default"
+                                               title="@L["Preview PDF"]"
+                                               OnClick="@(() => PreviewPdfAsync(context.Item))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                               Size="Size.Small"
+                                               Color="Color.Secondary"
+                                               title="@L["Download PDF"]"
+                                               OnClick="@(() => DownloadPdfAsync(context.Item))" />
                                 <AuthorizeView Policy="@ApplicationClaims.Shop.SendQuotation">
                                     <Authorized Context="sendAuth">
                                         <MudIconButton Icon="@Icons.Material.Filled.Email"
@@ -188,6 +199,27 @@
     #endregion
 
     #region Actions
+    private async Task PreviewPdfAsync(QuotationDto quotation)
+    {
+        await JS.InvokeVoidAsync("openInNewTab", $"/api/quotations/{quotation.Id}/pdf");
+    }
+
+    private async Task DownloadPdfAsync(QuotationDto quotation)
+    {
+        try
+        {
+            var bytes = await QuotationService.GeneratePdfAsync(quotation.Id);
+            await JS.InvokeVoidAsync("downloadFile",
+                $"cotizacion_{quotation.QuotationNumber}.pdf",
+                "application/pdf",
+                Convert.ToBase64String(bytes));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
     private async Task OpenSendDialog(QuotationDto quotation)
     {
         var parameters = new DialogParameters<SendQuotationDialog>
