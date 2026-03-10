@@ -65,6 +65,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StockEntryItem> StockEntryItems { get; set; } = null!;
     public DbSet<AdjustmentEntry> AdjustmentEntries { get; set; } = null!;
     public DbSet<AdjustmentEntryItem> AdjustmentEntryItems { get; set; } = null!;
+    public DbSet<Quotation> Quotations { get; set; } = null!;
+    public DbSet<QuotationDetail> QuotationDetails { get; set; } = null!;
     #endregion
 
     #region Identity Extensions

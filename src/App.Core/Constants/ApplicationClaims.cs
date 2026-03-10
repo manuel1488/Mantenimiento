@@ -64,6 +64,13 @@ public static class ApplicationClaims
         public const string ManageWarehouses = "Shop.Warehouses.Manage";
         public const string DeleteWarehouses = "Shop.Warehouses.Delete";
 
+        // Cotizaciones
+        public const string ViewQuotations = "Shop.Quotations.View";
+        public const string CreateQuotation = "Shop.Quotations.Create";
+        public const string EditQuotation = "Shop.Quotations.Edit";
+        public const string DeleteQuotation = "Shop.Quotations.Delete";
+        public const string SendQuotation = "Shop.Quotations.Send";
+
         // Caja (Cash Register)
         public const string ViewCashRegister = "Shop.CashRegister.View";
         public const string ManageCashRegister = "Shop.CashRegister.Manage";

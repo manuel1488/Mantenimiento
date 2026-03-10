@@ -1,0 +1,254 @@
+@page "/shop/quotations"
+@using App.Core.Constants
+@using App.Core.DTOs.Shop
+@using App.Core.Enums.Shop
+@using App.Core.Interfaces.Shop
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+@inject IQuotationService QuotationService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<QuotationsPage> L
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewQuotations)]
+
+<PageTitle>@L["Quotations"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Quotations"]</MudText>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="2">
+                <MudTextField @bind-Value="_search"
+                              Placeholder="@L["Search by number or customer..."]"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Variant="Variant.Outlined"
+                              Immediate="true"
+                              DebounceInterval="300"
+                              OnDebounceIntervalElapsed="@(_ => _grid?.ReloadServerData())"
+                              Class="flex-grow-1" />
+                <MudSelect T="string?"
+                           Value="_statusFilter"
+                           ValueChanged="@OnStatusFilterChanged"
+                           Placeholder="@L["All statuses"]"
+                           Variant="Variant.Outlined"
+                           Clearable="true"
+                           Style="min-width: 180px;">
+                    <MudSelectItem T="string?" Value="@((string?)null)">@L["All"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Draft")">@L["Draft"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Sent")">@L["Sent"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Accepted")">@L["Accepted"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Rejected")">@L["Rejected"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Expired")">@L["Expired"]</MudSelectItem>
+                </MudSelect>
+                <AuthorizeView Policy="@ApplicationClaims.Shop.CreateQuotation">
+                    <Authorized Context="createAuth">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="@(() => Navigation.NavigateTo("/shop/quotations/new"))">
+                            @L["New Quotation"]
+                        </MudButton>
+                    </Authorized>
+                </AuthorizeView>
+            </MudStack>
+
+            <MudDataGrid T="QuotationDto"
+                         @ref="_grid"
+                         ServerData="@LoadServerData"
+                         SortMode="SortMode.None"
+                         RowsPerPage="15"
+                         Dense="true"
+                         Hover="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.QuotationNumber" Title="@L["#"]" />
+                    <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]" />
+                    <TemplateColumn Title="@L["Date"]">
+                        <CellTemplate>
+                            @context.Item.QuoteDate.ToString("dd/MM/yyyy")
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Valid Until"]">
+                        <CellTemplate>
+                            @context.Item.ValidUntil.ToString("dd/MM/yyyy")
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Total"]">
+                        <CellTemplate>
+                            @context.Item.Total.ToString("C2")
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Status"]">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Item.Status)">
+                                @L[context.Item.Status.ToString()]
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Actions"]">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="0">
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.EditQuotation">
+                                    <Authorized Context="editAuth">
+                                        @if (context.Item.Status == QuotationStatus.Draft)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                           Size="Size.Small"
+                                                           Color="Color.Primary"
+                                                           title="@L["Edit"]"
+                                                           OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/{context.Item.Id}/edit"))" />
+                                        }
+                                    </Authorized>
+                                </AuthorizeView>
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.SendQuotation">
+                                    <Authorized Context="sendAuth">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Email"
+                                                       Size="Size.Small"
+                                                       Color="Color.Info"
+                                                       title="@L["Send by email"]"
+                                                       OnClick="@(() => OpenSendDialog(context.Item))" />
+                                    </Authorized>
+                                </AuthorizeView>
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.EditQuotation">
+                                    <Authorized Context="statusAuth">
+                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                                            @if (context.Item.Status != QuotationStatus.Accepted)
+                                            {
+                                                <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Accepted))">
+                                                    @L["Mark as Accepted"]
+                                                </MudMenuItem>
+                                            }
+                                            @if (context.Item.Status != QuotationStatus.Rejected)
+                                            {
+                                                <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Rejected))">
+                                                    @L["Mark as Rejected"]
+                                                </MudMenuItem>
+                                            }
+                                            @if (context.Item.Status != QuotationStatus.Expired)
+                                            {
+                                                <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Expired))">
+                                                    @L["Mark as Expired"]
+                                                </MudMenuItem>
+                                            }
+                                        </MudMenu>
+                                    </Authorized>
+                                </AuthorizeView>
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.DeleteQuotation">
+                                    <Authorized Context="deleteAuth">
+                                        @if (context.Item.Status == QuotationStatus.Draft)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           title="@L["Delete"]"
+                                                           OnClick="@(() => DeleteAsync(context.Item))" />
+                                        }
+                                    </Authorized>
+                                </AuthorizeView>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="QuotationDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private MudDataGrid<QuotationDto>? _grid;
+    private string? _search;
+    private string? _statusFilter;
+    #endregion
+
+    private async Task OnStatusFilterChanged(string? value)
+    {
+        _statusFilter = value;
+        if (_grid is not null)
+            await _grid.ReloadServerData();
+    }
+
+    #region Data loading
+    private async Task<GridData<QuotationDto>> LoadServerData(GridState<QuotationDto> state)
+    {
+        var (total, items) = await QuotationService.GetQuotationsAsync(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            search: _search,
+            status: _statusFilter);
+
+        return new GridData<QuotationDto> { Items = items, TotalItems = total };
+    }
+    #endregion
+
+    #region Actions
+    private async Task OpenSendDialog(QuotationDto quotation)
+    {
+        var parameters = new DialogParameters<SendQuotationDialog>
+        {
+            { x => x.QuotationId, quotation.Id },
+            { x => x.CustomerEmail, quotation.CustomerEmail }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<SendQuotationDialog>(L["Send Quotation"], parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+            await _grid!.ReloadServerData();
+    }
+
+    private async Task ChangeStatusAsync(QuotationDto quotation, QuotationStatus newStatus)
+    {
+        var result = await QuotationService.UpdateStatusAsync(quotation.Id, newStatus);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Status updated"], Severity.Success);
+            await _grid!.ReloadServerData();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task DeleteAsync(QuotationDto quotation)
+    {
+        var parameters = new DialogParameters<MudMessageBox>
+        {
+            { x => x.Message, string.Format(L["Are you sure you want to delete quotation {0}?"], quotation.QuotationNumber) },
+            { x => x.YesText, L["Delete"].Value },
+            { x => x.NoText, L["Cancel"].Value }
+        };
+        var dialog = await DialogService.ShowAsync<MudMessageBox>(L["Confirm Delete"], parameters);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is { Canceled: false })
+        {
+            var result = await QuotationService.DeleteAsync(quotation.Id);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Quotation deleted"], Severity.Success);
+                await _grid!.ReloadServerData();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+    }
+
+    private static Color GetStatusColor(QuotationStatus status) => status switch
+    {
+        QuotationStatus.Draft => Color.Default,
+        QuotationStatus.Sent => Color.Info,
+        QuotationStatus.Accepted => Color.Success,
+        QuotationStatus.Rejected => Color.Error,
+        QuotationStatus.Expired => Color.Warning,
+        _ => Color.Default
+    };
+    #endregion
+}

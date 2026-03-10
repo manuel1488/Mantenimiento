@@ -1,0 +1,414 @@
+@page "/shop/quotations/new"
+@using App.Core.Common
+@using App.Core.Constants
+@using App.Core.DTOs.Shop
+@using App.Core.DTOs.Customer
+@using App.Core.DTOs.Product
+@using App.Core.Interfaces.Shop
+@using App.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+@inject IQuotationService QuotationService
+@inject IProductService ProductService
+@inject ICustomerService CustomerService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IStringLocalizer<CreateQuotationPage> L
+@inject IJSRuntime JS
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.CreateQuotation)]
+@implements IAsyncDisposable
+
+<PageTitle>@L["New Quotation"]</PageTitle>
+
+@* Outer wrapper: fills viewport height so nothing overflows the page *@
+<div style="height:calc(100vh - 96px);display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+
+    @* Title row *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Default"
+                       OnClick="@(() => Navigation.NavigateTo("/shop/quotations"))"
+                       title="@L["Back"]" />
+        <MudText Typo="Typo.h4">@L["New Quotation"]</MudText>
+    </MudStack>
+
+    @* Main card: grows to fill remaining space, clips overflow *@
+    <MudPaper Elevation="2" Class="pa-4" Style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px;">
+
+        @* Top fields (fixed height) *@
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudAutocomplete T="CustomerDto"
+                                     Label="@L["Customer"]"
+                                     @bind-Value="_selectedCustomer"
+                                     SearchFunc="@SearchCustomersAsync"
+                                     ToStringFunc="@(c => c?.Name ?? string.Empty)"
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     RequiredError="@L["Customer is required"]" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudDatePicker Label="@L["Quote Date"]"
+                                   @bind-Date="_quoteDate"
+                                   Variant="Variant.Outlined"
+                                   DateFormat="dd/MM/yyyy" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudDatePicker Label="@L["Valid Until"]"
+                                   @bind-Date="_validUntil"
+                                   Variant="Variant.Outlined"
+                                   DateFormat="dd/MM/yyyy" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudNumericField T="decimal"
+                                     Label="@L["Global Discount %"]"
+                                     @bind-Value="_globalDiscount"
+                                     Min="0" Max="100" Step="1m"
+                                     Variant="Variant.Outlined"
+                                     Adornment="Adornment.End"
+                                     AdornmentText="%" />
+                </MudItem>
+                <MudItem xs="12" md="9">
+                    <MudTextField @bind-Value="_notes"
+                                  Label="@L["Notes & Conditions"]"
+                                  Variant="Variant.Outlined"
+                                  Lines="2" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+
+        @* Products section: grows to fill remaining space *@
+        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+
+            @* Header *@
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                <MudText Typo="Typo.subtitle1">@L["Products"]</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="@AddLine">
+                    @L["Add product"]
+                </MudButton>
+            </MudStack>
+
+            @if (_lines.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">@L["Add at least one product"]</MudAlert>
+            }
+            else
+            {
+                @* Scrollable table — takes all remaining vertical space *@
+                <div style="flex:1;overflow-y:auto;min-height:0;">
+                    <MudSimpleTable Dense="true" Hover="true">
+                        <thead>
+                            <tr>
+                                <th>@L["Product"]</th>
+                                <th style="width:100px">@L["Qty"]</th>
+                                <th style="width:140px">@L["Unit Price"]</th>
+                                <th style="width:100px">@L["Disc. %"]</th>
+                                <th style="width:120px;text-align:right">@L["Total"]</th>
+                                <th style="width:48px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var line in _lines)
+                            {
+                                <tr>
+                                    <td>
+                                        <div id="@($"line-{line.LineId}")">
+                                        <MudAutocomplete T="ProductDto"
+                                                         Value="line.SelectedProduct"
+                                                         ValueChanged="@((p) => OnProductSelected(line, p))"
+                                                         SearchFunc="@SearchProductsAsync"
+                                                         ToStringFunc="@(p => p is null ? string.Empty : $"{p.Code} - {p.Name}")"
+                                                         Variant="Variant.Text"
+                                                         Dense="true" />
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <MudNumericField T="decimal"
+                                                         Value="line.Quantity"
+                                                         ValueChanged="@((v) => OnLineChanged(line, quantity: v))"
+                                                         Min="0.001m"
+                                                         Variant="Variant.Text"
+                                                         Dense="true" />
+                                    </td>
+                                    <td>
+                                        <MudNumericField T="decimal"
+                                                         Value="line.UnitPrice"
+                                                         ValueChanged="@((v) => OnLineChanged(line, unitPrice: v))"
+                                                         Min="0m"
+                                                         Variant="Variant.Text"
+                                                         Dense="true" />
+                                    </td>
+                                    <td>
+                                        <MudNumericField T="decimal"
+                                                         Value="line.DiscountPercentage"
+                                                         ValueChanged="@((v) => OnLineChanged(line, discount: v))"
+                                                         Min="0m" Max="100m"
+                                                         Variant="Variant.Text"
+                                                         Dense="true" />
+                                    </td>
+                                    <td style="text-align:right">@line.LineTotal.ToString("C2")</td>
+                                    <td>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Size="Size.Small"
+                                                       Color="Color.Error"
+                                                       OnClick="@(() => RemoveLine(line))" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                </div>
+
+                @* Totals — always visible below the table *@
+                <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2">
+                    <MudStack Spacing="1" Style="min-width:240px">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Subtotal"]:</MudText>
+                            <MudText Typo="Typo.body2">@_subtotal.ToString("C2")</MudText>
+                        </MudStack>
+                        @if (_discountTotal > 0)
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Discount"]:</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Error">-@_discountTotal.ToString("C2")</MudText>
+                            </MudStack>
+                        }
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Tax"]:</MudText>
+                            <MudText Typo="Typo.body2">@_taxTotal.ToString("C2")</MudText>
+                        </MudStack>
+                        <MudDivider />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.subtitle1">@L["Total"]:</MudText>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary">@_grandTotal.ToString("C2")</MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+            }
+        </div>
+
+        @* Action buttons — always pinned at the bottom of the card *@
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="@(() => Navigation.NavigateTo("/shop/quotations"))">
+                @L["Cancel"]
+            </MudButton>
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       OnClick="Save"
+                       Disabled="@(_processing || !_isValid || _lines.Count == 0)">
+                @if (_processing)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                @L["Save"]
+            </MudButton>
+        </MudStack>
+
+    </MudPaper>
+</div>
+
+@code {
+    #region Lifecycle (overflow lock)
+    private bool _jsReady;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsReady = true;
+            await JS.InvokeVoidAsync("eval",
+                "var el=document.querySelector('.mud-main-content');if(el)el.style.overflow='hidden';");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_jsReady) return;
+        try
+        {
+            await JS.InvokeVoidAsync("eval",
+                "var el=document.querySelector('.mud-main-content');if(el)el.style.overflow='';");
+        }
+        catch (JSDisconnectedException) { }
+        catch (TaskCanceledException) { }
+    }
+    #endregion
+
+    #region Fields
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+
+    private CustomerDto? _selectedCustomer;
+    private DateTime? _quoteDate = DateTime.Today;
+    private DateTime? _validUntil = DateTime.Today.AddDays(15);
+    private decimal _globalDiscount = 0;
+    private string? _notes;
+
+    private List<QuotationLine> _lines = [];
+    private int _lineCounter = 0;
+
+    private decimal _subtotal;
+    private decimal _discountTotal;
+    private decimal _taxTotal;
+    private decimal _grandTotal;
+
+    private const decimal DisplayTaxRate = 16m;
+    #endregion
+
+    #region Search
+    private async Task<IEnumerable<CustomerDto>> SearchCustomersAsync(string? value, CancellationToken ct)
+    {
+        var (_, items) = await CustomerService.GetCustomersAsync(
+            page: 1,
+            pageSize: 30,
+            searchString: string.IsNullOrWhiteSpace(value) ? null : value);
+        return items;
+    }
+
+    private async Task<IEnumerable<ProductDto>> SearchProductsAsync(string? value, CancellationToken ct)
+    {
+        var (_, items) = await ProductService.GetProductsAsync(
+            page: 1,
+            pageSize: 30,
+            searchString: string.IsNullOrWhiteSpace(value) ? null : value,
+            isActive: true);
+        return items;
+    }
+    #endregion
+
+    #region Lines management
+    private async Task AddLine()
+    {
+        var newLine = new QuotationLine { Quantity = 1, LineId = _lineCounter++ };
+        _lines.Add(newLine);
+        RecalculateTotals();
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(50);
+        await JS.InvokeVoidAsync("eval",
+            $"var w=document.getElementById('line-{newLine.LineId}');if(w){{var i=w.querySelector('input');if(i)i.focus();}}");
+    }
+
+    private void RemoveLine(QuotationLine line)
+    {
+        _lines.Remove(line);
+        RecalculateTotals();
+    }
+
+    private void OnProductSelected(QuotationLine line, ProductDto? product)
+    {
+        if (product is null) return;
+        line.SelectedProduct = product;
+        line.ProductId = product.Id;
+        line.ProductName = product.Name;
+        line.ProductCode = product.Code ?? string.Empty;
+        line.UnitPrice = product.Price;
+        RecalculateTotals();
+    }
+
+    private void OnLineChanged(QuotationLine line,
+        decimal? quantity = null,
+        decimal? unitPrice = null,
+        decimal? discount = null)
+    {
+        if (quantity.HasValue) line.Quantity = quantity.Value;
+        if (unitPrice.HasValue) line.UnitPrice = unitPrice.Value;
+        if (discount.HasValue) line.DiscountPercentage = discount.Value;
+        RecalculateTotals();
+    }
+
+    private void RecalculateTotals()
+    {
+        foreach (var line in _lines)
+        {
+            var lineBase = line.Quantity * line.UnitPrice;
+            var lineDiscount = lineBase * (line.DiscountPercentage / 100m);
+            var lineAfterDiscount = lineBase - lineDiscount;
+            var lineTax = lineAfterDiscount * (DisplayTaxRate / 100m);
+            line.LineTotal = lineAfterDiscount + lineTax;
+            line.LineTax = lineTax;
+            line.LineDiscount = lineDiscount;
+        }
+
+        var totalAfterLineDiscounts = _lines.Sum(l => l.Quantity * l.UnitPrice - l.LineDiscount);
+        var globalDiscountAmt = totalAfterLineDiscounts * (_globalDiscount / 100m);
+        var afterGlobalDiscount = totalAfterLineDiscounts - globalDiscountAmt;
+        var tax = afterGlobalDiscount * (DisplayTaxRate / 100m);
+
+        _subtotal = afterGlobalDiscount;
+        _discountTotal = _lines.Sum(l => l.LineDiscount) + globalDiscountAmt;
+        _taxTotal = tax;
+        _grandTotal = afterGlobalDiscount + tax;
+
+        StateHasChanged();
+    }
+    #endregion
+
+    #region Save
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid || _lines.Count == 0 || _selectedCustomer is null) return;
+
+        _processing = true;
+        try
+        {
+            var createDto = new CreateQuotationDto
+            {
+                CustomerId = _selectedCustomer.Id,
+                QuoteDate = _quoteDate,
+                ValidUntil = _validUntil,
+                DiscountPercentage = _globalDiscount,
+                Notes = _notes,
+                Details = _lines.Select(l => new CreateQuotationDetailDto
+                {
+                    ProductId = l.ProductId,
+                    Quantity = l.Quantity,
+                    UnitPrice = l.UnitPrice,
+                    DiscountPercentage = l.DiscountPercentage
+                }).ToList()
+            };
+
+            var result = await QuotationService.CreateAsync(createDto);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["Quotation saved successfully"], Severity.Success);
+                Navigation.NavigateTo("/shop/quotations");
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+    #endregion
+
+    #region Helper class
+    private class QuotationLine
+    {
+        public int LineId { get; set; }
+        public long ProductId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public string ProductCode { get; set; } = string.Empty;
+        public ProductDto? SelectedProduct { get; set; }
+        public decimal Quantity { get; set; } = 1;
+        public decimal UnitPrice { get; set; }
+        public decimal DiscountPercentage { get; set; }
+        public decimal LineTotal { get; set; }
+        public decimal LineTax { get; set; }
+        public decimal LineDiscount { get; set; }
+    }
+    #endregion
+}

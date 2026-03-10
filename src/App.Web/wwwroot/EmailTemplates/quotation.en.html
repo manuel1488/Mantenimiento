@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quotation {{ quotation_number }}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #F5F5F5; color: #333; }
+  .container { max-width: 600px; margin: 24px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .header { background: #E53935; padding: 24px 32px; }
+  .header-title { color: #fff; font-size: 22px; font-weight: bold; margin: 0; }
+  .header-subtitle { color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 4px; }
+  .body { padding: 32px; }
+  .greeting { font-size: 16px; margin-bottom: 16px; }
+  .info-block { background: #F5F5F5; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; }
+  .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+  .info-label { color: #757575; }
+  .info-value { font-weight: 500; }
+  .validity { background: #FFF3E0; border: 1px solid #FF9800; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 14px; color: #E65100; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  th { background: #E53935; color: #fff; padding: 10px 12px; text-align: left; font-size: 13px; }
+  th.right { text-align: right; }
+  td { padding: 8px 12px; border-bottom: 1px solid #EEE; font-size: 13px; }
+  td.right { text-align: right; }
+  .totals { text-align: right; margin-bottom: 24px; font-size: 14px; }
+  .totals-row { padding: 3px 0; }
+  .totals-total { font-size: 18px; font-weight: bold; color: #E53935; margin-top: 6px; padding-top: 6px; border-top: 2px solid #E53935; }
+  .notes { background: #F5F5F5; border-left: 4px solid #E53935; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; white-space: pre-wrap; }
+  .attachment-note { background: #E3F2FD; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; color: #1565C0; }
+  .footer { background: #F5F5F5; padding: 20px 32px; text-align: center; font-size: 12px; color: #757575; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <p class="header-title">{{ company_name }}</p>
+    <p class="header-subtitle">Quotation {{ quotation_number }}</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Dear <strong>{{ customer_name }}</strong>,</p>
+    <p>We are pleased to present you the following quotation per your request:</p>
+
+    <div class="info-block">
+      <div class="info-row"><span class="info-label">Quotation number:</span><span class="info-value">{{ quotation_number }}</span></div>
+      <div class="info-row"><span class="info-label">Date:</span><span class="info-value">{{ quote_date }}</span></div>
+    </div>
+
+    <div class="validity">
+      &#9200; This quotation is valid until <strong>{{ valid_until }}</strong>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Product</th>
+          <th class="right">Qty</th>
+          <th class="right">Unit price</th>
+          <th class="right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ for item in items }}
+        <tr>
+          <td>{{ item.code }}</td>
+          <td>{{ item.name }}</td>
+          <td class="right">{{ item.quantity }}</td>
+          <td class="right">{{ item.unit_price }}</td>
+          <td class="right">{{ item.total }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="totals-row">Subtotal: {{ subtotal }}</div>
+      <div class="totals-row">Tax: {{ tax_amount }}</div>
+      <div class="totals-total">Total: {{ total }}</div>
+    </div>
+
+    {{ if notes != "" }}
+    <div>
+      <strong>Terms &amp; conditions:</strong>
+      <div class="notes">{{ notes }}</div>
+    </div>
+    {{ end }}
+
+    <div class="attachment-note">
+      &#128206; Please find the complete quotation details in the attached PDF file.
+    </div>
+
+    <p>If you have any questions or would like to proceed, please don't hesitate to contact us.</p>
+    <p>Best regards,<br/><strong>{{ company_name }}</strong></p>
+  </div>
+  <div class="footer">
+    {{ company_name }} &bull; This email was generated automatically.
+  </div>
+</div>
+</body>
+</html>

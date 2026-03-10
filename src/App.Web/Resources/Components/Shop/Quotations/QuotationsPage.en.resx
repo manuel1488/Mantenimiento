@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Quotations" xml:space="preserve"><value>Quotations</value></data>
+  <data name="New Quotation" xml:space="preserve"><value>New Quotation</value></data>
+  <data name="Search by number or customer..." xml:space="preserve"><value>Search by number or customer...</value></data>
+  <data name="All statuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
+  <data name="Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Sent" xml:space="preserve"><value>Sent</value></data>
+  <data name="Accepted" xml:space="preserve"><value>Accepted</value></data>
+  <data name="Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="#" xml:space="preserve"><value>#</value></data>
+  <data name="Customer" xml:space="preserve"><value>Customer</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Valid Until" xml:space="preserve"><value>Valid Until</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Send by email" xml:space="preserve"><value>Send by email</value></data>
+  <data name="Mark as Accepted" xml:space="preserve"><value>Mark as Accepted</value></data>
+  <data name="Mark as Rejected" xml:space="preserve"><value>Mark as Rejected</value></data>
+  <data name="Mark as Expired" xml:space="preserve"><value>Mark as Expired</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Edit Quotation" xml:space="preserve"><value>Edit Quotation</value></data>
+  <data name="Send Quotation" xml:space="preserve"><value>Send Quotation</value></data>
+  <data name="Status updated" xml:space="preserve"><value>Status updated</value></data>
+  <data name="Quotation deleted" xml:space="preserve"><value>Quotation deleted</value></data>
+  <data name="Confirm Delete" xml:space="preserve"><value>Confirm Delete</value></data>
+  <data name="Are you sure you want to delete quotation {0}?" xml:space="preserve"><value>Are you sure you want to delete quotation {0}?</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+</root>

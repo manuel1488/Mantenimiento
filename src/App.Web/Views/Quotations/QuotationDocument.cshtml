@@ -1,0 +1,328 @@
+@using App.Core.DTOs.Shop
+@using App.Services.Shop
+@using Microsoft.Extensions.Localization
+@using App.Shared.Services
+@inject IStringLocalizer<QuotationService> L
+@inject IDateTime _dateTime
+@model QuotationPdfDto
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@L["Quotation"] @Model.QuotationNumber</title>
+    <style>
+        :root {
+            --primary-color: #E53935;
+            --secondary-color: #757575;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 28px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 18px;
+        }
+
+        .logo {
+            max-width: 160px;
+            max-height: 60px;
+        }
+
+        .company-info { text-align: right; }
+
+        .company-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .company-detail {
+            font-size: 12px;
+            color: var(--secondary-color);
+            margin-top: 2px;
+        }
+
+        .quotation-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        .meta-grid {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 22px;
+        }
+
+        .meta-block { flex: 1; }
+
+        .meta-label {
+            font-size: 11px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .validity-badge {
+            display: inline-block;
+            background: #FFF3E0;
+            color: #E65100;
+            border: 1px solid #FF9800;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .customer-section {
+            background: #F5F5F5;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 22px;
+        }
+
+        .customer-section-title {
+            font-size: 11px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .customer-name { font-size: 16px; font-weight: 600; }
+
+        .customer-email {
+            font-size: 12px;
+            color: var(--secondary-color);
+            margin-top: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+
+        thead tr { background: var(--primary-color); color: white; }
+
+        thead th {
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        thead th.text-right { text-align: right; }
+
+        tbody tr:nth-child(even) { background: #FAFAFA; }
+
+        tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #EEEEEE;
+            font-size: 12px;
+        }
+
+        tbody td.text-right { text-align: right; }
+
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 22px;
+        }
+
+        .totals-table { width: 300px; }
+
+        .totals-table td {
+            padding: 5px 12px;
+            border: none;
+        }
+
+        .totals-table .label {
+            color: var(--secondary-color);
+            font-size: 12px;
+        }
+
+        .totals-table .value { text-align: right; font-size: 13px; }
+
+        .totals-table .total-row {
+            border-top: 2px solid var(--primary-color);
+            font-weight: bold;
+        }
+
+        .totals-table .total-row td {
+            font-size: 15px;
+            color: var(--primary-color);
+            padding-top: 8px;
+        }
+
+        .notes-section {
+            background: #F5F5F5;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-bottom: 22px;
+        }
+
+        .notes-title {
+            font-size: 11px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .notes-text {
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: var(--secondary-color);
+            border-top: 1px solid #EEEEEE;
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            @if (!string.IsNullOrEmpty(Model.LogoBase64))
+            {
+                <img src="@Model.LogoBase64" class="logo" alt="Logo" />
+            }
+        </div>
+        <div class="company-info">
+            <div class="company-name">@Model.CompanyName</div>
+        </div>
+    </div>
+
+    <div class="quotation-title">@L["Quotation"] — @Model.QuotationNumber</div>
+
+    <div class="meta-grid">
+        <div class="meta-block">
+            <div class="meta-label">@L["Date"]</div>
+            <div class="meta-value">@Model.QuoteDate.ToString("dd/MM/yyyy")</div>
+        </div>
+        <div class="meta-block">
+            <div class="meta-label">@L["Valid Until"]</div>
+            <div class="meta-value">
+                <span class="validity-badge">@Model.ValidUntil.ToString("dd/MM/yyyy")</span>
+            </div>
+        </div>
+        <div class="meta-block">
+            <div class="meta-label">@L["Quotation #"]</div>
+            <div class="meta-value">@Model.QuotationNumber</div>
+        </div>
+    </div>
+
+    <div class="customer-section">
+        <div class="customer-section-title">@L["Customer"]</div>
+        <div class="customer-name">@Model.CustomerName</div>
+        @if (!string.IsNullOrEmpty(Model.CustomerEmail))
+        {
+            <div class="customer-email">@Model.CustomerEmail</div>
+        }
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>@L["Code"]</th>
+                <th>@L["Product"]</th>
+                <th class="text-right">@L["Qty"]</th>
+                <th class="text-right">@L["Unit Price"]</th>
+                @if (Model.Details.Any(d => d.DiscountPercentage > 0))
+                {
+                    <th class="text-right">@L["Discount"]</th>
+                }
+                <th class="text-right">@L["Tax"]</th>
+                <th class="text-right">@L["Total"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Details.Count; i++)
+            {
+                var item = Model.Details[i];
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@item.ProductCode</td>
+                    <td>@item.ProductName</td>
+                    <td class="text-right">@item.Quantity.ToString("G29")</td>
+                    <td class="text-right">@Model.CurrencySymbol@item.UnitPrice.ToString("N2")</td>
+                    @if (Model.Details.Any(d => d.DiscountPercentage > 0))
+                    {
+                        <td class="text-right">
+                            @if (item.DiscountPercentage > 0)
+                            {
+                                @($"{item.DiscountPercentage:N1}%")
+                            }
+                        </td>
+                    }
+                    <td class="text-right">@Model.CurrencySymbol@item.TaxAmount.ToString("N2")</td>
+                    <td class="text-right">@Model.CurrencySymbol@item.Total.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="totals-section">
+        <table class="totals-table">
+            <tr>
+                <td class="label">@L["Subtotal"]</td>
+                <td class="value">@Model.CurrencySymbol@Model.Subtotal.ToString("N2")</td>
+            </tr>
+            @if (Model.DiscountAmount > 0)
+            {
+                <tr>
+                    <td class="label">@L["Discount"]</td>
+                    <td class="value">- @Model.CurrencySymbol@Model.DiscountAmount.ToString("N2")</td>
+                </tr>
+            }
+            <tr>
+                <td class="label">@L["Tax"]</td>
+                <td class="value">@Model.CurrencySymbol@Model.TaxAmount.ToString("N2")</td>
+            </tr>
+            <tr class="total-row">
+                <td class="label">@L["Total"]</td>
+                <td class="value">@Model.CurrencySymbol@Model.Total.ToString("N2")</td>
+            </tr>
+        </table>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Notes))
+    {
+        <div class="notes-section">
+            <div class="notes-title">@L["Notes &amp; Conditions"]</div>
+            <div class="notes-text">@Model.Notes</div>
+        </div>
+    }
+
+    <div class="footer">
+        @Model.CompanyName — @L["This quotation is valid until"] @Model.ValidUntil.ToString("dd/MM/yyyy")
+    </div>
+</body>
+</html>

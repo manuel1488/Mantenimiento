@@ -35,6 +35,12 @@
                     </Authorized>
                 </AuthorizeView>
 
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewQuotations">
+                    <Authorized Context="quotationsAuth">
+                        <MudNavLink Href="/shop/quotations">@L["Quotations"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
                 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInvoice">
                     <Authorized Context="invoicesAuth">
                         <MudNavLink Href="/shop/invoices">@L["Invoices"]</MudNavLink>
