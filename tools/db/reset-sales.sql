@@ -22,7 +22,7 @@
 -- ============================================================
 -- PRE-CHECK (outside transaction)
 -- ============================================================
-USE Cleeny;
+USE App;
 SELECT 'sh_sales'                      AS tbl, COUNT(*) AS cnt FROM sh_sales;
 SELECT 'sh_sale_details'               AS tbl, COUNT(*) AS cnt FROM sh_sale_details;
 SELECT 'sh_sale_payments'              AS tbl, COUNT(*) AS cnt FROM sh_sale_payments;
@@ -69,9 +69,9 @@ ALTER TABLE mx_invoice_files               AUTO_INCREMENT = 1;
 ALTER TABLE sh_inventory_movements         AUTO_INCREMENT = 1;
 ALTER TABLE sh_cash_registers              AUTO_INCREMENT = 1;
 ALTER TABLE sh_cash_register_movements     AUTO_INCREMENT = 1;
- ALTER TABLE sh_cash_register_denominations AUTO_INCREMENT = 1;
+ALTER TABLE sh_cash_register_denominations AUTO_INCREMENT = 1;
 
---ROLLBACK;   -- <- no changes saved (safe default)
+-- ROLLBACK;   -- <- no changes saved (safe default)
 COMMIT;  -- <- uncomment to apply permanently
 
 

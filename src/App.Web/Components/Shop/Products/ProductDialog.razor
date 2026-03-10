@@ -1,6 +1,4 @@
 ﻿@using App.Core.DTOs.Billing.Mexico
-@using App.Core.DTOs.Inventory
-@using App.Core.DTOs.Location
 @using App.Core.DTOs.Product
 @using App.Core.DTOs.Shop
 @using App.Core.DTOs.UnitMeasure
@@ -10,9 +8,6 @@
 @using Microsoft.Extensions.Options
 
 @inject IProductService ProductService
-@inject IInventoryQueryService InventoryQueryService
-@inject IInventoryService InventoryService
-@inject ILocationService LocationService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<ProductDialog> L
 @inject IUnitMeasureService UnitMeasureService
@@ -404,41 +399,6 @@
                         </MudGrid>
                     </MudForm>
 
-                    @if (!IsNew)
-                    {
-                        <MudDivider Class="my-4" />
-                        <MudText Typo="Typo.subtitle1" Style="font-weight:600; margin-bottom:8px;">@L["Stock Levels"]</MudText>
-                        @if (_loadingStockLevels)
-                        {
-                            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-                        }
-                        else if (_stockLevels.Count == 0)
-                        {
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["No inventory records found"]</MudText>
-                        }
-                        else
-                        {
-                            @foreach (var row in _stockLevels)
-                            {
-                                <div @key="row.LocationId" style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
-                                    <MudText Style="min-width:130px; font-size:13px; font-weight:500;">@row.LocationName</MudText>
-                                    <MudText Style="min-width:70px; font-size:13px; color:#666;" title="@L["Current stock"]">@row.Quantity.ToString("0.##")</MudText>
-                                    <MudNumericField T="decimal?" Value="row.MinStock" ValueChanged="@(v => row.MinStock = v)"
-                                        Label="@L["Min"]"
-                                        Min="0M" Step="1M"
-                                        Variant="Variant.Outlined" Margin="Margin.Dense"
-                                        HideSpinButtons="true"
-                                        Style="width:90px;" />
-                                    <MudNumericField T="decimal?" Value="row.MaxStock" ValueChanged="@(v => row.MaxStock = v)"
-                                        Label="@L["Max"]"
-                                        Min="0M" Step="1M"
-                                        Variant="Variant.Outlined" Margin="Margin.Dense"
-                                        HideSpinButtons="true"
-                                        Style="width:90px;" />
-                                </div>
-                            }
-                        }
-                    }
                 </MudContainer>
             </DialogContent>
             <DialogActions>
@@ -538,19 +498,6 @@
         public string FractionName { get; set; } = null!;
         public decimal SurchargePercentage { get; set; }
         public bool IsActive { get; set; } = true;
-    }
-
-    // Stock Levels (edit mode)
-    private bool _loadingStockLevels;
-    private List<StockLevelRow> _stockLevels = new();
-
-    private class StockLevelRow
-    {
-        public int LocationId { get; set; }
-        public string LocationName { get; set; } = string.Empty;
-        public decimal Quantity { get; set; }
-        public decimal? MinStock { get; set; }
-        public decimal? MaxStock { get; set; }
     }
 
     // Wholesale Pricing
@@ -705,8 +652,6 @@
                 // Reload wholesale price configs with existing product data
                 await LoadWholesalePriceConfigs();
 
-                // Load stock levels (min/max per location)
-                await LoadStockLevelsAsync();
             }
         }
         catch (Exception ex)
@@ -840,9 +785,6 @@
 
                     // Save wholesale prices
                     await SaveWholesalePrices(updatedProduct.Id);
-
-                    // Save stock level min/max per location
-                    await SaveAllStockLevelsAsync();
 
                     Snackbar.Add(L["Product updated successfully"], Severity.Success);
                 }
@@ -1171,64 +1113,6 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error saving wholesale prices for product {ProductId}", productId);
-        }
-    }
-
-    private async Task LoadStockLevelsAsync()
-    {
-        if (!ProductId.HasValue) return;
-        _loadingStockLevels = true;
-        try
-        {
-            // Load all active locations + existing inventory data, then merge
-            var locations = await LocationService.GetActiveLocationsAsync();
-            var stock = await InventoryQueryService.GetProductStockAsync(ProductId.Value);
-            var inventoryByLocation = stock?.LocationStock
-                .ToDictionary(ls => ls.LocationId) ?? new();
-
-            _stockLevels = locations.Select(loc =>
-            {
-                inventoryByLocation.TryGetValue(loc.Id, out var inv);
-                return new StockLevelRow
-                {
-                    LocationId = loc.Id,
-                    LocationName = loc.Name,
-                    Quantity = inv?.Quantity ?? 0,
-                    MinStock = inv?.MinStock,
-                    MaxStock = inv?.MaxStock
-                };
-            }).ToList();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error loading stock levels for product {ProductId}", ProductId);
-            Snackbar.Add(L["Error loading stock levels"], Severity.Error);
-        }
-        finally
-        {
-            _loadingStockLevels = false;
-        }
-    }
-
-    private async Task SaveAllStockLevelsAsync()
-    {
-        if (!ProductId.HasValue || _stockLevels.Count == 0) return;
-        foreach (var row in _stockLevels)
-        {
-            try
-            {
-                var dto = new UpdateInventoryDto
-                {
-                    MinStock = row.MinStock,
-                    MaxStock = row.MaxStock
-                };
-                await InventoryService.UpdateInventorySettingsAsync(ProductId.Value, row.LocationId, dto);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error saving stock levels for product {ProductId} location {LocationId}", ProductId, row.LocationId);
-                Snackbar.Add(L["Error saving stock levels"], Severity.Error);
-            }
         }
     }
 

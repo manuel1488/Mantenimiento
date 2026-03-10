@@ -26,6 +26,36 @@ Elimina **todas las ventas** y todos los registros relacionados:
 
 ---
 
+### `reset-product-catalog.sql`
+
+Elimina **todos los productos** y todos los registros relacionados:
+
+| Tabla eliminada | Razón |
+|----------------|-------|
+| `mx_invoice_files` | FK a facturas (CASCADE) |
+| `mx_invoices` | FK a ventas (RESTRICT → va antes que ventas) |
+| `sh_sales` | FK a productos vía detalles (RESTRICT) |
+| `sh_sale_details` | FK a ventas (CASCADE) |
+| `sh_sale_payments` | FK a ventas (CASCADE) |
+| `sh_quotations` | FK a productos vía detalles (RESTRICT) |
+| `sh_quotation_details` | FK a productos (RESTRICT) |
+| `sh_bulk_label_jobs` | FK a productos (RESTRICT) |
+| `sh_adjustment_entry_items` | FK a productos (RESTRICT) |
+| `sh_adjustment_entries` | Limpieza de huérfanos |
+| `sh_stock_entry_items` | FK a productos (RESTRICT) |
+| `sh_stock_entries` | Limpieza de huérfanos |
+| `sh_inventory_movements` | FK a productos (RESTRICT) |
+| `sh_inventory` | FK a productos (RESTRICT) |
+| `sh_product_images` | FK a productos (CASCADE) |
+| `sh_product_wholesale_prices` | FK a productos (CASCADE) |
+| `sh_product_partial_surcharges` | FK a productos (CASCADE) |
+| `sh_products` | Tabla principal |
+| `sh_partial_sale_fractions` | Datos semilla del catálogo |
+
+**Tablas NO afectadas:** clientes, ubicaciones, proveedores, métodos de pago, cajas registradoras, usuarios, configuración.
+
+---
+
 ## Uso paso a paso
 
 ### 1. Modo seguro (solo revisar)
@@ -33,8 +63,11 @@ Elimina **todas las ventas** y todos los registros relacionados:
 Ejecuta el script tal cual. Termina con `ROLLBACK`, así que **no hace cambios reales**. Solo verás los conteos de filas antes y después de la simulación.
 
 ```bash
-# Docker (desarrollo)
-docker exec -i cleeny-mysql mysql -u root -p < tools/db/reset-sales.sql
+# Docker (desarrollo) - ventas
+docker exec -i app-prod-mysql mysql -u root -p < tools/db/reset-sales.sql
+
+# Docker (desarrollo) - catálogo de productos
+docker exec -i app-prod-mysql mysql -u root -p < tools/db/reset-product-catalog.sql
 ```
 
 ### 2. Ejecutar de verdad
