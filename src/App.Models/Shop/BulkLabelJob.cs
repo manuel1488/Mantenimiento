@@ -23,6 +23,12 @@ public class BulkLabelJob : BaseEntity<long>
     [Column(TypeName = "decimal(10,2)")]
     public decimal TotalPrice { get; set; }
 
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal TaxRate { get; set; }
+
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal TaxAmount { get; set; }
+
     public int LabelCount { get; set; } = 1;
 
     [StringLength(50)]

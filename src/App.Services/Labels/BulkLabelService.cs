@@ -7,6 +7,7 @@ using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
+using App.Services.Settings;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public class BulkLabelService : IBulkLabelService
     private readonly ILogger<BulkLabelService> _logger;
     private readonly IStringLocalizer<BulkLabelService> _localizer;
     private readonly BarcodeGeneratorService _barcodeGenerator;
+    private readonly ITaxRateService _taxRateService;
 
     public BulkLabelService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -38,7 +40,8 @@ public class BulkLabelService : IBulkLabelService
         IMapper mapper,
         ILogger<BulkLabelService> logger,
         IStringLocalizer<BulkLabelService> localizer,
-        BarcodeGeneratorService barcodeGenerator)
+        BarcodeGeneratorService barcodeGenerator,
+        ITaxRateService taxRateService)
     {
         _contextFactory = contextFactory;
         _pdfService = pdfService;
@@ -50,6 +53,7 @@ public class BulkLabelService : IBulkLabelService
         _logger = logger;
         _localizer = localizer;
         _barcodeGenerator = barcodeGenerator;
+        _taxRateService = taxRateService;
     }
 
     public async Task<Result<BulkLabelJobDto>> CreateAsync(
@@ -70,6 +74,14 @@ public class BulkLabelService : IBulkLabelService
             var currentUser = _currentUserService.UserId ?? "System";
             var now = _dateTime.Now;
 
+            var taxRate = 0m;
+            var taxAmount = 0m;
+            if (product.IsTaxable)
+            {
+                taxRate = await _taxRateService.GetEffectiveRateAsync("MX", effectiveDate: now);
+                taxAmount = Math.Round(dto.TotalPrice * taxRate / 100m, 2);
+            }
+
             var entity = new BulkLabelJob
             {
                 ProductId = dto.ProductId,
@@ -77,6 +89,8 @@ public class BulkLabelService : IBulkLabelService
                 UnitMeasureCode = dto.UnitMeasureCode,
                 UnitPrice = dto.UnitPrice,
                 TotalPrice = dto.TotalPrice,
+                TaxRate = taxRate,
+                TaxAmount = taxAmount,
                 LabelCount = dto.LabelCount,
                 BatchNumber = dto.BatchNumber,
                 Notes = dto.Notes,
@@ -227,7 +241,7 @@ public class BulkLabelService : IBulkLabelService
         var heightMm = settingsResult.IsSuccess ? settingsResult.Value.HeightMm : 28;
 
         var barcodeBase64 = _barcodeGenerator.GenerateBarcodeBase64(
-            productCode: productCode,
+            productId: dto.ProductId,
             quantity: dto.Quantity,
             totalPrice: dto.TotalPrice);
 
