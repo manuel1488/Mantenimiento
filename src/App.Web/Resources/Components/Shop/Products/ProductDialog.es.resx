@@ -9,6 +9,9 @@
   <data name="Allow Custom Pricing" xml:space="preserve">
     <value>Permitir Precio Personalizado</value>
   </data>
+  <data name="Requires Inventory" xml:space="preserve">
+    <value>Requiere Inventario</value>
+  </data>
   <data name="Apply Tax" xml:space="preserve">
     <value>Aplicar Impuesto</value>
   </data>

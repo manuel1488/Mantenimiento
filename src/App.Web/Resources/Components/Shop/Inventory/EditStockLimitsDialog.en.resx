@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Edit Stock Limits">
+    <value>Edit Stock Limits</value>
+  </data>
+  <data name="Min Stock">
+    <value>Min Stock</value>
+  </data>
+  <data name="Max Stock">
+    <value>Max Stock</value>
+  </data>
+  <data name="Save">
+    <value>Save</value>
+  </data>
+  <data name="Cancel">
+    <value>Cancel</value>
+  </data>
+  <data name="Min stock cannot be greater than max stock">
+    <value>Min stock cannot be greater than max stock</value>
+  </data>
+  <data name="Stock limits updated successfully">
+    <value>Stock limits updated successfully</value>
+  </data>
+  <data name="Error updating stock limits">
+    <value>Error updating stock limits</value>
+  </data>
+</root>

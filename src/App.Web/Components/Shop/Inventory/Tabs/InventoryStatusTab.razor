@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject ILocationService LocationService
 @inject IOptions<ExportOptions> ExportOptions
+@inject IInventoryService InventoryService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<InventoryStatusTab> Logger
@@ -106,6 +107,7 @@
                             <MudTh Style="text-align: right">@L["Total Content"]</MudTh>
                             <MudTh>@L["Unit"]</MudTh>
                             <MudTh>@L["Status"]</MudTh>
+                            <MudTh>@L["Actions"]</MudTh>
                         </HeaderContent>
                         <RowTemplate Context="contextInventory">
                             <MudTd DataLabel="@L["Code"]">@contextInventory.ProductCode</MudTd>
@@ -157,6 +159,14 @@
                                     var (color, text) = GetStockStatus(contextInventory);
                                     <MudChip T="string" Size="Size.Small" Color="@color">@text</MudChip>
                                 }
+                            </MudTd>
+                            <MudTd>
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.ManageInventory" Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Size="Size.Small"
+                                                   title="@L["Edit Stock Limits"]"
+                                                   OnClick="@(() => OpenEditDialog(contextInventory))" />
+                                </AuthorizeView>
                             </MudTd>
                         </RowTemplate>
                         <PagerContent>
@@ -330,6 +340,24 @@
             Logger.LogError(ex, "Error exporting inventory");
             Snackbar.Add(L["Error exporting inventory"], Severity.Error);
         }
+    }
+
+    private async Task OpenEditDialog(InventoryDto item)
+    {
+        var parameters = new DialogParameters
+        {
+            [nameof(EditStockLimitsDialog.ProductId)] = item.ProductId,
+            [nameof(EditStockLimitsDialog.LocationId)] = item.LocationId,
+            [nameof(EditStockLimitsDialog.ProductName)] = item.ProductName,
+            [nameof(EditStockLimitsDialog.LocationName)] = item.LocationName,
+            [nameof(EditStockLimitsDialog.MinStock)] = item.MinStock,
+            [nameof(EditStockLimitsDialog.MaxStock)] = item.MaxStock,
+        };
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EditStockLimitsDialog>(L["Edit Stock Limits"], parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+            await _table.ReloadServerData();
     }
 
     private void PrintInventory()

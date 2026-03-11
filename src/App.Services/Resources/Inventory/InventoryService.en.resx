@@ -21,6 +21,9 @@
   <data name="Product not found or inactive" xml:space="preserve">
     <value>Product not found or inactive</value>
   </data>
+  <data name="This product does not require inventory tracking" xml:space="preserve">
+    <value>This product does not require inventory tracking</value>
+  </data>
   <data name="Warehouse not found or inactive" xml:space="preserve">
     <value>Warehouse not found or inactive</value>
   </data>

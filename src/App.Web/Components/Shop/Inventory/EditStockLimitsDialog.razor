@@ -1,0 +1,109 @@
+@using App.Core.DTOs.Inventory
+@using App.Core.Interfaces
+
+@inject IStringLocalizer<EditStockLimitsDialog> L
+@inject IInventoryService InventoryService
+@inject ISnackbar Snackbar
+@inject ILogger<EditStockLimitsDialog> _logger
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-1">
+            <strong>@ProductName</strong>
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+            @LocationName
+        </MudText>
+
+        <MudNumericField T="decimal?"
+                         Label="@L["Min Stock"]"
+                         @bind-Value="_minStock"
+                         Min="0"
+                         Variant="Variant.Outlined"
+                         Class="mb-3" />
+
+        <MudNumericField T="decimal?"
+                         Label="@L["Max Stock"]"
+                         @bind-Value="_maxStock"
+                         Min="0"
+                         Variant="Variant.Outlined"
+                         Class="mb-2" />
+
+        @if (_validationError is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-2">@_validationError</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Disabled="@_processing">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   OnClick="Save"
+                   Disabled="@_processing">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public long ProductId { get; set; }
+    [Parameter] public int LocationId { get; set; }
+    [Parameter] public string ProductName { get; set; } = string.Empty;
+    [Parameter] public string LocationName { get; set; } = string.Empty;
+    [Parameter] public decimal? MinStock { get; set; }
+    [Parameter] public decimal? MaxStock { get; set; }
+
+    private decimal? _minStock;
+    private decimal? _maxStock;
+    private bool _processing;
+    private string? _validationError;
+
+    protected override void OnInitialized()
+    {
+        _minStock = MinStock;
+        _maxStock = MaxStock;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        _validationError = null;
+
+        if (_minStock.HasValue && _maxStock.HasValue && _minStock.Value > _maxStock.Value)
+        {
+            _validationError = L["Min stock cannot be greater than max stock"];
+            return;
+        }
+
+        _processing = true;
+        try
+        {
+            await InventoryService.UpdateInventorySettingsAsync(
+                ProductId,
+                LocationId,
+                new UpdateInventoryDto { MinStock = _minStock, MaxStock = _maxStock });
+
+            Snackbar.Add(L["Stock limits updated successfully"], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _validationError = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating stock limits for product {ProductId} location {LocationId}", ProductId, LocationId);
+            Snackbar.Add(L["Error updating stock limits"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+}

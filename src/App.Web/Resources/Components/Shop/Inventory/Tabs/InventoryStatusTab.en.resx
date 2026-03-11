@@ -41,6 +41,14 @@
   </data>
 
   <!-- Table Headers -->
+  <data name="Actions">
+    <value>Actions</value>
+    <comment>Actions column header</comment>
+  </data>
+  <data name="Edit Stock Limits">
+    <value>Edit Stock Limits</value>
+    <comment>Tooltip and dialog title for editing min/max stock</comment>
+  </data>
   <data name="Code">
     <value>Code</value>
     <comment>Product code column header</comment>
