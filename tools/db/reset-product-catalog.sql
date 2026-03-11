@@ -33,8 +33,8 @@ SELECT 'sh_stock_entries'             AS tbl, COUNT(*) AS cnt FROM sh_stock_entr
 SELECT 'sh_adjustment_entry_items'    AS tbl, COUNT(*) AS cnt FROM sh_adjustment_entry_items;
 SELECT 'sh_adjustment_entries'        AS tbl, COUNT(*) AS cnt FROM sh_adjustment_entries;
 SELECT 'sh_bulk_label_jobs'           AS tbl, COUNT(*) AS cnt FROM sh_bulk_label_jobs;
--- SELECT 'sh_quotation_details'         AS tbl, COUNT(*) AS cnt FROM sh_quotation_details;
--- SELECT 'sh_quotations'                AS tbl, COUNT(*) AS cnt FROM sh_quotations;
+SELECT 'sh_quotation_details'         AS tbl, COUNT(*) AS cnt FROM sh_quotation_details;
+SELECT 'sh_quotations'                AS tbl, COUNT(*) AS cnt FROM sh_quotations;
 SELECT 'sh_sale_details'              AS tbl, COUNT(*) AS cnt FROM sh_sale_details;
 SELECT 'sh_sale_payments'             AS tbl, COUNT(*) AS cnt FROM sh_sale_payments;
 SELECT 'sh_sales'                     AS tbl, COUNT(*) AS cnt FROM sh_sales;
@@ -57,7 +57,7 @@ DELETE FROM mx_invoices;
 DELETE FROM sh_sales;
 
 -- 4. Quotations (cascades to sh_quotation_details)
--- DELETE FROM sh_quotations;
+DELETE FROM sh_quotations;
 
 -- 5. Bulk label jobs (FK Restrict -> sh_products)
 DELETE FROM sh_bulk_label_jobs;
@@ -104,8 +104,8 @@ ALTER TABLE sh_stock_entries              AUTO_INCREMENT = 1;
 ALTER TABLE sh_adjustment_entry_items     AUTO_INCREMENT = 1;
 ALTER TABLE sh_adjustment_entries         AUTO_INCREMENT = 1;
 ALTER TABLE sh_bulk_label_jobs            AUTO_INCREMENT = 1;
--- ALTER TABLE sh_quotation_details          AUTO_INCREMENT = 1;
--- ALTER TABLE sh_quotations                 AUTO_INCREMENT = 1;
+ALTER TABLE sh_quotation_details          AUTO_INCREMENT = 1;
+ALTER TABLE sh_quotations                 AUTO_INCREMENT = 1;
 ALTER TABLE sh_sale_details               AUTO_INCREMENT = 1;
 ALTER TABLE sh_sale_payments              AUTO_INCREMENT = 1;
 ALTER TABLE sh_sales                      AUTO_INCREMENT = 1;
@@ -131,8 +131,8 @@ SELECT 'sh_stock_entries'             AS tbl, COUNT(*) AS cnt FROM sh_stock_entr
 SELECT 'sh_adjustment_entry_items'    AS tbl, COUNT(*) AS cnt FROM sh_adjustment_entry_items;
 SELECT 'sh_adjustment_entries'        AS tbl, COUNT(*) AS cnt FROM sh_adjustment_entries;
 SELECT 'sh_bulk_label_jobs'           AS tbl, COUNT(*) AS cnt FROM sh_bulk_label_jobs;
--- SELECT 'sh_quotation_details'         AS tbl, COUNT(*) AS cnt FROM sh_quotation_details;
--- SELECT 'sh_quotations'                AS tbl, COUNT(*) AS cnt FROM sh_quotations;
+SELECT 'sh_quotation_details'         AS tbl, COUNT(*) AS cnt FROM sh_quotation_details;
+SELECT 'sh_quotations'                AS tbl, COUNT(*) AS cnt FROM sh_quotations;
 SELECT 'sh_sale_details'              AS tbl, COUNT(*) AS cnt FROM sh_sale_details;
 SELECT 'sh_sale_payments'             AS tbl, COUNT(*) AS cnt FROM sh_sale_payments;
 SELECT 'sh_sales'                     AS tbl, COUNT(*) AS cnt FROM sh_sales;
