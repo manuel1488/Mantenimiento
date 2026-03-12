@@ -37,6 +37,7 @@
 @inject IRoundingSettingsService RoundingSettingsService
 @inject IPartialSaleFractionService PartialSaleFractionService
 @inject IProductPartialSurchargeService ProductPartialSurchargeService
+@inject IProductWholesalePriceService WholesalePriceService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -203,6 +204,12 @@ else
                             <RowTemplate>
                                 <MudTd DataLabel="@L["Product"]">
                                     @context.ProductName (@context.ProductCode) - @context.Brand - @context.Description
+                                    @if (context.DiscountPercentage > 0)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="ml-1">
+                                            @L["Wholesale"] -@context.DiscountPercentage.ToString("0.######")%
+                                        </MudChip>
+                                    }
                                     @if (!string.IsNullOrEmpty(context.UnitMeasure))
                                     {
                                         <br />
@@ -224,7 +231,19 @@ else
                                     }
                                 </MudTd>
                                 <MudTd DataLabel="@L["Price"]">
-                                    @context.UnitPrice.ToString("C2")
+                                    @if (context.DiscountPercentage > 0)
+                                    {
+                                        decimal discountedUnitPrice = context.OriginalPrice * (1 - context.DiscountPercentage / 100);
+                                        <div style="line-height:1.2;">
+                                            <span style="font-size:11px; color:#999; text-decoration:line-through;">@context.OriginalPrice.ToString("C2")</span>
+                                            <br />
+                                            <span style="color:#2e7d32; font-weight:600;">@discountedUnitPrice.ToString("C2")</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @context.UnitPrice.ToString("C2")
+                                    }
                                 </MudTd>
                                 <MudTd DataLabel="@L["Quantity"]">
                                     <div class="d-flex flex-column">
@@ -322,7 +341,20 @@ else
 
                     <!-- Discount – read-only, set automatically by system rules -->
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
-                        <span style="font-size:13px; color:#666;">@L["Discount"] (@_model.DiscountPercentage.ToString("N1")%):</span>
+                        <span style="font-size:13px; color:#666;">
+                            @if (_wholesaleDiscountAmount > 0 && _model.DiscountPercentage == 0)
+                            {
+                                @L["Wholesale Discount"]
+                            }
+                            else if (_wholesaleDiscountAmount > 0)
+                            {
+                                @L["Discount (incl. wholesale)"]
+                            }
+                            else
+                            {
+                                @L["Discount"] @($"({_model.DiscountPercentage:N1}%)")
+                            }:
+                        </span>
                         <span style="font-size:13px; font-weight:600; color:@(_discountAmount > 0 ? "#E53935" : "#666");">
                             @(_discountAmount > 0 ? $"-{_discountAmount:C2}" : "-$0.00")
                         </span>
@@ -540,6 +572,7 @@ else
 
     // Sale totals
     private decimal _subtotal = 0;
+    private decimal _wholesaleDiscountAmount = 0;
     private decimal _discountAmount = 0;
     private decimal _taxAmount = 0;
     private decimal _roundingAmount = 0;
@@ -1028,7 +1061,8 @@ else
                         Quantity = _pendingBulkQuantity,
                         UnitPrice = unitPrice,
                         OriginalPrice = unitPrice,
-                        DiscountPercentage = 0
+                        DiscountPercentage = 0,
+                        WholesalePrices = await LoadWholesalePricesAsync(product.Id)
                     };
 
                     _cart.Add(bulkItem);
@@ -1104,7 +1138,8 @@ else
                 AvailableStock = locationStock?.Quantity ?? stockInfo!.TotalStock,
                 RequiresInventory = stockInfo!.RequiresInventory,
                 IsTaxable = product.IsTaxable,
-                DiscountPercentage = 0
+                DiscountPercentage = 0,
+                WholesalePrices = await LoadWholesalePricesAsync(product.Id)
             };
 
             _cart.Add(item);
@@ -1141,32 +1176,53 @@ else
 
     private async Task UpdateCartItemAsync(CartItem item)
     {
-        // Calcular totales sin descuento a nivel de producto
-        item.DiscountPercentage = 0; // Siempre cero, ya que el descuento se maneja a nivel de venta
+        // Apply wholesale discount based on quantity
+        item.DiscountPercentage = GetApplicableWholesaleDiscount(item);
 
         // Calculate base price before surcharge
         decimal basePrice = item.UnitPrice * item.Quantity;
         item.BasePriceBeforeSurcharge = basePrice;
 
+        // Apply wholesale discount
+        item.DiscountAmount = basePrice * (item.DiscountPercentage / 100);
+        decimal discountedBase = basePrice - item.DiscountAmount;
+
         // Calculate surcharge amount if a fraction is selected
-        decimal surchargeAmount = basePrice * (item.SurchargePercentage / 100);
+        decimal surchargeAmount = discountedBase * (item.SurchargePercentage / 100);
         item.SurchargeAmount = surchargeAmount;
 
         // Calculate item totals (without tax at item level)
-        decimal itemSubtotal = basePrice + surchargeAmount;
+        decimal itemSubtotal = discountedBase + surchargeAmount;
 
         // Only recalculate total if it hasn't been set manually
         if (!item.HasCustomTotal)
         {
             item.Subtotal = itemSubtotal;
-            item.Total = itemSubtotal; // Total equals subtotal at item level
+            item.Total = itemSubtotal;
         }
-        // If has custom total, keep the current values
 
-        item.DiscountAmount = 0; // No hay descuento a nivel de producto
         item.TaxAmount = 0; // No hay impuesto a nivel de producto
 
         await UpdateTotalsAsync();
+    }
+
+    private static decimal GetApplicableWholesaleDiscount(CartItem item)
+    {
+        if (item.WholesalePrices.Count == 0) return 0;
+
+        // Find the highest-qualifying tier (highest MinQuantity that is <= current quantity)
+        var applicable = item.WholesalePrices
+            .Where(w => w.IsActive && w.DiscountPercentage > 0 && item.Quantity >= w.MinQuantity)
+            .OrderByDescending(w => w.MinQuantity)
+            .FirstOrDefault();
+
+        return applicable?.DiscountPercentage ?? 0;
+    }
+
+    private async Task<List<ProductWholesalePriceDto>> LoadWholesalePricesAsync(long productId)
+    {
+        var result = await WholesalePriceService.GetWholesalePricesForProductAsync(productId);
+        return result.IsSuccess ? result.Value.ToList() : [];
     }
 
     private async Task UpdateCartItemQuantityAsync(CartItem item, decimal quantity)
@@ -1298,11 +1354,16 @@ else
 
     private async Task UpdateTotalsAsync()
     {
-        // Calculate sale totals
-        _subtotal = _cart.Sum(i => i.Subtotal);
+        // Calculate sale totals (gross before item-level discounts)
+        _subtotal = _cart.Sum(i => i.Subtotal + i.DiscountAmount);
 
-        // Descuento general
-        _discountAmount = _subtotal * (_model.DiscountPercentage / 100);
+        // Wholesale discount (sum of per-item discounts already applied)
+        _wholesaleDiscountAmount = _cart.Sum(i => i.DiscountAmount);
+
+        // General sale discount applied on top of net-after-wholesale subtotal
+        decimal netAfterWholesale = _subtotal - _wholesaleDiscountAmount;
+        decimal saleDiscount = netAfterWholesale * (_model.DiscountPercentage / 100);
+        _discountAmount = _wholesaleDiscountAmount + saleDiscount;
 
         // Recalcular impuestos después de descuento
         decimal baseImponible = _subtotal - _discountAmount;
@@ -1310,7 +1371,7 @@ else
         {
             if (i.IsTaxable)
             {
-                decimal itemSubtotalPortion = i.Subtotal / (_subtotal > 0 ? _subtotal : 1);
+                decimal itemSubtotalPortion = i.Subtotal / (netAfterWholesale > 0 ? netAfterWholesale : 1);
                 decimal itemDiscountedSubtotal = baseImponible * itemSubtotalPortion;
                 return itemDiscountedSubtotal * _taxRate;
             }
@@ -1820,6 +1881,7 @@ else
         public bool AllowCustomPricing { get; set; }
         public decimal AvailableStock { get; set; }
         public bool RequiresInventory { get; set; }
+        public List<ProductWholesalePriceDto> WholesalePrices { get; set; } = [];
         public bool IsTaxable { get; set; }
         public decimal DiscountPercentage { get; set; }
         public decimal Subtotal { get; set; }

@@ -90,6 +90,15 @@
   <data name="Discount Amount" xml:space="preserve">
     <value>Monto de Descuento</value>
   </data>
+  <data name="Wholesale Discount" xml:space="preserve">
+    <value>Descuento Mayoreo</value>
+  </data>
+  <data name="Discount (incl. wholesale)" xml:space="preserve">
+    <value>Descuento (incl. mayoreo)</value>
+  </data>
+  <data name="Wholesale" xml:space="preserve">
+    <value>Mayoreo</value>
+  </data>
   <data name="Authorized By" xml:space="preserve">
     <value>Autorizado Por</value>
   </data>

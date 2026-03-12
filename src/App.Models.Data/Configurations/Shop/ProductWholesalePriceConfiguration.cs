@@ -28,6 +28,6 @@ public class ProductWholesalePriceConfiguration : IEntityTypeConfiguration<Produ
             .HasColumnType("decimal(10,2)");
 
         builder.Property(e => e.DiscountPercentage)
-            .HasColumnType("decimal(5,2)");
+            .HasColumnType("decimal(9,6)");
     }
 }

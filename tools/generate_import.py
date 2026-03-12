@@ -401,7 +401,7 @@ def calc_discount_pct(precio_men, precio_may):
         men = float(precio_men)
         may = float(precio_may)
         if men > 0:
-            return max(0, round((men - may) / men * 100, 2))
+            return max(0, round((men - may) / men * 100, 6))
     except Exception:
         pass
     return 0

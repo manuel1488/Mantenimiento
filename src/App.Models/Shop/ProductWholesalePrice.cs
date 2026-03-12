@@ -28,7 +28,7 @@ public class ProductWholesalePrice : BaseEntity<long>
     /// <summary>
     /// Discount percentage to apply (0-100) over the product's base price.
     /// </summary>
-    [Column(TypeName = "decimal(5,2)")]
+    [Column(TypeName = "decimal(9,6)")]
     public decimal DiscountPercentage { get; set; }
 
     /// <summary>
