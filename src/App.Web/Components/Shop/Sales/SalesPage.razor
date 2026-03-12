@@ -211,9 +211,12 @@ else
                                             @if (context.IsPartialSaleAllowed && context.Content > 0)
                                             {
                                                 <span> | @L["Package"]: @context.Content @context.UnitMeasure</span>
-                                                <span> | @L["Available"]: @((context.AvailableStock / context.Content).ToString("N2")) (@context.AvailableStock.ToString("N2") @context.UnitMeasure)</span>
+                                                @if (context.RequiresInventory)
+                                                {
+                                                    <span> | @L["Available"]: @((context.AvailableStock / context.Content).ToString("N2")) (@context.AvailableStock.ToString("N2") @context.UnitMeasure)</span>
+                                                }
                                             }
-                                            else
+                                            else if (context.RequiresInventory)
                                             {
                                                 <span> | @L["Available"]: @context.AvailableStock.ToString("N2")</span>
                                             }
@@ -977,7 +980,7 @@ else
             var inventoryService = ServiceProvider.GetRequiredService<IInventoryQueryService>();
             var stockInfo = await inventoryService.GetProductStockAsync(product.Id, _location?.Id);
 
-            if (stockInfo == null || stockInfo.TotalStock <= 0)
+            if (stockInfo == null || (stockInfo.RequiresInventory && stockInfo.TotalStock <= 0))
             {
                 Snackbar.Add(L["Product {0} is out of stock", product.Name], Severity.Warning);
                 _selectedProduct = null;
@@ -986,7 +989,7 @@ else
             }
 
             var locationStock = stockInfo.LocationStock.FirstOrDefault();
-            if (locationStock == null || locationStock.Quantity <= 0)
+            if (stockInfo.RequiresInventory && (locationStock == null || locationStock.Quantity <= 0))
             {
                 Snackbar.Add(L["Product {0} is not available in the selected location", product.Name], Severity.Warning);
                 _hasPendingBulk = false;
@@ -1020,7 +1023,8 @@ else
                         IsPartialSaleAllowed = true,
                         AllowCustomPricing = product.AllowCustomPricing,
                         IsTaxable = product.IsTaxable,
-                        AvailableStock = locationStock.Quantity,
+                        AvailableStock = locationStock?.Quantity ?? stockInfo!.TotalStock,
+                        RequiresInventory = stockInfo!.RequiresInventory,
                         Quantity = _pendingBulkQuantity,
                         UnitPrice = unitPrice,
                         OriginalPrice = unitPrice,
@@ -1097,7 +1101,8 @@ else
                 IsPartialSaleAllowed = product.IsPartialSaleAllowed,
                 AllowCustomPricing = product.AllowCustomPricing,
                 Quantity = product.IsPartialSaleAllowed ? 1 : Math.Ceiling(1.0M),
-                AvailableStock = locationStock.Quantity,
+                AvailableStock = locationStock?.Quantity ?? stockInfo!.TotalStock,
+                RequiresInventory = stockInfo!.RequiresInventory,
                 IsTaxable = product.IsTaxable,
                 DiscountPercentage = 0
             };
@@ -1814,6 +1819,7 @@ else
         public bool IsPartialSaleAllowed { get; set; }
         public bool AllowCustomPricing { get; set; }
         public decimal AvailableStock { get; set; }
+        public bool RequiresInventory { get; set; }
         public bool IsTaxable { get; set; }
         public decimal DiscountPercentage { get; set; }
         public decimal Subtotal { get; set; }

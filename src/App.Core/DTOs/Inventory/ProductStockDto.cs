@@ -6,6 +6,7 @@ public class ProductStockDto
     public string ProductName { get; set; } = null!;
     public string ProductCode { get; set; } = null!;
     public string UnitMeasureName { get; set; } = null!;
+    public bool RequiresInventory { get; set; }
     public decimal TotalStock { get; set; }
     public List<ProductWarehouseStockDto> LocationStock { get; set; } = new();
 }

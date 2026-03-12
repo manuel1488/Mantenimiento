@@ -117,6 +117,30 @@ public class InventoryQueryService : IInventoryQueryService
         {
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
+            // Products that don't require inventory are always available
+            var product = await _context.Products
+                .AsNoTracking()
+                .Where(x => x.Id == productId)
+                .Select(x => new { x.Id, x.Name, x.Code, x.RequiresInventory, UnitMeasureName = x.UnitMeasure.Name })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (product == null)
+                return null;
+
+            if (!product.RequiresInventory)
+            {
+                return new ProductStockDto
+                {
+                    ProductId = product.Id,
+                    ProductName = product.Name,
+                    ProductCode = product.Code,
+                    UnitMeasureName = product.UnitMeasureName,
+                    RequiresInventory = false,
+                    TotalStock = decimal.MaxValue,
+                    LocationStock = []
+                };
+            }
+
             var query = _context.Inventory
                 .Include(x => x.Product)
                 .ThenInclude(x => x.UnitMeasure)
@@ -142,6 +166,7 @@ public class InventoryQueryService : IInventoryQueryService
                 ProductName = firstItem.Product.Name,
                 ProductCode = firstItem.Product.Code,
                 UnitMeasureName = firstItem.Product.UnitMeasure.Name,
+                RequiresInventory = true,
                 TotalStock = inventoryItems.Sum(x => GetAvailableIndividualUnits(x)),
                 LocationStock = inventoryItems.Select(x => new ProductWarehouseStockDto
                 {

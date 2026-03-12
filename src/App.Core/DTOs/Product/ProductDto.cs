@@ -16,6 +16,7 @@ public class ProductDto : AuditableDto
     public decimal Cost { get; set; }
     public decimal Price { get; set; }
     public bool IsTaxable { get; set; }
+    public decimal TaxRate { get; set; }
     public bool IsActive { get; set; }
     public decimal Content { get; set; }
     public bool IsPartialSaleAllowed { get; set; }

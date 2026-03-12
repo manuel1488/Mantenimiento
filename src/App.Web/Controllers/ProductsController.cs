@@ -3,6 +3,7 @@
 using App.Core.Constants;
 using App.Core.DTOs.Product;
 using App.Core.Interfaces;
+using App.Services.Settings;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,15 +20,18 @@ namespace App.Web.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly ITaxRateService _taxRateService;
     private readonly IStringLocalizer<ProductsController> L;
     private readonly ILogger<ProductsController> _logger;
 
     public ProductsController(
         IProductService productService,
+        ITaxRateService taxRateService,
         IStringLocalizer<ProductsController> localizer,
         ILogger<ProductsController> logger)
     {
         _productService = productService;
+        _taxRateService = taxRateService;
         L = localizer;
         _logger = logger;
     }
@@ -50,6 +54,10 @@ public class ProductsController : ControllerBase
             searchString: search,
             isActive: isActive,
             isPartialSaleAllowed: isPartialSaleAllowed);
+
+        var currentTaxRate = await _taxRateService.GetEffectiveRateAsync("MX");
+        foreach (var item in items)
+            item.TaxRate = item.IsTaxable ? currentTaxRate : 0m;
 
         return Ok(new { items, totalCount });
     }
