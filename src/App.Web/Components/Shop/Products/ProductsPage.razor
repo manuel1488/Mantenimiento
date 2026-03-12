@@ -18,6 +18,7 @@
 @inject IUnitMeasureService UnitMeasureService
 @inject ICompanySettingsService SettingsService
 @inject NavigationManager NavigationManager
+@inject App.Services.Settings.ITaxRateService TaxRateService
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewProducts)]
 
@@ -101,6 +102,7 @@
                     <MudTh>@L["Content"]</MudTh>
                     <MudTh>@L["Unit"]</MudTh>
                     <MudTh>@L["Price"]</MudTh>
+                    <MudTh>@L["Price With Tax"]</MudTh>
                     <MudTh>@L["Taxable"]</MudTh>
                     <MudTh>@L["Status"]</MudTh>
                     <MudTh>@L["Actions"]</MudTh>
@@ -135,6 +137,11 @@
                     </MudTd>
                     <MudTd DataLabel="@L["Unit"]">@context.UnitMeasureName</MudTd>
                     <MudTd DataLabel="@L["Price"]">@context.Price.ToString("C")</MudTd>
+                    <MudTd DataLabel="@L["Price With Tax"]">
+                        @(context.IsTaxable
+                            ? (context.Price * (1 + _taxRate)).ToString("C")
+                            : context.Price.ToString("C"))
+                    </MudTd>
                     <MudTd DataLabel="@L["Taxable"]">
                         <MudChip T="bool" Size="Size.Small"
                             Color="@(context.IsTaxable? Color.Success: Color.Default)">
@@ -178,6 +185,7 @@
     private int? _selectedUnitMeasure;
     private bool? _selectedStatus;
     private bool _isMexico;
+    private decimal _taxRate;
     private List<UnitMeasureDto> _unitMeasures = new();
     private CompanySettingsDto? companySettingsDto;
 
@@ -185,6 +193,8 @@
     {
         companySettingsDto = await SettingsService.GetSettingsAsync();
         _isMexico = companySettingsDto?.CountryCode == CountryCodes.Mexico;
+        if (companySettingsDto != null)
+            _taxRate = await TaxRateService.GetEffectiveRateAsync(companySettingsDto.CountryCode);
         await LoadUnitMeasures();
     }
 

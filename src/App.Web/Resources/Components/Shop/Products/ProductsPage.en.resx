@@ -51,6 +51,9 @@
   <data name="Price" xml:space="preserve">
     <value>Price</value>
   </data>
+  <data name="Price With Tax" xml:space="preserve">
+    <value>Price + Tax</value>
+  </data>
   <data name="Taxable" xml:space="preserve">
     <value>Taxable</value>
   </data>

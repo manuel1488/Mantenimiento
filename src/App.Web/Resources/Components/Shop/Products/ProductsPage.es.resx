@@ -51,6 +51,9 @@
   <data name="Price" xml:space="preserve">
     <value>Precio</value>
   </data>
+  <data name="Price With Tax" xml:space="preserve">
+    <value>Precio + IVA</value>
+  </data>
   <data name="Taxable" xml:space="preserve">
     <value>Gravable</value>
   </data>
