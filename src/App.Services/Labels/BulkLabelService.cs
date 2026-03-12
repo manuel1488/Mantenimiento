@@ -79,7 +79,7 @@ public class BulkLabelService : IBulkLabelService
             if (product.IsTaxable)
             {
                 taxRate = await _taxRateService.GetEffectiveRateAsync("MX", effectiveDate: now);
-                taxAmount = Math.Round(dto.TotalPrice * taxRate / 100m, 2);
+                taxAmount = Math.Round(dto.TotalPrice * taxRate, 2);
             }
 
             var entity = new BulkLabelJob
