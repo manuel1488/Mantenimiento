@@ -10,12 +10,12 @@ namespace App.Services.Labels;
 /// Generates Code 128 barcodes for bulk/variable-measure product labels.
 ///
 /// Internal format: {ProductId}-{Quantity×1000:D6}-{TotalPrice×100}
-/// Example: 42-012500-22500 → product id 42, 12.5 units, $225.00
+/// Example: 156-020000-72414 → product id 156, 20.0 units, $724.14
 ///
 /// Decoding:
-///   parts[0] = ProductId (long)
-///   parts[1] / 1000 = Quantity  (e.g. 012500 → 12.500)
-///   parts[2] / 100  = TotalPrice (e.g. 22500  → $225.00)
+///   parts[0] = ProductId (long) — always numeric, safe for all printer encodings
+///   parts[1] / 1000 = Quantity  (e.g. 020000 → 20.000)
+///   parts[2] / 100  = TotalPrice (e.g. 72414  → $724.14)
 /// </summary>
 public class BarcodeGeneratorService
 {
@@ -67,11 +67,15 @@ public class BarcodeGeneratorService
 
         if (string.IsNullOrWhiteSpace(content)) return false;
 
-        var parts = content.Split('-');
-        if (parts.Length != 3) return false;
-        if (!long.TryParse(parts[0], out productId)) return false;
-        if (!long.TryParse(parts[1], out var qtyMillis)) return false;
-        if (!long.TryParse(parts[2], out var priceCents)) return false;
+        // Parse from right to handle potential future product id changes
+        var lastDash = content.LastIndexOf('-');
+        if (lastDash < 1) return false;
+        var secondDash = content.LastIndexOf('-', lastDash - 1);
+        if (secondDash < 0) return false;
+
+        if (!long.TryParse(content.Substring(0, secondDash), out productId)) return false;
+        if (!long.TryParse(content.Substring(secondDash + 1, lastDash - secondDash - 1), out var qtyMillis)) return false;
+        if (!long.TryParse(content.Substring(lastDash + 1), out var priceCents)) return false;
 
         quantity = qtyMillis / 1000m;
         totalPrice = priceCents / 100m;

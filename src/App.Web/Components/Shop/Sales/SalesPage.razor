@@ -691,12 +691,11 @@ else
 
         if (IsBulkProductBarcode(text))
         {
-            var (code, qty, price) = ParseBulkBarcode(text);
+            var (productId, qty, price) = ParseBulkBarcode(text);
             _pendingBulkQuantity = qty;
             _pendingBulkPrice = price;
             _hasPendingBulk = true;
-            var result = await ProductService.GetProductsAsync(searchString: code, isActive: true, page: 1, pageSize: 5);
-            product = result.Item2.FirstOrDefault(p => p.Code == code);
+            product = await ProductService.GetProductByIdAsync(productId);
         }
         else if (IsLikelyBarcode(text))
         {
@@ -982,16 +981,16 @@ else
         {
             IEnumerable<ProductDto> products;
 
-            // Bulk product barcode (format: CODE|qty_millis|price_cents)
+            // Bulk product barcode (format: ProductId-QuantityMillis-PriceCents)
             if (IsBulkProductBarcode(searchText))
             {
-                var (code, qty, price) = ParseBulkBarcode(searchText);
+                var (productId, qty, price) = ParseBulkBarcode(searchText);
                 _pendingBulkQuantity = qty;
                 _pendingBulkPrice = price;
                 _hasPendingBulk = true;
 
-                var bulkResult = await ProductService.GetProductsAsync(searchString: code, isActive: true, page: 1, pageSize: 5);
-                products = bulkResult.Item2.Where(p => p.Code == code).Take(1).ToList();
+                var byId = await ProductService.GetProductByIdAsync(productId);
+                products = byId != null ? [byId] : [];
             }
             // Primero, intentar buscar por código de barras exacto si el texto parece ser un código de barras
             else if (IsLikelyBarcode(searchText))
@@ -1086,7 +1085,7 @@ else
             {
                 _hasPendingBulk = false;
 
-                if (_pendingBulkQuantity > locationStock.Quantity)
+                if (stockInfo.RequiresInventory && locationStock != null && _pendingBulkQuantity > locationStock.Quantity)
                 {
                     Snackbar.Add(L["Insufficient stock for this quantity"], Severity.Warning);
                 }
@@ -1905,17 +1904,25 @@ else
 
     private static bool IsBulkProductBarcode(string text)
     {
-        if (string.IsNullOrWhiteSpace(text) || !text.Contains('|')) return false;
-        var parts = text.Split('|');
-        return parts.Length == 3
-            && long.TryParse(parts[1], out _)
-            && long.TryParse(parts[2], out _);
+        // Format: {ProductId}-{QuantityMillis:D6}-{PriceCents}  e.g. 156-020000-72414
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        var lastDash = text.LastIndexOf('-');
+        if (lastDash < 1) return false;
+        var secondDash = text.LastIndexOf('-', lastDash - 1);
+        if (secondDash < 0) return false;
+        return long.TryParse(text.Substring(0, secondDash), out _)
+            && long.TryParse(text.Substring(secondDash + 1, lastDash - secondDash - 1), out _)
+            && long.TryParse(text.Substring(lastDash + 1), out _);
     }
 
-    private static (string Code, decimal Quantity, decimal Price) ParseBulkBarcode(string text)
+    private static (long ProductId, decimal Quantity, decimal Price) ParseBulkBarcode(string text)
     {
-        var parts = text.Split('|');
-        return (parts[0].Trim(), long.Parse(parts[1]) / 1000m, long.Parse(parts[2]) / 100m);
+        var lastDash = text.LastIndexOf('-');
+        var secondDash = text.LastIndexOf('-', lastDash - 1);
+        var productId = long.Parse(text.Substring(0, secondDash));
+        var qty = long.Parse(text.Substring(secondDash + 1, lastDash - secondDash - 1)) / 1000m;
+        var price = long.Parse(text.Substring(lastDash + 1)) / 100m;
+        return (productId, qty, price);
     }
 
     private Color GetSaleTypeColor(SaleType saleType) => Color.Default;
