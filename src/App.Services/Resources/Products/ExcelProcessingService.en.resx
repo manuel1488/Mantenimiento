@@ -116,4 +116,8 @@
     <value>Discount %</value>
     <comment>Wholesale tier column prefix for discount percentage</comment>
   </data>
+  <data name="Wholesale Price" xml:space="preserve">
+    <value>Wholesale Price</value>
+    <comment>Wholesale tier column prefix for fixed price mode</comment>
+  </data>
 </root>

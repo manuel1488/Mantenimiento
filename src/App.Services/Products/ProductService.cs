@@ -705,8 +705,11 @@ public class ProductService : IProductService
                     {
                         foreach (var (tierName, wholesaleData) in item.WholesalePrices)
                         {
-                            if (tiersByName.TryGetValue(tierName, out var tierId) &&
-                                wholesaleData.MinQuantity > 0 && wholesaleData.DiscountPercentage > 0)
+                            bool hasValue = wholesaleData.FixedPrice.HasValue
+                                ? wholesaleData.MinQuantity > 0 && wholesaleData.FixedPrice.Value > 0
+                                : wholesaleData.MinQuantity > 0 && wholesaleData.DiscountPercentage > 0;
+
+                            if (tiersByName.TryGetValue(tierName, out var tierId) && hasValue)
                             {
                                 var wholesalePrice = new ProductWholesalePrice
                                 {
@@ -714,6 +717,7 @@ public class ProductService : IProductService
                                     WholesaleTierId = tierId,
                                     MinQuantity = wholesaleData.MinQuantity,
                                     DiscountPercentage = wholesaleData.DiscountPercentage,
+                                    FixedPrice = wholesaleData.FixedPrice,
                                     IsActive = true,
                                     CreatedBy = _currentUserService.FullName ?? "System",
                                     CreatedAt = _dateTime.Now

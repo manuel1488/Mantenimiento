@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Wholesale Price Mode" xml:space="preserve">
+    <value>Wholesale Price Mode</value>
+  </data>
+  <data name="Choose how wholesale prices are defined for products." xml:space="preserve">
+    <value>Choose how wholesale prices are defined for products.</value>
+  </data>
+  <data name="Discount Percentage" xml:space="preserve">
+    <value>Discount Percentage</value>
+  </data>
+  <data name="Wholesale price is defined as a percentage discount over the base price." xml:space="preserve">
+    <value>Wholesale price is defined as a percentage discount over the base price.</value>
+  </data>
+  <data name="Fixed Wholesale Price" xml:space="preserve">
+    <value>Fixed Wholesale Price</value>
+  </data>
+  <data name="Wholesale price is defined as a direct fixed price per unit." xml:space="preserve">
+    <value>Wholesale price is defined as a direct fixed price per unit.</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Wholesale settings updated successfully" xml:space="preserve">
+    <value>Wholesale settings updated successfully</value>
+  </data>
+  <data name="Error updating settings" xml:space="preserve">
+    <value>Error updating settings</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+</root>

@@ -38,6 +38,7 @@
 @inject IPartialSaleFractionService PartialSaleFractionService
 @inject IProductPartialSurchargeService ProductPartialSurchargeService
 @inject IProductWholesalePriceService WholesalePriceService
+@inject IWholesaleSettingsService WholesaleSettingsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -207,7 +208,14 @@ else
                                     @if (context.DiscountPercentage > 0)
                                     {
                                         <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="ml-1">
-                                            @L["Wholesale"] -@context.DiscountPercentage.ToString("0.######")%
+                                            @if (context.ApplicableWholesaleFixedPrice.HasValue)
+                                            {
+                                                @($"{L["Wholesale"]} ${context.ApplicableWholesaleFixedPrice.Value.ToString("N2")}")
+                                            }
+                                            else
+                                            {
+                                                @($"{L["Wholesale"]} -{context.DiscountPercentage.ToString("0.######")}%")
+                                            }
                                         </MudChip>
                                     }
                                     @if (!string.IsNullOrEmpty(context.UnitMeasure))
@@ -580,6 +588,9 @@ else
     private bool _isRoundingEnabled = false;
     private double PaidPercentage => _total > 0 ? Math.Min(100, (double)(_paymentEntries.Sum(e => e.Amount) / _total * 100)) : 0;
 
+    // Wholesale mode
+    private App.Core.Enums.Shop.WholesalePriceMode _wholesaleMode = App.Core.Enums.Shop.WholesalePriceMode.Percentage;
+
     // Discount settings
     private decimal _maxItemDiscount = 0;
     private decimal _maxSaleDiscount = 0;
@@ -770,6 +781,10 @@ else
             await LoadAvailableFractions();
             await InitializeDiscountSettings();
             await LoadRoundingSettings();
+
+            var wholesaleSettingsResult = await WholesaleSettingsService.GetSettingsAsync();
+            if (wholesaleSettingsResult.IsSuccess && wholesaleSettingsResult.Value != null)
+                _wholesaleMode = wholesaleSettingsResult.Value.PriceMode;
             await LoadPaymentMethods();
             await LoadDefaultCustomerAsync();
             await LoadPacSettingsAsync();
@@ -1178,6 +1193,7 @@ else
     {
         // Apply wholesale discount based on quantity
         item.DiscountPercentage = GetApplicableWholesaleDiscount(item);
+        item.ApplicableWholesaleFixedPrice = GetApplicableWholesaleFixedPrice(item);
 
         // Calculate base price before surcharge
         decimal basePrice = item.UnitPrice * item.Quantity;
@@ -1206,17 +1222,36 @@ else
         await UpdateTotalsAsync();
     }
 
-    private static decimal GetApplicableWholesaleDiscount(CartItem item)
+    private decimal GetApplicableWholesaleDiscount(CartItem item)
     {
         if (item.WholesalePrices.Count == 0) return 0;
 
-        // Find the highest-qualifying tier (highest MinQuantity that is <= current quantity)
+        // Find best qualifying tier — each tier independently uses FixedPrice or DiscountPercentage
         var applicable = item.WholesalePrices
-            .Where(w => w.IsActive && w.DiscountPercentage > 0 && item.Quantity >= w.MinQuantity)
+            .Where(w => w.IsActive && item.Quantity >= w.MinQuantity)
+            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
             .OrderByDescending(w => w.MinQuantity)
             .FirstOrDefault();
 
-        return applicable?.DiscountPercentage ?? 0;
+        if (applicable == null) return 0;
+
+        // Fixed price tier: convert to equivalent % discount
+        if (applicable.FixedPrice is > 0 && item.OriginalPrice > 0)
+            return (item.OriginalPrice - applicable.FixedPrice.Value) / item.OriginalPrice * 100;
+
+        return applicable.DiscountPercentage;
+    }
+
+    private decimal? GetApplicableWholesaleFixedPrice(CartItem item)
+    {
+        if (item.WholesalePrices.Count == 0) return null;
+
+        var applicable = item.WholesalePrices
+            .Where(w => w.IsActive && w.FixedPrice is > 0 && item.Quantity >= w.MinQuantity)
+            .OrderByDescending(w => w.MinQuantity)
+            .FirstOrDefault();
+
+        return applicable?.FixedPrice;
     }
 
     private async Task<List<ProductWholesalePriceDto>> LoadWholesalePricesAsync(long productId)
@@ -1884,6 +1919,7 @@ else
         public List<ProductWholesalePriceDto> WholesalePrices { get; set; } = [];
         public bool IsTaxable { get; set; }
         public decimal DiscountPercentage { get; set; }
+        public decimal? ApplicableWholesaleFixedPrice { get; set; }
         public decimal Subtotal { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TaxAmount { get; set; }

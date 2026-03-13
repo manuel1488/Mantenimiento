@@ -57,6 +57,7 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
                 TierName = wp.WholesaleTier.Name,
                 MinQuantity = wp.MinQuantity,
                 DiscountPercentage = wp.DiscountPercentage,
+                FixedPrice = wp.FixedPrice,
                 IsActive = wp.IsActive
             }).ToList();
 
@@ -123,6 +124,7 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
                     // Update existing
                     existing.MinQuantity = priceDto.MinQuantity;
                     existing.DiscountPercentage = priceDto.DiscountPercentage;
+                    existing.FixedPrice = priceDto.FixedPrice;
                     existing.IsActive = priceDto.IsActive;
                     existing.ModifiedBy = _currentUserService.FullName;
                     existing.ModifiedAt = _dateTime.Now;
@@ -136,6 +138,7 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
                         WholesaleTierId = priceDto.WholesaleTierId,
                         MinQuantity = priceDto.MinQuantity,
                         DiscountPercentage = priceDto.DiscountPercentage,
+                        FixedPrice = priceDto.FixedPrice,
                         IsActive = priceDto.IsActive,
                         CreatedBy = _currentUserService.FullName ?? "System",
                         CreatedAt = _dateTime.Now

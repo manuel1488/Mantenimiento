@@ -117,4 +117,8 @@
     <value>Descuento %</value>
     <comment>Prefijo de columna de nivel de mayoreo para porcentaje de descuento</comment>
   </data>
+  <data name="Wholesale Price" xml:space="preserve">
+    <value>Precio Mayoreo</value>
+    <comment>Prefijo de columna de nivel de mayoreo para modo de precio fijo</comment>
+  </data>
 </root>

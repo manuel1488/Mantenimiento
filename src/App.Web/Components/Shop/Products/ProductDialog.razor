@@ -20,12 +20,13 @@
 @inject IProductPartialSurchargeService ProductPartialSurchargeService
 @inject IWholesaleTierService WholesaleTierService
 @inject IProductWholesalePriceService ProductWholesalePriceService
+@inject App.Core.Interfaces.Settings.IWholesaleSettingsService WholesaleSettingsService
 
 <AuthorizeView Policy="@ApplicationClaims.Shop.ManageProducts">
     <Authorized>
         <MudDialog>
             <DialogContent>
-                <MudContainer Style="max-width: 800px;" Class="pa-4">
+                <MudContainer Style="max-width: 1000px;" Class="pa-4">
                     <MudForm Model="@_model" @ref="@_form">
                         <MudGrid>
                             <!-- Product Image -->
@@ -250,7 +251,17 @@
                             <!-- Wholesale Pricing Section -->
                             <MudItem xs="12">
                                 <MudPaper Class="pa-3" Elevation="0" Style="background-color: var(--mud-palette-background-grey);">
-                                    <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Wholesale Pricing"]</MudText>
+                                    <MudText Typo="Typo.subtitle2" Class="mb-1">@L["Wholesale Pricing"]</MudText>
+                                    @if (_wholesalePriceConfigs.Count > 0)
+                                    {
+                                        <MudToggleGroup T="bool" @bind-Value="_productUseFixedPrice"
+                                                        Color="Color.Primary" Size="Size.Small"
+                                                        SelectionMode="SelectionMode.SingleSelection"
+                                                        Class="mb-2">
+                                            <MudToggleItem Value="false" Text="@L["Discount %"]" />
+                                            <MudToggleItem Value="true" Text="@L["Fixed Price"]" />
+                                        </MudToggleGroup>
+                                    }
                                     <MudText Typo="Typo.caption" Class="mb-3" Color="Color.Secondary">
                                         @L["Configure discount percentage for each wholesale tier. Min quantity is in the product's unit of measure."]
                                     </MudText>
@@ -265,35 +276,48 @@
                                             <thead>
                                                 <tr>
                                                     <th>@L["Tier"]</th>
-                                                    <th style="width: 150px;">@L["Min Quantity"]</th>
-                                                    <th style="width: 150px;">@L["Discount %"]</th>
-                                                    <th style="width: 100px;">@L["Active"]</th>
+                                                    <th style="width: 140px;">@L["Min Quantity"]</th>
+                                                    <th>@(_productUseFixedPrice ? L["Fixed Price"] : L["Discount %"])</th>
+                                                    <th style="width: 56px;">@L["Active"]</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach (var config in _wholesalePriceConfigs)
                                                 {
                                                     <tr>
-                                                        <td>@config.TierName</td>
+                                                        <td style="white-space: nowrap;">@config.TierName</td>
                                                         <td>
                                                             <MudNumericField T="decimal"
                                                                 @bind-Value="config.MinQuantity"
                                                                 Min="0" Step="1M"
                                                                 Variant="Variant.Outlined"
                                                                 Margin="Margin.Dense"
-                                                                HideSpinButtons="true"
-                                                                Adornment="Adornment.End"
-                                                                AdornmentText="@GetSelectedUnitMeasureName()" />
+                                                                HideSpinButtons="true" />
                                                         </td>
                                                         <td>
-                                                            <MudNumericField T="decimal"
-                                                                @bind-Value="config.DiscountPercentage"
-                                                                Min="0" Max="100" Step="0.01M"
-                                                                Variant="Variant.Outlined"
-                                                                Margin="Margin.Dense"
-                                                                HideSpinButtons="true"
-                                                                Adornment="Adornment.End"
-                                                                AdornmentText="%" />
+                                                            @if (_productUseFixedPrice)
+                                                            {
+                                                                <MudNumericField T="decimal?"
+                                                                    Value="config.FixedPrice"
+                                                                    ValueChanged="@(v => config.FixedPrice = v)"
+                                                                    Min="0M" Step="0.000001M"
+                                                                    Variant="Variant.Outlined"
+                                                                    Margin="Margin.Dense"
+                                                                    HideSpinButtons="true"
+                                                                    Adornment="Adornment.Start"
+                                                                    AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <MudNumericField T="decimal"
+                                                                    @bind-Value="config.DiscountPercentage"
+                                                                    Min="0" Max="100" Step="0.01M"
+                                                                    Variant="Variant.Outlined"
+                                                                    Margin="Margin.Dense"
+                                                                    HideSpinButtons="true"
+                                                                    Adornment="Adornment.End"
+                                                                    AdornmentText="%" />
+                                                            }
                                                         </td>
                                                         <td>
                                                             <MudCheckBox T="bool"
@@ -511,6 +535,8 @@
     private bool _loadingWholesalePrices;
     private List<WholesaleTierDto> _availableTiers = new();
     private List<WholesalePriceConfigModel> _wholesalePriceConfigs = new();
+    private App.Core.Enums.Shop.WholesalePriceMode _wholesaleMode = App.Core.Enums.Shop.WholesalePriceMode.Percentage;
+    private bool _productUseFixedPrice;
 
     // Helper class for wholesale price configuration
     private class WholesalePriceConfigModel
@@ -519,6 +545,7 @@
         public string TierName { get; set; } = null!;
         public decimal MinQuantity { get; set; }
         public decimal DiscountPercentage { get; set; }
+        public decimal? FixedPrice { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -548,6 +575,11 @@
             }
         }
         
+        // Load wholesale mode setting
+        var wholesaleSettingsResult = await WholesaleSettingsService.GetSettingsAsync();
+        if (wholesaleSettingsResult.IsSuccess && wholesaleSettingsResult.Value != null)
+            _wholesaleMode = wholesaleSettingsResult.Value.PriceMode;
+
         // Load wholesale tier configs (always shown)
         await LoadWholesalePriceConfigs();
 
@@ -1061,6 +1093,10 @@
                 }
             }
 
+            // Determine product-level mode: if any existing price has FixedPrice, use fixed; else use global mode
+            bool anyFixed = existingPrices.Any(p => p.FixedPrice is > 0);
+            _productUseFixedPrice = anyFixed || _wholesaleMode == App.Core.Enums.Shop.WholesalePriceMode.FixedPrice;
+
             // Build config list combining tiers with existing prices
             _wholesalePriceConfigs = _availableTiers.Select(t =>
             {
@@ -1071,6 +1107,7 @@
                     TierName = t.Name,
                     MinQuantity = existing?.MinQuantity ?? 0,
                     DiscountPercentage = existing?.DiscountPercentage ?? 0,
+                    FixedPrice = existing?.FixedPrice,
                     IsActive = existing?.IsActive ?? true
                 };
             }).ToList();
@@ -1091,9 +1128,9 @@
         if (_wholesalePriceConfigs.Count == 0)
             return;
 
-        // Only save configs that have meaningful data (discount > 0 and minQuantity > 0)
+        // Only save configs that have meaningful data
         var validConfigs = _wholesalePriceConfigs
-            .Where(c => c.DiscountPercentage > 0 && c.MinQuantity > 0)
+            .Where(c => c.MinQuantity > 0 && (_productUseFixedPrice ? c.FixedPrice is > 0 : c.DiscountPercentage > 0))
             .ToList();
 
         if (validConfigs.Count == 0)
@@ -1108,7 +1145,8 @@
                 {
                     WholesaleTierId = c.WholesaleTierId,
                     MinQuantity = c.MinQuantity,
-                    DiscountPercentage = c.DiscountPercentage,
+                    DiscountPercentage = _productUseFixedPrice ? 0 : c.DiscountPercentage,
+                    FixedPrice = _productUseFixedPrice ? c.FixedPrice : null,
                     IsActive = c.IsActive
                 }).ToList()
             };

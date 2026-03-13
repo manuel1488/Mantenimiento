@@ -56,6 +56,10 @@
     <value>Niveles de Mayoreo</value>
     <comment>Wholesale tiers settings tab</comment>
   </data>
+  <data name="Wholesale Settings" xml:space="preserve">
+    <value>Configuración de Mayoreo</value>
+    <comment>Wholesale price mode settings tab</comment>
+  </data>
   <data name="Rounding" xml:space="preserve">
     <value>Redondeo</value>
     <comment>Rounding settings tab</comment>

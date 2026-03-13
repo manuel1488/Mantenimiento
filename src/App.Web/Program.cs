@@ -662,6 +662,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddSingleton<PermissionTranslationService>();
     builder.Services.AddSingleton<RoleTranslationService>();
     services.AddScoped<IDiscountSettingsService, DiscountSettingsService>();
+    services.AddScoped<IWholesaleSettingsService, WholesaleSettingsService>();
     services.AddScoped<IRoundingSettingsService, RoundingSettingsService>();
     services.AddScoped<ILabelSettingsService, LabelSettingsService>();
     services.AddScoped<IPaymentMethodService, PaymentMethodService>();

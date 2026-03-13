@@ -27,6 +27,11 @@ public class ProductWholesalePriceDto
     public decimal DiscountPercentage { get; set; }
 
     /// <summary>
+    /// Fixed wholesale price (used when WholesalePriceMode = FixedPrice).
+    /// </summary>
+    public decimal? FixedPrice { get; set; }
+
+    /// <summary>
     /// Whether this configuration is active.
     /// </summary>
     public bool IsActive { get; set; }

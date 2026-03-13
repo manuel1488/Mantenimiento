@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="An error occurred while retrieving wholesale settings" xml:space="preserve">
+    <value>Ocurrió un error al obtener la configuración de mayoreo</value>
+  </data>
+  <data name="An error occurred while saving wholesale settings" xml:space="preserve">
+    <value>Ocurrió un error al guardar la configuración de mayoreo</value>
+  </data>
+</root>

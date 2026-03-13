@@ -102,6 +102,9 @@
   <data name="Discount" xml:space="preserve">
     <value>Descuento</value>
   </data>
+  <data name="Discount / Price" xml:space="preserve">
+    <value>Descuento / Precio</value>
+  </data>
   <data name="Partial Sale Surcharges" xml:space="preserve">
     <value>Recargos por Ventas Parciales</value>
   </data>

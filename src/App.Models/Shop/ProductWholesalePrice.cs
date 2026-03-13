@@ -32,6 +32,13 @@ public class ProductWholesalePrice : BaseEntity<long>
     public decimal DiscountPercentage { get; set; }
 
     /// <summary>
+    /// Fixed wholesale price (used when WholesalePriceMode = FixedPrice).
+    /// Null when using percentage mode.
+    /// </summary>
+    [Column(TypeName = "decimal(9,6)")]
+    public decimal? FixedPrice { get; set; }
+
+    /// <summary>
     /// Whether this wholesale discount configuration is active.
     /// </summary>
     public bool IsActive { get; set; } = true;

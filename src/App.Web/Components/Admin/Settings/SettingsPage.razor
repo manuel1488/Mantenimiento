@@ -11,6 +11,7 @@
 @using App.Web.Components.Admin.Settings.Ticket
 @using App.Web.Components.Admin.Settings.PartialSaleFractions
 @using App.Web.Components.Admin.Settings.WholesaleTiers
+@using App.Web.Components.Admin.Settings.Wholesale
 @using App.Web.Components.Admin.Settings.Rounding
 @using App.Web.Components.Admin.Settings.PaymentMethods
 @using App.Web.Components.Admin.Settings.CashRegister
@@ -84,6 +85,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Wholesale Tiers"]" Icon="@Icons.Material.Filled.Layers">
                         <WholesaleTiersTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Wholesale Settings"]" Icon="@Icons.Material.Filled.ShoppingCart">
+                        <WholesaleSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">

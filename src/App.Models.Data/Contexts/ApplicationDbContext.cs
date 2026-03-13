@@ -28,6 +28,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TaxSettings> TaxSettings { get; set; } = null!;
     public DbSet<TaxRate> TaxRates { get; set; } = null!;
     public DbSet<DiscountSettings> DiscountSettings { get; set; } = null!;
+    public DbSet<WholesaleSettings> WholesaleSettings { get; set; } = null!;
     public DbSet<RoundingSettings> RoundingSettings { get; set; } = null!;
     public DbSet<PaymentMethod> PaymentMethods { get; set; } = null!;
     public DbSet<CashRegisterSettings> CashRegisterSettings { get; set; } = null!;

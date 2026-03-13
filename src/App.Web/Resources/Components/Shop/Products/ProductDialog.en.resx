@@ -177,14 +177,35 @@
   <data name="Configure discount percentage for each wholesale tier. Min quantity is in the product's unit of measure." xml:space="preserve">
     <value>Configure discount percentage for each wholesale tier. Min quantity is in the product's unit of measure.</value>
   </data>
+  <data name="Each tier can use a discount percentage or a fixed price independently." xml:space="preserve">
+    <value>Each tier can use a discount percentage or a fixed price independently.</value>
+  </data>
   <data name="Tier" xml:space="preserve">
     <value>Tier</value>
   </data>
   <data name="Min Quantity" xml:space="preserve">
     <value>Min Quantity</value>
   </data>
+  <data name="Mode" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="Discount % / Price" xml:space="preserve">
+    <value>Discount % / Price</value>
+  </data>
   <data name="Discount %" xml:space="preserve">
     <value>Discount %</value>
+  </data>
+  <data name="Fixed Price" xml:space="preserve">
+    <value>Fixed Price</value>
+  </data>
+  <data name="Percentage" xml:space="preserve">
+    <value>Percentage</value>
+  </data>
+  <data name="Switch to fixed price" xml:space="preserve">
+    <value>Switch to fixed price</value>
+  </data>
+  <data name="Switch to percentage" xml:space="preserve">
+    <value>Switch to percentage</value>
   </data>
   <data name="No wholesale tiers configured. Add tiers in Settings." xml:space="preserve">
     <value>No wholesale tiers configured. Add tiers in Settings.</value>

@@ -13,8 +13,8 @@ public interface IExcelProcessingService
     /// <param name="fileStream">Excel file stream</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Processing result with converted data and validation errors</returns>
-    Result<ExcelProcessingResult> ProcessProductExcelFileAsync(
-        Stream fileStream, 
+    Task<Result<ExcelProcessingResult>> ProcessProductExcelFileAsync(
+        Stream fileStream,
         CancellationToken cancellationToken = default);
 
     /// <summary>

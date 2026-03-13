@@ -56,6 +56,10 @@
     <value>Wholesale Tiers</value>
     <comment>Wholesale tiers settings tab</comment>
   </data>
+  <data name="Wholesale Settings" xml:space="preserve">
+    <value>Wholesale Settings</value>
+    <comment>Wholesale price mode settings tab</comment>
+  </data>
   <data name="Rounding" xml:space="preserve">
     <value>Rounding</value>
     <comment>Rounding settings tab</comment>

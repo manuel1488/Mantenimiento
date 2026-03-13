@@ -387,11 +387,14 @@ def normalize_unit(unit) -> str:
     return UNIT_MAP.get(str(unit).strip().upper(), str(unit).strip().upper())
 
 
+WHOLESALE_MODE = 'fixed_price'  # 'percentage' or 'fixed_price'
+
+
 def remove_iva(price):
     if price is None:
         return None
     try:
-        return round(float(price) / IVA, 4)
+        return round(float(price) / IVA, 6)
     except Exception:
         return None
 
@@ -430,7 +433,10 @@ def write_row(ws, row_num, codigo, nombre, unit, costo, precio_men_raw, precio_m
     ws.cell(row=row_num, column=15).value = 0                           # Cant Min Medio Mayoreo
     ws.cell(row=row_num, column=16).value = 0                           # Desc% Medio Mayoreo
     ws.cell(row=row_num, column=17).value = min_mayoreo
-    ws.cell(row=row_num, column=18).value = discount
+    if WHOLESALE_MODE == 'fixed_price':
+        ws.cell(row=row_num, column=18).value = remove_iva(precio_may_raw)
+    else:
+        ws.cell(row=row_num, column=18).value = discount
 
 
 def main():

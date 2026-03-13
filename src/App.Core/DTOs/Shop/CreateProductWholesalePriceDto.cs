@@ -16,5 +16,8 @@ public class CreateProductWholesalePriceDto
     [Range(0, 100, ErrorMessage = "Discount percentage must be between 0 and 100")]
     public decimal DiscountPercentage { get; set; }
 
+    [Range(0, double.MaxValue)]
+    public decimal? FixedPrice { get; set; }
+
     public bool IsActive { get; set; } = true;
 }

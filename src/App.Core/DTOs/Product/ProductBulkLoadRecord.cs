@@ -19,7 +19,8 @@ public class ProductBulkLoadRecord
 
     /// <summary>
     /// Wholesale pricing data parsed from dynamic columns.
-    /// Key: Tier name, Value: (MinQuantity, DiscountPercentage)
+    /// Key: Tier name, Value: (MinQuantity, DiscountPercentage, FixedPrice)
+    /// FixedPrice is null when using percentage mode; DiscountPercentage is 0 when using fixed-price mode.
     /// </summary>
-    public Dictionary<string, (decimal MinQuantity, decimal DiscountPercentage)> WholesalePrices { get; set; } = new();
+    public Dictionary<string, (decimal MinQuantity, decimal DiscountPercentage, decimal? FixedPrice)> WholesalePrices { get; set; } = new();
 }

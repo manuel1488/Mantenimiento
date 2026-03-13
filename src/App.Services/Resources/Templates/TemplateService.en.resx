@@ -165,6 +165,10 @@
     <value>Discount %</value>
     <comment>Wholesale tier column header prefix</comment>
   </data>
+  <data name="Wholesale Price" xml:space="preserve">
+    <value>Wholesale Price</value>
+    <comment>Wholesale tier column header prefix for fixed-price mode</comment>
+  </data>
   <data name="Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip." xml:space="preserve">
     <value>Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip.</value>
     <comment>Wholesale tier template comment</comment>
@@ -172,5 +176,9 @@
   <data name="Discount percentage for {0} tier (0-100). Leave empty or 0 to skip." xml:space="preserve">
     <value>Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.</value>
     <comment>Wholesale tier template comment</comment>
+  </data>
+  <data name="Fixed wholesale price for {0} tier. Leave empty or 0 to skip." xml:space="preserve">
+    <value>Fixed wholesale price for {0} tier. Leave empty or 0 to skip.</value>
+    <comment>Wholesale tier template comment for fixed-price mode</comment>
   </data>
 </root>

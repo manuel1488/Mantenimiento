@@ -3,7 +3,9 @@ using System.Text;
 
 using App.Core.Constants;
 using App.Core.DTOs.UnitMeasure;
+using App.Core.Enums.Shop;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
 
 using Microsoft.Extensions.Localization;
@@ -23,13 +25,15 @@ public class TemplateService : ITemplateService
     private readonly ICompanySettingsService _companySettingsService;
     private readonly IInventoryColumnMappingService _columnMappingService;
     private readonly IWholesaleTierService _wholesaleTierService;
+    private readonly IWholesaleSettingsService _wholesaleSettingsService;
 
     public TemplateService(IStringLocalizer<TemplateService> localizer,
         ILogger<TemplateService> logger,
         IUnitMeasureService unitMeasureService,
         ICompanySettingsService companySettingsService,
         IInventoryColumnMappingService columnMappingService,
-        IWholesaleTierService wholesaleTierService)
+        IWholesaleTierService wholesaleTierService,
+        IWholesaleSettingsService wholesaleSettingsService)
     {
         _localizer = localizer;
         _logger = logger;
@@ -37,6 +41,7 @@ public class TemplateService : ITemplateService
         _companySettingsService = companySettingsService;
         _columnMappingService = columnMappingService;
         _wholesaleTierService = wholesaleTierService;
+        _wholesaleSettingsService = wholesaleSettingsService;
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     }
 
@@ -168,11 +173,16 @@ public class TemplateService : ITemplateService
             var activeTiers = tiersResult.IsSuccess ? tiersResult.Value?.ToList() ?? new() : new();
             var baseColumnCount = headers.Length;
 
+            var wholesaleSettingsResult = await _wholesaleSettingsService.GetSettingsAsync();
+            var wholesaleMode = wholesaleSettingsResult.IsSuccess
+                ? wholesaleSettingsResult.Value!.PriceMode
+                : WholesalePriceMode.Percentage;
+
             for (int t = 0; t < activeTiers.Count; t++)
             {
                 var tier = activeTiers[t];
                 var minQtyCol = baseColumnCount + (t * 2) + 1; // 1-indexed
-                var discountCol = minQtyCol + 1;
+                var valueCol = minQtyCol + 1;
 
                 // Set headers with green background
                 var minQtyHeaderCell = worksheet.Cells[1, minQtyCol];
@@ -182,26 +192,33 @@ public class TemplateService : ITemplateService
                 minQtyHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
                 minQtyHeaderCell.Style.Font.Color.SetColor(Color.White);
 
-                var discountHeaderCell = worksheet.Cells[1, discountCol];
-                discountHeaderCell.Value = $"{_localizer["Discount %"]} {tier.Name}";
-                discountHeaderCell.Style.Font.Bold = true;
-                discountHeaderCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                discountHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
-                discountHeaderCell.Style.Font.Color.SetColor(Color.White);
+                var valueHeaderCell = worksheet.Cells[1, valueCol];
+                string valueHeaderText = wholesaleMode == WholesalePriceMode.FixedPrice
+                    ? $"{_localizer["Wholesale Price"]} {tier.Name}"
+                    : $"{_localizer["Discount %"]} {tier.Name}";
+                valueHeaderCell.Value = valueHeaderText;
+                valueHeaderCell.Style.Font.Bold = true;
+                valueHeaderCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                valueHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
+                valueHeaderCell.Style.Font.Color.SetColor(Color.White);
 
                 // Set example values
                 worksheet.Cells[row, minQtyCol].Value = (t + 1) * 10; // 10, 20, etc.
-                worksheet.Cells[row, discountCol].Value = (t + 1) * 5; // 5%, 10%, etc.
+                worksheet.Cells[row, valueCol].Value = wholesaleMode == WholesalePriceMode.FixedPrice
+                    ? (object)((t + 1) * 50.0) // example prices: 50, 100, etc.
+                    : (t + 1) * 5; // 5%, 10%, etc.
 
                 // Add comments with AutoFit and explicit black text (cell has white font)
                 var minQtyComment = worksheet.Cells[1, minQtyCol].AddComment(
                     _localizer["Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip.", tier.Name], "System");
                 minQtyComment.AutoFit = true;
                 minQtyComment.RichText[0].Color = Color.Black;
-                var discountComment = worksheet.Cells[1, discountCol].AddComment(
-                    _localizer["Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.", tier.Name], "System");
-                discountComment.AutoFit = true;
-                discountComment.RichText[0].Color = Color.Black;
+                string valueCommentText = wholesaleMode == WholesalePriceMode.FixedPrice
+                    ? _localizer["Fixed wholesale price for {0} tier. Leave empty or 0 to skip.", tier.Name]
+                    : _localizer["Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.", tier.Name];
+                var valueComment = worksheet.Cells[1, valueCol].AddComment(valueCommentText, "System");
+                valueComment.AutoFit = true;
+                valueComment.RichText[0].Color = Color.Black;
             }
 
             var totalColumnCount = baseColumnCount + (activeTiers.Count * 2);

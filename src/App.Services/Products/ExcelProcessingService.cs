@@ -6,7 +6,9 @@ using Microsoft.Extensions.Localization;
 using App.Core.Common;
 using App.Core.Constants;
 using App.Core.DTOs.Product;
+using App.Core.Enums.Shop;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
 
 namespace App.Services.Products;
@@ -19,23 +21,26 @@ public class ExcelProcessingService : IExcelProcessingService
 {
     private readonly IStringLocalizer<ExcelProcessingService> _localizer;
     private readonly ILogger<ExcelProcessingService> _logger;
+    private readonly IWholesaleSettingsService _wholesaleSettingsService;
 
     public ExcelProcessingService(
         IStringLocalizer<ExcelProcessingService> localizer,
-        ILogger<ExcelProcessingService> logger)
+        ILogger<ExcelProcessingService> logger,
+        IWholesaleSettingsService wholesaleSettingsService)
     {
         _localizer = localizer;
         _logger = logger;
+        _wholesaleSettingsService = wholesaleSettingsService;
     }
 
-    public Result<ExcelProcessingResult> ProcessProductExcelFileAsync(
-        Stream fileStream, 
+    public async Task<Result<ExcelProcessingResult>> ProcessProductExcelFileAsync(
+        Stream fileStream,
         CancellationToken cancellationToken = default)
     {
         try
         {
             using var package = new ExcelPackage(fileStream);
-            
+
             // Validate basic file structure
             var validationResult = ValidateBasicStructure(package);
             if (!validationResult.IsSuccess)
@@ -43,9 +48,14 @@ public class ExcelProcessingService : IExcelProcessingService
                 return Result<ExcelProcessingResult>.Failure(validationResult.Error!);
             }
 
+            var settingsResult = await _wholesaleSettingsService.GetSettingsAsync(cancellationToken);
+            var wholesaleMode = settingsResult.IsSuccess && settingsResult.Value != null
+                ? settingsResult.Value.PriceMode
+                : WholesalePriceMode.Percentage;
+
             var worksheet = package.Workbook.Worksheets[0];
-            var result = ProcessWorksheet(worksheet, cancellationToken);
-            
+            var result = ProcessWorksheet(worksheet, wholesaleMode, cancellationToken);
+
             return Result<ExcelProcessingResult>.Success(result);
         }
         catch (Exception ex)
@@ -139,6 +149,7 @@ public class ExcelProcessingService : IExcelProcessingService
     /// </summary>
     private ExcelProcessingResult ProcessWorksheet(
         ExcelWorksheet worksheet,
+        WholesalePriceMode wholesaleMode,
         CancellationToken cancellationToken)
     {
         var result = new ExcelProcessingResult
@@ -155,6 +166,14 @@ public class ExcelProcessingService : IExcelProcessingService
 
         // Detect wholesale tier columns (dynamic columns beyond the standard ones)
         var wholesaleTierColumns = DetectWholesaleTierColumns(worksheet);
+
+        // Override IsFixedPrice if global mode is FixedPrice — allows old templates with "Discount %" header to work
+        if (wholesaleMode == WholesalePriceMode.FixedPrice)
+        {
+            wholesaleTierColumns = wholesaleTierColumns.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (kvp.Value.MinQtyCol, kvp.Value.ValueCol, IsFixedPrice: true));
+        }
 
         // Process data rows (starting from row 2, as row 1 contains headers)
         if (worksheet.Dimension != null)
@@ -184,22 +203,26 @@ public class ExcelProcessingService : IExcelProcessingService
     }
 
     /// <summary>
-    /// Detects wholesale tier columns by looking for paired "Min Qty [TierName]" and "Discount % [TierName]" headers.
-    /// Returns a dictionary mapping tier name to (minQtyColumnIndex, discountColumnIndex).
+    /// Detects wholesale tier columns by looking for paired "Min Qty [TierName]" and
+    /// ("Discount % [TierName]" or "Wholesale Price [TierName]") headers.
+    /// Returns a dictionary mapping tier name to (minQtyColumnIndex, valueColumnIndex, isFixedPrice).
     /// </summary>
-    private Dictionary<string, (int MinQtyCol, int DiscountCol)> DetectWholesaleTierColumns(ExcelWorksheet worksheet)
+    private Dictionary<string, (int MinQtyCol, int ValueCol, bool IsFixedPrice)> DetectWholesaleTierColumns(ExcelWorksheet worksheet)
     {
-        var tierColumns = new Dictionary<string, (int MinQtyCol, int DiscountCol)>();
+        var tierColumns = new Dictionary<string, (int MinQtyCol, int ValueCol, bool IsFixedPrice)>();
         if (worksheet.Dimension == null) return tierColumns;
 
         var minQtyPrefixStr = (string)_localizer["Min Qty"];
         var discountPrefixStr = (string)_localizer["Discount %"];
+        var fixedPricePrefixStr = (string)_localizer["Wholesale Price"];
         var minQtyPrefix = NormalizeColumnHeader(minQtyPrefixStr);
         var discountPrefix = NormalizeColumnHeader(discountPrefixStr);
+        var fixedPricePrefix = NormalizeColumnHeader(fixedPricePrefixStr);
 
-        // Collect all min qty and discount columns with their tier names
+        // Collect all min qty, discount and fixed-price columns with their tier names
         var minQtyCols = new Dictionary<string, int>(); // tierName -> colIndex
         var discountCols = new Dictionary<string, int>(); // tierName -> colIndex
+        var fixedPriceCols = new Dictionary<string, int>(); // tierName -> colIndex
 
         for (int col = 1; col <= worksheet.Dimension.Columns; col++)
         {
@@ -220,14 +243,24 @@ public class ExcelProcessingService : IExcelProcessingService
                 if (!string.IsNullOrEmpty(tierName))
                     discountCols[tierName] = col;
             }
+            else if (normalizedHeader.StartsWith(fixedPricePrefix) && normalizedHeader.Length > fixedPricePrefix.Length)
+            {
+                var tierName = headerValue.Substring(fixedPricePrefixStr.Length).Trim();
+                if (!string.IsNullOrEmpty(tierName))
+                    fixedPriceCols[tierName] = col;
+            }
         }
 
-        // Match pairs: only include tiers that have BOTH min qty and discount columns
+        // Match pairs: only include tiers that have BOTH min qty and a value column
         foreach (var tierName in minQtyCols.Keys)
         {
-            if (discountCols.TryGetValue(tierName, out var discountCol))
+            if (fixedPriceCols.TryGetValue(tierName, out var fixedPriceCol))
             {
-                tierColumns[tierName] = (minQtyCols[tierName], discountCol);
+                tierColumns[tierName] = (minQtyCols[tierName], fixedPriceCol, true);
+            }
+            else if (discountCols.TryGetValue(tierName, out var discountCol))
+            {
+                tierColumns[tierName] = (minQtyCols[tierName], discountCol, false);
             }
         }
 
@@ -246,21 +279,25 @@ public class ExcelProcessingService : IExcelProcessingService
     private void ProcessWholesaleTierColumns(
         ExcelWorksheet worksheet,
         int row,
-        Dictionary<string, (int MinQtyCol, int DiscountCol)> tierColumns,
+        Dictionary<string, (int MinQtyCol, int ValueCol, bool IsFixedPrice)> tierColumns,
         ProductBulkLoadDto product)
     {
         foreach (var (tierName, cols) in tierColumns)
         {
             var minQtyResult = GetCellValueAsDecimal(worksheet, row, cols.MinQtyCol, $"Min Qty {tierName}");
-            var discountResult = GetCellValueAsDecimal(worksheet, row, cols.DiscountCol, $"Discount % {tierName}");
+            var valueResult = GetCellValueAsDecimal(worksheet, row, cols.ValueCol,
+                cols.IsFixedPrice ? $"Wholesale Price {tierName}" : $"Discount % {tierName}");
 
             var minQty = minQtyResult.IsSuccess ? minQtyResult.Value : 0m;
-            var discount = discountResult.IsSuccess ? discountResult.Value : 0m;
+            var value = valueResult.IsSuccess ? valueResult.Value : 0m;
 
             // Only add if at least one value is meaningful
-            if (minQty > 0 || discount > 0)
+            if (minQty > 0 || value > 0)
             {
-                product.WholesalePrices[tierName] = (minQty, discount);
+                if (cols.IsFixedPrice)
+                    product.WholesalePrices[tierName] = (minQty, 0m, value);
+                else
+                    product.WholesalePrices[tierName] = (minQty, value, null);
             }
         }
     }
