@@ -1751,15 +1751,15 @@ else
                 var printResult = await ThermalPrinter.PrintSaleAsync(result.Value!.Id);
                 if (!printResult.IsSuccess)
                 {
-                    // 2nd: browser popup (silent with Chrome --kiosk-printing, or shows OS dialog otherwise)
+                    // 2nd: open PDF in new browser tab
                     try
                     {
-                        await JS.InvokeVoidAsync("printTicket", TicketService.GetSaleTicketUrl(result.Value!.Id));
+                        await JS.InvokeVoidAsync("openTicketInTab", TicketService.GetSaleTicketUrl(result.Value!.Id));
                     }
                     catch (Exception printEx)
                     {
                         // 3rd: receipt modal as last resort
-                        Logger.LogWarning(printEx, "printTicket failed, opening receipt dialog");
+                        Logger.LogWarning(printEx, "Failed to open PDF tab, opening receipt dialog");
                         await DialogService.ShowAsync<SaleReceiptDialog>(
                             L["Sale Receipt"],
                             new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, result.Value!.Id } });

@@ -1,3 +1,10 @@
+window.openTicketInTab = function(url) {
+    const baseUrl = window.location.origin;
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+    const w = window.open(fullUrl, '_blank');
+    if (!w) throw new Error('Popup blocked by browser');
+};
+
 window.createPdfBlobUrl = function(base64Data) {
     const byteCharacters = atob(base64Data);
     const byteNumbers = new Uint8Array(byteCharacters.length);

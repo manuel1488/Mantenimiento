@@ -55,12 +55,39 @@ window.thermalPrint = {
     // ── Serial port send ───────────────────────────────────────────────────
 
     _send: async function (bytes, safetyBufferMs) {
+        let isOpen = false;
+        let port = null;
         try {
             const ports = await navigator.serial.getPorts();
             if (ports.length === 0) return false;
 
-            const port = ports[0];
-            await port.open({ baudRate: 9600 });
+            port = ports[0];
+
+            // port.open() can block indefinitely when the device is physically disconnected
+            // but the virtual COM port driver keeps the port entry alive in Windows.
+            // Use a race so we give up after 4 s and let the fallback open the PDF instead.
+            const openResult = await Promise.race([
+                port.open({ baudRate: 9600 }).then(() => 'ok'),
+                new Promise(resolve => setTimeout(() => resolve('timeout'), 4000))
+            ]);
+            if (openResult === 'timeout') {
+                console.warn('[thermalPrint] port.open() timed out — printer may be disconnected');
+                return false; // do NOT close — open is still pending in background
+            }
+            isOpen = true;
+
+            // After opening, verify the printer is physically present via hardware signals.
+            // For the Epson TM Virtual Port driver, DSR/CTS are de-asserted when the USB
+            // printer is unplugged, so both being false reliably indicates no printer.
+            // If getSignals() is unsupported the catch skips this check.
+            try {
+                const signals = await port.getSignals();
+                if (!signals.dataSetReady && !signals.clearToSend) {
+                    console.warn('[thermalPrint] DSR and CTS both low — printer not connected');
+                    await port.close();
+                    return false;
+                }
+            } catch { /* getSignals() not available on this port type — proceed optimistically */ }
 
             const writer = port.writable.getWriter();
             await writer.write(new Uint8Array(bytes));
@@ -78,6 +105,9 @@ window.thermalPrint = {
             return true;
         } catch (e) {
             console.error('[thermalPrint] send error:', e);
+            if (isOpen) {
+                try { await port.close(); } catch {}
+            }
             return false;
         }
     },

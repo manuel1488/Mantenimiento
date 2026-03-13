@@ -235,7 +235,7 @@
         {
             var result = await ThermalPrinter.PrintSaleAsync(SaleId);
             if (!result.IsSuccess)
-                await JS.InvokeVoidAsync("printTicket", _ticketUrl);
+                Navigation.NavigateTo(_ticketUrl, forceLoad: true);
         }
         catch (Exception ex)
         {
