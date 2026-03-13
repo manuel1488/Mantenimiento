@@ -78,4 +78,14 @@ public class TicketDto<T>
     /// Company timezone for date formatting
     /// </summary>
     public TimeZoneInfo? TimeZone { get; set; }
+
+    /// <summary>
+    /// When true, prices are displayed with tax included (visual only — total is unchanged).
+    /// </summary>
+    public bool ShowPricesWithTax { get; set; } = false;
+
+    /// <summary>
+    /// Effective tax rate (e.g. 0.16 for 16%). Used for IVA-inclusive price display.
+    /// </summary>
+    public decimal TaxRate { get; set; }
 }

@@ -26,4 +26,9 @@ public class CompanySettings : BaseEntity<int>
 
     [StringLength(200)]
     public string? TimeZoneDisplayName { get; set; }
+
+    /// <summary>
+    /// When true, product prices are shown with tax (IVA) included in the sales terminal and receipts.
+    /// </summary>
+    public bool ShowPricesWithTax { get; set; } = false;
 }

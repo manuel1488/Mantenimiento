@@ -78,6 +78,22 @@
                     </MudGrid>
                 </MudItem>
 
+                <!-- Display Preferences -->
+                <MudItem xs="12">
+                    <MudDivider Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-3">@L["Display Preferences"]</MudText>
+                    <MudSwitch T="bool" @bind-Value="_model.ShowPricesWithTax"
+                               Label="@L["Show prices with tax (IVA) in sales terminal"]"
+                               Color="Color.Primary"
+                               Disabled="@(!_hasWriteAccess)" />
+                    @if (_model.ShowPricesWithTax)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @L["Prices will be displayed with tax included in the sales terminal and receipts. The total amount does not change."]
+                        </MudText>
+                    }
+                </MudItem>
+
                 <!-- Action buttons -->
                 <MudItem xs="12" Class="d-flex justify-end">
                     @if (_hasWriteAccess)
@@ -154,7 +170,8 @@
                     CompanyName = _settings.CompanyName,
                     CountryCode = _settings.CountryCode,
                     CurrencyCode = _settings.CurrencyCode,
-                    TimeZoneId = _settings.TimeZoneId
+                    TimeZoneId = _settings.TimeZoneId,
+                    ShowPricesWithTax = _settings.ShowPricesWithTax
                 };
             }
         }

@@ -239,18 +239,23 @@ else
                                     }
                                 </MudTd>
                                 <MudTd DataLabel="@L["Price"]">
+                                    @{
+                                        bool taxableItem = _showPricesWithTax && context.IsTaxable;
+                                        decimal factor = taxableItem ? (1 + _taxRate) : 1m;
+                                    }
                                     @if (context.DiscountPercentage > 0)
                                     {
-                                        decimal discountedUnitPrice = context.OriginalPrice * (1 - context.DiscountPercentage / 100);
+                                        decimal displayOriginal = context.OriginalPrice * factor;
+                                        decimal discountedUnitPrice = (context.OriginalPrice * (1 - context.DiscountPercentage / 100)) * factor;
                                         <div style="line-height:1.2;">
-                                            <span style="font-size:11px; color:#999; text-decoration:line-through;">@context.OriginalPrice.ToString("C2")</span>
+                                            <span style="font-size:11px; color:#999; text-decoration:line-through;">@displayOriginal.ToString("C2")</span>
                                             <br />
                                             <span style="color:#2e7d32; font-weight:600;">@discountedUnitPrice.ToString("C2")</span>
                                         </div>
                                     }
                                     else
                                     {
-                                        @context.UnitPrice.ToString("C2")
+                                        @((context.UnitPrice * factor).ToString("C2"))
                                     }
                                 </MudTd>
                                 <MudTd DataLabel="@L["Quantity"]">
@@ -293,10 +298,13 @@ else
                                     </div>
                                 </MudTd>
                                 <MudTd DataLabel="@L["Total"]">
+                                    @{
+                                        decimal displayTotal = (_showPricesWithTax && context.IsTaxable) ? context.Total * (1 + _taxRate) : context.Total;
+                                    }
                                     @if (context.AllowCustomPricing)
                                     {
-                                        <MudNumericField Value="context.Total"
-                                            ValueChanged="@(async (decimal newTotal) => await OnTotalValueChangedAsync(context, newTotal))"
+                                        <MudNumericField Value="displayTotal"
+                                            ValueChanged="@(async (decimal newDisplayTotal) => await OnTotalValueChangedAsync(context, newDisplayTotal))"
                                             HideSpinButtons="true"
                                             Format="C2"
                                             Min="0.01M"
@@ -311,7 +319,7 @@ else
                                     }
                                     else
                                     {
-                                        <strong>@context.Total.ToString("C2")</strong>
+                                        <strong>@displayTotal.ToString("C2")</strong>
                                     }
                                 </MudTd>
                                 <MudTd DataLabel="@L["Actions"]">
@@ -342,7 +350,7 @@ else
 
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
                         <span style="font-size:13px; color:#666;">@L["Subtotal"]:</span>
-                        <span style="font-size:13px; font-weight:600;">@_subtotal.ToString("C2")</span>
+                        <span style="font-size:13px; font-weight:600;">@DisplaySubtotal.ToString("C2")</span>
                     </div>
 
                     <MudDivider Class="my-1" />
@@ -363,17 +371,27 @@ else
                                 @L["Discount"] @($"({_model.DiscountPercentage:N1}%)")
                             }:
                         </span>
-                        <span style="font-size:13px; font-weight:600; color:@(_discountAmount > 0 ? "#E53935" : "#666");">
-                            @(_discountAmount > 0 ? $"-{_discountAmount:C2}" : "-$0.00")
+                        <span style="font-size:13px; font-weight:600; color:@(DisplayDiscountAmount > 0 ? "#E53935" : "#666");">
+                            @(DisplayDiscountAmount > 0 ? $"-{DisplayDiscountAmount:C2}" : "-$0.00")
                         </span>
                     </div>
 
                     <MudDivider Class="my-1" />
 
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
-                        <span style="font-size:13px; color:#666;">@L["Tax"]:</span>
-                        <span style="font-size:13px; font-weight:600;">@_taxAmount.ToString("C2")</span>
-                    </div>
+                    @if (_showPricesWithTax)
+                    {
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:2px 0;">
+                            <span style="font-size:11px; color:#999;">@L["Tax"] (@((_taxRate * 100).ToString("0"))%) @L["included"]:</span>
+                            <span style="font-size:11px; color:#999;">@_taxAmount.ToString("C2")</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0;">
+                            <span style="font-size:13px; color:#666;">@L["Tax"]:</span>
+                            <span style="font-size:13px; font-weight:600;">@_taxAmount.ToString("C2")</span>
+                        </div>
+                    }
 
                     @if (_isRoundingEnabled && _roundingAmount != 0)
                     {
@@ -586,7 +604,23 @@ else
     private decimal _roundingAmount = 0;
     private decimal _total = 0;
     private bool _isRoundingEnabled = false;
+    private bool _showPricesWithTax = false;
     private double PaidPercentage => _total > 0 ? Math.Min(100, (double)(_paymentEntries.Sum(e => e.Amount) / _total * 100)) : 0;
+
+    // Gross (pre-discount) IVA-inclusive subtotal. Uses i.Subtotal + i.DiscountAmount = original
+    // price per item, which mirrors how _subtotal = _cart.Sum(i => i.Subtotal + i.DiscountAmount).
+    private decimal DisplaySubtotal =>
+        _showPricesWithTax
+            ? _cart.Sum(i => i.IsTaxable
+                ? (i.Subtotal + i.DiscountAmount) * (1 + _taxRate)
+                : (i.Subtotal + i.DiscountAmount))
+            : _subtotal;
+
+    // Discount in IVA-inclusive terms = DisplaySubtotal(gross) - Total(net, unchanged).
+    private decimal DisplayDiscountAmount =>
+        _showPricesWithTax && _discountAmount > 0
+            ? DisplaySubtotal - (_total - _roundingAmount)
+            : _discountAmount;
 
     // Wholesale mode
     private App.Core.Enums.Shop.WholesalePriceMode _wholesaleMode = App.Core.Enums.Shop.WholesalePriceMode.Percentage;
@@ -785,6 +819,9 @@ else
             var wholesaleSettingsResult = await WholesaleSettingsService.GetSettingsAsync();
             if (wholesaleSettingsResult.IsSuccess && wholesaleSettingsResult.Value != null)
                 _wholesaleMode = wholesaleSettingsResult.Value.PriceMode;
+
+            _showPricesWithTax = companySettings.ShowPricesWithTax;
+
             await LoadPaymentMethods();
             await LoadDefaultCustomerAsync();
             await LoadPacSettingsAsync();
@@ -1313,10 +1350,10 @@ else
         StateHasChanged();
     }
 
-    private async Task OnTotalValueChangedAsync(CartItem item, decimal newTotal)
+    private async Task OnTotalValueChangedAsync(CartItem item, decimal newDisplayTotal)
     {
         // This method is called immediately when the total value changes (for immediate UI updates)
-        if (newTotal < 0.01M)
+        if (newDisplayTotal < 0.01M)
         {
             return; // Don't process invalid values
         }
@@ -1326,10 +1363,15 @@ else
             return; // Don't process if quantity is invalid
         }
 
+        // Convert from display value (with IVA) back to internal value (without IVA) if needed
+        decimal internalTotal = _showPricesWithTax && item.IsTaxable
+            ? newDisplayTotal / (1 + _taxRate)
+            : newDisplayTotal;
+
         // Update the total and recalculate unit price for immediate feedback
-        item.Total = newTotal;
-        item.UnitPrice = newTotal / item.Quantity;
-        item.Subtotal = newTotal;
+        item.Total = internalTotal;
+        item.UnitPrice = internalTotal / item.Quantity;
+        item.Subtotal = internalTotal;
 
         // Update the sale totals for immediate feedback, but don't mark as custom total yet
         await UpdateTotalsAsync();
@@ -1675,7 +1717,7 @@ else
             {
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
-                DiscountPercentage = 0, // No hay descuento a nivel de producto
+                DiscountPercentage = item.DiscountPercentage,
                 IsDiscountAuthorized = false,
                 DiscountAuthorizerId = null,
                 DiscountAuthorizedBy = null,

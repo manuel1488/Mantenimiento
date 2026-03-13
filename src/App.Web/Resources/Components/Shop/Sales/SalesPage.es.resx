@@ -106,7 +106,10 @@
     <value>Se requiere autorización para aplicar descuento</value>
   </data>
   <data name="Tax" xml:space="preserve">
-    <value>Impuesto</value>
+    <value>IVA</value>
+  </data>
+  <data name="included" xml:space="preserve">
+    <value>incluido</value>
   </data>
   <data name="Rounding" xml:space="preserve">
     <value>Redondeo</value>

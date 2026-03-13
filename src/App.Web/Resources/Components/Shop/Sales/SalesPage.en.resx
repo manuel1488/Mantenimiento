@@ -108,6 +108,9 @@
   <data name="Tax" xml:space="preserve">
     <value>Tax</value>
   </data>
+  <data name="included" xml:space="preserve">
+    <value>included</value>
+  </data>
   <data name="Rounding" xml:space="preserve">
     <value>Rounding</value>
   </data>

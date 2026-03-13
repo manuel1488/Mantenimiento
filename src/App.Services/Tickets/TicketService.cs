@@ -65,7 +65,10 @@ public class TicketService : ITicketService
 
             // Get ticket configuration
             var config = await GetTicketConfigurationAsync();
-            
+
+            // Get company settings (timezone + display preferences)
+            var companySettings = await _companySettingsService.GetSettingsAsync();
+
             // Get company timezone for date conversion
             var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
             
@@ -126,7 +129,9 @@ public class TicketService : ITicketService
                 CustomFooter = config.CustomFooter,
                 TicketWidth = config.TicketWidth,
                 Copies = config.DefaultCopies,
-                TimeZone = companyTimeZone
+                TimeZone = companyTimeZone,
+                ShowPricesWithTax = companySettings?.ShowPricesWithTax ?? false,
+                TaxRate = saleDto.TaxRate
             };
                         
             var pdfBytes = await _pdfService.GenerateThermalTicketPdfFromViewAsync(

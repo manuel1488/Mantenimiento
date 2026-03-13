@@ -42,4 +42,13 @@
     <data name="Time zone is required" xml:space="preserve">
         <value>La zona horaria es requerida</value>
     </data>
+    <data name="Display Preferences" xml:space="preserve">
+        <value>Preferencias de Visualización</value>
+    </data>
+    <data name="Show prices with tax (IVA) in sales terminal" xml:space="preserve">
+        <value>Mostrar precios con IVA en terminal de ventas</value>
+    </data>
+    <data name="Prices will be displayed with tax included in the sales terminal and receipts. The total amount does not change." xml:space="preserve">
+        <value>Los precios se mostrarán con IVA incluido en la terminal de ventas y los tickets. El total no cambia.</value>
+    </data>
 </root>

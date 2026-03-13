@@ -48,8 +48,14 @@
   <data name="Discount" xml:space="preserve">
     <value>Descuento</value>
   </data>
+  <data name="Disc." xml:space="preserve">
+    <value>Dto.</value>
+  </data>
   <data name="Tax" xml:space="preserve">
     <value>IVA</value>
+  </data>
+  <data name="incl." xml:space="preserve">
+    <value>incl.</value>
   </data>
   <data name="Rounding" xml:space="preserve">
     <value>Redondeo</value>

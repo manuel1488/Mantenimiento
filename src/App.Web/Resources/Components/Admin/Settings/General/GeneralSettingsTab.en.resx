@@ -42,4 +42,13 @@
     <data name="Time zone is required" xml:space="preserve">
         <value>Time zone is required</value>
     </data>
+    <data name="Display Preferences" xml:space="preserve">
+        <value>Display Preferences</value>
+    </data>
+    <data name="Show prices with tax (IVA) in sales terminal" xml:space="preserve">
+        <value>Show prices with tax (IVA) in sales terminal</value>
+    </data>
+    <data name="Prices will be displayed with tax included in the sales terminal and receipts. The total amount does not change." xml:space="preserve">
+        <value>Prices will be displayed with tax included in the sales terminal and receipts. The total amount does not change.</value>
+    </data>
 </root>

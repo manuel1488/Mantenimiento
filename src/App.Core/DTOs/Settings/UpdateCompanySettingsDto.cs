@@ -20,4 +20,6 @@ public class UpdateCompanySettingsDto
     [Required]
     [StringLength(100)]
     public string TimeZoneId { get; set; } = null!;
+
+    public bool ShowPricesWithTax { get; set; } = false;
 }
