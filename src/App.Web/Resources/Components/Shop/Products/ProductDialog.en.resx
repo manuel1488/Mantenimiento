@@ -102,6 +102,9 @@
   <data name="Cost" xml:space="preserve">
     <value>Cost</value>
   </data>
+  <data name="Acquisition Cost" xml:space="preserve">
+    <value>Acquisition Cost</value>
+  </data>
   <data name="Price" xml:space="preserve">
     <value>Price</value>
   </data>

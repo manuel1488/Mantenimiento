@@ -112,12 +112,12 @@
     <value>Min Qty</value>
     <comment>Wholesale tier column prefix for minimum quantity</comment>
   </data>
-  <data name="Discount %" xml:space="preserve">
-    <value>Discount %</value>
-    <comment>Wholesale tier column prefix for discount percentage</comment>
+  <data name="Wholesale Mode" xml:space="preserve">
+    <value>Wholesale Mode</value>
+    <comment>Wholesale tier mode column prefix (% or $)</comment>
   </data>
-  <data name="Wholesale Price" xml:space="preserve">
-    <value>Wholesale Price</value>
-    <comment>Wholesale tier column prefix for fixed price mode</comment>
+  <data name="Wholesale Value" xml:space="preserve">
+    <value>Wholesale Value</value>
+    <comment>Wholesale tier value column prefix (new format)</comment>
   </data>
 </root>

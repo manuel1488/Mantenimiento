@@ -113,12 +113,12 @@
     <value>Cant. Min.</value>
     <comment>Prefijo de columna de nivel de mayoreo para cantidad mínima</comment>
   </data>
-  <data name="Discount %" xml:space="preserve">
-    <value>Descuento %</value>
-    <comment>Prefijo de columna de nivel de mayoreo para porcentaje de descuento</comment>
+  <data name="Wholesale Mode" xml:space="preserve">
+    <value>Modo Mayoreo</value>
+    <comment>Prefijo de columna de modo mayoreo (% o $)</comment>
   </data>
-  <data name="Wholesale Price" xml:space="preserve">
-    <value>Precio Mayoreo</value>
-    <comment>Prefijo de columna de nivel de mayoreo para modo de precio fijo</comment>
+  <data name="Wholesale Value" xml:space="preserve">
+    <value>Valor Mayoreo</value>
+    <comment>Prefijo de columna de valor mayoreo (nuevo formato)</comment>
   </data>
 </root>

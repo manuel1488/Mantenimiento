@@ -181,38 +181,43 @@ public class TemplateService : ITemplateService
             for (int t = 0; t < activeTiers.Count; t++)
             {
                 var tier = activeTiers[t];
-                var minQtyCol = baseColumnCount + (t * 2) + 1; // 1-indexed
-                var valueCol = minQtyCol + 1;
+                var modeCol   = baseColumnCount + (t * 3) + 1; // 3 cols per tier: Mode, MinQty, Value
+                var minQtyCol = modeCol + 1;
+                var valueCol  = modeCol + 2;
 
-                // Set headers with green background
-                var minQtyHeaderCell = worksheet.Cells[1, minQtyCol];
-                minQtyHeaderCell.Value = $"{_localizer["Min Qty"]} {tier.Name}";
-                minQtyHeaderCell.Style.Font.Bold = true;
-                minQtyHeaderCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                minQtyHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
-                minQtyHeaderCell.Style.Font.Color.SetColor(Color.White);
+                // Helper to apply green header style
+                void StyleGreenHeader(ExcelRange cell, string text)
+                {
+                    cell.Value = text;
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
+                    cell.Style.Font.Color.SetColor(Color.White);
+                }
 
-                var valueHeaderCell = worksheet.Cells[1, valueCol];
-                string valueHeaderText = wholesaleMode == WholesalePriceMode.FixedPrice
-                    ? $"{_localizer["Wholesale Price"]} {tier.Name}"
-                    : $"{_localizer["Discount %"]} {tier.Name}";
-                valueHeaderCell.Value = valueHeaderText;
-                valueHeaderCell.Style.Font.Bold = true;
-                valueHeaderCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                valueHeaderCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(39, 174, 96));
-                valueHeaderCell.Style.Font.Color.SetColor(Color.White);
+                StyleGreenHeader(worksheet.Cells[1, minQtyCol], $"{_localizer["Min Qty"]} {tier.Name}");
+                StyleGreenHeader(worksheet.Cells[1, modeCol],   $"{_localizer["Wholesale Mode"]} {tier.Name}");
+                StyleGreenHeader(worksheet.Cells[1, valueCol],  $"{_localizer["Wholesale Value"]} {tier.Name}");
 
-                // Set example values
-                worksheet.Cells[row, minQtyCol].Value = (t + 1) * 10; // 10, 20, etc.
-                worksheet.Cells[row, valueCol].Value = wholesaleMode == WholesalePriceMode.FixedPrice
-                    ? (object)((t + 1) * 50.0) // example prices: 50, 100, etc.
-                    : (t + 1) * 5; // 5%, 10%, etc.
+                // Example values
+                string modeSymbol = wholesaleMode == WholesalePriceMode.FixedPrice ? "$" : "%";
+                worksheet.Cells[row, minQtyCol].Value = (t + 1) * 10;
+                worksheet.Cells[row, modeCol].Value   = modeSymbol;
+                worksheet.Cells[row, valueCol].Value  = wholesaleMode == WholesalePriceMode.FixedPrice
+                    ? (object)((t + 1) * 50.0)
+                    : (t + 1) * 5;
 
-                // Add comments with AutoFit and explicit black text (cell has white font)
+                // Comments
                 var minQtyComment = worksheet.Cells[1, minQtyCol].AddComment(
                     _localizer["Minimum quantity to qualify for {0} pricing. Leave empty or 0 to skip.", tier.Name], "System");
                 minQtyComment.AutoFit = true;
                 minQtyComment.RichText[0].Color = Color.Black;
+
+                var modeComment = worksheet.Cells[1, modeCol].AddComment(
+                    _localizer["% = discount percentage, $ = fixed price"], "System");
+                modeComment.AutoFit = true;
+                modeComment.RichText[0].Color = Color.Black;
+
                 string valueCommentText = wholesaleMode == WholesalePriceMode.FixedPrice
                     ? _localizer["Fixed wholesale price for {0} tier. Leave empty or 0 to skip.", tier.Name]
                     : _localizer["Discount percentage for {0} tier (0-100). Leave empty or 0 to skip.", tier.Name];
@@ -221,7 +226,7 @@ public class TemplateService : ITemplateService
                 valueComment.RichText[0].Color = Color.Black;
             }
 
-            var totalColumnCount = baseColumnCount + (activeTiers.Count * 2);
+            var totalColumnCount = baseColumnCount + (activeTiers.Count * 3);
 
             // Add comments/notes for guidance using localized text
             worksheet.Cells[1, 1].AddComment(_localizer["Optional. Leave empty to auto-generate product code."], "System");

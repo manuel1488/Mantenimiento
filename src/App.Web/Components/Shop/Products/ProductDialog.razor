@@ -248,6 +248,28 @@
                                         Color="Color.Primary" />
                             </MudItem>
 
+                            <!-- Cost -->
+                            <MudItem xs="12" md="6">
+                                <MudNumericField @bind-Value="_model.Cost"
+                                            Label="@L["Acquisition Cost"]"
+                                            Min="0M"
+                                            Format="N2"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                            </MudItem>
+
+                            <!-- Price -->
+                            <MudItem xs="12" md="6">
+                                <MudNumericField @bind-Value="_model.Price"
+                                            Label="@L["Price"]"
+                                            Required="true"
+                                            RequiredError="@L["Price is required"]"
+                                            Min="0.01M"
+                                            Format="N2"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                            </MudItem>
+
                             <!-- Wholesale Pricing Section -->
                             <MudItem xs="12">
                                 <MudPaper Class="pa-3" Elevation="0" Style="background-color: var(--mud-palette-background-grey);">
@@ -341,8 +363,8 @@
 
                             <!-- Unit of Measure -->
                             <MudItem xs="12" md="6">
-                                <MudSelect @bind-Value="_model.UnitMeasureId" 
-                                    Label="@L["Unit Measure"]" 
+                                <MudSelect @bind-Value="_model.UnitMeasureId"
+                                    Label="@L["Unit Measure"]"
                                     Required="true"
                                     RequiredError="@L["Unit measure is required"]"
                                     Validation="@(new Func<int, string>(ValidateUnitMeasure))">
@@ -354,28 +376,6 @@
                                         </MudSelectItem>
                                     }
                                 </MudSelect>
-                            </MudItem>
-
-                            <!-- Cost -->
-                            <MudItem xs="12" md="6">
-                                <MudNumericField @bind-Value="_model.Cost"
-                                            Label="@L["Cost"]"
-                                            Min="0M"
-                                            Format="N2"
-                                            Adornment="Adornment.Start"
-                                            AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
-                            </MudItem>
-
-                            <!-- Price -->
-                            <MudItem xs="12" md="6">
-                                <MudNumericField @bind-Value="_model.Price"
-                                            Label="@L["Price"]"
-                                            Required="true"
-                                            RequiredError="@L["Price is required"]"
-                                            Min="0.01M"
-                                            Format="N2"
-                                            Adornment="Adornment.Start"
-                                            AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
                             </MudItem>
 
                             <!-- Barcode -->

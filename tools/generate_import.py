@@ -430,13 +430,16 @@ def write_row(ws, row_num, codigo, nombre, unit, costo, precio_men_raw, precio_m
     ws.cell(row=row_num, column=12).value = sat
     ws.cell(row=row_num, column=13).value = 'false'                     # Venta Parcial
     ws.cell(row=row_num, column=14).value = 'false'                     # Precio Personalizado
-    ws.cell(row=row_num, column=15).value = 0                           # Cant Min Medio Mayoreo
-    ws.cell(row=row_num, column=16).value = 0                           # Desc% Medio Mayoreo
-    ws.cell(row=row_num, column=17).value = min_mayoreo
+    mode_symbol = '$' if WHOLESALE_MODE == 'fixed_price' else '%'
+    ws.cell(row=row_num, column=15).value = mode_symbol                 # Modo Medio Mayoreo
+    ws.cell(row=row_num, column=16).value = 0                           # Cant Min Medio Mayoreo
+    ws.cell(row=row_num, column=17).value = 0                           # Valor Medio Mayoreo
+    ws.cell(row=row_num, column=18).value = mode_symbol                 # Modo Mayoreo
+    ws.cell(row=row_num, column=19).value = min_mayoreo                 # Cant Min Mayoreo
     if WHOLESALE_MODE == 'fixed_price':
-        ws.cell(row=row_num, column=18).value = remove_iva(precio_may_raw)
+        ws.cell(row=row_num, column=20).value = remove_iva(precio_may_raw)  # Precio Fijo Mayoreo
     else:
-        ws.cell(row=row_num, column=18).value = discount
+        ws.cell(row=row_num, column=20).value = discount                # Descuento % Mayoreo
 
 
 def main():
@@ -445,7 +448,7 @@ def main():
     ws_out = tpl['Products']
 
     # Clear example row
-    for col in range(1, 19):
+    for col in range(1, 21):
         ws_out.cell(row=2, column=col).value = None
 
     current_row = 2
