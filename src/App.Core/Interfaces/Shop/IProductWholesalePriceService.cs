@@ -20,6 +20,12 @@ public interface IProductWholesalePriceService
     Task<Result<decimal>> GetDiscountPercentageAsync(long productId, int tierId);
 
     /// <summary>
+    /// Gets wholesale discount configurations for multiple products in one query.
+    /// Returns a dictionary keyed by productId.
+    /// </summary>
+    Task<Result<IDictionary<long, IList<ProductWholesalePriceDto>>>> GetWholesalePricesForProductsAsync(IList<long> productIds);
+
+    /// <summary>
     /// Updates wholesale discount configurations for a product (bulk update).
     /// Replaces all existing configurations with the new ones.
     /// </summary>

@@ -29,6 +29,7 @@ public class BulkLabelService : IBulkLabelService
     private readonly IStringLocalizer<BulkLabelService> _localizer;
     private readonly BarcodeGeneratorService _barcodeGenerator;
     private readonly ITaxRateService _taxRateService;
+    private readonly IProductWholesalePriceService _wholesalePriceService;
 
     public BulkLabelService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -41,7 +42,8 @@ public class BulkLabelService : IBulkLabelService
         ILogger<BulkLabelService> logger,
         IStringLocalizer<BulkLabelService> localizer,
         BarcodeGeneratorService barcodeGenerator,
-        ITaxRateService taxRateService)
+        ITaxRateService taxRateService,
+        IProductWholesalePriceService wholesalePriceService)
     {
         _contextFactory = contextFactory;
         _pdfService = pdfService;
@@ -54,6 +56,7 @@ public class BulkLabelService : IBulkLabelService
         _localizer = localizer;
         _barcodeGenerator = barcodeGenerator;
         _taxRateService = taxRateService;
+        _wholesalePriceService = wholesalePriceService;
     }
 
     public async Task<Result<BulkLabelJobDto>> CreateAsync(
@@ -74,12 +77,33 @@ public class BulkLabelService : IBulkLabelService
             var currentUser = _currentUserService.UserId ?? "System";
             var now = _dateTime.Now;
 
+            // Calculate effective unit price — apply wholesale tier if applicable
+            var effectiveUnitPrice = product.Price;
+            var wholesaleResult = await _wholesalePriceService.GetWholesalePricesForProductAsync(dto.ProductId);
+            if (wholesaleResult.IsSuccess && wholesaleResult.Value.Count > 0)
+            {
+                var applicable = wholesaleResult.Value
+                    .Where(w => w.IsActive && dto.Quantity >= w.MinQuantity)
+                    .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
+                    .OrderByDescending(w => w.MinQuantity)
+                    .FirstOrDefault();
+
+                if (applicable != null)
+                {
+                    effectiveUnitPrice = applicable.FixedPrice is > 0
+                        ? applicable.FixedPrice.Value
+                        : Math.Round(product.Price * (1 - applicable.DiscountPercentage / 100), 4);
+                }
+            }
+
+            var effectiveTotalPrice = Math.Round(dto.Quantity * effectiveUnitPrice, 2);
+
             var taxRate = 0m;
             var taxAmount = 0m;
             if (product.IsTaxable)
             {
                 taxRate = await _taxRateService.GetEffectiveRateAsync("MX", effectiveDate: now);
-                taxAmount = Math.Round(dto.TotalPrice * taxRate, 2);
+                taxAmount = Math.Round(effectiveTotalPrice * taxRate, 2);
             }
 
             var entity = new BulkLabelJob
@@ -87,8 +111,8 @@ public class BulkLabelService : IBulkLabelService
                 ProductId = dto.ProductId,
                 Quantity = dto.Quantity,
                 UnitMeasureCode = dto.UnitMeasureCode,
-                UnitPrice = dto.UnitPrice,
-                TotalPrice = dto.TotalPrice,
+                UnitPrice = effectiveUnitPrice,
+                TotalPrice = effectiveTotalPrice,
                 TaxRate = taxRate,
                 TaxAmount = taxAmount,
                 LabelCount = dto.LabelCount,

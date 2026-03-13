@@ -70,6 +70,45 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
         }
     }
 
+    public async Task<Result<IDictionary<long, IList<ProductWholesalePriceDto>>>> GetWholesalePricesForProductsAsync(IList<long> productIds)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var entities = await context.ProductWholesalePrices
+                .AsNoTracking()
+                .Include(wp => wp.WholesaleTier)
+                .Where(wp => productIds.Contains(wp.ProductId))
+                .ToListAsync();
+
+            var result = entities
+                .GroupBy(wp => wp.ProductId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (IList<ProductWholesalePriceDto>)g
+                        .OrderBy(wp => wp.WholesaleTier.DisplayOrder)
+                        .Select(wp => new ProductWholesalePriceDto
+                        {
+                            Id = wp.Id,
+                            ProductId = wp.ProductId,
+                            WholesaleTierId = wp.WholesaleTierId,
+                            TierName = wp.WholesaleTier.Name,
+                            MinQuantity = wp.MinQuantity,
+                            DiscountPercentage = wp.DiscountPercentage,
+                            FixedPrice = wp.FixedPrice,
+                            IsActive = wp.IsActive
+                        }).ToList());
+
+            return Result<IDictionary<long, IList<ProductWholesalePriceDto>>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving wholesale prices for products batch");
+            return Result<IDictionary<long, IList<ProductWholesalePriceDto>>>.Failure(L["Error retrieving wholesale prices"]);
+        }
+    }
+
     public async Task<Result<decimal>> GetDiscountPercentageAsync(long productId, int tierId)
     {
         try

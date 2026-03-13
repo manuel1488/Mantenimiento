@@ -3,6 +3,7 @@
 using App.Core.Constants;
 using App.Core.DTOs.Product;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Shop;
 using App.Services.Settings;
 
 using Microsoft.AspNetCore.Authorization;
@@ -21,17 +22,20 @@ public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly ITaxRateService _taxRateService;
+    private readonly IProductWholesalePriceService _wholesalePriceService;
     private readonly IStringLocalizer<ProductsController> L;
     private readonly ILogger<ProductsController> _logger;
 
     public ProductsController(
         IProductService productService,
         ITaxRateService taxRateService,
+        IProductWholesalePriceService wholesalePriceService,
         IStringLocalizer<ProductsController> localizer,
         ILogger<ProductsController> logger)
     {
         _productService = productService;
         _taxRateService = taxRateService;
+        _wholesalePriceService = wholesalePriceService;
         L = localizer;
         _logger = logger;
     }
@@ -56,8 +60,17 @@ public class ProductsController : ControllerBase
             isPartialSaleAllowed: isPartialSaleAllowed);
 
         var currentTaxRate = await _taxRateService.GetEffectiveRateAsync("MX");
+
+        var productIds = items.Select(p => p.Id).ToList();
+        var wholesaleResult = await _wholesalePriceService.GetWholesalePricesForProductsAsync(productIds);
+        var wholesaleMap = wholesaleResult.IsSuccess ? wholesaleResult.Value : new Dictionary<long, IList<App.Core.DTOs.Shop.ProductWholesalePriceDto>>();
+
         foreach (var item in items)
+        {
             item.TaxRate = item.IsTaxable ? currentTaxRate : 0m;
+            if (wholesaleMap.TryGetValue(item.Id, out var prices))
+                item.WholesalePrices = prices.ToList();
+        }
 
         return Ok(new { items, totalCount });
     }

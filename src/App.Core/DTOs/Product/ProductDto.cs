@@ -1,4 +1,5 @@
 ﻿using App.Core.DTOs.Shared;
+using App.Core.DTOs.Shop;
 
 namespace App.Core.DTOs.Product;
 
@@ -25,4 +26,5 @@ public class ProductDto : AuditableDto
     public int? MexicoProductServiceId { get; set; }
     public string? MexicoProductServiceCode { get; set; }
     public string? MexicoProductServiceDescription { get; set; }
+    public List<ProductWholesalePriceDto> WholesalePrices { get; set; } = [];
 }

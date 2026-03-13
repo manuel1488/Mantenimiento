@@ -2,6 +2,8 @@
 @using App.Core.Constants
 @using App.Core.DTOs.Label
 @using App.Core.DTOs.Product
+
+@using App.Core.DTOs.Shop
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Shop
 @using Microsoft.AspNetCore.Authorization
@@ -10,6 +12,7 @@
 @inject IBulkLabelService BulkLabelService
 @inject IProductService ProductService
 @inject IUnitMeasureService UnitMeasureService
+@inject IProductWholesalePriceService WholesalePriceService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<BulkLabelingPage> L
 @inject ILogger<BulkLabelingPage> Logger
@@ -63,10 +66,40 @@
             @if (_selectedProduct != null)
             {
                 <MudDivider Class="mb-3" />
+
+                @* Badge mayoreo *@
+                @if (_discountPercentage > 0)
+                {
+                    <div class="mb-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success">
+                            @if (_applicableFixedPrice.HasValue)
+                            {
+                                @($"{L["Wholesale"]} ${_applicableFixedPrice.Value:N2}")
+                            }
+                            else
+                            {
+                                @($"{L["Wholesale"]} -{_discountPercentage:0.##}%")
+                            }
+                        </MudChip>
+                    </div>
+                }
+
                 <div class="d-flex justify-space-between align-center mb-2">
                     <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Unit Price"]</MudText>
-                    <MudText Typo="Typo.body1">@_unitPrice.ToString("C2")</MudText>
+                    @if (_discountPercentage > 0)
+                    {
+                        <div style="text-align:right; line-height:1.2;">
+                            <span style="font-size:11px; color:#999; text-decoration:line-through;">@_originalUnitPrice.ToString("C2")</span>
+                            <br />
+                            <MudText Typo="Typo.body1" Color="Color.Success"><strong>@_unitPrice.ToString("C2")</strong></MudText>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body1">@_unitPrice.ToString("C2")</MudText>
+                    }
                 </div>
+
                 <div class="d-flex justify-space-between align-center mb-4">
                     <MudText Typo="Typo.body1"><strong>@L["Total Price"]</strong></MudText>
                     <MudText Typo="Typo.h6" Color="Color.Primary">@_totalPrice.ToString("C2")</MudText>
@@ -107,10 +140,14 @@
     private ProductDto? _selectedProduct;
     private decimal _quantity = 0;
     private decimal _unitPrice = 0;
+    private decimal _originalUnitPrice = 0;
     private decimal _totalPrice = 0;
     private string _unitCode = string.Empty;
     private string _unitMeasureCode = string.Empty;
     private bool _printing = false;
+    private List<ProductWholesalePriceDto> _wholesalePrices = [];
+    private decimal _discountPercentage = 0;
+    private decimal? _applicableFixedPrice = null;
     #endregion
 
     #region Lifecycle
@@ -152,11 +189,23 @@
             _unitCode = string.Empty;
             _unitMeasureCode = string.Empty;
             _unitPrice = 0;
+            _originalUnitPrice = 0;
             _totalPrice = 0;
+            _wholesalePrices = [];
+            _discountPercentage = 0;
+            _applicableFixedPrice = null;
             return;
         }
 
         _unitPrice = product.Price;
+        _originalUnitPrice = product.Price;
+        _wholesalePrices = [];
+        _discountPercentage = 0;
+        _applicableFixedPrice = null;
+
+        var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(product.Id);
+        if (wpResult.IsSuccess)
+            _wholesalePrices = wpResult.Value.ToList();
 
         try
         {
@@ -184,7 +233,37 @@
 
     private void RecalculateTotal()
     {
+        _discountPercentage = GetApplicableWholesaleDiscount();
+        _applicableFixedPrice = GetApplicableWholesaleFixedPrice();
+
+        _unitPrice = _discountPercentage > 0
+            ? Math.Round(_originalUnitPrice * (1 - _discountPercentage / 100), 4)
+            : _originalUnitPrice;
+
         _totalPrice = Math.Round(_quantity * _unitPrice, 2);
+    }
+
+    private decimal GetApplicableWholesaleDiscount()
+    {
+        if (_wholesalePrices.Count == 0) return 0;
+        var applicable = _wholesalePrices
+            .Where(w => w.IsActive && _quantity >= w.MinQuantity)
+            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
+            .OrderByDescending(w => w.MinQuantity)
+            .FirstOrDefault();
+        if (applicable == null) return 0;
+        if (applicable.FixedPrice is > 0 && _originalUnitPrice > 0)
+            return (_originalUnitPrice - applicable.FixedPrice.Value) / _originalUnitPrice * 100;
+        return applicable.DiscountPercentage;
+    }
+
+    private decimal? GetApplicableWholesaleFixedPrice()
+    {
+        if (_wholesalePrices.Count == 0) return null;
+        return _wholesalePrices
+            .Where(w => w.IsActive && w.FixedPrice is > 0 && _quantity >= w.MinQuantity)
+            .OrderByDescending(w => w.MinQuantity)
+            .FirstOrDefault()?.FixedPrice;
     }
     #endregion
 
@@ -241,9 +320,13 @@
         _selectedProduct = null;
         _quantity = 0;
         _unitPrice = 0;
+        _originalUnitPrice = 0;
         _totalPrice = 0;
         _unitCode = string.Empty;
         _unitMeasureCode = string.Empty;
+        _wholesalePrices = [];
+        _discountPercentage = 0;
+        _applicableFixedPrice = null;
     }
     #endregion
 }
