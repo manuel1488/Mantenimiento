@@ -658,7 +658,7 @@ else
             _dotNetRef = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("posKeyboard.register", _dotNetRef);
         }
-        if (_focusPending)
+        if (_focusPending && _productAutocomplete is not null)
         {
             _focusPending = false;
             await _productAutocomplete.FocusAsync();
