@@ -167,6 +167,64 @@
                                     </MudItem>
 
                                     <MudItem xs="12" Class="mt-4">
+                                        <MudDivider Class="mb-4" />
+                                        <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Cash Drawer"]</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                                            @L["Opens the cash drawer via the same COM port after each completed sale. Requires direct printing to be enabled."]
+                                        </MudText>
+
+                                        <MudSwitch T="bool" @bind-Value="_model.CashDrawerEnabled"
+                                            Label="@L["Open drawer after each sale"]"
+                                            Color="Color.Primary"
+                                            Disabled="@(!_hasManagePermission || !_model.DirectPrintEnabled)" />
+
+                                        @if (_model.CashDrawerEnabled && _model.DirectPrintEnabled)
+                                        {
+                                            <MudGrid Class="mt-2">
+                                                <MudItem xs="12" sm="6">
+                                                    <MudSelect T="string"
+                                                        Label="@L["Drawer preset"]"
+                                                        Value="@_drawerPreset"
+                                                        ValueChanged="@OnDrawerPresetChanged"
+                                                        Variant="Variant.Outlined"
+                                                        Disabled="@(!_hasManagePermission)">
+                                                        <MudSelectItem Value="@("epson_pin2")">Epson / APG — Pin 2 (25 ms)</MudSelectItem>
+                                                        <MudSelectItem Value="@("epson_pin2_long")">Epson / APG — Pin 2 pulso largo (100 ms)</MudSelectItem>
+                                                        <MudSelectItem Value="@("epson_pin5")">Epson — Pin 5 (25 ms)</MudSelectItem>
+                                                        <MudSelectItem Value="@("epson_pin5_long")">Epson — Pin 5 pulso largo (100 ms)</MudSelectItem>
+                                                        <MudSelectItem Value="@("star_bel")">Star Micronics — BEL (07)</MudSelectItem>
+                                                        <MudSelectItem Value="@("custom")">@L["Custom"]</MudSelectItem>
+                                                    </MudSelect>
+                                                </MudItem>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudTextField @bind-Value="_model.CashDrawerCommand"
+                                                        Label="@L["Command (hex bytes)"]"
+                                                        HelperText="@L["Space-separated hex, e.g. 1B 70 00 19 FA"]"
+                                                        Variant="Variant.Outlined"
+                                                        ReadOnly="@(!_hasManagePermission || _drawerPreset != "custom")" />
+                                                </MudItem>
+                                                <MudItem xs="12">
+                                                    <MudButton Variant="Variant.Outlined"
+                                                        StartIcon="@Icons.Material.Filled.Inbox"
+                                                        Color="Color.Secondary"
+                                                        OnClick="TestDrawer"
+                                                        Disabled="@_isTestingDrawer">
+                                                        @if (_isTestingDrawer)
+                                                        {
+                                                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                                            @L["Opening..."]
+                                                        }
+                                                        else
+                                                        {
+                                                            @L["Test drawer"]
+                                                        }
+                                                    </MudButton>
+                                                </MudItem>
+                                            </MudGrid>
+                                        }
+                                    </MudItem>
+
+                                    <MudItem xs="12" Class="mt-4">
                                         <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Company Logo"]</MudText>
 
                                         @if (!string.IsNullOrEmpty(_model.CompanyLogoBase64))
@@ -245,6 +303,17 @@
     private bool _webSerialSupported = true;
     private bool _portChecked = false;
     private string? _portDescription;
+    private bool _isTestingDrawer = false;
+    private string _drawerPreset = "epson_pin2";
+
+    private static readonly Dictionary<string, string> DrawerPresets = new()
+    {
+        ["epson_pin2"]      = "1B 70 00 19 FA",
+        ["epson_pin2_long"] = "1B 70 00 64 FA",
+        ["epson_pin5"]      = "1B 70 01 19 FA",
+        ["epson_pin5_long"] = "1B 70 01 64 FA",
+        ["star_bel"]        = "07"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -281,6 +350,7 @@
         {
             _loading = true;
             _model = await TicketService.GetTicketConfigurationAsync();
+            _drawerPreset = DrawerPresets.FirstOrDefault(kv => kv.Value == _model.CashDrawerCommand).Key ?? "custom";
             StateHasChanged();
         }
         catch (Exception ex)
@@ -354,7 +424,9 @@
                 TicketWidth = _model.TicketWidth,
                 DefaultCopies = _model.DefaultCopies,
                 DirectPrintEnabled = _model.DirectPrintEnabled,
-                PrintFlushDelayMs = _model.PrintFlushDelayMs
+                PrintFlushDelayMs = _model.PrintFlushDelayMs,
+                CashDrawerEnabled = _model.CashDrawerEnabled,
+                CashDrawerCommand = _model.CashDrawerCommand
             };
 
             await TicketService.UpdateTicketConfigurationAsync(_updateModel);
@@ -417,6 +489,35 @@
         finally
         {
             _isTesting = false;
+        }
+    }
+
+    private void OnDrawerPresetChanged(string key)
+    {
+        _drawerPreset = key;
+        if (DrawerPresets.TryGetValue(key, out var cmd))
+            _model.CashDrawerCommand = cmd;
+    }
+
+    private async Task TestDrawer()
+    {
+        try
+        {
+            _isTestingDrawer = true;
+            var result = await ThermalPrinter.OpenCashDrawerAsync();
+            if (result.IsSuccess)
+                Snackbar.Add(L["Drawer open command sent"], Severity.Success);
+            else
+                Snackbar.Add(L["Drawer not reachable: {0}", result.Error ?? ""], Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Test drawer error");
+            Snackbar.Add(L["Error opening drawer"], Severity.Error);
+        }
+        finally
+        {
+            _isTestingDrawer = false;
         }
     }
 

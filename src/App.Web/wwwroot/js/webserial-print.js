@@ -52,6 +52,23 @@ window.thermalPrint = {
         return window.thermalPrint._send(window.thermalPrint._buildTest());
     },
 
+    /**
+     * Opens the cash drawer by sending an ESC/POS command via the serial port.
+     * commandHex: space-separated hex bytes, e.g. "1B 70 00 19 FA"
+     */
+    openDrawer: async function (commandHex, flushDelayMs) {
+        try {
+            const bytes = (commandHex || '').trim().split(/\s+/).map(function (h) {
+                return parseInt(h, 16);
+            }).filter(function (b) { return !isNaN(b); });
+            if (bytes.length === 0) return false;
+            return window.thermalPrint._send(bytes, flushDelayMs || 200);
+        } catch (e) {
+            console.error('[thermalPrint] openDrawer error:', e);
+            return false;
+        }
+    },
+
     // ── Serial port send ───────────────────────────────────────────────────
 
     _send: async function (bytes, safetyBufferMs) {

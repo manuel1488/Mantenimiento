@@ -357,7 +357,9 @@ public class TicketService : ITicketService
                     DefaultCopies = map.DefaultCopies,
                     CompanyLogoBase64 = map.CompanyLogoBase64,
                     DirectPrintEnabled = map.DirectPrintEnabled,
-                    PrintFlushDelayMs = map.PrintFlushDelayMs
+                    PrintFlushDelayMs = map.PrintFlushDelayMs,
+                    CashDrawerEnabled = map.CashDrawerEnabled,
+                    CashDrawerCommand = map.CashDrawerCommand
                 };
             }
             else
@@ -448,6 +450,12 @@ public class TicketService : ITicketService
 
             if (updateDto.PrintFlushDelayMs.HasValue)
                 config.PrintFlushDelayMs = updateDto.PrintFlushDelayMs.Value;
+
+            if (updateDto.CashDrawerEnabled.HasValue)
+                config.CashDrawerEnabled = updateDto.CashDrawerEnabled.Value;
+
+            if (updateDto.CashDrawerCommand != null)
+                config.CashDrawerCommand = updateDto.CashDrawerCommand;
 
             await context.SaveChangesAsync();
             

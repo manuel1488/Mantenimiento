@@ -32,4 +32,10 @@ public interface IThermalPrinterService
     /// Sends a test page to verify printer connectivity.
     /// </summary>
     Task<Result> PrintTestPageAsync();
+
+    /// <summary>
+    /// Sends the configured ESC/POS cash drawer open command via the serial port.
+    /// Returns Result.Failure if the drawer is disabled, not configured, or the port is unavailable.
+    /// </summary>
+    Task<Result> OpenCashDrawerAsync();
 }

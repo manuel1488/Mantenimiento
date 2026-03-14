@@ -42,4 +42,14 @@ public class TicketConfiguration : BaseEntity<int>
     /// Increase when printing logos or large receipts to avoid truncation.
     /// </summary>
     public int PrintFlushDelayMs { get; set; } = 200;
+
+    // Cash drawer
+    public bool CashDrawerEnabled { get; set; } = false;
+
+    /// <summary>
+    /// ESC/POS cash drawer command as space-separated hex bytes, e.g. "1B 70 00 19 FA".
+    /// Sent via the same COM port as the printer after each completed sale.
+    /// </summary>
+    [StringLength(100)]
+    public string CashDrawerCommand { get; set; } = "1B 70 00 19 FA";
 }

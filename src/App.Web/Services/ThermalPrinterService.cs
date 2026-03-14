@@ -120,7 +120,21 @@ public class ThermalPrinterService : IThermalPrinterService
             };
 
             var success = await _js.InvokeAsync<bool>("thermalPrint.printSale", data, config.PrintFlushDelayMs);
-            return success ? Result.Success() : Result.Failure("Printer did not confirm success");
+            if (!success) return Result.Failure("Printer did not confirm success");
+
+            if (config.CashDrawerEnabled && !string.IsNullOrWhiteSpace(config.CashDrawerCommand))
+            {
+                try
+                {
+                    await _js.InvokeAsync<bool>("thermalPrint.openDrawer", config.CashDrawerCommand, config.PrintFlushDelayMs);
+                }
+                catch (Exception drawerEx)
+                {
+                    _logger.LogWarning(drawerEx, "Cash drawer open failed after sale {SaleId}", saleId);
+                }
+            }
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
@@ -191,6 +205,26 @@ public class ThermalPrinterService : IThermalPrinterService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Test print failed");
+            return Result.Failure(ex.Message);
+        }
+    }
+
+    public async Task<Result> OpenCashDrawerAsync()
+    {
+        try
+        {
+            var config = await _ticketService.GetTicketConfigurationAsync();
+            if (!config.CashDrawerEnabled)
+                return Result.Failure("Cash drawer not enabled");
+            if (string.IsNullOrWhiteSpace(config.CashDrawerCommand))
+                return Result.Failure("Cash drawer command not configured");
+
+            var success = await _js.InvokeAsync<bool>("thermalPrint.openDrawer", config.CashDrawerCommand, config.PrintFlushDelayMs);
+            return success ? Result.Success() : Result.Failure("Drawer did not respond");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Cash drawer open failed");
             return Result.Failure(ex.Message);
         }
     }

@@ -19,4 +19,7 @@ public class TicketConfigurationDto
 
     public bool DirectPrintEnabled { get; set; } = false;
     public int PrintFlushDelayMs { get; set; } = 200;
+
+    public bool CashDrawerEnabled { get; set; } = false;
+    public string CashDrawerCommand { get; set; } = "1B 70 00 19 FA";
 }

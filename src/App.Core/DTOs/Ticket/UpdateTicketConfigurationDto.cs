@@ -19,4 +19,7 @@ public class UpdateTicketConfigurationDto
 
     public bool? DirectPrintEnabled { get; set; }
     public int? PrintFlushDelayMs { get; set; }
+
+    public bool? CashDrawerEnabled { get; set; }
+    public string? CashDrawerCommand { get; set; }
 }
