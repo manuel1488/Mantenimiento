@@ -1091,9 +1091,7 @@ else
                 }
                 else
                 {
-                    // Always use current product price, never the label price
                     var unitPrice = product.Price;
-                    var currentTotal = Math.Round(unitPrice * _pendingBulkQuantity, 2);
 
                     var bulkItem = new CartItem
                     {
@@ -1118,7 +1116,6 @@ else
 
                     _cart.Add(bulkItem);
                     await UpdateCartItemAsync(bulkItem);
-                    Snackbar.Add(L["Bulk: {0} × {1} = {2}", product.Name, _pendingBulkQuantity.ToString("0.###"), currentTotal.ToString("C2")], Severity.Success);
                 }
 
                 _pendingBulkQuantity = 0;
