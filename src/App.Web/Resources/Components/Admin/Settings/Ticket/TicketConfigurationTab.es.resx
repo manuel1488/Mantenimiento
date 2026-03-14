@@ -138,4 +138,40 @@
   <data name="Error connecting port" xml:space="preserve">
     <value>Error al conectar el puerto</value>
   </data>
+  <data name="Cash Drawer" xml:space="preserve">
+    <value>Cajón de Dinero</value>
+  </data>
+  <data name="Opens the cash drawer via the same COM port after each completed sale. Requires direct printing to be enabled." xml:space="preserve">
+    <value>Abre el cajón de dinero por el mismo puerto COM después de cada venta completada. Requiere que la impresión directa esté habilitada.</value>
+  </data>
+  <data name="Open drawer after each sale" xml:space="preserve">
+    <value>Abrir cajón al completar cada venta</value>
+  </data>
+  <data name="Drawer preset" xml:space="preserve">
+    <value>Preset de cajón</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Personalizado</value>
+  </data>
+  <data name="Command (hex bytes)" xml:space="preserve">
+    <value>Comando (bytes hex)</value>
+  </data>
+  <data name="Space-separated hex, e.g. 1B 70 00 19 FA" xml:space="preserve">
+    <value>Hex separado por espacios, ej. 1B 70 00 19 FA</value>
+  </data>
+  <data name="Test drawer" xml:space="preserve">
+    <value>Probar cajón</value>
+  </data>
+  <data name="Opening..." xml:space="preserve">
+    <value>Abriendo...</value>
+  </data>
+  <data name="Drawer open command sent" xml:space="preserve">
+    <value>Comando de apertura enviado al cajón</value>
+  </data>
+  <data name="Drawer not reachable: {0}" xml:space="preserve">
+    <value>Cajón no disponible: {0}</value>
+  </data>
+  <data name="Error opening drawer" xml:space="preserve">
+    <value>Error al abrir el cajón</value>
+  </data>
 </root>

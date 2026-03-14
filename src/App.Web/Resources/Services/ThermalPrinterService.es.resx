@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Port selection cancelled" xml:space="preserve">
+    <value>Selección de puerto cancelada</value>
+  </data>
+  <data name="Direct print not enabled" xml:space="preserve">
+    <value>Impresión directa no habilitada</value>
+  </data>
+  <data name="Sale not found" xml:space="preserve">
+    <value>Venta no encontrada</value>
+  </data>
+  <data name="Movement not found" xml:space="preserve">
+    <value>Movimiento no encontrado</value>
+  </data>
+  <data name="Printer did not confirm success" xml:space="preserve">
+    <value>La impresora no confirmó la operación</value>
+  </data>
+  <data name="Cash drawer not enabled" xml:space="preserve">
+    <value>Cajón de dinero no habilitado</value>
+  </data>
+  <data name="Cash drawer command not configured" xml:space="preserve">
+    <value>Comando del cajón no configurado</value>
+  </data>
+  <data name="Drawer did not respond" xml:space="preserve">
+    <value>El cajón no respondió</value>
+  </data>
+</root>

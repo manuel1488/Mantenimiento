@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Port selection cancelled" xml:space="preserve">
+    <value>Port selection cancelled</value>
+  </data>
+  <data name="Direct print not enabled" xml:space="preserve">
+    <value>Direct print not enabled</value>
+  </data>
+  <data name="Sale not found" xml:space="preserve">
+    <value>Sale not found</value>
+  </data>
+  <data name="Movement not found" xml:space="preserve">
+    <value>Movement not found</value>
+  </data>
+  <data name="Printer did not confirm success" xml:space="preserve">
+    <value>Printer did not confirm success</value>
+  </data>
+  <data name="Cash drawer not enabled" xml:space="preserve">
+    <value>Cash drawer not enabled</value>
+  </data>
+  <data name="Cash drawer command not configured" xml:space="preserve">
+    <value>Cash drawer command not configured</value>
+  </data>
+  <data name="Drawer did not respond" xml:space="preserve">
+    <value>Drawer did not respond</value>
+  </data>
+</root>

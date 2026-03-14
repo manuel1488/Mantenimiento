@@ -3,6 +3,7 @@ using App.Core.Interfaces;
 using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
 
 namespace App.Web.Services;
@@ -15,6 +16,7 @@ public class ThermalPrinterService : IThermalPrinterService
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ICompanySettingsService _companySettingsService;
     private readonly ILogger<ThermalPrinterService> _logger;
+    private readonly IStringLocalizer<ThermalPrinterService> _localizer;
 
     public ThermalPrinterService(
         IJSRuntime js,
@@ -22,7 +24,8 @@ public class ThermalPrinterService : IThermalPrinterService
         ISaleService saleService,
         IDbContextFactory<ApplicationDbContext> contextFactory,
         ICompanySettingsService companySettingsService,
-        ILogger<ThermalPrinterService> logger)
+        ILogger<ThermalPrinterService> logger,
+        IStringLocalizer<ThermalPrinterService> localizer)
     {
         _js = js;
         _ticketService = ticketService;
@@ -30,6 +33,7 @@ public class ThermalPrinterService : IThermalPrinterService
         _contextFactory = contextFactory;
         _companySettingsService = companySettingsService;
         _logger = logger;
+        _localizer = localizer;
     }
 
     public async Task<bool> IsSupportedAsync()
@@ -56,7 +60,7 @@ public class ThermalPrinterService : IThermalPrinterService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Port request failed");
-            return Result<string>.Failure(ex.Message);
+            return Result<string>.Failure(_localizer["Port selection cancelled"]);
         }
     }
 
@@ -66,11 +70,11 @@ public class ThermalPrinterService : IThermalPrinterService
         {
             var config = await _ticketService.GetTicketConfigurationAsync();
             if (!config.DirectPrintEnabled)
-                return Result.Failure("Direct print not enabled");
+                return Result.Failure(_localizer["Direct print not enabled"]);
 
             var sale = await _saleService.GetSaleByIdAsync(saleId);
             if (sale == null)
-                return Result.Failure($"Sale {saleId} not found");
+                return Result.Failure(_localizer["Sale not found"]);
 
             var tz = await _companySettingsService.GetCurrentTimeZoneAsync();
             var saleDate = ConvertDate(sale.SaleDate, tz);
@@ -120,7 +124,7 @@ public class ThermalPrinterService : IThermalPrinterService
             };
 
             var success = await _js.InvokeAsync<bool>("thermalPrint.printSale", data, config.PrintFlushDelayMs);
-            if (!success) return Result.Failure("Printer did not confirm success");
+            if (!success) return Result.Failure(_localizer["Printer did not confirm success"]);
 
             if (config.CashDrawerEnabled && !string.IsNullOrWhiteSpace(config.CashDrawerCommand))
             {
@@ -149,7 +153,7 @@ public class ThermalPrinterService : IThermalPrinterService
         {
             var config = await _ticketService.GetTicketConfigurationAsync();
             if (!config.DirectPrintEnabled)
-                return Result.Failure("Direct print not enabled");
+                return Result.Failure(_localizer["Direct print not enabled"]);
 
             await using var context = await _contextFactory.CreateDbContextAsync();
             var movement = await context.CashRegisterMovements
@@ -159,7 +163,7 @@ public class ThermalPrinterService : IThermalPrinterService
                 .FirstOrDefaultAsync(m => m.Id == movementId);
 
             if (movement == null)
-                return Result.Failure($"Movement {movementId} not found");
+                return Result.Failure(_localizer["Movement not found"]);
 
             var tz = await _companySettingsService.GetCurrentTimeZoneAsync();
             var createdAt = ConvertDate(movement.CreatedAt, tz);
@@ -186,7 +190,7 @@ public class ThermalPrinterService : IThermalPrinterService
             };
 
             var success = await _js.InvokeAsync<bool>("thermalPrint.printWithdrawal", data, config.PrintFlushDelayMs);
-            return success ? Result.Success() : Result.Failure("Printer did not confirm success");
+            return success ? Result.Success() : Result.Failure(_localizer["Printer did not confirm success"]);
         }
         catch (Exception ex)
         {
@@ -200,7 +204,7 @@ public class ThermalPrinterService : IThermalPrinterService
         try
         {
             var success = await _js.InvokeAsync<bool>("thermalPrint.printTest");
-            return success ? Result.Success() : Result.Failure("Printer did not confirm success");
+            return success ? Result.Success() : Result.Failure(_localizer["Printer did not confirm success"]);
         }
         catch (Exception ex)
         {
@@ -215,12 +219,12 @@ public class ThermalPrinterService : IThermalPrinterService
         {
             var config = await _ticketService.GetTicketConfigurationAsync();
             if (!config.CashDrawerEnabled)
-                return Result.Failure("Cash drawer not enabled");
+                return Result.Failure(_localizer["Cash drawer not enabled"]);
             if (string.IsNullOrWhiteSpace(config.CashDrawerCommand))
-                return Result.Failure("Cash drawer command not configured");
+                return Result.Failure(_localizer["Cash drawer command not configured"]);
 
             var success = await _js.InvokeAsync<bool>("thermalPrint.openDrawer", config.CashDrawerCommand, config.PrintFlushDelayMs);
-            return success ? Result.Success() : Result.Failure("Drawer did not respond");
+            return success ? Result.Success() : Result.Failure(_localizer["Drawer did not respond"]);
         }
         catch (Exception ex)
         {
