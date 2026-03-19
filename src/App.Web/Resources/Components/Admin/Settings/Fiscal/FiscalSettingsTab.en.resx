@@ -99,4 +99,43 @@
     <data name="PostalCodeTimezoneNotFound" xml:space="preserve">
         <value>Postal code not found in SAT catalog — timezone will use company default</value>
     </data>
+    <data name="CSD Digital Certificate" xml:space="preserve">
+        <value>CSD Digital Certificate</value>
+    </data>
+    <data name="Certificate (.cer)" xml:space="preserve">
+        <value>Certificate (.cer)</value>
+    </data>
+    <data name="Uploaded" xml:space="preserve">
+        <value>Uploaded</value>
+    </data>
+    <data name="Not uploaded" xml:space="preserve">
+        <value>Not uploaded</value>
+    </data>
+    <data name="Upload Certificate" xml:space="preserve">
+        <value>Upload Certificate</value>
+    </data>
+    <data name="Private Key (.key)" xml:space="preserve">
+        <value>Private Key (.key)</value>
+    </data>
+    <data name="Upload Private Key" xml:space="preserve">
+        <value>Upload Private Key</value>
+    </data>
+    <data name="CSD Password" xml:space="preserve">
+        <value>CSD Password</value>
+    </data>
+    <data name="Password saved — enter to change" xml:space="preserve">
+        <value>Password saved — enter to change</value>
+    </data>
+    <data name="Password to decrypt the private key" xml:space="preserve">
+        <value>Password to decrypt the private key</value>
+    </data>
+    <data name="Error loading fiscal catalogs" xml:space="preserve">
+        <value>Error loading fiscal catalogs</value>
+    </data>
+    <data name="Error reading file" xml:space="preserve">
+        <value>Error reading file</value>
+    </data>
+    <data name="You don't have permission to view this page" xml:space="preserve">
+        <value>You don't have permission to view this page</value>
+    </data>
 </root>

@@ -264,6 +264,7 @@ else
                                             <MudNumericField Value="context.Quantity"
                                                 Min="@(context.QuantityStep)"
                                                 Step="@(context.QuantityStep)" Immediate="true"
+                                                Format="@GetQuantityFormat(context.QuantityStep)"
                                                 ValueChanged="@(async (decimal val) => await UpdateCartItemQuantityAsync(context, val))"
                                                 Style="flex: 1;" />
                                             @if (!string.IsNullOrEmpty(context.UnitMeasure))
@@ -1230,20 +1231,20 @@ else
         item.DiscountPercentage = GetApplicableWholesaleDiscount(item);
         item.ApplicableWholesaleFixedPrice = GetApplicableWholesaleFixedPrice(item);
 
-        // Calculate base price before surcharge
-        decimal basePrice = item.UnitPrice * item.Quantity;
+        // Calculate base price before surcharge (round to 2 decimals)
+        decimal basePrice = Math.Round(item.UnitPrice * item.Quantity, 2);
         item.BasePriceBeforeSurcharge = basePrice;
 
         // Apply wholesale discount
-        item.DiscountAmount = basePrice * (item.DiscountPercentage / 100);
-        decimal discountedBase = basePrice - item.DiscountAmount;
+        item.DiscountAmount = Math.Round(basePrice * (item.DiscountPercentage / 100), 2);
+        decimal discountedBase = Math.Round(basePrice - item.DiscountAmount, 2);
 
         // Calculate surcharge amount if a fraction is selected
-        decimal surchargeAmount = discountedBase * (item.SurchargePercentage / 100);
+        decimal surchargeAmount = Math.Round(discountedBase * (item.SurchargePercentage / 100), 2);
         item.SurchargeAmount = surchargeAmount;
 
         // Calculate item totals (without tax at item level)
-        decimal itemSubtotal = discountedBase + surchargeAmount;
+        decimal itemSubtotal = Math.Round(discountedBase + surchargeAmount, 2);
 
         // Only recalculate total if it hasn't been set manually
         if (!item.HasCustomTotal)
@@ -1293,6 +1294,14 @@ else
     {
         var result = await WholesalePriceService.GetWholesalePricesForProductAsync(productId);
         return result.IsSuccess ? result.Value.ToList() : [];
+    }
+
+    private static string GetQuantityFormat(decimal step)
+    {
+        if (step >= 1) return "N0";
+        var s = step.ToString("G");
+        var dotIndex = s.IndexOf('.');
+        return dotIndex < 0 ? "N0" : $"N{s.Length - dotIndex - 1}";
     }
 
     private async Task UpdateCartItemQuantityAsync(CartItem item, decimal quantity)
@@ -1430,19 +1439,19 @@ else
     private async Task UpdateTotalsAsync()
     {
         // Calculate sale totals (gross before item-level discounts)
-        _subtotal = _cart.Sum(i => i.Subtotal + i.DiscountAmount);
+        _subtotal = Math.Round(_cart.Sum(i => i.Subtotal + i.DiscountAmount), 2);
 
         // Wholesale discount (sum of per-item discounts already applied)
-        _wholesaleDiscountAmount = _cart.Sum(i => i.DiscountAmount);
+        _wholesaleDiscountAmount = Math.Round(_cart.Sum(i => i.DiscountAmount), 2);
 
         // General sale discount applied on top of net-after-wholesale subtotal
         decimal netAfterWholesale = _subtotal - _wholesaleDiscountAmount;
-        decimal saleDiscount = netAfterWholesale * (_model.DiscountPercentage / 100);
-        _discountAmount = _wholesaleDiscountAmount + saleDiscount;
+        decimal saleDiscount = Math.Round(netAfterWholesale * (_model.DiscountPercentage / 100), 2);
+        _discountAmount = Math.Round(_wholesaleDiscountAmount + saleDiscount, 2);
 
         // Recalcular impuestos después de descuento
         decimal baseImponible = _subtotal - _discountAmount;
-        _taxAmount = _cart.Sum(i =>
+        _taxAmount = Math.Round(_cart.Sum(i =>
         {
             if (i.IsTaxable)
             {
@@ -1451,10 +1460,10 @@ else
                 return itemDiscountedSubtotal * _taxRate;
             }
             return 0m;
-        });
+        }), 2);
 
         // Pre-rounding total
-        decimal preRoundingTotal = _subtotal - _discountAmount + _taxAmount;
+        decimal preRoundingTotal = Math.Round(_subtotal - _discountAmount + _taxAmount, 2);
 
         // Apply rounding if enabled
         if (_isRoundingEnabled)
@@ -1462,8 +1471,8 @@ else
             var roundingResult = await RoundingSettingsService.ApplyRoundingAsync(preRoundingTotal);
             if (roundingResult.IsSuccess)
             {
-                _roundingAmount = roundingResult.Value.RoundingAmount;
-                _total = roundingResult.Value.RoundedTotal;
+                _roundingAmount = Math.Round(roundingResult.Value.RoundingAmount, 2);
+                _total = Math.Round(roundingResult.Value.RoundedTotal, 2);
             }
             else
             {

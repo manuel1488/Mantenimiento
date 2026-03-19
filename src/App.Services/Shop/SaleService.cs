@@ -270,6 +270,9 @@ public class SaleService : ISaleService
 
             // Validate payments sum equals total
             var paymentsTotal = createDto.Payments.Sum(p => p.Amount);
+            _logger.LogInformation(
+                "Payment validation: paymentsTotal={PaymentsTotal}, saleTotal={SaleTotal}, subtotal={Subtotal}, tax={Tax}, discount={Discount}, rounding={Rounding}",
+                paymentsTotal, sale.Total, sale.Subtotal, sale.TaxAmount, sale.DiscountAmount, sale.RoundingAmount);
             if (paymentsTotal < sale.Total)
             {
                 return Result<SaleDto>.Failure(
@@ -707,7 +710,7 @@ public class SaleService : ISaleService
                         effectiveUnitPrice = calc.Quantity > 0 ? calc.FinalPrice / calc.Quantity : 0;
                         detailSubtotal = Math.Round(calc.FinalPrice, 2);
                         surchargePercentage = calc.SurchargePercentage;
-                        surchargeAmount = calc.SurchargeAmount;
+                        surchargeAmount = Math.Round(calc.SurchargeAmount, 2);
                         basePriceBeforeSurcharge = calc.BasePriceBeforeSurcharge;
                         partialSaleFractionId = calc.FractionId;
                     }
@@ -765,24 +768,24 @@ public class SaleService : ISaleService
             decimal additionalDiscountAmount = 0;
             if (createDto.DiscountPercentage > 0)
             {
-                additionalDiscountAmount = (subtotal - discountAmount) * (createDto.DiscountPercentage / 100);
+                additionalDiscountAmount = Math.Round((subtotal - discountAmount) * (createDto.DiscountPercentage / 100), 2);
                 discountAmount += additionalDiscountAmount;
             }
 
-            // Update sale totals
-            sale.Subtotal = subtotal;
-            sale.TaxAmount = taxAmount;
-            sale.DiscountAmount = discountAmount;
+            // Update sale totals (round to 2 decimals for CFDI compliance)
+            sale.Subtotal = Math.Round(subtotal, 2);
+            sale.TaxAmount = Math.Round(taxAmount, 2);
+            sale.DiscountAmount = Math.Round(discountAmount, 2);
 
             // Calculate pre-rounding total
-            decimal preRoundingTotal = subtotal - discountAmount + taxAmount;
+            decimal preRoundingTotal = Math.Round(sale.Subtotal - sale.DiscountAmount + sale.TaxAmount, 2);
 
             // Apply rounding if enabled
             var roundingResult = await _roundingSettingsService.ApplyRoundingAsync(preRoundingTotal);
             if (roundingResult.IsSuccess)
             {
-                sale.RoundingAmount = roundingResult.Value.RoundingAmount;
-                sale.Total = roundingResult.Value.RoundedTotal;
+                sale.RoundingAmount = Math.Round(roundingResult.Value.RoundingAmount, 2);
+                sale.Total = Math.Round(roundingResult.Value.RoundedTotal, 2);
             }
             else
             {
