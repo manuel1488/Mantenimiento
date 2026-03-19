@@ -29,10 +29,10 @@ public class Product : BaseEntity<long>
 
     public int UnitMeasureId { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal Cost { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal Price { get; set; }
 
     public bool IsTaxable { get; set; }
@@ -44,6 +44,11 @@ public class Product : BaseEntity<long>
     public decimal Content { get; set; } = 1;
 
     public bool IsPartialSaleAllowed { get; set; } = false;
+
+    [Column(TypeName = "decimal(10,6)")]
+    public decimal QuantityStep { get; set; } = 1;
+
+    public bool IsLabelingAllowed { get; set; } = false;
 
     public bool AllowCustomPricing { get; set; } = false;
 

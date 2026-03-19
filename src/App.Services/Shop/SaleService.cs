@@ -705,7 +705,7 @@ public class SaleService : ISaleService
                     {
                         var calc = fractionalPriceResult.Value!;
                         effectiveUnitPrice = calc.Quantity > 0 ? calc.FinalPrice / calc.Quantity : 0;
-                        detailSubtotal = calc.FinalPrice;
+                        detailSubtotal = Math.Round(calc.FinalPrice, 2);
                         surchargePercentage = calc.SurchargePercentage;
                         surchargeAmount = calc.SurchargeAmount;
                         basePriceBeforeSurcharge = calc.BasePriceBeforeSurcharge;
@@ -715,7 +715,7 @@ public class SaleService : ISaleService
                     {
                         // Fallback to proportional pricing if calculation fails
                         effectiveUnitPrice = product.Price / product.Content;
-                        detailSubtotal = effectiveUnitPrice * detailDto.Quantity;
+                        detailSubtotal = Math.Round(effectiveUnitPrice * detailDto.Quantity, 2);
                         basePriceBeforeSurcharge = detailSubtotal;
                     }
                 }
@@ -723,14 +723,14 @@ public class SaleService : ISaleService
                 {
                     // For regular sales, use the full product price
                     effectiveUnitPrice = product.Price;
-                    detailSubtotal = product.Price * detailDto.Quantity;
+                    detailSubtotal = Math.Round(product.Price * detailDto.Quantity, 2);
                     basePriceBeforeSurcharge = detailSubtotal;
                 }
 
-                decimal detailDiscountAmount = detailSubtotal * (detailDto.DiscountPercentage / 100);
-                decimal detailAfterDiscount = detailSubtotal - detailDiscountAmount;
-                decimal detailTaxAmount = detailAfterDiscount * taxRate;
-                decimal detailTotal = detailAfterDiscount + detailTaxAmount;
+                decimal detailDiscountAmount = Math.Round(detailSubtotal * (detailDto.DiscountPercentage / 100), 2);
+                decimal detailAfterDiscount = Math.Round(detailSubtotal - detailDiscountAmount, 2);
+                decimal detailTaxAmount = Math.Round(detailAfterDiscount * taxRate, 2);
+                decimal detailTotal = Math.Round(detailAfterDiscount + detailTaxAmount, 2);
 
                 // Create sale detail
                 var detail = new SaleDetail

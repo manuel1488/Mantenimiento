@@ -30,6 +30,6 @@ public class SaleDetailConfiguration : IEntityTypeConfiguration<SaleDetail>
             .HasColumnType("decimal(10,2)");
 
         builder.Property(e => e.BasePriceBeforeSurcharge)
-            .HasColumnType("decimal(10,2)");
+            .HasColumnType("decimal(10,6)");
     }
 }

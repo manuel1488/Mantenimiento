@@ -166,7 +166,9 @@ public class TemplateService : ITemplateService
             worksheet.Columns[12].Style.Numberformat.Format = "@";
             worksheet.Cells[row, 12].Value = "01010101"; // Example SAT code
             worksheet.Cells[row, 13].Value = "false";
-            worksheet.Cells[row, 14].Value = "false";
+            worksheet.Cells[row, 14].Value = 1.0;
+            worksheet.Cells[row, 15].Value = "false";
+            worksheet.Cells[row, 16].Value = "false";
 
             // Add wholesale tier columns dynamically
             var tiersResult = await _wholesaleTierService.GetActiveTiersAsync();

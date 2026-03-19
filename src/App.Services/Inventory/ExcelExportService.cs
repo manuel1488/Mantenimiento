@@ -450,6 +450,8 @@ public class ExcelExportService : IExcelExportService
             L["Is Taxable"],
             L["Is Active"],
             L["Allow Partial Sale"],
+            L["Quantity Step"],
+            L["Allow Labeling"],
             L["Allow Custom Pricing"]
         };
 
@@ -470,7 +472,7 @@ public class ExcelExportService : IExcelExportService
         }
 
         var headers = baseHeaders.ToArray();
-        var surchargeColumnStartIndex = 13; // 0-based index where surcharge columns start
+        var surchargeColumnStartIndex = 15; // 0-based index where surcharge columns start
 
         // Set headers with styling
         for (int i = 0; i < headers.Length; i++)
@@ -526,12 +528,14 @@ public class ExcelExportService : IExcelExportService
             worksheet.Cells[row, 10].Value = product.IsTaxable ? L["Yes"] : L["No"];
             worksheet.Cells[row, 11].Value = product.IsActive ? L["Yes"] : L["No"];
             worksheet.Cells[row, 12].Value = product.IsPartialSaleAllowed ? L["Yes"] : L["No"];
-            worksheet.Cells[row, 13].Value = product.AllowCustomPricing ? L["Yes"] : L["No"];
+            worksheet.Cells[row, 13].Value = product.QuantityStep;
+            worksheet.Cells[row, 14].Value = product.IsLabelingAllowed ? L["Yes"] : L["No"];
+            worksheet.Cells[row, 15].Value = product.AllowCustomPricing ? L["Yes"] : L["No"];
 
             // Add surcharge values for each fraction column
             for (int f = 0; f < fractionList.Count; f++)
             {
-                var colIndex = 14 + f; // Start after base columns (13 columns, 1-indexed)
+                var colIndex = 16 + f; // Start after base columns (15 columns, 1-indexed)
                 var fraction = fractionList[f];
 
                 if (product.IsPartialSaleAllowed &&

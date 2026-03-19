@@ -15,6 +15,8 @@ public class ProductBulkLoadRecord
     public bool IsActive { get; set; } = true;
     public string? MexicoProductServiceCode { get; set; }
     public bool AllowPartialSale { get; set; } = false;
+    public decimal QuantityStep { get; set; } = 1;
+    public bool AllowLabeling { get; set; } = false;
     public bool AllowCustomPricing { get; set; } = false;
 
     /// <summary>

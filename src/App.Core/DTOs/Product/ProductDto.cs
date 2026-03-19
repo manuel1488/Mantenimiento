@@ -21,6 +21,8 @@ public class ProductDto : AuditableDto
     public bool IsActive { get; set; }
     public decimal Content { get; set; }
     public bool IsPartialSaleAllowed { get; set; }
+    public decimal QuantityStep { get; set; } = 1;
+    public bool IsLabelingAllowed { get; set; }
     public bool AllowCustomPricing { get; set; }
     public bool RequiresInventory { get; set; }
     public int? MexicoProductServiceId { get; set; }

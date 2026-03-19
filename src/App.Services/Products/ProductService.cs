@@ -89,7 +89,8 @@ public class ProductService : IProductService
         string? searchString = null,
         int? unitMeasureId = null,
         bool? isActive = null,
-        bool? isPartialSaleAllowed = null)
+        bool? isPartialSaleAllowed = null,
+        bool? isLabelingAllowed = null)
     {
         try
         {
@@ -124,6 +125,11 @@ public class ProductService : IProductService
             if (isPartialSaleAllowed.HasValue)
             {
                 query = query.Where(x => x.IsPartialSaleAllowed == isPartialSaleAllowed.Value);
+            }
+
+            if (isLabelingAllowed.HasValue)
+            {
+                query = query.Where(x => x.IsLabelingAllowed == isLabelingAllowed.Value);
             }
 
             // Get total count
@@ -692,6 +698,8 @@ public class ProductService : IProductService
                         IsActive = item.IsActive,
                         MexicoProductServiceId = mexicoProductServiceId,
                         IsPartialSaleAllowed = item.AllowPartialSale,
+                        QuantityStep = item.QuantityStep,
+                        IsLabelingAllowed = item.AllowLabeling,
                         AllowCustomPricing = item.AllowCustomPricing,
                         CreatedBy = _currentUserService.FullName ?? "System",
                         CreatedAt = _dateTime.Now
@@ -955,6 +963,8 @@ public class ProductService : IProductService
                 IsTaxable = p.IsTaxable,
                 IsActive = p.IsActive,
                 IsPartialSaleAllowed = p.IsPartialSaleAllowed,
+                QuantityStep = p.QuantityStep,
+                IsLabelingAllowed = p.IsLabelingAllowed,
                 AllowCustomPricing = p.AllowCustomPricing
             })
             .ToListAsync();

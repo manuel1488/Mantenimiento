@@ -116,79 +116,112 @@ WORD_BRAND_MAP = {
 
 # SAT code rules: (keyword_list, sat_code)
 # More specific rules first
+# 47131811 = Productos de lavandería
+# 47131812 = Refrescador de aire
+# 47131803 = Desinfectantes para uso doméstico
+# 47131805 = Limpiadores de propósito general
+# 47131807 = Blanqueadores
+# 47131810 = Productos para el lavaplatos
+# 47131817 = Protectores de uso doméstico o para automotores
+# 47131821 = Compuestos desengrasantes
+# 47131824 = Limpiadores de vidrio o ventanas
+# 47131829 = Limpiadores de baños
+# 47131604 = Escobas
+# 47131605 = Cepillos de limpieza
+# 47131609 = Manijas de escobas o traperos
+# 47121701 = Bolsas de basura
+# 47121804 = Baldes para limpieza
 SAT_RULES = [
+    # Jabones de lavandería
     (['JABON', 'ROMA'],              '47131811'),
     (['JABON', 'FOCA'],              '47131811'),
     (['JABON', 'ZOTE'],              '47131811'),
     (['JABON', 'UTIL'],              '47131811'),
     (['JABON', 'BARRA'],             '47131811'),
     (['ZOTPLUS'],                    '47131811'),
+    (['ZOTPLUB'],                    '47131811'),
+    (['ZOTPLUR'],                    '47131811'),
     (['SUAVIPLUS'],                  '47131811'),
     (['SUAENJ'],                     '47131811'),
     (['SUAAMA'],                     '47131811'),
     (['SUAAZU'],                     '47131811'),
+    (['PRELAVADOR'],                 '47131811'),
+    (['PREBLA'],                     '47131811'),
+    (['PREVADR'],                    '47131811'),
+    (['COLORPLUS'],                  '47131811'),
+    (['COLPLUC'],                    '47131811'),
+    (['COLPLUO'],                    '47131811'),
+    # Aromatizantes / refrescadores de aire
     (['AROMATIZANTE'],               '47131812'),
     (['AROFE'],                      '47131812'),
     (['AROCH'],                      '47131812'),
-    (['GELANT'],                     '47131700'),
     (['GLADE'],                      '47131812'),
     (['WISE'],                       '47131812'),
     (['FERRARI'],                    '47131812'),
     (['CHIC'],                       '47131812'),
-    (['DELMAN'],                     '47131700'),
-    (['DELICO'],                     '47131700'),
-    (['DELIPE'],                     '47131700'),
-    (['JABON', 'MANOS'],             '47131700'),
-    (['ALMOROL'],                    '25172300'),
-    (['ALMOE'],                      '25172300'),
-    (['SARRICIDA'],                  '47131800'),
-    (['SARRI'],                      '47131800'),
-    (['ESCOBA'],                     '47121500'),
-    (['CEPILLO'],                    '47121500'),
-    (['BASTON'],                     '47121500'),
-    (['PRACTIQUITO'],                '47121500'),
-    (['PERICO'],                     '47121500'),
-    (['CUBETA'],                     '47121500'),
+    # Gel antibacterial → desinfectante
+    (['GELANT'],                     '47131803'),
+    # Jabón de manos
+    (['DELMAN'],                     '47131805'),
+    (['DELICO'],                     '47131805'),
+    (['DELIPE'],                     '47131805'),
+    (['JABON', 'MANOS'],             '47131805'),
+    # Abrillantador de llantas → protectores automotores
+    (['ALMOROL'],                    '47131817'),
+    (['ALMOE'],                      '47131817'),
+    # Sarricida → limpiadores de baños
+    (['SARRICIDA'],                  '47131829'),
+    (['SARRI'],                      '47131829'),
+    # Escobas, cepillos, bastones
+    (['ESCOBA'],                     '47131604'),
+    (['CEPILLO'],                    '47131605'),
+    (['BASTON'],                     '47131609'),
+    (['PRACTIQUITO'],                '47131605'),
+    (['PERICO'],                     '47131605'),
+    # Cubetas
+    (['CUBETA'],                     '47121804'),
+    # Bolsas de basura
+    (['BOLSA'],                      '47121701'),
+    # Envases plásticos (embudo, atomizador, botella, porrón)
     (['EMBUDO'],                     '47121500'),
     (['ATOMIZADOR'],                 '47121500'),
-    (['BOLSA'],                      '47121500'),
     (['BOTELLA'],                    '47121500'),
     (['PORRON'],                     '47121500'),
-    (['CLORO'],                      '47131805'),
-    (['DESENGRASANTE'],              '47131805'),
-    (['DESIND'],                     '47131805'),
-    (['DESCOC'],                     '47131805'),
-    (['DESMOT'],                     '47131805'),
-    (['DESCOCE'],                    '47131805'),
-    (['DESINDE'],                    '47131805'),
+    # Cloro / blanqueadores
+    (['CLORO'],                      '47131807'),
+    (['CLOROE'],                     '47131807'),
+    # Desengrasantes
+    (['DESENGRASANTE'],              '47131821'),
+    (['DESIND'],                     '47131821'),
+    (['DESCOC'],                     '47131821'),
+    (['DESMOT'],                     '47131821'),
+    (['DESCOCE'],                    '47131821'),
+    (['DESINDE'],                    '47131821'),
+    # Limpiavidrios
+    (['LIMPIVI'],                    '47131824'),
+    # Limpiadores multiusos
     (['LIMPIADOR'],                  '47131805'),
-    (['LIMPIVI'],                    '47131805'),
     (['MULTICLEAN'],                 '47131805'),
     (['MULTILA'],                    '47131805'),
     (['MULTILI'],                    '47131805'),
     (['MULTIAZ'],                    '47131805'),
     (['MULTITIL'],                   '47131805'),
     (['MULTIAE'],                    '47131805'),
-    (['ULTRAPINO'],                  '47131805'),
-    (['ULTRAPC'],                    '47131805'),
-    (['ULTRAPL'],                    '47131805'),
-    (['ULTRAP'],                     '47131805'),
-    (['ULTRABRILLO'],                '47131805'),
-    (['ULTRAV'],                     '47131805'),
-    (['PRELAVADOR'],                 '47131805'),
-    (['PREBLA'],                     '47131805'),
-    (['PREVADR'],                    '47131805'),
     (['DETNEU'],                     '47131805'),
+    # Ultrapino → desinfectante
+    (['ULTRAPINO'],                  '47131803'),
+    (['ULTRAPC'],                    '47131803'),
+    (['ULTRAPL'],                    '47131803'),
+    (['ULTRAP'],                     '47131803'),
+    # Ultrabrillo → lavatrastes
+    (['ULTRABRILLO'],                '47131810'),
+    (['ULTRAV'],                     '47131810'),
+    (['ULTRAAZ'],                    '47131810'),
+    # Gel limpiador genérico
     (['GEL'],                        '47131805'),
-    (['COLORPLUS'],                  '47131805'),
-    (['COLPLUC'],                    '47131805'),
-    (['COLPLUO'],                    '47131805'),
-    (['ZOTPLUB'],                    '47131811'),
-    (['ZOTPLUR'],                    '47131811'),
-    (['ZOTPLUR'],                    '47131805'),
 ]
 
-DEFAULT_SAT = '47131800'  # General cleaning solutions
+DEFAULT_SAT = '47131805'  # Limpiadores de propósito general
 
 
 def get_brand(name: str, codigo: str = '') -> str:
@@ -429,17 +462,19 @@ def write_row(ws, row_num, codigo, nombre, unit, costo, precio_men_raw, precio_m
     ws.cell(row=row_num, column=11).value = 'true'                      # Esta Activo
     ws.cell(row=row_num, column=12).value = sat
     ws.cell(row=row_num, column=13).value = 'false'                     # Venta Parcial
-    ws.cell(row=row_num, column=14).value = 'false'                     # Precio Personalizado
+    ws.cell(row=row_num, column=14).value = 1                            # Incremento de Cantidad
+    ws.cell(row=row_num, column=15).value = 'false'                     # Permitir Etiquetado
+    ws.cell(row=row_num, column=16).value = 'false'                     # Precio Personalizado
     mode_symbol = '$' if WHOLESALE_MODE == 'fixed_price' else '%'
-    ws.cell(row=row_num, column=15).value = mode_symbol                 # Modo Medio Mayoreo
-    ws.cell(row=row_num, column=16).value = 0                           # Cant Min Medio Mayoreo
-    ws.cell(row=row_num, column=17).value = 0                           # Valor Medio Mayoreo
-    ws.cell(row=row_num, column=18).value = mode_symbol                 # Modo Mayoreo
-    ws.cell(row=row_num, column=19).value = min_mayoreo                 # Cant Min Mayoreo
+    ws.cell(row=row_num, column=17).value = mode_symbol                 # Modo Medio Mayoreo
+    ws.cell(row=row_num, column=18).value = 0                           # Cant Min Medio Mayoreo
+    ws.cell(row=row_num, column=19).value = 0                           # Valor Medio Mayoreo
+    ws.cell(row=row_num, column=20).value = mode_symbol                 # Modo Mayoreo
+    ws.cell(row=row_num, column=21).value = min_mayoreo                 # Cant Min Mayoreo
     if WHOLESALE_MODE == 'fixed_price':
-        ws.cell(row=row_num, column=20).value = remove_iva(precio_may_raw)  # Precio Fijo Mayoreo
+        ws.cell(row=row_num, column=22).value = remove_iva(precio_may_raw)  # Precio Fijo Mayoreo
     else:
-        ws.cell(row=row_num, column=20).value = discount                # Descuento % Mayoreo
+        ws.cell(row=row_num, column=22).value = discount                # Descuento % Mayoreo
 
 
 def main():
@@ -448,7 +483,7 @@ def main():
     ws_out = tpl['Products']
 
     # Clear example row
-    for col in range(1, 21):
+    for col in range(1, 23):
         ws_out.cell(row=2, column=col).value = None
 
     current_row = 2
@@ -501,10 +536,10 @@ def main():
     print()
     print('=== Muestra (primeras 5 filas) ===')
     headers = ['Código','Nombre','Marca','Descripción','CodBar','Cont','Unidad','Costo','Precio',
-               'Gravable','Activo','SAT','VentaParcial','PrecioCustom','MinMedMay','DescMedMay','MinMay','DescMay']
-    print(' | '.join(f'{h[:8]}' for h in headers))
+               'Gravable','Activo','SAT','VtaParcial','IncrCant','Etiquetado','PrecioCustom','MinMedMay','DescMedMay','MinMay','DescMay']
+    print(' | '.join(f'{h[:10]}' for h in headers))
     for r in range(2, 7):
-        vals = [str(ws_out.cell(row=r, column=c).value or '')[:10] for c in range(1, 19)]
+        vals = [str(ws_out.cell(row=r, column=c).value or '')[:10] for c in range(1, 21)]
         print(' | '.join(f'{v:<10}' for v in vals))
 
 

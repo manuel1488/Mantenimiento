@@ -14,7 +14,7 @@ public class SaleDetail : BaseEntity<long>
     [Column(TypeName = "decimal(10,2)")]
     public decimal Quantity { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal UnitPrice { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]
@@ -66,7 +66,7 @@ public class SaleDetail : BaseEntity<long>
     /// <summary>
     /// Base price before surcharge was applied.
     /// </summary>
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal BasePriceBeforeSurcharge { get; set; } = 0;
 
     [ForeignKey(nameof(SaleId))]

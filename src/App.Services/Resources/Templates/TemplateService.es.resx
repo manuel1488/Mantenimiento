@@ -103,6 +103,18 @@
     <value>Permitir Venta Parcial</value>
     <comment>Product template header</comment>
   </data>
+  <data name="QuantityStep" xml:space="preserve">
+    <value>Incremento de Cantidad</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="Quantity step must be greater than 0" xml:space="preserve">
+    <value>El incremento de cantidad debe ser mayor a 0</value>
+    <comment>Validation error</comment>
+  </data>
+  <data name="AllowLabeling" xml:space="preserve">
+    <value>Permitir Etiquetado</value>
+    <comment>Product template header</comment>
+  </data>
   <data name="AllowCustomPricing" xml:space="preserve">
     <value>Permitir Precio Personalizado</value>
     <comment>Product template header</comment>

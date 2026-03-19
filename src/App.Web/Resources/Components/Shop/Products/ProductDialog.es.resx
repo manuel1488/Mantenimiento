@@ -6,6 +6,15 @@
   <data name="Allow Partial Sales" xml:space="preserve">
     <value>Permitir Ventas Parciales</value>
   </data>
+  <data name="Quantity Step" xml:space="preserve">
+    <value>Incremento de Cantidad</value>
+  </data>
+  <data name="Increment step for quantity in sales" xml:space="preserve">
+    <value>Incremento de cantidad en ventas</value>
+  </data>
+  <data name="Allow Labeling" xml:space="preserve">
+    <value>Permitir Etiquetado</value>
+  </data>
   <data name="Allow Custom Pricing" xml:space="preserve">
     <value>Permitir Precio Personalizado</value>
   </data>

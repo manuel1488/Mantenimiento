@@ -52,6 +52,14 @@
     <value>Allow Partial Sale</value>
     <comment>Product template header</comment>
   </data>
+  <data name="QuantityStep" xml:space="preserve">
+    <value>Quantity Step</value>
+    <comment>Product template header</comment>
+  </data>
+  <data name="AllowLabeling" xml:space="preserve">
+    <value>Allow Labeling</value>
+    <comment>Product template header</comment>
+  </data>
   <data name="AllowCustomPricing" xml:space="preserve">
     <value>Allow Custom Pricing</value>
     <comment>Product template header</comment>

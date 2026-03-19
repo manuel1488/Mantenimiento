@@ -84,6 +84,12 @@
   <data name="Cost" xml:space="preserve">
     <value>Costo</value>
   </data>
+  <data name="Quantity Step" xml:space="preserve">
+    <value>Incremento de Cantidad</value>
+  </data>
+  <data name="Labeling" xml:space="preserve">
+    <value>Etiquetado</value>
+  </data>
   <data name="Custom Pricing" xml:space="preserve">
     <value>Precio Personalizado</value>
   </data>

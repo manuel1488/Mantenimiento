@@ -262,8 +262,8 @@ else
                                     <div class="d-flex flex-column">
                                         <div class="d-flex align-center">
                                             <MudNumericField Value="context.Quantity"
-                                                Min="@(context.IsPartialSaleAllowed ? 0.001M : 1M)"
-                                                Step="@(context.IsPartialSaleAllowed ? 0.001M : 1M)" Immediate="true"
+                                                Min="@(context.QuantityStep)"
+                                                Step="@(context.QuantityStep)" Immediate="true"
                                                 ValueChanged="@(async (decimal val) => await UpdateCartItemQuantityAsync(context, val))"
                                                 Style="flex: 1;" />
                                             @if (!string.IsNullOrEmpty(context.UnitMeasure))
@@ -1103,6 +1103,7 @@ else
                         UnitMeasure = product.UnitMeasureName,
                         Content = product.Content,
                         IsPartialSaleAllowed = true,
+                        QuantityStep = product.QuantityStep,
                         AllowCustomPricing = product.AllowCustomPricing,
                         IsTaxable = product.IsTaxable,
                         AvailableStock = locationStock?.Quantity ?? stockInfo!.TotalStock,
@@ -1181,6 +1182,7 @@ else
                 UnitMeasure = product.UnitMeasureName,
                 Content = product.Content,
                 IsPartialSaleAllowed = product.IsPartialSaleAllowed,
+                QuantityStep = product.QuantityStep,
                 AllowCustomPricing = product.AllowCustomPricing,
                 Quantity = product.IsPartialSaleAllowed ? 1 : Math.Ceiling(1.0M),
                 AvailableStock = locationStock?.Quantity ?? stockInfo!.TotalStock,
@@ -1959,6 +1961,7 @@ else
         public decimal Quantity { get; set; }
         public decimal Content { get; set; }
         public bool IsPartialSaleAllowed { get; set; }
+        public decimal QuantityStep { get; set; } = 1;
         public bool AllowCustomPricing { get; set; }
         public decimal AvailableStock { get; set; }
         public bool RequiresInventory { get; set; }

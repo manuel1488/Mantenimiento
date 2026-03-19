@@ -31,6 +31,11 @@ public class UpdateProductDto
 
     public bool IsPartialSaleAllowed { get; set; }
 
+    [Range(0.000001, double.MaxValue)]
+    public decimal QuantityStep { get; set; } = 1;
+
+    public bool IsLabelingAllowed { get; set; }
+
     public bool AllowCustomPricing { get; set; }
 
     public bool RequiresInventory { get; set; }
@@ -39,7 +44,7 @@ public class UpdateProductDto
     public decimal Cost { get; set; }
 
     [Required]
-    [Range(0.01, double.MaxValue)]
+    [Range(0.000001, double.MaxValue)]
     public decimal Price { get; set; }
 
     public bool IsTaxable { get; set; }

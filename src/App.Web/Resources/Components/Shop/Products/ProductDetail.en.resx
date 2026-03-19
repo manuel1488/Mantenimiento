@@ -84,6 +84,12 @@
   <data name="Cost" xml:space="preserve">
     <value>Cost</value>
   </data>
+  <data name="Quantity Step" xml:space="preserve">
+    <value>Quantity Step</value>
+  </data>
+  <data name="Labeling" xml:space="preserve">
+    <value>Labeling</value>
+  </data>
   <data name="Custom Pricing" xml:space="preserve">
     <value>Custom Pricing</value>
   </data>

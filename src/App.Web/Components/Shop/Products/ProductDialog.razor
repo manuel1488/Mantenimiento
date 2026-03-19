@@ -173,12 +173,20 @@
                                     AdornmentText="@GetSelectedUnitMeasureName()" />
                             </MudItem>
 
-                            <MudItem xs="12">
+                            <MudItem xs="12" md="6">
                                 <MudCheckBox T="bool"
                                         Value="_model.IsPartialSaleAllowed"
                                         ValueChanged="OnPartialSaleAllowedChanged"
                                         Label="@L["Allow Partial Sales"]"
                                         Color="Color.Primary" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudNumericField @bind-Value="_model.QuantityStep"
+                                            Label="@L["Quantity Step"]"
+                                            Min="0.000001M"
+                                            Format="N6"
+                                            HelperText="@L["Increment step for quantity in sales"]" />
                             </MudItem>
 
                             @if (_model.IsPartialSaleAllowed)
@@ -236,6 +244,13 @@
 
                             <MudItem xs="12">
                                 <MudCheckBox T="bool"
+                                        @bind-Value="_model.IsLabelingAllowed"
+                                        Label="@L["Allow Labeling"]"
+                                        Color="Color.Primary" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudCheckBox T="bool"
                                         @bind-Value="_model.AllowCustomPricing"
                                         Label="@L["Allow Custom Pricing"]"
                                         Color="Color.Primary" />
@@ -253,7 +268,7 @@
                                 <MudNumericField @bind-Value="_model.Cost"
                                             Label="@L["Acquisition Cost"]"
                                             Min="0M"
-                                            Format="N2"
+                                            Format="N6"
                                             Adornment="Adornment.Start"
                                             AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
                             </MudItem>
@@ -264,8 +279,8 @@
                                             Label="@L["Price"]"
                                             Required="true"
                                             RequiredError="@L["Price is required"]"
-                                            Min="0.01M"
-                                            Format="N2"
+                                            Min="0.000001M"
+                                            Format="N6"
                                             Adornment="Adornment.Start"
                                             AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
                             </MudItem>
@@ -658,6 +673,8 @@
                     MexicoProductServiceId = _product.MexicoProductServiceId,
                     Content = _product.Content,
                     IsPartialSaleAllowed = _product.IsPartialSaleAllowed,
+                    QuantityStep = _product.QuantityStep,
+                    IsLabelingAllowed = _product.IsLabelingAllowed,
                     AllowCustomPricing = _product.AllowCustomPricing,
                     RequiresInventory = _product.RequiresInventory,
                     Barcode = _product.Barcode
@@ -803,6 +820,8 @@
                         MexicoProductServiceId = _model.MexicoProductServiceId,
                         Content = _model.Content,
                         IsPartialSaleAllowed = _model.IsPartialSaleAllowed,
+                        QuantityStep = _model.QuantityStep,
+                        IsLabelingAllowed = _model.IsLabelingAllowed,
                         AllowCustomPricing = _model.AllowCustomPricing,
                         RequiresInventory = _model.RequiresInventory
                     };

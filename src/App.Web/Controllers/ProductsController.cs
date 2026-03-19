@@ -50,14 +50,16 @@ public class ProductsController : ControllerBase
         [FromQuery] string? search = null,
         [FromQuery] int pageSize = 20,
         [FromQuery] bool? isActive = null,
-        [FromQuery] bool? isPartialSaleAllowed = null)
+        [FromQuery] bool? isPartialSaleAllowed = null,
+        [FromQuery] bool? isLabelingAllowed = null)
     {
         var (totalCount, items) = await _productService.GetProductsAsync(
             page: 1,
             pageSize: pageSize,
             searchString: search,
             isActive: isActive,
-            isPartialSaleAllowed: isPartialSaleAllowed);
+            isPartialSaleAllowed: isPartialSaleAllowed,
+            isLabelingAllowed: isLabelingAllowed);
 
         var currentTaxRate = await _taxRateService.GetEffectiveRateAsync("MX");
 

@@ -15,7 +15,8 @@ public interface IProductService
         string? searchString = null,
         int? unitMeasureId = null,
         bool? isActive = null,
-        bool? isPartialSaleAllowed = null);
+        bool? isPartialSaleAllowed = null,
+        bool? isLabelingAllowed = null);
 
     /// <summary>
     /// Gets a product by barcode

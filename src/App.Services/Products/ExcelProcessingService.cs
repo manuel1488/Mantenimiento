@@ -408,6 +408,12 @@ public class ExcelProcessingService : IExcelProcessingService
                 case "AllowPartialSale":
                     return MapBooleanProperty(worksheet, row, columnIndex, config,
                         value => record.AllowPartialSale = value, errors, cellReference);
+                case "QuantityStep":
+                    return MapDecimalProperty(worksheet, row, columnIndex, config,
+                        value => record.QuantityStep = value, errors, cellReference, validatePositive: true);
+                case "AllowLabeling":
+                    return MapBooleanProperty(worksheet, row, columnIndex, config,
+                        value => record.AllowLabeling = value, errors, cellReference);
                 case "AllowCustomPricing":
                     return MapBooleanProperty(worksheet, row, columnIndex, config,
                         value => record.AllowCustomPricing = value, errors, cellReference);

@@ -160,11 +160,11 @@ public class QuotationService : IQuotationService
                     return Result<QuotationDto>.Failure(
                         string.Format(_localizer["Product {0} not found"], detailDto.ProductId));
 
-                var lineSubtotal = detailDto.Quantity * detailDto.UnitPrice;
-                var lineDiscountAmount = lineSubtotal * (detailDto.DiscountPercentage / 100m);
-                var lineAfterDiscount = lineSubtotal - lineDiscountAmount;
-                var lineTaxAmount = lineAfterDiscount * (taxRate / 100m);
-                var lineTotal = lineAfterDiscount + lineTaxAmount;
+                var lineSubtotal = Math.Round(detailDto.Quantity * detailDto.UnitPrice, 2);
+                var lineDiscountAmount = Math.Round(lineSubtotal * (detailDto.DiscountPercentage / 100m), 2);
+                var lineAfterDiscount = Math.Round(lineSubtotal - lineDiscountAmount, 2);
+                var lineTaxAmount = Math.Round(lineAfterDiscount * (taxRate / 100m), 2);
+                var lineTotal = Math.Round(lineAfterDiscount + lineTaxAmount, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -272,11 +272,11 @@ public class QuotationService : IQuotationService
                     return Result<QuotationDto>.Failure(
                         string.Format(_localizer["Product {0} not found"], detailDto.ProductId));
 
-                var lineSubtotal = detailDto.Quantity * detailDto.UnitPrice;
-                var lineDiscountAmount = lineSubtotal * (detailDto.DiscountPercentage / 100m);
-                var lineAfterDiscount = lineSubtotal - lineDiscountAmount;
-                var lineTaxAmount = lineAfterDiscount * (taxRate / 100m);
-                var lineTotal = lineAfterDiscount + lineTaxAmount;
+                var lineSubtotal = Math.Round(detailDto.Quantity * detailDto.UnitPrice, 2);
+                var lineDiscountAmount = Math.Round(lineSubtotal * (detailDto.DiscountPercentage / 100m), 2);
+                var lineAfterDiscount = Math.Round(lineSubtotal - lineDiscountAmount, 2);
+                var lineTaxAmount = Math.Round(lineAfterDiscount * (taxRate / 100m), 2);
+                var lineTotal = Math.Round(lineAfterDiscount + lineTaxAmount, 2);
 
                 var detail = new QuotationDetail
                 {

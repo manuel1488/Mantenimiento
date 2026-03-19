@@ -67,7 +67,8 @@ Ejecuta el script tal cual. Termina con `ROLLBACK`, así que **no hace cambios r
 docker exec -i app-prod-mysql mysql -u root -p < tools/db/reset-sales.sql
 
 # Docker (desarrollo) - catálogo de productos
-docker exec -i app-prod-mysql mysql -u root -p < tools/db/reset-product-catalog.sql
+
+
 ```
 
 ### 2. Ejecutar de verdad

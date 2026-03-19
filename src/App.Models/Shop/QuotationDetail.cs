@@ -20,7 +20,7 @@ public class QuotationDetail : BaseEntity<long>
     [Column(TypeName = "decimal(10,2)")]
     public decimal Quantity { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal UnitPrice { get; set; }
 
     [Column(TypeName = "decimal(5,2)")]

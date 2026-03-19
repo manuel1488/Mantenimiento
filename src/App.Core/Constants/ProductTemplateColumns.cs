@@ -116,6 +116,24 @@ public static class ProductTemplateColumns
                 ExampleValue = "false"
             },
             new() {
+                PropertyName = "QuantityStep",
+                GetLocalizedName = () => _localizer["QuantityStep"],
+                IsRequired = false,
+                DataType = typeof(decimal),
+                Validator = (value) => value is decimal d && d > 0,
+                GetValidationError = () => _localizer["Quantity step must be greater than 0"],
+                DefaultValue = 1m,
+                ExampleValue = "1"
+            },
+            new() {
+                PropertyName = "AllowLabeling",
+                GetLocalizedName = () => _localizer["AllowLabeling"],
+                IsRequired = true,
+                DataType = typeof(bool),
+                DefaultValue = false,
+                ExampleValue = "false"
+            },
+            new() {
                 PropertyName = "AllowCustomPricing",
                 GetLocalizedName = () => _localizer["AllowCustomPricing"],
                 IsRequired = true,

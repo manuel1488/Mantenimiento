@@ -142,6 +142,20 @@
                                                     </MudChip>
                                                 </MudItem>
 
+                                                <!-- Incremento de Cantidad -->
+                                                <MudItem xs="12" sm="6">
+                                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Quantity Step"]</MudText>
+                                                    <MudText>@_product.QuantityStep</MudText>
+                                                </MudItem>
+
+                                                <!-- Etiquetado -->
+                                                <MudItem xs="12" sm="6">
+                                                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Labeling"]</MudText>
+                                                    <MudChip T="bool" Size="Size.Small" Color="@(_product.IsLabelingAllowed ? Color.Success : Color.Default)">
+                                                        @(_product.IsLabelingAllowed ? L["Allowed"] : L["Not Allowed"])
+                                                    </MudChip>
+                                                </MudItem>
+
                                                 <!-- Precio Personalizado -->
                                                 <MudItem xs="12" sm="6">
                                                     <MudText Typo="Typo.subtitle2" Color="Color.Primary">@L["Custom Pricing"]</MudText>

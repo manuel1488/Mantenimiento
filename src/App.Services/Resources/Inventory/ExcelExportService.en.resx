@@ -158,6 +158,12 @@
   <data name="Allow Partial Sale" xml:space="preserve">
     <value>Allow Partial Sale</value>
   </data>
+  <data name="Quantity Step" xml:space="preserve">
+    <value>Quantity Step</value>
+  </data>
+  <data name="Allow Labeling" xml:space="preserve">
+    <value>Allow Labeling</value>
+  </data>
   <data name="Allow Custom Pricing" xml:space="preserve">
     <value>Allow Custom Pricing</value>
   </data>
