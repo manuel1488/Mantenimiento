@@ -65,17 +65,7 @@
                                    Variant="Variant.Outlined"
                                    DateFormat="dd/MM/yyyy" />
                 </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudNumericField T="decimal"
-                                     Label="@L["Global Discount %"]"
-                                     Value="_globalDiscount"
-                                     ValueChanged="@(async (decimal v) => { _globalDiscount = v; await RecalculateTotalsAsync(); })"
-                                     Min="0" Max="100" Step="1m"
-                                     Variant="Variant.Outlined"
-                                     Adornment="Adornment.End"
-                                     AdornmentText="%" />
-                </MudItem>
-                <MudItem xs="12" md="9">
+                <MudItem xs="12" md="12">
                     <MudTextField @bind-Value="_notes"
                                   Label="@L["Notes & Conditions"]"
                                   Variant="Variant.Outlined"
