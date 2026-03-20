@@ -20,6 +20,7 @@
   <data name="Product" xml:space="preserve"><value>Product</value></data>
   <data name="Qty" xml:space="preserve"><value>Qty</value></data>
   <data name="Unit Price" xml:space="preserve"><value>Unit Price</value></data>
+  <data name="Amount" xml:space="preserve"><value>Amount</value></data>
   <data name="Disc. %" xml:space="preserve"><value>Disc. %</value></data>
   <data name="Total" xml:space="preserve"><value>Total</value></data>
   <data name="Subtotal" xml:space="preserve"><value>Subtotal</value></data>
