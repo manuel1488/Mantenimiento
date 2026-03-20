@@ -4,6 +4,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using App.Core.Common;
 using App.Core.DTOs.Shop;
+using App.Core.DTOs.Shop.Calculation;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Shop;
@@ -28,6 +29,7 @@ public class QuotationService : IQuotationService
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IPdfService _pdfService;
+    private readonly IPricingCalculationService _pricingService;
 
     public QuotationService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -40,7 +42,8 @@ public class QuotationService : IQuotationService
         ICompanySettingsService companySettingsService,
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
-        IPdfService pdfService)
+        IPdfService pdfService,
+        IPricingCalculationService pricingService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -53,6 +56,7 @@ public class QuotationService : IQuotationService
         _emailService = emailService;
         _emailTemplateService = emailTemplateService;
         _pdfService = pdfService;
+        _pricingService = pricingService;
     }
 
     public async Task<(int TotalCount, IList<QuotationDto> Items)> GetQuotationsAsync(
@@ -154,17 +158,27 @@ public class QuotationService : IQuotationService
                 .Where(p => productIds.Contains(p.Id) && p.IsDeleted == 0)
                 .ToDictionaryAsync(p => p.Id);
 
+            var documentLines = new List<DocumentLineInput>();
+
             foreach (var detailDto in dto.Details)
             {
                 if (!products.TryGetValue(detailDto.ProductId, out var product))
                     return Result<QuotationDto>.Failure(
                         string.Format(_localizer["Product {0} not found"], detailDto.ProductId));
 
-                var lineSubtotal = Math.Round(detailDto.Quantity * detailDto.UnitPrice, 2);
-                var lineDiscountAmount = Math.Round(lineSubtotal * (detailDto.DiscountPercentage / 100m), 2);
-                var lineAfterDiscount = Math.Round(lineSubtotal - lineDiscountAmount, 2);
-                var lineTaxAmount = Math.Round(lineAfterDiscount * (taxRate / 100m), 2);
-                var lineTotal = Math.Round(lineAfterDiscount + lineTaxAmount, 2);
+                var lineCalc = _pricingService.CalculateLine(new LineCalculationInput
+                {
+                    Quantity = detailDto.Quantity,
+                    UnitPrice = detailDto.UnitPrice,
+                    DiscountPercentage = detailDto.DiscountPercentage
+                });
+
+                // Round for persistence (CFDI)
+                var lineSubtotal = Math.Round(lineCalc.Subtotal, 2);
+                var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
+                var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
+                var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
+                var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -174,9 +188,9 @@ public class QuotationService : IQuotationService
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
                     DiscountPercentage = detailDto.DiscountPercentage,
-                    DiscountAmount = lineDiscountAmount,
+                    DiscountAmount = lineDiscount,
                     TaxRate = taxRate,
-                    TaxAmount = lineTaxAmount,
+                    TaxAmount = lineTax,
                     Subtotal = lineAfterDiscount,
                     Total = lineTotal,
                     CreatedBy = currentUser,
@@ -186,21 +200,27 @@ public class QuotationService : IQuotationService
                 };
 
                 quotation.Details.Add(detail);
+                documentLines.Add(new DocumentLineInput
+                {
+                    Subtotal = lineCalc.Subtotal,
+                    DiscountAmount = lineCalc.DiscountAmount,
+                    IsTaxable = true
+                });
             }
 
-            // Apply global discount
-            var subtotalAfterLineDiscounts = quotation.Details.Sum(d => d.Subtotal);
-            var globalDiscountAmount = subtotalAfterLineDiscounts * (dto.DiscountPercentage / 100m);
-            var subtotalFinal = subtotalAfterLineDiscounts - globalDiscountAmount;
-            var totalTax = quotation.Details.Sum(d => d.TaxAmount);
-            var taxAdjustment = totalTax * (dto.DiscountPercentage / 100m);
-            var finalTax = totalTax - taxAdjustment;
-            var totalLineDiscounts = quotation.Details.Sum(d => d.DiscountAmount);
+            // Calculate document-level totals
+            var docCalc = await _pricingService.CalculateDocumentAsync(new DocumentCalculationInput
+            {
+                Lines = documentLines,
+                GlobalDiscountPercentage = dto.DiscountPercentage,
+                TaxRate = taxRate,
+                ApplyRounding = false
+            });
 
-            quotation.Subtotal = subtotalFinal;
-            quotation.DiscountAmount = globalDiscountAmount + totalLineDiscounts;
-            quotation.TaxAmount = finalTax;
-            quotation.Total = subtotalFinal + finalTax;
+            quotation.Subtotal = docCalc.Subtotal - docCalc.TotalDiscountAmount;
+            quotation.DiscountAmount = docCalc.TotalDiscountAmount;
+            quotation.TaxAmount = docCalc.TaxAmount;
+            quotation.Total = docCalc.Total;
 
             context.Quotations.Add(quotation);
             await context.SaveChangesAsync();
@@ -266,17 +286,26 @@ public class QuotationService : IQuotationService
                 .Where(p => productIds.Contains(p.Id) && p.IsDeleted == 0)
                 .ToDictionaryAsync(p => p.Id);
 
+            var documentLines = new List<DocumentLineInput>();
+
             foreach (var detailDto in dto.Details)
             {
                 if (!products.TryGetValue(detailDto.ProductId, out var product))
                     return Result<QuotationDto>.Failure(
                         string.Format(_localizer["Product {0} not found"], detailDto.ProductId));
 
-                var lineSubtotal = Math.Round(detailDto.Quantity * detailDto.UnitPrice, 2);
-                var lineDiscountAmount = Math.Round(lineSubtotal * (detailDto.DiscountPercentage / 100m), 2);
-                var lineAfterDiscount = Math.Round(lineSubtotal - lineDiscountAmount, 2);
-                var lineTaxAmount = Math.Round(lineAfterDiscount * (taxRate / 100m), 2);
-                var lineTotal = Math.Round(lineAfterDiscount + lineTaxAmount, 2);
+                var lineCalc = _pricingService.CalculateLine(new LineCalculationInput
+                {
+                    Quantity = detailDto.Quantity,
+                    UnitPrice = detailDto.UnitPrice,
+                    DiscountPercentage = detailDto.DiscountPercentage
+                });
+
+                var lineSubtotal = Math.Round(lineCalc.Subtotal, 2);
+                var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
+                var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
+                var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
+                var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -286,9 +315,9 @@ public class QuotationService : IQuotationService
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
                     DiscountPercentage = detailDto.DiscountPercentage,
-                    DiscountAmount = lineDiscountAmount,
+                    DiscountAmount = lineDiscount,
                     TaxRate = taxRate,
-                    TaxAmount = lineTaxAmount,
+                    TaxAmount = lineTax,
                     Subtotal = lineAfterDiscount,
                     Total = lineTotal,
                     CreatedBy = currentUser,
@@ -298,20 +327,26 @@ public class QuotationService : IQuotationService
                 };
 
                 quotation.Details.Add(detail);
+                documentLines.Add(new DocumentLineInput
+                {
+                    Subtotal = lineCalc.Subtotal,
+                    DiscountAmount = lineCalc.DiscountAmount,
+                    IsTaxable = true
+                });
             }
 
-            var subtotalAfterLineDiscounts = quotation.Details.Sum(d => d.Subtotal);
-            var globalDiscountAmount = subtotalAfterLineDiscounts * (dto.DiscountPercentage / 100m);
-            var subtotalFinal = subtotalAfterLineDiscounts - globalDiscountAmount;
-            var totalTax = quotation.Details.Sum(d => d.TaxAmount);
-            var taxAdjustment = totalTax * (dto.DiscountPercentage / 100m);
-            var finalTax = totalTax - taxAdjustment;
-            var totalLineDiscounts = quotation.Details.Sum(d => d.DiscountAmount);
+            var docCalc = await _pricingService.CalculateDocumentAsync(new DocumentCalculationInput
+            {
+                Lines = documentLines,
+                GlobalDiscountPercentage = dto.DiscountPercentage,
+                TaxRate = taxRate,
+                ApplyRounding = false
+            });
 
-            quotation.Subtotal = subtotalFinal;
-            quotation.DiscountAmount = globalDiscountAmount + totalLineDiscounts;
-            quotation.TaxAmount = finalTax;
-            quotation.Total = subtotalFinal + finalTax;
+            quotation.Subtotal = docCalc.Subtotal - docCalc.TotalDiscountAmount;
+            quotation.DiscountAmount = docCalc.TotalDiscountAmount;
+            quotation.TaxAmount = docCalc.TaxAmount;
+            quotation.Total = docCalc.Total;
 
             await context.SaveChangesAsync();
 

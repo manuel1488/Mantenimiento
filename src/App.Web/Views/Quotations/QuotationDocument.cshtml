@@ -336,7 +336,7 @@
                 <th>@L["Product"]</th>
                 <th class="text-right">@L["Qty"]</th>
                 <th class="text-right">@L["Unit Price"]</th>
-                @if (Model.Details.Any(d => d.DiscountPercentage > 0))
+                @if (Model.Details.Any(d => d.DiscountAmount > 0))
                 {
                     <th class="text-right">@L["Discount"]</th>
                 }
@@ -354,12 +354,12 @@
                     <td>@item.ProductName</td>
                     <td class="text-right">@item.Quantity.ToString("G29")</td>
                     <td class="text-right">@Model.CurrencySymbol@item.UnitPrice.ToString("N2")</td>
-                    @if (Model.Details.Any(d => d.DiscountPercentage > 0))
+                    @if (Model.Details.Any(d => d.DiscountAmount > 0))
                     {
                         <td class="text-right">
-                            @if (item.DiscountPercentage > 0)
+                            @if (item.DiscountAmount > 0)
                             {
-                                @($"{item.DiscountPercentage:N1}%")
+                                @($"-{Model.CurrencySymbol}{item.DiscountAmount:N2}")
                             }
                         </td>
                     }

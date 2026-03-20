@@ -666,6 +666,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IRoundingSettingsService, RoundingSettingsService>();
     services.AddScoped<ILabelSettingsService, LabelSettingsService>();
     services.AddScoped<IPaymentMethodService, PaymentMethodService>();
+    services.AddScoped<IPricingCalculationService, PricingCalculationService>();
     services.AddScoped<ISaleService, SaleService>();
     services.AddScoped<IPartialSaleFractionService, PartialSaleFractionService>();
     services.AddScoped<IProductPartialSurchargeService, ProductPartialSurchargeService>();

@@ -4,7 +4,7 @@ using App.Core.Common;
 using App.Core.Constants;
 using App.Core.DTOs.Inventory;
 using App.Core.DTOs.Shop;
-// using App.Core.DTOs.Warehouse; // TODO: Update for Location-based sales
+using App.Core.DTOs.Shop.Calculation;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
@@ -37,6 +37,7 @@ public class SaleService : ISaleService
     private readonly IProductPartialSurchargeService _productPartialSurchargeService;
     private readonly IRoundingSettingsService _roundingSettingsService;
     private readonly ICashRegisterService _cashRegisterService;
+    private readonly IPricingCalculationService _pricingService;
 
     public SaleService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -53,7 +54,8 @@ public class SaleService : ISaleService
         ITaxSettingsService taxSettingsService,
         IProductPartialSurchargeService productPartialSurchargeService,
         IRoundingSettingsService roundingSettingsService,
-        ICashRegisterService cashRegisterService)
+        ICashRegisterService cashRegisterService,
+        IPricingCalculationService pricingService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -70,6 +72,7 @@ public class SaleService : ISaleService
         _productPartialSurchargeService = productPartialSurchargeService;
         _roundingSettingsService = roundingSettingsService;
         _cashRegisterService = cashRegisterService;
+        _pricingService = pricingService;
     }
 
     public async Task<(int TotalCount, IList<SaleDto> Items)> GetSalesAsync(
@@ -680,14 +683,15 @@ public class SaleService : ISaleService
             decimal discountAmount = 0;
             var detailsToProcess = new List<SaleDetail>();
 
+            var documentLines = new List<DocumentLineInput>();
+
             foreach (var detailDto in createDto.Details)
             {
                 var product = products[detailDto.ProductId];
                 decimal taxRate = product.IsTaxable ? defaultTaxRate : 0;
 
-                // Calculate unit price and subtotal based on partial sales capability
+                // Determine effective unit price and surcharge from partial sale logic
                 decimal effectiveUnitPrice;
-                decimal detailSubtotal;
                 decimal surchargePercentage = 0;
                 decimal surchargeAmount = 0;
                 decimal basePriceBeforeSurcharge = 0;
@@ -695,7 +699,6 @@ public class SaleService : ISaleService
 
                 if (product.IsPartialSaleAllowed && product.Content > 0)
                 {
-                    // For partial sales, calculate price with potential surcharge
                     var fractionalPriceResult = await _productPartialSurchargeService
                         .CalculateFractionalPriceAsync(
                             product.Id,
@@ -708,7 +711,6 @@ public class SaleService : ISaleService
                     {
                         var calc = fractionalPriceResult.Value!;
                         effectiveUnitPrice = calc.Quantity > 0 ? calc.FinalPrice / calc.Quantity : 0;
-                        detailSubtotal = Math.Round(calc.FinalPrice, 2);
                         surchargePercentage = calc.SurchargePercentage;
                         surchargeAmount = Math.Round(calc.SurchargeAmount, 2);
                         basePriceBeforeSurcharge = calc.BasePriceBeforeSurcharge;
@@ -716,26 +718,32 @@ public class SaleService : ISaleService
                     }
                     else
                     {
-                        // Fallback to proportional pricing if calculation fails
                         effectiveUnitPrice = product.Price / product.Content;
-                        detailSubtotal = Math.Round(effectiveUnitPrice * detailDto.Quantity, 2);
-                        basePriceBeforeSurcharge = detailSubtotal;
+                        basePriceBeforeSurcharge = effectiveUnitPrice * detailDto.Quantity;
                     }
                 }
                 else
                 {
-                    // For regular sales, use the full product price
                     effectiveUnitPrice = product.Price;
-                    detailSubtotal = Math.Round(product.Price * detailDto.Quantity, 2);
-                    basePriceBeforeSurcharge = detailSubtotal;
+                    basePriceBeforeSurcharge = product.Price * detailDto.Quantity;
                 }
 
-                decimal detailDiscountAmount = Math.Round(detailSubtotal * (detailDto.DiscountPercentage / 100), 2);
-                decimal detailAfterDiscount = Math.Round(detailSubtotal - detailDiscountAmount, 2);
-                decimal detailTaxAmount = Math.Round(detailAfterDiscount * taxRate, 2);
-                decimal detailTotal = Math.Round(detailAfterDiscount + detailTaxAmount, 2);
+                // Use centralized pricing service for line calculation
+                var lineCalc = _pricingService.CalculateLine(new LineCalculationInput
+                {
+                    Quantity = detailDto.Quantity,
+                    UnitPrice = effectiveUnitPrice,
+                    DiscountPercentage = detailDto.DiscountPercentage,
+                    SurchargePercentage = surchargePercentage
+                });
 
-                // Create sale detail
+                // Round for CFDI persistence
+                var detailSubtotal = Math.Round(lineCalc.Subtotal, 2);
+                var detailDiscountAmount = Math.Round(lineCalc.DiscountAmount, 2);
+                var detailAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
+                var detailTaxAmount = Math.Round(detailAfterDiscount * taxRate, 2);
+                var detailTotal = Math.Round(detailAfterDiscount + detailTaxAmount, 2);
+
                 var detail = new SaleDetail
                 {
                     ProductId = detailDto.ProductId,
@@ -758,42 +766,28 @@ public class SaleService : ISaleService
                 sale.Details.Add(detail);
                 detailsToProcess.Add(detail);
 
-                // Add to sale totals
-                subtotal += detailSubtotal;
-                taxAmount += detailTaxAmount;
-                discountAmount += detailDiscountAmount;
+                documentLines.Add(new DocumentLineInput
+                {
+                    Subtotal = lineCalc.Subtotal,
+                    DiscountAmount = lineCalc.DiscountAmount,
+                    IsTaxable = product.IsTaxable
+                });
             }
 
-            // Additional sale discount (if any)
-            decimal additionalDiscountAmount = 0;
-            if (createDto.DiscountPercentage > 0)
+            // Use centralized service for document-level totals
+            var docCalc = await _pricingService.CalculateDocumentAsync(new DocumentCalculationInput
             {
-                additionalDiscountAmount = Math.Round((subtotal - discountAmount) * (createDto.DiscountPercentage / 100), 2);
-                discountAmount += additionalDiscountAmount;
-            }
+                Lines = documentLines,
+                GlobalDiscountPercentage = createDto.DiscountPercentage,
+                TaxRate = defaultTaxRate,
+                ApplyRounding = true
+            });
 
-            // Update sale totals (round to 2 decimals for CFDI compliance)
-            sale.Subtotal = Math.Round(subtotal, 2);
-            sale.TaxAmount = Math.Round(taxAmount, 2);
-            sale.DiscountAmount = Math.Round(discountAmount, 2);
-
-            // Calculate pre-rounding total
-            decimal preRoundingTotal = Math.Round(sale.Subtotal - sale.DiscountAmount + sale.TaxAmount, 2);
-
-            // Apply rounding if enabled
-            var roundingResult = await _roundingSettingsService.ApplyRoundingAsync(preRoundingTotal);
-            if (roundingResult.IsSuccess)
-            {
-                sale.RoundingAmount = Math.Round(roundingResult.Value.RoundingAmount, 2);
-                sale.Total = Math.Round(roundingResult.Value.RoundedTotal, 2);
-            }
-            else
-            {
-                // If rounding service fails, use unrounded total
-                sale.RoundingAmount = 0;
-                sale.Total = preRoundingTotal;
-                _logger.LogWarning("Rounding calculation failed, using unrounded total");
-            }
+            sale.Subtotal = docCalc.Subtotal;
+            sale.TaxAmount = docCalc.TaxAmount;
+            sale.DiscountAmount = docCalc.TotalDiscountAmount;
+            sale.RoundingAmount = docCalc.RoundingAmount;
+            sale.Total = docCalc.Total;
 
             return Result<(Sale, List<SaleDetail>)>.Success((sale, detailsToProcess));
         }

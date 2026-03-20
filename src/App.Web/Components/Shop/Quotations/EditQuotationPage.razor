@@ -7,6 +7,7 @@
 @using App.Core.Enums.Shop
 @using App.Core.Interfaces.Shop
 @using App.Core.Interfaces
+@using App.Core.DTOs.Shop.Calculation
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 @inject IQuotationService QuotationService
@@ -16,6 +17,8 @@
 @inject NavigationManager Navigation
 @inject IStringLocalizer<EditQuotationPage> L
 @inject IJSRuntime JS
+@inject IPricingCalculationService PricingService
+@inject IProductWholesalePriceService WholesalePriceService
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.EditQuotation)]
 @implements IAsyncDisposable
@@ -79,7 +82,8 @@
                     <MudItem xs="12" md="3">
                         <MudNumericField T="decimal"
                                          Label="@L["Global Discount %"]"
-                                         @bind-Value="_globalDiscount"
+                                         Value="_globalDiscount"
+                                         ValueChanged="@(async (decimal v) => { _globalDiscount = v; await RecalculateTotalsAsync(); })"
                                          Min="0" Max="100" Step="1m"
                                          Variant="Variant.Outlined"
                                          Adornment="Adornment.End"
@@ -147,33 +151,20 @@
                                         <td>
                                             <MudNumericField T="decimal"
                                                              Value="line.Quantity"
-                                                             ValueChanged="@((v) => OnLineChanged(line, quantity: v))"
+                                                             ValueChanged="@(async (v) => await OnLineChanged(line, quantity: v))"
                                                              Min="0.001m"
                                                              Variant="Variant.Text"
                                                              Dense="true" />
                                         </td>
-                                        <td>
-                                            <MudNumericField T="decimal"
-                                                             Value="line.UnitPrice"
-                                                             ValueChanged="@((v) => OnLineChanged(line, unitPrice: v))"
-                                                             Min="0m"
-                                                             Variant="Variant.Text"
-                                                             Dense="true" />
-                                        </td>
-                                        <td>
-                                            <MudNumericField T="decimal"
-                                                             Value="line.DiscountPercentage"
-                                                             ValueChanged="@((v) => OnLineChanged(line, discount: v))"
-                                                             Min="0m" Max="100m"
-                                                             Variant="Variant.Text"
-                                                             Dense="true" />
+                                        <td style="text-align:right">@line.UnitPrice.ToString("C2")</td>
+                                        <td style="text-align:right">@(line.DiscountPercentage > 0 ? $"{line.DiscountPercentage:N2}%" : "—")
                                         </td>
                                         <td style="text-align:right">@line.LineTotal.ToString("C2")</td>
                                         <td>
                                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                            Size="Size.Small"
                                                            Color="Color.Error"
-                                                           OnClick="@(() => RemoveLine(line))" />
+                                                           OnClick="@(async () => await RemoveLine(line))" />
                                         </td>
                                     </tr>
                                 }
@@ -286,12 +277,16 @@
     private decimal _taxTotal;
     private decimal _grandTotal;
 
-    private const decimal DisplayTaxRate = 16m;
+    private decimal _taxRate = 0;
     #endregion
 
     #region Lifecycle
     protected override async Task OnInitializedAsync()
     {
+        var taxResult = await PricingService.GetEffectiveTaxRateAsync();
+        if (taxResult.IsSuccess)
+            _taxRate = taxResult.Value;
+
         var quotation = await QuotationService.GetByIdAsync(Id);
         if (quotation is null)
         {
@@ -324,10 +319,19 @@
             ProductCode = d.ProductCode,
             Quantity = d.Quantity,
             UnitPrice = d.UnitPrice,
+            OriginalPrice = d.UnitPrice,
             DiscountPercentage = d.DiscountPercentage
         }).ToList();
 
-        RecalculateTotals();
+        // Load wholesale prices for existing lines
+        foreach (var line in _lines)
+        {
+            var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(line.ProductId);
+            line.WholesalePrices = wpResult.IsSuccess ? wpResult.Value.ToList() : [];
+            ApplyWholesaleDiscount(line);
+        }
+
+        await RecalculateTotalsAsync();
         _loading = false;
     }
     #endregion
@@ -358,20 +362,20 @@
     {
         var newLine = new QuotationLine { Quantity = 1, LineId = _lineCounter++ };
         _lines.Add(newLine);
-        RecalculateTotals();
+        await RecalculateTotalsAsync();
         await InvokeAsync(StateHasChanged);
         await Task.Delay(50);
         await JS.InvokeVoidAsync("eval",
             $"var w=document.getElementById('line-{newLine.LineId}');if(w){{var i=w.querySelector('input');if(i)i.focus();}}");
     }
 
-    private void RemoveLine(QuotationLine line)
+    private async Task RemoveLine(QuotationLine line)
     {
         _lines.Remove(line);
-        RecalculateTotals();
+        await RecalculateTotalsAsync();
     }
 
-    private void OnProductSelected(QuotationLine line, ProductDto? product)
+    private async Task OnProductSelected(QuotationLine line, ProductDto? product)
     {
         if (product is null) return;
         line.SelectedProduct = product;
@@ -379,42 +383,77 @@
         line.ProductName = product.Name;
         line.ProductCode = product.Code ?? string.Empty;
         line.UnitPrice = product.Price;
-        RecalculateTotals();
+        line.OriginalPrice = product.Price;
+
+        var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(product.Id);
+        line.WholesalePrices = wpResult.IsSuccess ? wpResult.Value.ToList() : [];
+
+        ApplyWholesaleDiscount(line);
+        await RecalculateTotalsAsync();
     }
 
-    private void OnLineChanged(QuotationLine line,
-        decimal? quantity = null,
-        decimal? unitPrice = null,
-        decimal? discount = null)
+    private async Task OnLineChanged(QuotationLine line, decimal? quantity = null)
     {
         if (quantity.HasValue) line.Quantity = quantity.Value;
-        if (unitPrice.HasValue) line.UnitPrice = unitPrice.Value;
-        if (discount.HasValue) line.DiscountPercentage = discount.Value;
-        RecalculateTotals();
+        ApplyWholesaleDiscount(line);
+        await RecalculateTotalsAsync();
     }
 
-    private void RecalculateTotals()
+    private void ApplyWholesaleDiscount(QuotationLine line)
     {
+        if (line.WholesalePrices.Count == 0) { line.DiscountPercentage = 0; return; }
+
+        var applicable = line.WholesalePrices
+            .Where(w => w.IsActive && line.Quantity >= w.MinQuantity)
+            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
+            .OrderByDescending(w => w.MinQuantity)
+            .FirstOrDefault();
+
+        if (applicable == null) { line.DiscountPercentage = 0; return; }
+
+        if (applicable.FixedPrice is > 0 && line.OriginalPrice > 0)
+            line.DiscountPercentage = (line.OriginalPrice - applicable.FixedPrice.Value) / line.OriginalPrice * 100;
+        else
+            line.DiscountPercentage = applicable.DiscountPercentage;
+    }
+
+    private async Task RecalculateTotalsAsync()
+    {
+        var documentLines = new List<DocumentLineInput>();
+
         foreach (var line in _lines)
         {
-            var lineBase = line.Quantity * line.UnitPrice;
-            var lineDiscount = lineBase * (line.DiscountPercentage / 100m);
-            var lineAfterDiscount = lineBase - lineDiscount;
-            var lineTax = lineAfterDiscount * (DisplayTaxRate / 100m);
-            line.LineTotal = lineAfterDiscount + lineTax;
-            line.LineTax = lineTax;
-            line.LineDiscount = lineDiscount;
+            var lineCalc = PricingService.CalculateLine(new LineCalculationInput
+            {
+                Quantity = line.Quantity,
+                UnitPrice = line.UnitPrice,
+                DiscountPercentage = line.DiscountPercentage
+            });
+
+            line.LineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
+            line.LineTax = Math.Round(lineCalc.Subtotal * _taxRate, 2);
+            line.LineTotal = Math.Round(lineCalc.Subtotal + line.LineTax, 2);
+
+            documentLines.Add(new DocumentLineInput
+            {
+                Subtotal = lineCalc.Subtotal,
+                DiscountAmount = lineCalc.DiscountAmount,
+                IsTaxable = true
+            });
         }
 
-        var totalAfterLineDiscounts = _lines.Sum(l => l.Quantity * l.UnitPrice - l.LineDiscount);
-        var globalDiscountAmt = totalAfterLineDiscounts * (_globalDiscount / 100m);
-        var afterGlobalDiscount = totalAfterLineDiscounts - globalDiscountAmt;
-        var tax = afterGlobalDiscount * (DisplayTaxRate / 100m);
+        var docCalc = await PricingService.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = documentLines,
+            GlobalDiscountPercentage = _globalDiscount,
+            TaxRate = _taxRate,
+            ApplyRounding = false
+        });
 
-        _subtotal = afterGlobalDiscount;
-        _discountTotal = _lines.Sum(l => l.LineDiscount) + globalDiscountAmt;
-        _taxTotal = tax;
-        _grandTotal = afterGlobalDiscount + tax;
+        _subtotal = docCalc.Subtotal - docCalc.TotalDiscountAmount;
+        _discountTotal = docCalc.TotalDiscountAmount;
+        _taxTotal = docCalc.TaxAmount;
+        _grandTotal = docCalc.Total;
 
         StateHasChanged();
     }
@@ -473,10 +512,12 @@
         public ProductDto? SelectedProduct { get; set; }
         public decimal Quantity { get; set; } = 1;
         public decimal UnitPrice { get; set; }
+        public decimal OriginalPrice { get; set; }
         public decimal DiscountPercentage { get; set; }
         public decimal LineTotal { get; set; }
         public decimal LineTax { get; set; }
         public decimal LineDiscount { get; set; }
+        public List<ProductWholesalePriceDto> WholesalePrices { get; set; } = [];
     }
     #endregion
 }

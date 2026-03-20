@@ -193,7 +193,12 @@ public class SaleServiceRoundingTests
             _taxSettingsServiceMock.Object,
             _partialSurchargeServiceMock.Object,
             _roundingSettingsServiceMock.Object,
-            _cashRegisterServiceMock.Object);
+            _cashRegisterServiceMock.Object,
+            new PricingCalculationService(
+                _taxRateServiceMock.Object,
+                _companySettingsServiceMock.Object,
+                _roundingSettingsServiceMock.Object,
+                NullLogger<PricingCalculationService>.Instance));
 
         // Seed base data
         SeedDatabase();
@@ -430,7 +435,7 @@ public class SaleServiceRoundingTests
             },
             Payments = new List<CreateSalePaymentDto>
             {
-                new() { PaymentMethodId = PaymentMethodId, Amount = 50.00m } // overpay to ensure it covers
+                new() { PaymentMethodId = PaymentMethodId, Amount = 100.00m } // overpay to ensure it covers
             }
         };
 

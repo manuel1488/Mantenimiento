@@ -10,6 +10,7 @@
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Settings
 @using App.Core.Interfaces.Shop
+@using App.Core.DTOs.Shop.Calculation
 @using App.Core.Interfaces.Billing
 @using App.Services.Settings
 @using App.Shared.Services
@@ -35,6 +36,7 @@
 @inject IDiscountSettingsService DiscountSettingsService
 @inject IDiscountAuthorizerService DiscountAuthorizerService
 @inject IRoundingSettingsService RoundingSettingsService
+@inject IPricingCalculationService PricingService
 @inject IPartialSaleFractionService PartialSaleFractionService
 @inject IProductPartialSurchargeService ProductPartialSurchargeService
 @inject IProductWholesalePriceService WholesalePriceService
@@ -1231,29 +1233,28 @@ else
         item.DiscountPercentage = GetApplicableWholesaleDiscount(item);
         item.ApplicableWholesaleFixedPrice = GetApplicableWholesaleFixedPrice(item);
 
-        // Calculate base price before surcharge (round to 2 decimals)
-        decimal basePrice = Math.Round(item.UnitPrice * item.Quantity, 2);
-        item.BasePriceBeforeSurcharge = basePrice;
+        // Use centralized pricing service — no rounding at item level for display consistency
+        var lineCalc = PricingService.CalculateLine(new LineCalculationInput
+        {
+            Quantity = item.Quantity,
+            UnitPrice = item.UnitPrice,
+            DiscountPercentage = item.DiscountPercentage,
+            SurchargePercentage = item.SurchargePercentage,
+            HasCustomTotal = item.HasCustomTotal,
+            CustomTotal = item.HasCustomTotal ? item.Total : null
+        });
 
-        // Apply wholesale discount
-        item.DiscountAmount = Math.Round(basePrice * (item.DiscountPercentage / 100), 2);
-        decimal discountedBase = Math.Round(basePrice - item.DiscountAmount, 2);
+        item.BasePriceBeforeSurcharge = lineCalc.BasePriceBeforeSurcharge;
+        item.DiscountAmount = lineCalc.DiscountAmount;
+        item.SurchargeAmount = lineCalc.SurchargeAmount;
 
-        // Calculate surcharge amount if a fraction is selected
-        decimal surchargeAmount = Math.Round(discountedBase * (item.SurchargePercentage / 100), 2);
-        item.SurchargeAmount = surchargeAmount;
-
-        // Calculate item totals (without tax at item level)
-        decimal itemSubtotal = Math.Round(discountedBase + surchargeAmount, 2);
-
-        // Only recalculate total if it hasn't been set manually
         if (!item.HasCustomTotal)
         {
-            item.Subtotal = itemSubtotal;
-            item.Total = itemSubtotal;
+            item.Subtotal = lineCalc.Subtotal;
+            item.Total = lineCalc.Total;
         }
 
-        item.TaxAmount = 0; // No hay impuesto a nivel de producto
+        item.TaxAmount = 0; // Tax computed at document level
 
         await UpdateTotalsAsync();
     }
@@ -1438,53 +1439,28 @@ else
 
     private async Task UpdateTotalsAsync()
     {
-        // Calculate sale totals (gross before item-level discounts)
-        _subtotal = Math.Round(_cart.Sum(i => i.Subtotal + i.DiscountAmount), 2);
-
-        // Wholesale discount (sum of per-item discounts already applied)
-        _wholesaleDiscountAmount = Math.Round(_cart.Sum(i => i.DiscountAmount), 2);
-
-        // General sale discount applied on top of net-after-wholesale subtotal
-        decimal netAfterWholesale = _subtotal - _wholesaleDiscountAmount;
-        decimal saleDiscount = Math.Round(netAfterWholesale * (_model.DiscountPercentage / 100), 2);
-        _discountAmount = Math.Round(_wholesaleDiscountAmount + saleDiscount, 2);
-
-        // Recalcular impuestos después de descuento
-        decimal baseImponible = _subtotal - _discountAmount;
-        _taxAmount = Math.Round(_cart.Sum(i =>
+        // Build document input from cart items
+        var documentLines = _cart.Select(i => new DocumentLineInput
         {
-            if (i.IsTaxable)
-            {
-                decimal itemSubtotalPortion = i.Subtotal / (netAfterWholesale > 0 ? netAfterWholesale : 1);
-                decimal itemDiscountedSubtotal = baseImponible * itemSubtotalPortion;
-                return itemDiscountedSubtotal * _taxRate;
-            }
-            return 0m;
-        }), 2);
+            Subtotal = i.Subtotal,
+            DiscountAmount = i.DiscountAmount,
+            IsTaxable = i.IsTaxable
+        }).ToList();
 
-        // Pre-rounding total
-        decimal preRoundingTotal = Math.Round(_subtotal - _discountAmount + _taxAmount, 2);
+        var docCalc = await PricingService.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = documentLines,
+            GlobalDiscountPercentage = _model.DiscountPercentage,
+            TaxRate = _taxRate,
+            ApplyRounding = _isRoundingEnabled
+        });
 
-        // Apply rounding if enabled
-        if (_isRoundingEnabled)
-        {
-            var roundingResult = await RoundingSettingsService.ApplyRoundingAsync(preRoundingTotal);
-            if (roundingResult.IsSuccess)
-            {
-                _roundingAmount = Math.Round(roundingResult.Value.RoundingAmount, 2);
-                _total = Math.Round(roundingResult.Value.RoundedTotal, 2);
-            }
-            else
-            {
-                _roundingAmount = 0;
-                _total = preRoundingTotal;
-            }
-        }
-        else
-        {
-            _roundingAmount = 0;
-            _total = preRoundingTotal;
-        }
+        _subtotal = docCalc.Subtotal;
+        _wholesaleDiscountAmount = docCalc.ItemDiscountAmount;
+        _discountAmount = docCalc.TotalDiscountAmount;
+        _taxAmount = docCalc.TaxAmount;
+        _roundingAmount = docCalc.RoundingAmount;
+        _total = docCalc.Total;
 
         // Forzar actualización de la UI
         StateHasChanged();
