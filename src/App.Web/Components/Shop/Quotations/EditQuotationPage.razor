@@ -118,7 +118,7 @@
                                     <th>@L["Product"]</th>
                                     <th style="width:100px">@L["Qty"]</th>
                                     <th style="width:140px">@L["Unit Price"]</th>
-                                    <th style="width:100px">@L["Disc. %"]</th>
+                                    <th style="width:100px;text-align:right">@L["Discount"]</th>
                                     <th style="width:120px;text-align:right">@L["Total"]</th>
                                     <th style="width:48px"></th>
                                 </tr>
@@ -147,7 +147,7 @@
                                                              Dense="true" />
                                         </td>
                                         <td style="text-align:right">@line.UnitPrice.ToString("C2")</td>
-                                        <td style="text-align:right">@(line.DiscountPercentage > 0 ? $"{line.DiscountPercentage:N2}%" : "—")
+                                        <td style="text-align:right">@(line.LineDiscount > 0 ? $"-{line.LineDiscount:C2}" : "—")
                                         </td>
                                         <td style="text-align:right">@line.LineTotal.ToString("C2")</td>
                                         <td>
