@@ -277,6 +277,10 @@ public class QuotationService : IQuotationService
             quotation.ModifiedBy = currentUser;
             quotation.ModifiedAt = now;
 
+            // Clear stored PDF so it regenerates with updated data
+            quotation.PdfData = null;
+            quotation.PdfGeneratedAt = null;
+
             context.QuotationDetails.RemoveRange(quotation.Details);
             quotation.Details.Clear();
 
@@ -434,7 +438,18 @@ public class QuotationService : IQuotationService
             if (string.IsNullOrWhiteSpace(toEmail))
                 return Result.Failure(_localizer["No email address available for this customer"]);
 
-            var pdfBytes = await GeneratePdfBytesAsync(quotation);
+            // Use stored PDF or generate and store it
+            byte[] pdfBytes;
+            if (quotation.PdfData != null && quotation.PdfGeneratedAt.HasValue)
+            {
+                pdfBytes = quotation.PdfData;
+            }
+            else
+            {
+                pdfBytes = await GeneratePdfBytesAsync(quotation);
+                quotation.PdfData = pdfBytes;
+                quotation.PdfGeneratedAt = _dateTime.Now;
+            }
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
             var companyName = companySettings?.CompanyName ?? "Cleeny";
@@ -510,7 +525,17 @@ public class QuotationService : IQuotationService
             .FirstOrDefaultAsync(q => q.Id == id && q.IsDeleted == 0)
             ?? throw new InvalidOperationException($"Quotation {id} not found");
 
-        return await GeneratePdfBytesAsync(quotation);
+        // Return stored PDF if available (immutable snapshot)
+        if (quotation.PdfData != null && quotation.PdfGeneratedAt.HasValue)
+            return quotation.PdfData;
+
+        // Generate, store, and return
+        var pdfBytes = await GeneratePdfBytesAsync(quotation);
+        quotation.PdfData = pdfBytes;
+        quotation.PdfGeneratedAt = _dateTime.Now;
+        await context.SaveChangesAsync();
+
+        return pdfBytes;
     }
 
     private async Task<byte[]> GeneratePdfBytesAsync(Quotation quotation)

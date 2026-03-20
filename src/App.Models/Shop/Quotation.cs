@@ -43,6 +43,13 @@ public class Quotation : BaseEntity<long>
     [StringLength(200)]
     public string? SentToEmail { get; set; }
 
+    /// <summary>
+    /// Stored PDF snapshot. Generated on first access, cleared on edit.
+    /// </summary>
+    public byte[]? PdfData { get; set; }
+
+    public DateTime? PdfGeneratedAt { get; set; }
+
     // Navigation properties
     [ForeignKey(nameof(CustomerId))]
     public virtual Customer Customer { get; set; } = null!;
