@@ -15,4 +15,6 @@ public class SalePaymentDto
     public string? AuthorizationCode { get; set; }
     public CardBrand? CardBrand { get; set; }
     public string? Reference { get; set; }
+    public decimal? CashTendered { get; set; }
+    public decimal? CashChange { get; set; }
 }

@@ -1692,7 +1692,9 @@ else
                 CardLastFour = e.CardLastFour,
                 AuthorizationCode = e.AuthorizationCode,
                 CardBrand = e.CardBrand,
-                Reference = e.Reference
+                Reference = e.Reference,
+                CashTendered = e.PaymentMethod.Type == PaymentMethodType.Cash && e.CashReceived > 0 ? e.CashReceived : null,
+                CashChange = e.PaymentMethod.Type == PaymentMethodType.Cash && e.CashReceived > e.Amount ? e.CashReceived - e.Amount : null
             }).ToList();
 
             // Detalles sin información de autorización a nivel de producto

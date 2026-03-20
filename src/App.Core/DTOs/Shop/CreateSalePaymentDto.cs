@@ -22,4 +22,7 @@ public class CreateSalePaymentDto
 
     [StringLength(100)]
     public string? Reference { get; set; }
+
+    public decimal? CashTendered { get; set; }
+    public decimal? CashChange { get; set; }
 }

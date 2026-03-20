@@ -377,8 +377,28 @@
 
         @* Payment Information *@
         <div class="payment-info">
-            <div><strong>@L["Payment Method"]:</strong> @(string.Join(", ", Model.Data.Payments.Select(p => p.PaymentMethodName)))</div>
-            <div><strong>@L["Status"]:</strong> @L[Model.Data.Status.ToString()]</div>
+            @foreach (var payment in Model.Data.Payments)
+            {
+                <div class="total-row">
+                    <span>@payment.PaymentMethodName</span>
+                    <span>@payment.Amount.ToString("C")</span>
+                </div>
+                @if (payment.CashTendered.HasValue)
+                {
+                    <div class="total-row" style="font-size:9px;color:#666;">
+                        <span>@L["Cash tendered"]</span>
+                        <span>@payment.CashTendered.Value.ToString("C")</span>
+                    </div>
+                    <div class="total-row" style="font-size:9px;color:#666;">
+                        <span>@L["Change"]</span>
+                        <span>@((payment.CashChange ?? 0).ToString("C"))</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(payment.CardLastFour))
+                {
+                    <div style="font-size:9px;color:#666;">****@payment.CardLastFour @(payment.AuthorizationCode != null ? $"Auth: {payment.AuthorizationCode}" : "")</div>
+                }
+            }
         </div>
 
         @* QR Code *@

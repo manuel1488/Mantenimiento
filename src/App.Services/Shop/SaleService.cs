@@ -295,6 +295,8 @@ public class SaleService : ISaleService
                     AuthorizationCode = paymentDto.AuthorizationCode,
                     CardBrand = paymentDto.CardBrand,
                     Reference = paymentDto.Reference,
+                    CashTendered = paymentDto.CashTendered,
+                    CashChange = paymentDto.CashChange,
                     CreatedBy = currentUser,
                     CreatedAt = now,
                     ModifiedBy = currentUser,

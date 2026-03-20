@@ -39,6 +39,18 @@ public class SalePayment : BaseEntity<long>
     [StringLength(100)]
     public string? Reference { get; set; }
 
+    /// <summary>
+    /// Amount the customer gave (cash payments only).
+    /// </summary>
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal? CashTendered { get; set; }
+
+    /// <summary>
+    /// Change returned to the customer (cash payments only).
+    /// </summary>
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal? CashChange { get; set; }
+
     [ForeignKey(nameof(SaleId))]
     public virtual Sale Sale { get; set; } = null!;
 
