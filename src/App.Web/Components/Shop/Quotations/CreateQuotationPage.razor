@@ -25,8 +25,7 @@
 
 <PageTitle>@L["New Quotation"]</PageTitle>
 
-@* Outer wrapper: fills viewport height so nothing overflows the page *@
-<div style="height:calc(100vh - 96px);display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+<div style="display:flex;flex-direction:column;gap:12px;">
 
     @* Title row *@
     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -38,7 +37,7 @@
     </MudStack>
 
     @* Main card: grows to fill remaining space, clips overflow *@
-    <MudPaper Elevation="2" Class="pa-4" Style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:12px;">
+    <MudPaper Elevation="2" Class="pa-4" Style="display:flex;flex-direction:column;gap:12px;">
 
         @* Top fields (fixed height) *@
         <MudForm @ref="_form" @bind-IsValid="_isValid">
@@ -75,7 +74,7 @@
         </MudForm>
 
         @* Products section: grows to fill remaining space *@
-        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;flex-direction:column;">
 
             @* Header *@
             <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
@@ -97,7 +96,7 @@
             else
             {
                 @* Scrollable table — takes all remaining vertical space *@
-                <div style="flex:1;overflow-y:auto;min-height:0;">
+                <div style="overflow-x:auto;">
                     <MudSimpleTable Dense="true" Hover="true">
                         <thead>
                             <tr>
