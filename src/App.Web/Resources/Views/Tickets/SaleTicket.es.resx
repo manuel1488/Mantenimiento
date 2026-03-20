@@ -105,6 +105,13 @@
     <value>Cheque</value>
   </data>
   
+  <data name="Received" xml:space="preserve">
+    <value>Recibido</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Cambio</value>
+  </data>
+
   <!-- Estados Comunes -->
   <data name="Created" xml:space="preserve">
     <value>Creada</value>

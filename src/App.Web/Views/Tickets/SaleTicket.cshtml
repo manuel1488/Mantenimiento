@@ -173,13 +173,29 @@
         }
 
         .payment-info {
-            text-align: left;
             margin: 2mm 0;
             font-size: 11px;
         }
 
-        .payment-info div {
-            margin-bottom: 0.8mm;
+        .payment-info .pay-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5mm;
+        }
+
+        .payment-info .pay-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #555;
+            margin-bottom: 0.3mm;
+        }
+
+        .payment-info .card-info {
+            font-size: 8px;
+            color: #777;
+            text-align: right;
+            margin-bottom: 0.5mm;
         }
 
         .qr-code {
@@ -376,27 +392,28 @@
         </div>
 
         @* Payment Information *@
+        <div class="divider"></div>
         <div class="payment-info">
             @foreach (var payment in Model.Data.Payments)
             {
-                <div class="total-row">
-                    <span>@payment.PaymentMethodName</span>
+                <div class="pay-row">
+                    <span>@payment.PaymentMethodName:</span>
                     <span>@payment.Amount.ToString("C")</span>
                 </div>
-                @if (payment.CashTendered.HasValue)
+                @if (payment.CashTendered.HasValue && payment.CashTendered.Value > payment.Amount)
                 {
-                    <div class="total-row" style="font-size:9px;color:#666;">
-                        <span>@L["Cash tendered"]</span>
+                    <div class="pay-detail">
+                        <span>@L["Received"]:</span>
                         <span>@payment.CashTendered.Value.ToString("C")</span>
                     </div>
-                    <div class="total-row" style="font-size:9px;color:#666;">
-                        <span>@L["Change"]</span>
+                    <div class="pay-detail">
+                        <span>@L["Change"]:</span>
                         <span>@((payment.CashChange ?? 0).ToString("C"))</span>
                     </div>
                 }
                 @if (!string.IsNullOrEmpty(payment.CardLastFour))
                 {
-                    <div style="font-size:9px;color:#666;">****@payment.CardLastFour @(payment.AuthorizationCode != null ? $"Auth: {payment.AuthorizationCode}" : "")</div>
+                    <div class="card-info">****@payment.CardLastFour @(payment.AuthorizationCode != null ? $"Auth: {payment.AuthorizationCode}" : "")</div>
                 }
             }
         </div>

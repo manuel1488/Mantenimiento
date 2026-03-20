@@ -105,6 +105,13 @@
     <value>Check</value>
   </data>
   
+  <data name="Received" xml:space="preserve">
+    <value>Received</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+
   <!-- Common Status Values -->
   <data name="Created" xml:space="preserve">
     <value>Created</value>
