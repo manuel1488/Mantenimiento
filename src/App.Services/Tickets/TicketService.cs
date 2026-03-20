@@ -56,6 +56,8 @@ public class TicketService : ITicketService
                 .Include(s => s.Customer)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
+                .Include(s => s.Payments)
+                    .ThenInclude(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(s => s.Id == saleId, cancellationToken);
 
             if (sale == null)
