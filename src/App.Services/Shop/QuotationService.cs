@@ -93,6 +93,7 @@ public class QuotationService : IQuotationService
 
         var items = await query
             .OrderByDescending(q => q.QuoteDate)
+            .ThenByDescending(q => q.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
