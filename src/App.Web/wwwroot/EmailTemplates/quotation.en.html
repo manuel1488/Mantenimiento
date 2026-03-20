@@ -49,41 +49,9 @@
       &#9200; This quotation is valid until <strong>{{ valid_until }}</strong>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Product</th>
-          <th class="right">Qty</th>
-          <th class="right">Unit price</th>
-          <th class="right">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{ for item in items }}
-        <tr>
-          <td>{{ item.code }}</td>
-          <td>{{ item.name }}</td>
-          <td class="right">{{ item.quantity }}</td>
-          <td class="right">{{ item.unit_price }}</td>
-          <td class="right">{{ item.total }}</td>
-        </tr>
-        {{ end }}
-      </tbody>
-    </table>
-
-    <div class="totals">
-      <div class="totals-row">Subtotal: {{ subtotal }}</div>
-      <div class="totals-row">Tax: {{ tax_amount }}</div>
-      <div class="totals-total">Total: {{ total }}</div>
+    <div class="info-block">
+      <div class="info-row"><span class="info-label">Total:</span><span class="info-value" style="font-size:18px;font-weight:bold;color:#1A6868;">{{ total }}</span></div>
     </div>
-
-    {{ if notes != "" }}
-    <div>
-      <strong>Terms &amp; conditions:</strong>
-      <div class="notes">{{ notes }}</div>
-    </div>
-    {{ end }}
 
     <div class="attachment-note">
       &#128206; Please find the complete quotation details in the attached PDF file.

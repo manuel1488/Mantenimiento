@@ -49,41 +49,9 @@
       &#9200; Esta cotización es válida hasta el <strong>{{ valid_until }}</strong>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Producto</th>
-          <th class="right">Cantidad</th>
-          <th class="right">Precio unit.</th>
-          <th class="right">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{ for item in items }}
-        <tr>
-          <td>{{ item.code }}</td>
-          <td>{{ item.name }}</td>
-          <td class="right">{{ item.quantity }}</td>
-          <td class="right">{{ item.unit_price }}</td>
-          <td class="right">{{ item.total }}</td>
-        </tr>
-        {{ end }}
-      </tbody>
-    </table>
-
-    <div class="totals">
-      <div class="totals-row">Subtotal: {{ subtotal }}</div>
-      <div class="totals-row">IVA: {{ tax_amount }}</div>
-      <div class="totals-total">Total: {{ total }}</div>
+    <div class="info-block">
+      <div class="info-row"><span class="info-label">Total:</span><span class="info-value" style="font-size:18px;font-weight:bold;color:#1A6868;">{{ total }}</span></div>
     </div>
-
-    {{ if notes != "" }}
-    <div>
-      <strong>Condiciones y notas:</strong>
-      <div class="notes">{{ notes }}</div>
-    </div>
-    {{ end }}
 
     <div class="attachment-note">
       &#128206; Encontrará el detalle completo de la cotización en el archivo PDF adjunto.
