@@ -166,6 +166,14 @@
                         <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
                             @GetStatusText(context.Status)
                         </MudChip>
+                        @if (context.Status == "StampError" && !string.IsNullOrEmpty(context.StampError))
+                        {
+                            <MudTooltip Text="@context.StampError">
+                                <MudText Typo="Typo.caption" Color="Color.Error" Class="d-block" Style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help;">
+                                    @context.StampError
+                                </MudText>
+                            </MudTooltip>
+                        }
                         @if (context.CancellationDate.HasValue)
                         {
                             <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">

@@ -786,14 +786,14 @@ public class InventoryService : IInventoryService
                 try
                 {
                     // Validate quantities
-                    if (item.Quantity <= 0)
+                    if (item.Quantity < 0)
                     {
                         results.Add(new BulkInventoryLoadResultDto
                         {
                             ProductCode = item.ProductCode,
                             Quantity = item.Quantity,
                             Success = false,
-                            Error = L["Quantity must be greater than 0"]
+                            Error = L["Quantity cannot be negative"]
                         });
                         continue;
                     }
@@ -865,14 +865,7 @@ public class InventoryService : IInventoryService
                 }
             }
 
-            // If there are validation errors, return
-            if (results.Any())
-            {
-                return InventoryOperationResult<List<BulkInventoryLoadResultDto>>.Error(
-                    L["Validation errors found"], results);
-            }
-
-            // Process valid items in a transaction
+            // Process valid items in a transaction (even if some items had validation errors)
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -899,28 +892,32 @@ public class InventoryService : IInventoryService
                     _context.Inventory.Add(inventory);
                     await _context.SaveChangesAsync(cancellationToken);
 
-                    // Create initial movement
-                    var movement = new InventoryMovement
+                    // Create initial movement only if quantity > 0
+                    // (DB constraint requires Quantity > 0 on movements)
+                    if (item.Quantity > 0)
                     {
-                        ProductId = product.Id,
-                        LocationId = request.LocationId,
-                        MovementType = InventoryMovementType.InitialLoad,
-                        MovementSubType = InventoryMovementSubType.InitialCount,
-                        MovementDate = _dateTime.Now,
-                        Quantity = item.Quantity,
-                        IndividualUnits = individualUnits,
-                        Reference = L["Bulk Initial Load"],
-                        Reason = L["Initial inventory setup - Bulk import"],
-                        PreviousBalance = 0,
-                        NewBalance = item.Quantity,
-                        PreviousIndividualBalance = 0,
-                        NewIndividualBalance = individualUnits,
-                        CreatedBy = _currentUserService.FullName ?? "Unknown",
-                        CreatedAt = _dateTime.Now
-                    };
+                        var movement = new InventoryMovement
+                        {
+                            ProductId = product.Id,
+                            LocationId = request.LocationId,
+                            MovementType = InventoryMovementType.InitialLoad,
+                            MovementSubType = InventoryMovementSubType.InitialCount,
+                            MovementDate = _dateTime.Now,
+                            Quantity = item.Quantity,
+                            IndividualUnits = individualUnits,
+                            Reference = L["Bulk Initial Load"],
+                            Reason = L["Initial inventory setup - Bulk import"],
+                            PreviousBalance = 0,
+                            NewBalance = item.Quantity,
+                            PreviousIndividualBalance = 0,
+                            NewIndividualBalance = individualUnits,
+                            CreatedBy = _currentUserService.FullName ?? "Unknown",
+                            CreatedAt = _dateTime.Now
+                        };
 
-                    _context.InventoryMovements.Add(movement);
-                    await _context.SaveChangesAsync(cancellationToken);
+                        _context.InventoryMovements.Add(movement);
+                        await _context.SaveChangesAsync(cancellationToken);
+                    }
 
                     results.Add(new BulkInventoryLoadResultDto
                     {
@@ -934,7 +931,11 @@ public class InventoryService : IInventoryService
                 }
 
                 await transaction.CommitAsync(cancellationToken);
-                return InventoryOperationResult<List<BulkInventoryLoadResultDto>>.Ok(results);
+                var hasErrors = results.Any(r => !r.Success);
+                return hasErrors
+                    ? InventoryOperationResult<List<BulkInventoryLoadResultDto>>.Error(
+                        L["Some items could not be processed"], results)
+                    : InventoryOperationResult<List<BulkInventoryLoadResultDto>>.Ok(results);
             }
             catch (Exception)
             {

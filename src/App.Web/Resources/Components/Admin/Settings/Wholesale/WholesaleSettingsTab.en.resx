@@ -39,4 +39,13 @@
   <data name="Error saving settings" xml:space="preserve">
     <value>Error saving settings</value>
   </data>
+  <data name="Remissions" xml:space="preserve">
+    <value>Remissions</value>
+  </data>
+  <data name="Apply wholesale discounts to remissions" xml:space="preserve">
+    <value>Apply wholesale discounts to remissions</value>
+  </data>
+  <data name="When enabled, wholesale discounts are automatically applied when creating remissions." xml:space="preserve">
+    <value>When enabled, wholesale discounts are automatically applied when creating remissions.</value>
+  </data>
 </root>

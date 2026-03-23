@@ -6,4 +6,5 @@ public class WholesaleSettingsDto
 {
     public int Id { get; set; }
     public WholesalePriceMode PriceMode { get; set; }
+    public bool ApplyWholesaleToRemissions { get; set; }
 }

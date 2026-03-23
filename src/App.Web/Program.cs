@@ -315,6 +315,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.DeleteQuotation, policy => policy.RequireClaim(ApplicationClaims.Shop.DeleteQuotation));
         options.AddPolicy(ApplicationClaims.Shop.SendQuotation, policy => policy.RequireClaim(ApplicationClaims.Shop.SendQuotation));
 
+        options.AddPolicy(ApplicationClaims.Shop.ViewRemissions, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewRemissions));
+        options.AddPolicy(ApplicationClaims.Shop.CreateRemission, policy => policy.RequireClaim(ApplicationClaims.Shop.CreateRemission));
+        options.AddPolicy(ApplicationClaims.Shop.CancelRemission, policy => policy.RequireClaim(ApplicationClaims.Shop.CancelRemission));
+        options.AddPolicy(ApplicationClaims.Shop.ConsolidateRemissions, policy => policy.RequireClaim(ApplicationClaims.Shop.ConsolidateRemissions));
+
         options.AddPolicy(ApplicationClaims.Shop.ViewInventoryHistory, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventoryHistory));
         options.AddPolicy(ApplicationClaims.Shop.ViewInventoryTransfers, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventoryTransfers));
         options.AddPolicy(ApplicationClaims.Shop.ManageInventoryTransfers, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageInventoryTransfers));
@@ -372,6 +377,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.ViewLocationFormats.Add("/Views/Reports/{1}/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/Reports/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/Quotations/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Views/Remissions/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/{0}.cshtml");
 
         options.ViewLocationFormats.Add("/Views/Reports/{1}/_ViewImports.cshtml");
@@ -692,6 +698,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<App.Services.Labels.BarcodeGeneratorService>();
     builder.Services.AddScoped<IBulkLabelService, App.Services.Labels.BulkLabelService>();
     builder.Services.AddScoped<IQuotationService, QuotationService>();
+    builder.Services.AddScoped<IRemissionService, RemissionService>();
 
     // Mexico CFDI billing
     services.AddHttpClient();

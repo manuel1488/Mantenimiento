@@ -8,4 +8,6 @@ namespace App.Models.Settings;
 public class WholesaleSettings : BaseEntity<int>
 {
     public WholesalePriceMode PriceMode { get; set; } = WholesalePriceMode.Percentage;
+
+    public bool ApplyWholesaleToRemissions { get; set; } = false;
 }

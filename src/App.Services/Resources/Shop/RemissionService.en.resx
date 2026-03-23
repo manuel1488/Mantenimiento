@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Customer not found" xml:space="preserve"><value>Customer not found</value></data>
+  <data name="Location not found" xml:space="preserve"><value>Location not found</value></data>
+  <data name="Product {0} not found" xml:space="preserve"><value>Product {0} not found</value></data>
+  <data name="Insufficient stock for products: {0}" xml:space="preserve"><value>Insufficient stock for products: {0}</value></data>
+  <data name="Error processing inventory: {0}" xml:space="preserve"><value>Error processing inventory: {0}</value></data>
+  <data name="Error creating remission" xml:space="preserve"><value>Error creating remission</value></data>
+  <data name="Remission not found" xml:space="preserve"><value>Remission not found</value></data>
+  <data name="Only pending remissions can be cancelled" xml:space="preserve"><value>Only pending remissions can be cancelled</value></data>
+  <data name="Error reverting inventory: {0}" xml:space="preserve"><value>Error reverting inventory: {0}</value></data>
+  <data name="Error cancelling remission" xml:space="preserve"><value>Error cancelling remission</value></data>
+  <data name="Error getting pending remissions" xml:space="preserve"><value>Error getting pending remissions</value></data>
+  <data name="Remissions not found: {0}" xml:space="preserve"><value>Remissions not found: {0}</value></data>
+  <data name="All remissions must belong to the same customer" xml:space="preserve"><value>All remissions must belong to the same customer</value></data>
+  <data name="Remissions not in pending status: {0}" xml:space="preserve"><value>Remissions not in pending status: {0}</value></data>
+  <data name="Error consolidating remissions" xml:space="preserve"><value>Error consolidating remissions</value></data>
+  <data name="Remission" xml:space="preserve"><value>Remission</value></data>
+  <data name="Remission #" xml:space="preserve"><value>Remission #</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Customer" xml:space="preserve"><value>Customer</value></data>
+  <data name="Code" xml:space="preserve"><value>Code</value></data>
+  <data name="Product" xml:space="preserve"><value>Product</value></data>
+  <data name="Qty" xml:space="preserve"><value>Qty</value></data>
+  <data name="Unit Price" xml:space="preserve"><value>Unit Price</value></data>
+  <data name="Discount" xml:space="preserve"><value>Discount</value></data>
+  <data name="Tax" xml:space="preserve"><value>Tax</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Subtotal</value></data>
+  <data name="Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Location" xml:space="preserve"><value>Location</value></data>
+  <data name="This document is not an invoice" xml:space="preserve"><value>This document is not an invoice</value></data>
+</root>

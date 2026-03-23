@@ -27,8 +27,8 @@
   <data name="Warehouse not found or inactive" xml:space="preserve">
     <value>Warehouse not found or inactive</value>
   </data>
-  <data name="Product already has inventory in this warehouse" xml:space="preserve">
-    <value>Product already has inventory in this warehouse</value>
+  <data name="Product already has inventory in this location" xml:space="preserve">
+    <value>Product already has inventory in this location</value>
   </data>
   <data name="Error creating initial inventory" xml:space="preserve">
     <value>Error creating initial inventory</value>
@@ -36,8 +36,11 @@
   <data name="Invalid or inactive warehouse" xml:space="preserve">
     <value>Invalid or inactive warehouse</value>
   </data>
-  <data name="Quantity must be greater than 0" xml:space="preserve">
-    <value>Quantity must be greater than 0</value>
+  <data name="Quantity cannot be negative" xml:space="preserve">
+    <value>Quantity cannot be negative</value>
+  </data>
+  <data name="Some items could not be processed" xml:space="preserve">
+    <value>Some items could not be processed</value>
   </data>
   <data name="Error validating item" xml:space="preserve">
     <value>Error validating item</value>

@@ -51,6 +51,9 @@
   <data name="Quotations" xml:space="preserve">
     <value>Quotations</value>
   </data>
+  <data name="Remissions" xml:space="preserve">
+    <value>Remissions</value>
+  </data>
   <data name="Invoices" xml:space="preserve">
     <value>Invoices</value>
   </data>

@@ -199,9 +199,10 @@ public class SaleService : ISaleService
             }
 
             // Validate active cash register for current user+location
+            // Skip for remission-consolidated sales (administrative operation, no register needed)
             long? cashRegisterId = null;
             var saleLocationId = createDto.LocationId;
-            if (saleLocationId.HasValue)
+            if (saleLocationId.HasValue && createDto.SaleType != SaleType.Remission)
             {
                 var cashRegResult = await _cashRegisterService.GetActiveCashRegisterAsync(
                     saleLocationId.Value,
@@ -309,33 +310,37 @@ public class SaleService : ISaleService
             await context.SaveChangesAsync();
 
             // Process inventory for each detail that requires inventory tracking
-            var saleProductIds = detailsToProcess.Select(d => d.ProductId).ToList();
-            var productInventoryFlags = await context.Products
-                .AsNoTracking()
-                .Where(p => saleProductIds.Contains(p.Id))
-                .Select(p => new { p.Id, p.RequiresInventory })
-                .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
-
-            foreach (var detail in detailsToProcess)
+            // Skip for remission-consolidated sales (inventory already deducted at remission time)
+            if (createDto.SaleType != SaleType.Remission)
             {
-                if (productInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
-                    continue;
+                var saleProductIds = detailsToProcess.Select(d => d.ProductId).ToList();
+                var productInventoryFlags = await context.Products
+                    .AsNoTracking()
+                    .Where(p => saleProductIds.Contains(p.Id))
+                    .Select(p => new { p.Id, p.RequiresInventory })
+                    .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
 
-                var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
+                foreach (var detail in detailsToProcess)
                 {
-                    ProductId = detail.ProductId,
-                    LocationId = locationId ?? 0, // TODO: Validate locationId properly
-                    Quantity = detail.Quantity,
-                    MovementType = InventoryMovementType.Sale,
-                    MovementSubType = InventoryMovementSubType.DirectSale,
-                    Reference = $"Sale-{sale.Id}",
-                    Reason = $"Sale of {detail.Quantity} units"
-                });
+                    if (productInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
+                        continue;
 
-                if (!movementResult.Success)
-                {
-                    throw new InvalidOperationException(
-                        L["Error processing inventory: {0}", movementResult.Message ?? "Unknown error"]);
+                    var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
+                    {
+                        ProductId = detail.ProductId,
+                        LocationId = locationId ?? 0, // TODO: Validate locationId properly
+                        Quantity = detail.Quantity,
+                        MovementType = InventoryMovementType.Sale,
+                        MovementSubType = InventoryMovementSubType.DirectSale,
+                        Reference = $"Sale-{sale.Id}",
+                        Reason = $"Sale of {detail.Quantity} units"
+                    });
+
+                    if (!movementResult.Success)
+                    {
+                        throw new InvalidOperationException(
+                            L["Error processing inventory: {0}", movementResult.Message ?? "Unknown error"]);
+                    }
                 }
             }
 
@@ -655,25 +660,29 @@ public class SaleService : ISaleService
             }
 
             // Check stock availability for all products that require inventory
-            var insufficientStockProducts = new List<string>();
-            foreach (var detailDto in createDto.Details)
+            // Skip for remission-consolidated sales (inventory already deducted at remission time)
+            if (createDto.SaleType != SaleType.Remission)
             {
-                var product = products[detailDto.ProductId];
-                if (!product.RequiresInventory)
-                    continue;
+                var insufficientStockProducts = new List<string>();
+                foreach (var detailDto in createDto.Details)
+                {
+                    var product = products[detailDto.ProductId];
+                    if (!product.RequiresInventory)
+                        continue;
 
-                var stockAvailable = await _inventoryService.ValidateStockAvailabilityAsync(
-                    detailDto.ProductId, locationId.Value, detailDto.Quantity);
+                    var stockAvailable = await _inventoryService.ValidateStockAvailabilityAsync(
+                        detailDto.ProductId, locationId.Value, detailDto.Quantity);
 
-                if (!stockAvailable)
-                    insufficientStockProducts.Add(product.Name);
-            }
+                    if (!stockAvailable)
+                        insufficientStockProducts.Add(product.Name);
+                }
 
-            if (insufficientStockProducts.Any())
-            {
-                return Result<(Sale, List<SaleDetail>)>.Failure(
-                    L["Insufficient stock for products: {0}",
-                    string.Join(", ", insufficientStockProducts)]);
+                if (insufficientStockProducts.Any())
+                {
+                    return Result<(Sale, List<SaleDetail>)>.Failure(
+                        L["Insufficient stock for products: {0}",
+                        string.Join(", ", insufficientStockProducts)]);
+                }
             }
 
             // Get tax rate

@@ -944,14 +944,15 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Unidad = product.UnitMeasure?.Name,
                 Descripcion = product.Name,
                 ValorUnitario = detail.UnitPrice,
-                Importe = detail.Subtotal,
+                Importe = Math.Round(detail.Quantity * detail.UnitPrice, 2),
                 Descuento = detail.DiscountAmount,
                 ObjetoImp = product.IsTaxable ? "02" : "01"
             };
 
             if (product.IsTaxable && detail.TaxRate > 0)
             {
-                var taxBase = detail.Subtotal - detail.DiscountAmount;
+                var grossAmount = Math.Round(detail.Quantity * detail.UnitPrice, 2);
+                var taxBase = grossAmount - detail.DiscountAmount;
                 concepto.Impuestos = new ConceptoImpuestos
                 {
                     Traslados = new List<ConceptoTraslado>

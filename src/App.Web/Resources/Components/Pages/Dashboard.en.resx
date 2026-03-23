@@ -105,6 +105,15 @@
   <data name="Status" xml:space="preserve">
     <value>Status</value>
   </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
   <data name="View All Sales" xml:space="preserve">
     <value>View All Sales</value>
   </data>

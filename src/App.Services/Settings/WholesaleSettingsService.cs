@@ -48,14 +48,16 @@ public class WholesaleSettingsService : IWholesaleSettingsService
             {
                 return Result<WholesaleSettingsDto>.Success(new WholesaleSettingsDto
                 {
-                    PriceMode = Core.Enums.Shop.WholesalePriceMode.Percentage
+                    PriceMode = Core.Enums.Shop.WholesalePriceMode.Percentage,
+                    ApplyWholesaleToRemissions = false
                 });
             }
 
             return Result<WholesaleSettingsDto>.Success(new WholesaleSettingsDto
             {
                 Id = settings.Id,
-                PriceMode = settings.PriceMode
+                PriceMode = settings.PriceMode,
+                ApplyWholesaleToRemissions = settings.ApplyWholesaleToRemissions
             });
         }
         catch (Exception ex)
@@ -82,6 +84,7 @@ public class WholesaleSettingsService : IWholesaleSettingsService
                 settings = new WholesaleSettings
                 {
                     PriceMode = updateDto.PriceMode,
+                    ApplyWholesaleToRemissions = updateDto.ApplyWholesaleToRemissions,
                     CreatedBy = _currentUserService.FullName,
                     CreatedAt = _dateTime.Now
                 };
@@ -90,6 +93,7 @@ public class WholesaleSettingsService : IWholesaleSettingsService
             else
             {
                 settings.PriceMode = updateDto.PriceMode;
+                settings.ApplyWholesaleToRemissions = updateDto.ApplyWholesaleToRemissions;
                 settings.ModifiedBy = _currentUserService.FullName;
                 settings.ModifiedAt = _dateTime.Now;
             }
@@ -99,7 +103,8 @@ public class WholesaleSettingsService : IWholesaleSettingsService
             return Result<WholesaleSettingsDto>.Success(new WholesaleSettingsDto
             {
                 Id = settings.Id,
-                PriceMode = settings.PriceMode
+                PriceMode = settings.PriceMode,
+                ApplyWholesaleToRemissions = settings.ApplyWholesaleToRemissions
             });
         }
         catch (Exception ex)

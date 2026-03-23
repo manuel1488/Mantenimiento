@@ -68,6 +68,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AdjustmentEntryItem> AdjustmentEntryItems { get; set; } = null!;
     public DbSet<Quotation> Quotations { get; set; } = null!;
     public DbSet<QuotationDetail> QuotationDetails { get; set; } = null!;
+    public DbSet<Remission> Remissions { get; set; } = null!;
+    public DbSet<RemissionDetail> RemissionDetails { get; set; } = null!;
     #endregion
 
     #region Identity Extensions
