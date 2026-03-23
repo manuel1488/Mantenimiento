@@ -63,6 +63,12 @@ using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Increase max request header size to prevent HTTP 431 errors from large auth cookies
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestHeadersTotalSize = 128 * 1024; // 128 KB (default is 32 KB)
+});
+
 // Configure EPPlus license context
 var licenseContext = builder.Configuration.GetSection("EPPlus:LicenseContext").Value ?? "NonCommercial";
 ExcelPackage.LicenseContext = Enum.Parse<LicenseContext>(licenseContext, true);
