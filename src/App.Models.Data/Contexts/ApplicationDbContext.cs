@@ -70,6 +70,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<QuotationDetail> QuotationDetails { get; set; } = null!;
     public DbSet<Remission> Remissions { get; set; } = null!;
     public DbSet<RemissionDetail> RemissionDetails { get; set; } = null!;
+    public DbSet<DocumentSequence> DocumentSequences { get; set; } = null!;
     #endregion
 
     #region Identity Extensions

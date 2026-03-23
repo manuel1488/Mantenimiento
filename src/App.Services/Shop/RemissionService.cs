@@ -32,6 +32,7 @@ public class RemissionService : IRemissionService
     private readonly IPdfService _pdfService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly ISaleService _saleService;
+    private readonly IDocumentSequenceService _documentSequenceService;
 
     public RemissionService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -46,7 +47,8 @@ public class RemissionService : IRemissionService
         IPricingCalculationService pricingService,
         IPdfService pdfService,
         IEmailTemplateService emailTemplateService,
-        ISaleService saleService)
+        ISaleService saleService,
+        IDocumentSequenceService documentSequenceService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -61,6 +63,7 @@ public class RemissionService : IRemissionService
         _pdfService = pdfService;
         _emailTemplateService = emailTemplateService;
         _saleService = saleService;
+        _documentSequenceService = documentSequenceService;
     }
 
     public async Task<(int TotalCount, IList<RemissionDto> Items)> GetRemissionsAsync(
@@ -200,7 +203,7 @@ public class RemissionService : IRemissionService
                             string.Join(", ", insufficientStockProducts)));
                 }
 
-                var remissionNumber = await GenerateRemissionNumberAsync(context, now);
+                var remissionNumber = await _documentSequenceService.GetNextNumberAsync("Remission", "REM", now.Year);
 
                 var remission = new Remission
                 {
@@ -603,13 +606,4 @@ public class RemissionService : IRemissionService
         return await _pdfService.GeneratePdfFromViewAsync("~/Views/Remissions/RemissionDocument.cshtml", model);
     }
 
-    private static async Task<string> GenerateRemissionNumberAsync(ApplicationDbContext context, DateTime date)
-    {
-        var year = date.Year;
-        var count = await context.Remissions
-            .Where(r => r.RemissionDate.Year == year)
-            .CountAsync();
-
-        return $"REM-{year}-{(count + 1):D4}";
-    }
 }

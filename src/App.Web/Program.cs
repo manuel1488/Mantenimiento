@@ -703,6 +703,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<ICashStationService, CashStationService>();
     builder.Services.AddScoped<App.Services.Labels.BarcodeGeneratorService>();
     builder.Services.AddScoped<IBulkLabelService, App.Services.Labels.BulkLabelService>();
+    builder.Services.AddScoped<IDocumentSequenceService, DocumentSequenceService>();
     builder.Services.AddScoped<IQuotationService, QuotationService>();
     builder.Services.AddScoped<IRemissionService, RemissionService>();
 
