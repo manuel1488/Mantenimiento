@@ -610,3 +610,5 @@ Icons.Material.Filled.CheckCircle           → Success confirm
 | `<MudChip>` | `<MudChip T="string">` | Generic type required |
 | `MudDialogInstance` | `IMudDialogInstance` | Use interface, not class |
 | `Title="..."` on HTML attrs | `title="..."` | MUD0002 warning |
+
+> **MudDataGrid column sizing guide**: See `docs/mudblazor-datagrid-guide.md` for MudDataGrid vs MudTable comparison, column width control, `ColumnResizeMode`, and ServerData migration patterns. **Always use MudDataGrid over MudTable for data listing pages.**

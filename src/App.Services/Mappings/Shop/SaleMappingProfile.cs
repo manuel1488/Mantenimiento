@@ -17,7 +17,11 @@ public class SaleMappingProfile : Profile
             .ForMember(dest => dest.Details,
                 opt => opt.MapFrom(src => src.Details))
             .ForMember(dest => dest.Payments,
-                opt => opt.MapFrom(src => src.Payments));
+                opt => opt.MapFrom(src => src.Payments))
+            .ForMember(dest => dest.TaxRate,
+                opt => opt.MapFrom(src => src.Details.Any()
+                    ? src.Details.Where(d => d.TaxRate > 0).Select(d => d.TaxRate).FirstOrDefault()
+                    : 0));
 
         CreateMap<SaleDetail, SaleDetailDto>()
             .ForMember(dest => dest.ProductName,
