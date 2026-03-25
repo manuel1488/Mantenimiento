@@ -38,7 +38,11 @@ public class PricingCalculationService : IPricingCalculationService
                 DiscountAmount = 0,
                 SurchargeAmount = 0,
                 Subtotal = input.CustomTotal.Value,
-                Total = input.CustomTotal.Value
+                Total = input.CustomTotal.Value,
+                GrossAmount = input.CustomTotal.Value,
+                TaxBase = input.CustomTotal.Value,
+                TaxAmount = Math.Round(input.CustomTotal.Value * input.TaxRate, 2),
+                TaxRate = input.TaxRate
             };
         }
 
@@ -49,13 +53,26 @@ public class PricingCalculationService : IPricingCalculationService
         decimal surchargeAmount = afterDiscount * (input.SurchargePercentage / 100);
         decimal subtotal = afterDiscount + surchargeAmount;
 
+        // CFDI-compliant rounded values (used for tax calculation and invoicing)
+        // Concepto.Importe = Round(Qty × UnitPrice, 2)
+        decimal grossAmount = Math.Round(input.Quantity * input.UnitPrice, 2);
+        decimal roundedDiscount = Math.Round(discountAmount, 2);
+        // Concepto.Impuestos.Traslado.Base = Importe - Descuento
+        decimal taxBase = grossAmount - roundedDiscount;
+        // Concepto.Impuestos.Traslado.Importe = Round(Base × Rate, 2)
+        decimal taxAmount = input.TaxRate > 0 ? Math.Round(taxBase * input.TaxRate, 2) : 0;
+
         return new LineCalculationResult
         {
             BasePriceBeforeSurcharge = basePriceBeforeSurcharge,
             DiscountAmount = discountAmount,
             SurchargeAmount = surchargeAmount,
             Subtotal = subtotal,
-            Total = subtotal
+            Total = subtotal,
+            GrossAmount = grossAmount,
+            TaxBase = taxBase,
+            TaxAmount = taxAmount,
+            TaxRate = input.TaxRate
         };
     }
 
@@ -69,19 +86,38 @@ public class PricingCalculationService : IPricingCalculationService
         decimal globalDiscount = Math.Round(netAfterItemDiscounts * (input.GlobalDiscountPercentage / 100), 2);
         decimal totalDiscount = Math.Round(itemDiscounts + globalDiscount, 2);
 
-        decimal taxableBase = subtotal - totalDiscount;
-
-        // Proportional tax calculation across taxable items
-        decimal taxAmount = 0;
-        if (input.TaxRate > 0 && netAfterItemDiscounts > 0)
+        // Tax calculation: sum of per-line rounded amounts (CFDI-compliant).
+        // Each line's TaxAmount MUST be pre-computed as Round(TaxBase × TaxRate, 2) via CalculateLine.
+        // Fail fast if a taxable line is missing tax data — silent $0 tax causes payment mismatches.
+        if (input.TaxRate > 0)
         {
-            taxAmount = Math.Round(input.Lines.Sum(line =>
+            foreach (var line in input.Lines)
             {
-                if (!line.IsTaxable) return 0m;
+                if (line.IsTaxable && line.TaxAmount == 0 && line.TaxBase == 0 && line.Subtotal > 0)
+                    throw new InvalidOperationException(
+                        $"Taxable line (Subtotal={line.Subtotal}) has TaxAmount=0 and TaxBase=0. " +
+                        "Use CalculateLine with TaxRate to pre-compute tax values before calling CalculateDocumentAsync.");
+            }
+        }
+
+        decimal taxAmount;
+        if (globalDiscount > 0 && input.TaxRate > 0)
+        {
+            // With global discount: distribute it proportionally to each line's tax base,
+            // then recalculate per-line tax with the adjusted base.
+            taxAmount = input.Lines.Sum(line =>
+            {
+                if (!line.IsTaxable || line.TaxBase <= 0 || netAfterItemDiscounts <= 0) return 0m;
                 decimal proportion = line.Subtotal / netAfterItemDiscounts;
-                decimal lineBase = taxableBase * proportion;
-                return lineBase * input.TaxRate;
-            }), 2);
+                decimal lineGlobalDiscount = Math.Round(globalDiscount * proportion, 2);
+                decimal adjustedBase = line.TaxBase - lineGlobalDiscount;
+                return adjustedBase > 0 ? Math.Round(adjustedBase * input.TaxRate, 2) : 0m;
+            });
+        }
+        else
+        {
+            // No global discount: use pre-computed per-line tax amounts directly.
+            taxAmount = input.Lines.Sum(l => l.TaxAmount);
         }
 
         decimal preRoundingTotal = Math.Round(subtotal - totalDiscount + taxAmount, 2);

@@ -71,6 +71,12 @@ public static class ApplicationClaims
         public const string DeleteQuotation = "Shop.Quotations.Delete";
         public const string SendQuotation = "Shop.Quotations.Send";
 
+        // Remisiones
+        public const string ViewRemissions = "Shop.Remissions.View";
+        public const string CreateRemission = "Shop.Remissions.Create";
+        public const string CancelRemission = "Shop.Remissions.Cancel";
+        public const string ConsolidateRemissions = "Shop.Remissions.Consolidate";
+
         // Caja (Cash Register)
         public const string ViewCashRegister = "Shop.CashRegister.View";
         public const string ManageCashRegister = "Shop.CashRegister.Manage";

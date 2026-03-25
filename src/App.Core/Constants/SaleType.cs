@@ -2,5 +2,6 @@
 
 public enum SaleType
 {
-    Public
+    Public,
+    Remission
 }

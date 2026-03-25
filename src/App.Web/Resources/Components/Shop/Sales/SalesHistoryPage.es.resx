@@ -65,9 +65,17 @@
     <value>Subtotal</value>
     <comment>Encabezado de columna subtotal</comment>
   </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Importe</value>
+    <comment>Encabezado de columna importe (total bruto antes de descuento)</comment>
+  </data>
   <data name="Discount" xml:space="preserve">
     <value>Descuento</value>
     <comment>Encabezado de columna descuento</comment>
+  </data>
+  <data name="Tax Rate" xml:space="preserve">
+    <value>Tasa de Impuesto</value>
+    <comment>Encabezado de columna tasa de impuesto</comment>
   </data>
   <data name="Tax" xml:space="preserve">
     <value>Impuesto</value>
@@ -82,6 +90,14 @@
     <comment>Etiqueta del filtro y encabezado de columna sucursal</comment>
   </data>
   <data name="No branch" xml:space="preserve">
+    <value>Sin sucursal</value>
+    <comment>Se muestra cuando la venta no tiene sucursal asignada</comment>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Sucursal</value>
+    <comment>Etiqueta del filtro y encabezado de columna sucursal</comment>
+  </data>
+  <data name="No location" xml:space="preserve">
     <value>Sin sucursal</value>
     <comment>Se muestra cuando la venta no tiene sucursal asignada</comment>
   </data>

@@ -1942,6 +1942,9 @@ namespace App.Models.Data.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("ApplyWholesaleToRemissions")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -2532,6 +2535,33 @@ namespace App.Models.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("sh_cash_stations");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.DocumentSequence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CurrentValue")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentType", "Year")
+                        .IsUnique();
+
+                    b.ToTable("sh_document_sequences");
                 });
 
             modelBuilder.Entity("App.Models.Shop.Inventory", b =>
@@ -3532,6 +3562,212 @@ namespace App.Models.Data.Migrations
                     b.HasIndex("QuotationId");
 
                     b.ToTable("sh_quotation_details");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.Remission", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ConsolidatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ConsolidatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<long?>("ConsolidatedSaleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<byte[]>("PdfData")
+                        .HasColumnType("longblob");
+
+                    b.Property<DateTime?>("PdfGeneratedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("RemissionDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("RemissionNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TaxRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsolidatedSaleId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("RemissionDate");
+
+                    b.HasIndex("RemissionNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("sh_remissions", t =>
+                        {
+                            t.HasCheckConstraint("CK_Remission_DiscountRange", "DiscountPercentage >= 0 AND DiscountPercentage <= 100");
+                        });
+                });
+
+            modelBuilder.Entity("App.Models.Shop.RemissionDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<long>("RemissionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("TaxRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(10,6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("RemissionId");
+
+                    b.ToTable("sh_remission_details");
                 });
 
             modelBuilder.Entity("App.Models.Shop.Sale", b =>
@@ -4650,6 +4886,51 @@ namespace App.Models.Data.Migrations
                     b.Navigation("Quotation");
                 });
 
+            modelBuilder.Entity("App.Models.Shop.Remission", b =>
+                {
+                    b.HasOne("App.Models.Shop.Sale", "ConsolidatedSale")
+                        .WithMany()
+                        .HasForeignKey("ConsolidatedSaleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("App.Models.Shared.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("App.Models.Shop.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ConsolidatedSale");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.RemissionDetail", b =>
+                {
+                    b.HasOne("App.Models.Shop.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("App.Models.Shop.Remission", "Remission")
+                        .WithMany("Details")
+                        .HasForeignKey("RemissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Remission");
+                });
+
             modelBuilder.Entity("App.Models.Shop.Sale", b =>
                 {
                     b.HasOne("App.Models.Shop.CashRegister", "CashRegister")
@@ -4875,6 +5156,11 @@ namespace App.Models.Data.Migrations
                 });
 
             modelBuilder.Entity("App.Models.Shop.Quotation", b =>
+                {
+                    b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("App.Models.Shop.Remission", b =>
                 {
                     b.Navigation("Details");
                 });

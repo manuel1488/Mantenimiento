@@ -65,9 +65,17 @@
     <value>Subtotal</value>
     <comment>Subtotal column header</comment>
   </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Amount column header (gross total before discount)</comment>
+  </data>
   <data name="Discount" xml:space="preserve">
     <value>Discount</value>
     <comment>Discount column header</comment>
+  </data>
+  <data name="Tax Rate" xml:space="preserve">
+    <value>Tax Rate</value>
+    <comment>Tax rate column header</comment>
   </data>
   <data name="Tax" xml:space="preserve">
     <value>Tax</value>
@@ -84,6 +92,14 @@
   <data name="No branch" xml:space="preserve">
     <value>No branch</value>
     <comment>Displayed when sale has no branch assigned</comment>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+    <comment>Location filter label and column header</comment>
+  </data>
+  <data name="No location" xml:space="preserve">
+    <value>No location</value>
+    <comment>Displayed when sale has no location assigned</comment>
   </data>
   <data name="Actions" xml:space="preserve">
     <value>Actions</value>

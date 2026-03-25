@@ -237,6 +237,10 @@
                     Snackbar.Add(L["Error deleting customer"], Severity.Error);
                 }
             }
+            catch (InvalidOperationException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error deleting customer {CustomerId}", customer.Id);

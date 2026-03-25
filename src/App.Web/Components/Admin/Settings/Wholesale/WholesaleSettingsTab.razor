@@ -38,6 +38,20 @@
                 </MudRadioGroup>
             </MudItem>
 
+            <MudItem xs="12">
+                <MudDivider Class="my-4" />
+                <MudText Typo="Typo.h6" Class="mb-4">@L["Remissions"]</MudText>
+                <MudSwitch T="bool"
+                           Value="_model.ApplyWholesaleToRemissions"
+                           ValueChanged="@(v => _model.ApplyWholesaleToRemissions = v)"
+                           Label="@L["Apply wholesale discounts to remissions"]"
+                           Color="Color.Primary"
+                           ReadOnly="@(!_hasWriteAccess)" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @L["When enabled, wholesale discounts are automatically applied when creating remissions."]
+                </MudText>
+            </MudItem>
+
             <MudItem xs="12" Class="d-flex justify-end mt-8">
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <Authorized Context="contextWholesale">
@@ -91,7 +105,8 @@
             {
                 _model = new UpdateWholesaleSettingsDto
                 {
-                    PriceMode = result.Value.PriceMode
+                    PriceMode = result.Value.PriceMode,
+                    ApplyWholesaleToRemissions = result.Value.ApplyWholesaleToRemissions
                 };
             }
         }

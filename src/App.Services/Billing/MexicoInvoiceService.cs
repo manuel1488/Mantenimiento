@@ -37,6 +37,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private readonly ApplicationOptions _applicationOptions;
     private readonly IDateTime _dateTime;
     private readonly ICompanySettingsService _companySettingsService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<MexicoInvoiceService> _logger;
 
     private const string DefaultProductServiceCode = "01010101"; // No identificado
@@ -59,6 +60,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         IOptions<ApplicationOptions> applicationOptions,
         IDateTime dateTime,
         ICompanySettingsService companySettingsService,
+        ICurrentUserService currentUserService,
         ILogger<MexicoInvoiceService> logger)
     {
         _contextFactory = contextFactory;
@@ -75,6 +77,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         _applicationOptions = applicationOptions.Value;
         _dateTime = dateTime;
         _companySettingsService = companySettingsService;
+        _currentUserService = currentUserService;
         _logger = logger;
     }
 
@@ -143,9 +146,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 ExchangeRate = 1,
                 Status = "Draft",
                 IsStamped = false,
-                CreatedBy = "System",
+                CreatedBy = _currentUserService.UserId,
                 CreatedAt = _dateTime.Now,
-                ModifiedBy = "System",
+                ModifiedBy = _currentUserService.UserId,
                 ModifiedAt = _dateTime.Now
             };
 
@@ -208,6 +211,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 invoice.SelloCfdi = stamp.SelloCfdi;
                 invoice.CadenaOriginalSat = stamp.CadenaOriginalSat;
                 invoice.StampError = null;
+                invoice.ModifiedBy = _currentUserService.UserId;
                 invoice.ModifiedAt = _dateTime.Now;
 
                 // 11. Save stamped XML
@@ -217,9 +221,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     InvoiceId = invoice.Id,
                     FileType = "XML",
                     FileData = System.Text.Encoding.UTF8.GetBytes(stampedXml),
-                    CreatedBy = "System",
+                    CreatedBy = _currentUserService.UserId,
                     CreatedAt = _dateTime.Now,
-                    ModifiedBy = "System",
+                    ModifiedBy = _currentUserService.UserId,
                     ModifiedAt = _dateTime.Now
                 });
 
@@ -252,9 +256,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         InvoiceId = invoice.Id,
                         FileType = "PDF",
                         FileData = pdf,
-                        CreatedBy = "System",
+                        CreatedBy = _currentUserService.UserId,
                         CreatedAt = _dateTime.Now,
-                        ModifiedBy = "System",
+                        ModifiedBy = _currentUserService.UserId,
                         ModifiedAt = _dateTime.Now
                     });
                     await context.SaveChangesAsync();
@@ -296,6 +300,287 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         {
             _logger.LogError(ex, "Error creating invoice for sale {SaleId}", dto.SaleId);
             return Result<MexicoInvoiceDto>.Failure($"Error al crear la factura: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> RegeneratePdfAsync(long invoiceId)
+    {
+        try
+        {
+            _logger.LogInformation("Regenerating PDF for invoice {InvoiceId}", invoiceId);
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var invoice = await context.MexicoInvoices.FindAsync(invoiceId);
+
+            if (invoice == null)
+                return Result.Failure(_localizer["Invoice not found"]);
+
+            if (!invoice.IsStamped)
+                return Result.Failure(_localizer["Only stamped invoices can have PDF regenerated"]);
+
+            // Load sale with details for PDF data
+            var sale = await context.Sales
+                .Include(s => s.Customer)
+                .Include(s => s.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.MexicoProductService)
+                .FirstOrDefaultAsync(s => s.Id == invoice.SaleId);
+
+            if (sale == null)
+                return Result.Failure(_localizer["Sale not found"]);
+
+            // Remove existing PDF file if any
+            var existingPdf = await context.MexicoInvoiceFiles
+                .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "PDF");
+            if (existingPdf != null)
+            {
+                existingPdf.DeletedBy = _currentUserService.UserId;
+                existingPdf.DeletedAt = _dateTime.Now;
+                context.MexicoInvoiceFiles.Remove(existingPdf);
+            }
+
+            // Generate PDF
+            var folioDisplay = string.IsNullOrEmpty(invoice.Serie)
+                ? invoice.Folio.ToString()
+                : $"{invoice.Serie}{invoice.Folio}";
+            var pdfItems = sale.Details.Select(d => (object)new Dictionary<string, object>
+            {
+                { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
+                { "description", d.Product.Name },
+                { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                { "unit_price", d.UnitPrice.ToString("N2") },
+                { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
+                { "has_discount", (object)(d.DiscountAmount > 0) },
+                { "amount", d.Total.ToString("N2") }
+            }).ToList();
+            var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
+            var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+            var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
+                discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty);
+            var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
+            var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
+
+            context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
+            {
+                InvoiceId = invoice.Id,
+                FileType = "PDF",
+                FileData = pdf,
+                CreatedBy = _currentUserService.UserId,
+                CreatedAt = _dateTime.Now,
+                ModifiedBy = _currentUserService.UserId,
+                ModifiedAt = _dateTime.Now
+            });
+
+            await context.SaveChangesAsync();
+            _logger.LogInformation("PDF regenerated for invoice {InvoiceId}", invoiceId);
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error regenerating PDF for invoice {InvoiceId}", invoiceId);
+            return Result.Failure($"Error al regenerar el PDF: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<MexicoInvoiceDto>> RetryStampAsync(long invoiceId)
+    {
+        try
+        {
+            _logger.LogInformation("Retrying stamp for invoice {InvoiceId}", invoiceId);
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var invoice = await context.MexicoInvoices.FindAsync(invoiceId);
+
+            if (invoice == null)
+                return Result<MexicoInvoiceDto>.Failure(_localizer["Invoice not found"]);
+
+            if (invoice.Status != "StampError")
+                return Result<MexicoInvoiceDto>.Failure(_localizer["Only invoices with stamp errors can be retried"]);
+
+            // Load PAC settings
+            var pacSettings = await _pacSettingsService.GetAsync();
+            if (pacSettings == null || !pacSettings.IsConfigured)
+                return Result<MexicoInvoiceDto>.Failure(
+                    "La configuración fiscal (PAC/CSD) no está completa. Configure en Administración > Configuración Fiscal.");
+
+            // Load issuer data
+            var taxSettings = await _taxSettingsService.GetSettingsAsync();
+            if (taxSettings == null || string.IsNullOrEmpty(taxSettings.TaxId))
+                return Result<MexicoInvoiceDto>.Failure(
+                    "Los datos fiscales del emisor no están configurados. Configure en Administración > Configuración > Fiscal.");
+
+            // Load sale with details
+            var sale = await context.Sales
+                .Include(s => s.Customer)
+                .Include(s => s.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.MexicoProductService)
+                .Include(s => s.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.UnitMeasure)
+                            .ThenInclude(u => u.MexicoSatUnit)
+                .FirstOrDefaultAsync(s => s.Id == invoice.SaleId);
+
+            if (sale == null)
+                return Result<MexicoInvoiceDto>.Failure(_localizer["Sale not found"]);
+
+            // Remove old files (error XML) so they get replaced
+            var oldFiles = await context.MexicoInvoiceFiles
+                .Where(f => f.InvoiceId == invoiceId)
+                .ToListAsync();
+            foreach (var file in oldFiles)
+            {
+                file.DeletedBy = _currentUserService.UserId;
+                file.DeletedAt = _dateTime.Now;
+            }
+            context.MexicoInvoiceFiles.RemoveRange(oldFiles);
+
+            try
+            {
+                // Build Comprobante with fresh timestamp
+                TimeZoneInfo issuerTimeZone;
+                if (!string.IsNullOrEmpty(taxSettings.PostalCodeIanaTimeZoneId))
+                {
+                    issuerTimeZone = TimeZoneInfo.FindSystemTimeZoneById(taxSettings.PostalCodeIanaTimeZoneId);
+                }
+                else
+                {
+                    _logger.LogWarning("Postal code timezone not configured — falling back to company timezone for CFDI Fecha");
+                    issuerTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+                }
+                var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
+
+                var dto = new CreateMexicoInvoiceDto
+                {
+                    SaleId = invoice.SaleId,
+                    CustomerRfc = invoice.CustomerRfc,
+                    CustomerLegalName = invoice.CustomerLegalName,
+                    CustomerPostalCode = invoice.CustomerPostalCode,
+                    CustomerFiscalRegime = invoice.CustomerFiscalRegime,
+                    CfdiUse = invoice.CfdiUse,
+                    PaymentForm = invoice.PaymentForm,
+                    PaymentMethod = invoice.PaymentMethod
+                };
+
+                var serie = invoice.Serie ?? "A";
+                var folioLength = pacSettings.FolioLength;
+                var comprobante = BuildComprobante(invoice, sale, serie, invoice.Folio, folioLength, dto, issueDate);
+
+                // Generate XML
+                var xmlResult = await _xmlService.GenerateXmlAsync(comprobante);
+                if (!xmlResult.IsSuccess)
+                    return await MarkStampError(context, invoice, xmlResult.Error!);
+
+                // Load CSD and sign
+                var certResult = await _pacSettingsService.GetCsdCertificateBytesAsync();
+                var keyResult = await _pacSettingsService.GetCsdPrivateKeyBytesAsync();
+                var pwdResult = await _pacSettingsService.GetCsdPasswordAsync();
+
+                if (!certResult.IsSuccess) return await MarkStampError(context, invoice, certResult.Error!, xmlResult.Value);
+                if (!keyResult.IsSuccess) return await MarkStampError(context, invoice, keyResult.Error!, xmlResult.Value);
+                if (!pwdResult.IsSuccess) return await MarkStampError(context, invoice, pwdResult.Error!, xmlResult.Value);
+
+                var signedXmlResult = await _signingService.SignXmlAsync(
+                    xmlResult.Value!, certResult.Value!, keyResult.Value!, pwdResult.Value!);
+
+                if (!signedXmlResult.IsSuccess)
+                    return await MarkStampError(context, invoice, signedXmlResult.Error!, xmlResult.Value);
+
+                // Stamp with PAC
+                var stampResult = await _pacService.StampAsync(signedXmlResult.Value!);
+                if (!stampResult.IsSuccess)
+                    return await MarkStampError(context, invoice, stampResult.Error!, signedXmlResult.Value);
+
+                var stamp = stampResult.Value!;
+
+                // Update invoice with stamp data
+                invoice.Uuid = stamp.Uuid;
+                invoice.StampDate = _dateTime.Now;
+                invoice.IsStamped = true;
+                invoice.Status = "Stamped";
+                invoice.NoCertificadoSat = stamp.NoCertificadoSat;
+                invoice.NoCertificadoCfdi = stamp.NoCertificadoCfdi;
+                invoice.SelloSat = stamp.SelloSat;
+                invoice.SelloCfdi = stamp.SelloCfdi;
+                invoice.CadenaOriginalSat = stamp.CadenaOriginalSat;
+                invoice.StampError = null;
+                invoice.ModifiedBy = _currentUserService.UserId;
+                invoice.ModifiedAt = _dateTime.Now;
+
+                // Save stamped XML
+                var stampedXml = stamp.Cfdi ?? signedXmlResult.Value!;
+                context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
+                {
+                    InvoiceId = invoice.Id,
+                    FileType = "XML",
+                    FileData = Encoding.UTF8.GetBytes(stampedXml),
+                    CreatedBy = _currentUserService.UserId,
+                    CreatedAt = _dateTime.Now,
+                    ModifiedBy = _currentUserService.UserId,
+                    ModifiedAt = _dateTime.Now
+                });
+
+                await context.SaveChangesAsync();
+
+                // Generate PDF
+                try
+                {
+                    var folioDisplay = string.IsNullOrEmpty(invoice.Serie)
+                        ? invoice.Folio.ToString()
+                        : $"{invoice.Serie}{invoice.Folio}";
+                    var pdfItems = sale.Details.Select(d => (object)new Dictionary<string, object>
+                    {
+                        { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
+                        { "description", d.Product.Name },
+                        { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                        { "unit_price", d.UnitPrice.ToString("N2") },
+                        { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
+                        { "has_discount", (object)(d.DiscountAmount > 0) },
+                        { "amount", d.Total.ToString("N2") }
+                    }).ToList();
+                    var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
+                    var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+                    var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
+                        discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty);
+                    var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
+                    var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
+                    context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
+                    {
+                        InvoiceId = invoice.Id,
+                        FileType = "PDF",
+                        FileData = pdf,
+                        CreatedBy = _currentUserService.UserId,
+                        CreatedAt = _dateTime.Now,
+                        ModifiedBy = _currentUserService.UserId,
+                        ModifiedAt = _dateTime.Now
+                    });
+                    await context.SaveChangesAsync();
+                }
+                catch (Exception pdfEx)
+                {
+                    _logger.LogWarning(pdfEx, "PDF generation failed for invoice {InvoiceId} on retry, continuing", invoice.Id);
+                }
+
+                // Non-blocking stamp alert check
+                _ = Task.Run(() => _stampAlertService.CheckAndAlertIfNeededAsync());
+
+                var result = await BuildInvoiceDtoFromEntity(invoice);
+                result.HasXml = true;
+                _logger.LogInformation("Invoice {InvoiceId} retry stamped successfully. UUID: {Uuid}",
+                    invoice.Id, invoice.Uuid);
+
+                return Result<MexicoInvoiceDto>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                return await MarkStampError(context, invoice, ex.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrying stamp for invoice {InvoiceId}", invoiceId);
+            return Result<MexicoInvoiceDto>.Failure($"Error al retimbrar la factura: {ex.Message}");
         }
     }
 
@@ -463,7 +748,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 {
                     file.FileData = watermarkedPdf;
                     file.ModifiedAt = _dateTime.Now;
-                    file.ModifiedBy = "System";
+                    file.ModifiedBy = _currentUserService.UserId;
                     await context.SaveChangesAsync();
                     return Result<byte[]>.Success(watermarkedPdf);
                 }
@@ -704,7 +989,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             {
                 invoice.CancellationStatus = "Error";
                 invoice.ModifiedAt = _dateTime.Now;
-                invoice.ModifiedBy = "System";
+                invoice.ModifiedBy = _currentUserService.UserId;
                 await context.SaveChangesAsync();
                 return Result.Failure("La factura no tiene motivo de cancelación registrado");
             }
@@ -888,6 +1173,16 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         MexicoInvoice invoice, Sale sale, string serie, long folio, int folioLength, CreateMexicoInvoiceDto dto,
         DateTime issueDate)
     {
+        // Build conceptos first so we can derive SubTotal and Descuento from them.
+        // CFDI 4.0 requires SubTotal == sum(Concepto.Importe) and Descuento == sum(Concepto.Descuento).
+        // Using sale.Subtotal from the DB can cause CFDI40108 if it was rounded differently.
+        var conceptos = BuildConceptos(sale);
+        var impuestos = BuildImpuestos(sale);
+
+        var cfdiSubTotal = conceptos.Sum(c => c.Importe);
+        var cfdiDescuento = conceptos.Sum(c => c.Descuento);
+        var cfdiTotalImpuestos = impuestos?.TotalImpuestosTrasladados ?? 0m;
+        var cfdiTotal = cfdiSubTotal - cfdiDescuento + cfdiTotalImpuestos;
 
         var comprobante = new Comprobante
         {
@@ -899,9 +1194,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             FormaPago = dto.PaymentForm,
             NoCertificado = "",
             Certificado = "",
-            SubTotal = sale.Subtotal,
-            Descuento = sale.DiscountAmount,
-            Total = sale.Total,
+            SubTotal = cfdiSubTotal,
+            Descuento = cfdiDescuento,
+            Total = cfdiTotal,
             TipoDeComprobante = "I",
             Exportacion = "01",
             MetodoPago = dto.PaymentMethod,
@@ -920,8 +1215,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 RegimenFiscalReceptor = dto.CustomerFiscalRegime,
                 UsoCFDI = dto.CfdiUse
             },
-            Conceptos = BuildConceptos(sale),
-            Impuestos = BuildImpuestos(sale)
+            Conceptos = conceptos,
+            Impuestos = impuestos
         };
 
         return comprobante;
@@ -944,14 +1239,15 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Unidad = product.UnitMeasure?.Name,
                 Descripcion = product.Name,
                 ValorUnitario = detail.UnitPrice,
-                Importe = detail.Subtotal,
+                Importe = Math.Round(detail.Quantity * detail.UnitPrice, 2),
                 Descuento = detail.DiscountAmount,
                 ObjetoImp = product.IsTaxable ? "02" : "01"
             };
 
             if (product.IsTaxable && detail.TaxRate > 0)
             {
-                var taxBase = detail.Subtotal - detail.DiscountAmount;
+                var grossAmount = Math.Round(detail.Quantity * detail.UnitPrice, 2);
+                var taxBase = grossAmount - detail.DiscountAmount;
                 concepto.Impuestos = new ConceptoImpuestos
                 {
                     Traslados = new List<ConceptoTraslado>
@@ -962,7 +1258,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                             Impuesto = IvaCode,
                             TipoFactor = IvaFactorType,
                             TasaOCuota = detail.TaxRate,
-                            Importe = detail.TaxAmount
+                            Importe = Math.Round(taxBase * detail.TaxRate, 2)
                         }
                     }
                 };
@@ -974,8 +1270,6 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
     private Impuestos? BuildImpuestos(Sale sale)
     {
-        if (sale.TaxAmount == 0) return null;
-
         // Group taxable details
         var taxableDetails = sale.Details
             .Where(d => d.Product.IsTaxable && d.TaxRate > 0)
@@ -983,21 +1277,36 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
         if (!taxableDetails.Any()) return null;
 
-        // Group by tax rate
+        // Group by tax rate — derive all values from per-detail calculations.
+        // CFDI40215: Base must equal sum of per-concept bases.
+        // CFDI40216: Importe must equal sum of per-concept importes (NOT recalculated from base sum,
+        //            because Round(a*r) + Round(b*r) may differ from Round((a+b)*r)).
         var traslados = taxableDetails
             .GroupBy(d => d.TaxRate)
-            .Select(g => new Traslado
+            .Select(g =>
             {
-                Base = g.Sum(d => d.Subtotal - d.DiscountAmount),
-                Impuesto = IvaCode,
-                TipoFactor = IvaFactorType,
-                TasaOCuota = g.Key,
-                Importe = g.Sum(d => d.TaxAmount)
+                var baseSum = g.Sum(d => Math.Round(d.Quantity * d.UnitPrice, 2) - d.DiscountAmount);
+                var importeSum = g.Sum(d =>
+                {
+                    var taxBase = Math.Round(d.Quantity * d.UnitPrice, 2) - d.DiscountAmount;
+                    return Math.Round(taxBase * d.TaxRate, 2);
+                });
+                return new Traslado
+                {
+                    Base = baseSum,
+                    Impuesto = IvaCode,
+                    TipoFactor = IvaFactorType,
+                    TasaOCuota = g.Key,
+                    Importe = importeSum
+                };
             }).ToList();
+
+        var totalImpuestos = traslados.Sum(t => t.Importe);
+        if (totalImpuestos == 0) return null;
 
         return new Impuestos
         {
-            TotalImpuestosTrasladados = sale.TaxAmount,
+            TotalImpuestosTrasladados = totalImpuestos,
             Traslados = traslados
         };
     }
@@ -1007,6 +1316,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     {
         invoice.Status = "StampError";
         invoice.StampError = error;
+        invoice.ModifiedBy = _currentUserService.UserId;
         invoice.ModifiedAt = _dateTime.Now;
 
         if (!string.IsNullOrEmpty(xmlContent))
@@ -1016,9 +1326,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 InvoiceId = invoice.Id,
                 FileType = "XML",
                 FileData = System.Text.Encoding.UTF8.GetBytes(xmlContent),
-                CreatedBy = "System",
+                CreatedBy = _currentUserService.UserId,
                 CreatedAt = _dateTime.Now,
-                ModifiedBy = "System",
+                ModifiedBy = _currentUserService.UserId,
                 ModifiedAt = _dateTime.Now
             });
         }

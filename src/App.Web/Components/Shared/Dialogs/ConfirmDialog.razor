@@ -14,39 +14,39 @@
 
                 <!-- Título -->
                 <MudText Align="Align.Center" Typo="Typo.h6">
-                    @Title
+                    @TitleStr
                 </MudText>
 
                 <!-- Texto principal de confirmación -->
-                @if (!string.IsNullOrEmpty(ContentText))
+                @if (!string.IsNullOrEmpty(ContentTextStr))
                 {
                     <MudText Align="Align.Center">
-                        @ContentText
+                        @ContentTextStr
                     </MudText>
                 }
 
                 <!-- Elemento destacado (ej: nombre de usuario) -->
-                @if (!string.IsNullOrEmpty(HighlightedText))
+                @if (!string.IsNullOrEmpty(HighlightedTextStr))
                 {
-                    <MudPaper Elevation="0" 
-                             Class="pa-3 rounded-lg" 
+                    <MudPaper Elevation="0"
+                             Class="pa-3 rounded-lg"
                              Style="background-color: var(--mud-palette-background-grey); width: 100%;">
-                        <MudText Align="Align.Center" 
-                                Typo="Typo.h6" 
+                        <MudText Align="Align.Center"
+                                Typo="Typo.h6"
                                 Color="@Color">
-                            <strong>@HighlightedText</strong>
+                            <strong>@HighlightedTextStr</strong>
                         </MudText>
                     </MudPaper>
                 }
 
                 <!-- Mensaje de advertencia para acciones destructivas -->
-                @if (ShowWarning)
+                @if (ShowWarning || !string.IsNullOrEmpty(WarningTextStr))
                 {
-                    <MudAlert Severity="Severity.Warning" 
-                             Variant="Variant.Filled" 
+                    <MudAlert Severity="Severity.Warning"
+                             Variant="Variant.Filled"
                              Class="mt-2"
                              Style="width: 100%;">
-                        @WarningText
+                        @WarningTextStr
                     </MudAlert>
                 }
 
@@ -65,7 +65,7 @@
         <MudButton OnClick="HandleCancel" 
                    Variant="Variant.Outlined"
                    Class="da-button-rounded">
-            @(string.IsNullOrEmpty(CancelText) ? L["Cancel"] : CancelText)
+            @(string.IsNullOrEmpty(CancelTextStr) ? L["Cancel"] : CancelTextStr)
         </MudButton>
 
         <!-- Botón de Confirmación -->
@@ -74,7 +74,7 @@
                   Variant="Variant.Filled"
                   StartIcon="@ConfirmIcon"
                   Class="da-button-rounded">
-            @(string.IsNullOrEmpty(ConfirmText) ? L["Confirm"] : ConfirmText)
+            @(string.IsNullOrEmpty(ConfirmTextStr) ? L["Confirm"] : ConfirmTextStr)
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -82,13 +82,20 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
-    [Parameter] public string Title { get; set; } = string.Empty;
-    [Parameter] public string ContentText { get; set; } = string.Empty;
-    [Parameter] public string HighlightedText { get; set; } = string.Empty;
-    [Parameter] public string ConfirmText { get; set; } = string.Empty;
-    [Parameter] public string CancelText { get; set; } = string.Empty;
-    [Parameter] public string WarningText { get; set; } = string.Empty;
-    [Parameter] public bool ShowWarning { get; set; } = true;
+    [Parameter] public object? Title { get; set; }
+    [Parameter] public object? ContentText { get; set; }
+    [Parameter] public object? HighlightedText { get; set; }
+    [Parameter] public object? ConfirmText { get; set; }
+    [Parameter] public object? CancelText { get; set; }
+    [Parameter] public object? WarningText { get; set; }
+
+    private string TitleStr => Title?.ToString() ?? string.Empty;
+    private string ContentTextStr => ContentText?.ToString() ?? string.Empty;
+    private string HighlightedTextStr => HighlightedText?.ToString() ?? string.Empty;
+    private string ConfirmTextStr => ConfirmText?.ToString() ?? string.Empty;
+    private string CancelTextStr => CancelText?.ToString() ?? string.Empty;
+    private string WarningTextStr => WarningText?.ToString() ?? string.Empty;
+    [Parameter] public bool ShowWarning { get; set; } = false;
     [Parameter] public Color Color { get; set; } = Color.Error;
     [Parameter] public DialogType Type { get; set; } = DialogType.Delete;
     [Parameter] public RenderFragment? AdditionalContent { get; set; }

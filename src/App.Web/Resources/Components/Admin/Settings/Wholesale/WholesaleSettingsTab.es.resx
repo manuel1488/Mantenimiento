@@ -39,4 +39,13 @@
   <data name="Error saving settings" xml:space="preserve">
     <value>Error al guardar la configuración</value>
   </data>
+  <data name="Remissions" xml:space="preserve">
+    <value>Remisiones</value>
+  </data>
+  <data name="Apply wholesale discounts to remissions" xml:space="preserve">
+    <value>Aplicar descuentos de mayoreo a remisiones</value>
+  </data>
+  <data name="When enabled, wholesale discounts are automatically applied when creating remissions." xml:space="preserve">
+    <value>Al activar, los descuentos de mayoreo se aplican automáticamente al crear remisiones.</value>
+  </data>
 </root>

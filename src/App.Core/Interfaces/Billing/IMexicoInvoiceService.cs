@@ -50,6 +50,12 @@ public interface IMexicoInvoiceService
     /// </summary>
     Task<Result> RefreshCancellationStatusAsync(long invoiceId);
 
+    /// <summary>Retries stamping a failed invoice (StampError status) — rebuilds XML, signs, and re-submits to PAC.</summary>
+    Task<Result<MexicoInvoiceDto>> RetryStampAsync(long invoiceId);
+
+    /// <summary>Regenerates the PDF for a stamped invoice (e.g. when PDF generation failed during stamping).</summary>
+    Task<Result> RegeneratePdfAsync(long invoiceId);
+
     /// <summary>Returns the next folio number for the configured serie.</summary>
     Task<long> GetNextFolioAsync();
 

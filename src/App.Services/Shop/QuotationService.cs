@@ -30,6 +30,7 @@ public class QuotationService : IQuotationService
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IPdfService _pdfService;
     private readonly IPricingCalculationService _pricingService;
+    private readonly IDocumentSequenceService _documentSequenceService;
 
     public QuotationService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -43,7 +44,8 @@ public class QuotationService : IQuotationService
         IEmailService emailService,
         IEmailTemplateService emailTemplateService,
         IPdfService pdfService,
-        IPricingCalculationService pricingService)
+        IPricingCalculationService pricingService,
+        IDocumentSequenceService documentSequenceService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -57,6 +59,7 @@ public class QuotationService : IQuotationService
         _emailTemplateService = emailTemplateService;
         _pdfService = pdfService;
         _pricingService = pricingService;
+        _documentSequenceService = documentSequenceService;
     }
 
     public async Task<(int TotalCount, IList<QuotationDto> Items)> GetQuotationsAsync(
@@ -136,7 +139,7 @@ public class QuotationService : IQuotationService
             var countryCode = companySettings?.CountryCode ?? "MX";
             var taxRate = await _taxRateService.GetEffectiveRateAsync(countryCode);
 
-            var quotationNumber = await GenerateQuotationNumberAsync(context, now);
+            var quotationNumber = await _documentSequenceService.GetNextNumberAsync("Quotation", "COT", now.Year);
 
             var quotation = new Quotation
             {
@@ -171,15 +174,12 @@ public class QuotationService : IQuotationService
                 {
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
-                    DiscountPercentage = detailDto.DiscountPercentage
+                    DiscountPercentage = detailDto.DiscountPercentage,
+                    TaxRate = taxRate
                 });
 
-                // Round for persistence (CFDI)
-                var lineSubtotal = Math.Round(lineCalc.Subtotal, 2);
                 var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-                var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
-                var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
-                var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
+                var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -191,8 +191,8 @@ public class QuotationService : IQuotationService
                     DiscountPercentage = detailDto.DiscountPercentage,
                     DiscountAmount = lineDiscount,
                     TaxRate = taxRate,
-                    TaxAmount = lineTax,
-                    Subtotal = lineAfterDiscount,
+                    TaxAmount = lineCalc.TaxAmount,
+                    Subtotal = lineCalc.TaxBase,
                     Total = lineTotal,
                     CreatedBy = currentUser,
                     CreatedAt = now,
@@ -205,7 +205,9 @@ public class QuotationService : IQuotationService
                 {
                     Subtotal = lineCalc.Subtotal,
                     DiscountAmount = lineCalc.DiscountAmount,
-                    IsTaxable = true
+                    IsTaxable = true,
+                    TaxAmount = lineCalc.TaxAmount,
+                    TaxBase = lineCalc.TaxBase
                 });
             }
 
@@ -303,14 +305,12 @@ public class QuotationService : IQuotationService
                 {
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
-                    DiscountPercentage = detailDto.DiscountPercentage
+                    DiscountPercentage = detailDto.DiscountPercentage,
+                    TaxRate = taxRate
                 });
 
-                var lineSubtotal = Math.Round(lineCalc.Subtotal, 2);
                 var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-                var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
-                var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
-                var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
+                var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -322,8 +322,8 @@ public class QuotationService : IQuotationService
                     DiscountPercentage = detailDto.DiscountPercentage,
                     DiscountAmount = lineDiscount,
                     TaxRate = taxRate,
-                    TaxAmount = lineTax,
-                    Subtotal = lineAfterDiscount,
+                    TaxAmount = lineCalc.TaxAmount,
+                    Subtotal = lineCalc.TaxBase,
                     Total = lineTotal,
                     CreatedBy = currentUser,
                     CreatedAt = now,
@@ -336,7 +336,9 @@ public class QuotationService : IQuotationService
                 {
                     Subtotal = lineCalc.Subtotal,
                     DiscountAmount = lineCalc.DiscountAmount,
-                    IsTaxable = true
+                    IsTaxable = true,
+                    TaxAmount = lineCalc.TaxAmount,
+                    TaxBase = lineCalc.TaxBase
                 });
             }
 
@@ -589,13 +591,4 @@ public class QuotationService : IQuotationService
         return await _pdfService.GeneratePdfFromViewAsync("~/Views/Quotations/QuotationDocument.cshtml", model);
     }
 
-    private static async Task<string> GenerateQuotationNumberAsync(ApplicationDbContext context, DateTime date)
-    {
-        var year = date.Year;
-        var count = await context.Quotations
-            .Where(q => q.QuoteDate.Year == year)
-            .CountAsync();
-
-        return $"COT-{year}-{(count + 1):D4}";
-    }
 }

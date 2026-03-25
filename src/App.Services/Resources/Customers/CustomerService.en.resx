@@ -2,75 +2,78 @@
 <root>
   <!-- General Messages -->
   <data name="Customer not found" xml:space="preserve">
-    <value>Cliente no encontrado</value>
+    <value>Customer not found</value>
   </data>
   <data name="Customer not found with ID {0}" xml:space="preserve">
-    <value>Cliente no encontrado con ID {0}</value>
+    <value>Customer not found with ID {0}</value>
   </data>
   <data name="Customer with tax ID {0} already exists" xml:space="preserve">
-    <value>Ya existe un cliente con el ID fiscal {0}</value>
+    <value>Customer with tax ID {0} already exists</value>
   </data>
   <data name="Cannot delete customer because it has related records" xml:space="preserve">
-    <value>No se puede eliminar el cliente porque tiene registros relacionados</value>
+    <value>Cannot delete customer because it has related records</value>
+  </data>
+  <data name="Cannot delete the public general customer" xml:space="preserve">
+    <value>Cannot delete the public general customer</value>
   </data>
 
   <!-- Validation Messages -->
   <data name="Name is required" xml:space="preserve">
-    <value>El nombre es obligatorio</value>
+    <value>Name is required</value>
   </data>
   <data name="Name cannot exceed {0} characters" xml:space="preserve">
-    <value>El nombre no puede exceder los {0} caracteres</value>
+    <value>Name cannot exceed {0} characters</value>
   </data>
   <data name="Invalid email format" xml:space="preserve">
-    <value>Formato de correo electrónico inválido</value>
+    <value>Invalid email format</value>
   </data>
   <data name="Tax ID cannot exceed {0} characters" xml:space="preserve">
-    <value>El ID fiscal no puede exceder los {0} caracteres</value>
+    <value>Tax ID cannot exceed {0} characters</value>
   </data>
   <data name="Phone cannot exceed {0} characters" xml:space="preserve">
-    <value>El teléfono no puede exceder los {0} caracteres</value>
+    <value>Phone cannot exceed {0} characters</value>
   </data>
   <data name="Address cannot exceed {0} characters" xml:space="preserve">
-    <value>La dirección no puede exceder los {0} caracteres</value>
+    <value>Address cannot exceed {0} characters</value>
   </data>
   <data name="Postal code cannot exceed {0} characters" xml:space="preserve">
-    <value>El código postal no puede exceder los {0} caracteres</value>
+    <value>Postal code cannot exceed {0} characters</value>
   </data>
   <data name="Country code is required" xml:space="preserve">
-    <value>El código de país es obligatorio</value>
+    <value>Country code is required</value>
   </data>
   <data name="Invalid country code format" xml:space="preserve">
-    <value>Formato de código de país inválido</value>
+    <value>Invalid country code format</value>
   </data>
 
   <!-- Error Messages -->
   <data name="Error getting customers" xml:space="preserve">
-    <value>Error al obtener los clientes</value>
+    <value>Error getting customers</value>
   </data>
   <data name="Error getting customer by id" xml:space="preserve">
-    <value>Error al obtener el cliente por ID</value>
+    <value>Error getting customer by id</value>
   </data>
   <data name="Error getting customer by tax id" xml:space="preserve">
-    <value>Error al obtener el cliente por ID fiscal</value>
+    <value>Error getting customer by tax id</value>
   </data>
   <data name="Error creating customer" xml:space="preserve">
-    <value>Error al crear el cliente</value>
+    <value>Error creating customer</value>
   </data>
   <data name="Error updating customer" xml:space="preserve">
-    <value>Error al actualizar el cliente</value>
+    <value>Error updating customer</value>
   </data>
   <data name="Error deleting customer" xml:space="preserve">
-    <value>Error al eliminar el cliente</value>
+    <value>Error deleting customer</value>
   </data>
 
   <!-- Success Messages -->
   <data name="Customer created successfully" xml:space="preserve">
-    <value>Cliente creado exitosamente</value>
+    <value>Customer created successfully</value>
   </data>
   <data name="Customer updated successfully" xml:space="preserve">
-    <value>Cliente actualizado exitosamente</value>
+    <value>Customer updated successfully</value>
   </data>
   <data name="Customer deleted successfully" xml:space="preserve">
-    <value>Cliente eliminado exitosamente</value>
+    <value>Customer deleted successfully</value>
   </data>
 </root>

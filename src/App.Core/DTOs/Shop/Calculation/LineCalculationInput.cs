@@ -8,4 +8,7 @@ public class LineCalculationInput
     public decimal SurchargePercentage { get; set; }
     public bool HasCustomTotal { get; set; }
     public decimal? CustomTotal { get; set; }
+
+    /// <summary>Tax rate as decimal fraction (e.g. 0.16 for 16% IVA). Set to 0 for non-taxable.</summary>
+    public decimal TaxRate { get; set; }
 }
