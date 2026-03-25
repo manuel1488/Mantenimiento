@@ -231,13 +231,12 @@ public class RemissionService : IRemissionService
                     {
                         Quantity = detailDto.Quantity,
                         UnitPrice = detailDto.UnitPrice,
-                        DiscountPercentage = detailDto.DiscountPercentage
+                        DiscountPercentage = detailDto.DiscountPercentage,
+                        TaxRate = taxRate
                     });
 
                     var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-                    var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
-                    var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
-                    var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
+                    var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                     var detail = new RemissionDetail
                     {
@@ -249,8 +248,8 @@ public class RemissionService : IRemissionService
                         DiscountPercentage = detailDto.DiscountPercentage,
                         DiscountAmount = lineDiscount,
                         TaxRate = taxRate,
-                        TaxAmount = lineTax,
-                        Subtotal = lineAfterDiscount,
+                        TaxAmount = lineCalc.TaxAmount,
+                        Subtotal = lineCalc.TaxBase,
                         Total = lineTotal,
                         CreatedBy = currentUser,
                         CreatedAt = now,
@@ -263,7 +262,9 @@ public class RemissionService : IRemissionService
                     {
                         Subtotal = lineCalc.Subtotal,
                         DiscountAmount = lineCalc.DiscountAmount,
-                        IsTaxable = true
+                        IsTaxable = true,
+                        TaxAmount = lineCalc.TaxAmount,
+                        TaxBase = lineCalc.TaxBase
                     });
                 }
 

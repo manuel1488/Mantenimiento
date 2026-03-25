@@ -1241,20 +1241,21 @@ else
             DiscountPercentage = item.DiscountPercentage,
             SurchargePercentage = item.SurchargePercentage,
             HasCustomTotal = item.HasCustomTotal,
-            CustomTotal = item.HasCustomTotal ? item.Total : null
+            CustomTotal = item.HasCustomTotal ? item.Total : null,
+            TaxRate = item.IsTaxable ? _taxRate : 0
         });
 
         item.BasePriceBeforeSurcharge = lineCalc.BasePriceBeforeSurcharge;
         item.DiscountAmount = lineCalc.DiscountAmount;
         item.SurchargeAmount = lineCalc.SurchargeAmount;
+        item.TaxBase = lineCalc.TaxBase;
+        item.TaxAmount = lineCalc.TaxAmount;
 
         if (!item.HasCustomTotal)
         {
             item.Subtotal = lineCalc.Subtotal;
             item.Total = lineCalc.Total;
         }
-
-        item.TaxAmount = 0; // Tax computed at document level
 
         await UpdateTotalsAsync();
     }
@@ -1444,7 +1445,9 @@ else
         {
             Subtotal = i.Subtotal,
             DiscountAmount = i.DiscountAmount,
-            IsTaxable = i.IsTaxable
+            IsTaxable = i.IsTaxable,
+            TaxAmount = i.TaxAmount,
+            TaxBase = i.TaxBase
         }).ToList();
 
         var docCalc = await PricingService.CalculateDocumentAsync(new DocumentCalculationInput
@@ -1959,6 +1962,7 @@ else
         public decimal Subtotal { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TaxAmount { get; set; }
+        public decimal TaxBase { get; set; }
         public decimal Total { get; set; }
         public bool HasCustomTotal { get; set; } = false;
 

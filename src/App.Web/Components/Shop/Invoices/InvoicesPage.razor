@@ -212,6 +212,16 @@
                                                    OnClick="@(() => DownloadPdf(context.Id))" />
                                 </MudTooltip>
                             }
+                            else if (context.IsStamped)
+                            {
+                                <MudTooltip Text="@L["Generate PDF"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                                   Size="Size.Small"
+                                                   Color="Color.Warning"
+                                                   Disabled="_regeneratingPdf"
+                                                   OnClick="@(() => RegeneratePdf(context))" />
+                                </MudTooltip>
+                            }
 
                             <!-- Download Acuse (available when cancellation has been processed) -->
                             @if (context.HasCancellationAcuse)
@@ -222,6 +232,22 @@
                                                    Color="Color.Warning"
                                                    OnClick="@(() => DownloadAcuse(context))" />
                                 </MudTooltip>
+                            }
+
+                            <!-- Retry stamp (only for error invoices) -->
+                            @if (context.Status == "StampError")
+                            {
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.CreateInvoice" Context="retryAuth">
+                                    <Authorized Context="retryCtx">
+                                        <MudTooltip Text="@L["Retry Stamp"]">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                                           Size="Size.Small"
+                                                           Color="Color.Warning"
+                                                           Disabled="_retryingStamp"
+                                                           OnClick="@(() => RetryStamp(context))" />
+                                        </MudTooltip>
+                                    </Authorized>
+                                </AuthorizeView>
                             }
 
                             <!-- Cancel (only fully stamped) -->
@@ -411,6 +437,68 @@
         }
         await JS.InvokeVoidAsync("downloadFile", $"factura_{invoiceId}.pdf", "application/pdf",
             Convert.ToBase64String(result.Value!));
+    }
+
+    private bool _regeneratingPdf;
+
+    private async Task RegeneratePdf(MexicoInvoiceSummaryDto invoice)
+    {
+        _regeneratingPdf = true;
+        try
+        {
+            var result = await InvoiceService.RegeneratePdfAsync(invoice.Id);
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(L["PDF generated successfully"], Severity.Success);
+                await _table.ReloadServerData();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error regenerating PDF for invoice {InvoiceId}", invoice.Id);
+            Snackbar.Add(L["Error generating PDF"], Severity.Error);
+        }
+        finally
+        {
+            _regeneratingPdf = false;
+        }
+    }
+
+    private bool _retryingStamp;
+
+    private async Task RetryStamp(MexicoInvoiceSummaryDto invoice)
+    {
+        _retryingStamp = true;
+        try
+        {
+            var result = await InvoiceService.RetryStampAsync(invoice.Id);
+            if (result.IsSuccess && result.Value?.Status == "Stamped")
+            {
+                Snackbar.Add(L["Invoice stamped successfully"], Severity.Success);
+            }
+            else if (result.IsSuccess && result.Value?.Status == "StampError")
+            {
+                Snackbar.Add($"{L["Stamp error"]}: {result.Value.StampError}", Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+            await _table.ReloadServerData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error retrying stamp for invoice {InvoiceId}", invoice.Id);
+            Snackbar.Add(L["Error retrying stamp"], Severity.Error);
+        }
+        finally
+        {
+            _retryingStamp = false;
+        }
     }
 
     private string _cancelReason = "02";

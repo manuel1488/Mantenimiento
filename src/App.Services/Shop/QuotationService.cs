@@ -174,15 +174,12 @@ public class QuotationService : IQuotationService
                 {
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
-                    DiscountPercentage = detailDto.DiscountPercentage
+                    DiscountPercentage = detailDto.DiscountPercentage,
+                    TaxRate = taxRate
                 });
 
-                // Round for persistence (CFDI)
-                var lineSubtotal = Math.Round(lineCalc.Subtotal, 2);
                 var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-                var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
-                var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
-                var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
+                var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -194,8 +191,8 @@ public class QuotationService : IQuotationService
                     DiscountPercentage = detailDto.DiscountPercentage,
                     DiscountAmount = lineDiscount,
                     TaxRate = taxRate,
-                    TaxAmount = lineTax,
-                    Subtotal = lineAfterDiscount,
+                    TaxAmount = lineCalc.TaxAmount,
+                    Subtotal = lineCalc.TaxBase,
                     Total = lineTotal,
                     CreatedBy = currentUser,
                     CreatedAt = now,
@@ -208,7 +205,9 @@ public class QuotationService : IQuotationService
                 {
                     Subtotal = lineCalc.Subtotal,
                     DiscountAmount = lineCalc.DiscountAmount,
-                    IsTaxable = true
+                    IsTaxable = true,
+                    TaxAmount = lineCalc.TaxAmount,
+                    TaxBase = lineCalc.TaxBase
                 });
             }
 
@@ -306,14 +305,12 @@ public class QuotationService : IQuotationService
                 {
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
-                    DiscountPercentage = detailDto.DiscountPercentage
+                    DiscountPercentage = detailDto.DiscountPercentage,
+                    TaxRate = taxRate
                 });
 
-                var lineSubtotal = Math.Round(lineCalc.Subtotal, 2);
                 var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-                var lineAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
-                var lineTax = Math.Round(lineAfterDiscount * taxRate, 2);
-                var lineTotal = Math.Round(lineAfterDiscount + lineTax, 2);
+                var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new QuotationDetail
                 {
@@ -325,8 +322,8 @@ public class QuotationService : IQuotationService
                     DiscountPercentage = detailDto.DiscountPercentage,
                     DiscountAmount = lineDiscount,
                     TaxRate = taxRate,
-                    TaxAmount = lineTax,
-                    Subtotal = lineAfterDiscount,
+                    TaxAmount = lineCalc.TaxAmount,
+                    Subtotal = lineCalc.TaxBase,
                     Total = lineTotal,
                     CreatedBy = currentUser,
                     CreatedAt = now,
@@ -339,7 +336,9 @@ public class QuotationService : IQuotationService
                 {
                     Subtotal = lineCalc.Subtotal,
                     DiscountAmount = lineCalc.DiscountAmount,
-                    IsTaxable = true
+                    IsTaxable = true,
+                    TaxAmount = lineCalc.TaxAmount,
+                    TaxBase = lineCalc.TaxBase
                 });
             }
 

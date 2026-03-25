@@ -159,4 +159,25 @@
   <data name="Invoice Past Sale" xml:space="preserve">
     <value>Invoice Past Sale</value>
   </data>
+  <data name="Retry Stamp" xml:space="preserve">
+    <value>Retry Stamp</value>
+  </data>
+  <data name="Invoice stamped successfully" xml:space="preserve">
+    <value>Invoice stamped successfully</value>
+  </data>
+  <data name="Error retrying stamp" xml:space="preserve">
+    <value>Error retrying stamp</value>
+  </data>
+  <data name="Stamp error" xml:space="preserve">
+    <value>Stamp error</value>
+  </data>
+  <data name="Generate PDF" xml:space="preserve">
+    <value>Generate PDF</value>
+  </data>
+  <data name="PDF generated successfully" xml:space="preserve">
+    <value>PDF generated successfully</value>
+  </data>
+  <data name="Error generating PDF" xml:space="preserve">
+    <value>Error generating PDF</value>
+  </data>
 </root>

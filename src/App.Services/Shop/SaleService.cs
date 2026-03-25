@@ -745,15 +745,14 @@ public class SaleService : ISaleService
                     Quantity = detailDto.Quantity,
                     UnitPrice = effectiveUnitPrice,
                     DiscountPercentage = detailDto.DiscountPercentage,
-                    SurchargePercentage = surchargePercentage
+                    SurchargePercentage = surchargePercentage,
+                    TaxRate = taxRate
                 });
 
-                // Round for CFDI persistence
+                // Use centralized CFDI-compliant rounded values
                 var detailSubtotal = Math.Round(lineCalc.Subtotal, 2);
                 var detailDiscountAmount = Math.Round(lineCalc.DiscountAmount, 2);
-                var detailAfterDiscount = Math.Round(lineCalc.BasePriceBeforeSurcharge - lineCalc.DiscountAmount, 2);
-                var detailTaxAmount = Math.Round(detailAfterDiscount * taxRate, 2);
-                var detailTotal = Math.Round(detailAfterDiscount + detailTaxAmount, 2);
+                var detailTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new SaleDetail
                 {
@@ -763,7 +762,7 @@ public class SaleService : ISaleService
                     DiscountPercentage = detailDto.DiscountPercentage,
                     DiscountAmount = detailDiscountAmount,
                     TaxRate = taxRate,
-                    TaxAmount = detailTaxAmount,
+                    TaxAmount = lineCalc.TaxAmount,
                     Subtotal = detailSubtotal,
                     Total = detailTotal,
                     PartialSaleFractionId = partialSaleFractionId,
@@ -781,7 +780,9 @@ public class SaleService : ISaleService
                 {
                     Subtotal = lineCalc.Subtotal,
                     DiscountAmount = lineCalc.DiscountAmount,
-                    IsTaxable = product.IsTaxable
+                    IsTaxable = product.IsTaxable,
+                    TaxAmount = lineCalc.TaxAmount,
+                    TaxBase = lineCalc.TaxBase
                 });
             }
 

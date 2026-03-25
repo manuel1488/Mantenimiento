@@ -109,10 +109,18 @@ public class PricingCalculationServiceTests
     public async Task CalculateDocument_SubtotalIsGross_MatchesSumOfLineGrossAmounts()
     {
         // CFDI rule: Comprobante.SubTotal = Σ Concepto.Importe (gross amounts)
+        // Use CalculateLine to get proper per-line tax values
+        var line1 = _service.CalculateLine(new LineCalculationInput
+            { Quantity = 6m, UnitPrice = 12.93m, DiscountPercentage = 10m, TaxRate = 0.16m });
+        var line2 = _service.CalculateLine(new LineCalculationInput
+            { Quantity = 1m, UnitPrice = 45.00m, DiscountPercentage = 0m, TaxRate = 0.16m });
+
         var lines = new List<DocumentLineInput>
         {
-            new() { Subtotal = 69.822m, DiscountAmount = 7.758m, IsTaxable = true },  // gross = 77.58
-            new() { Subtotal = 45.00m, DiscountAmount = 0m, IsTaxable = true }          // gross = 45.00
+            new() { Subtotal = line1.Subtotal, DiscountAmount = line1.DiscountAmount, IsTaxable = true,
+                     TaxAmount = line1.TaxAmount, TaxBase = line1.TaxBase },
+            new() { Subtotal = line2.Subtotal, DiscountAmount = line2.DiscountAmount, IsTaxable = true,
+                     TaxAmount = line2.TaxAmount, TaxBase = line2.TaxBase }
         };
 
         var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
@@ -120,22 +128,25 @@ public class PricingCalculationServiceTests
             Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = false
         });
 
-        // DocumentCalculationResult.Subtotal should be gross (sum of line subtotals + discounts)
-        Assert.That(result.Subtotal, Is.EqualTo(Math.Round(77.58m + 45.00m, 2)),
-            "Document Subtotal should be sum of gross amounts (net + discount per line)");
+        Assert.That(result.Subtotal, Is.EqualTo(line1.GrossAmount + line2.GrossAmount),
+            "Document Subtotal should be sum of gross amounts");
+        Assert.That(result.TaxAmount, Is.EqualTo(line1.TaxAmount + line2.TaxAmount),
+            "Document TaxAmount should be sum of per-line tax amounts");
     }
 
     [Test]
     public async Task CalculateDocument_SingleLineWithDiscount_CfdiValuesAreConsistent()
     {
         // Reproduce the exact bug scenario: 6 × $12.93 with ~6.65% discount
-        var gross = 6m * 12.93m;  // 77.58
-        var discount = 5.16m;
-        var net = gross - discount; // 72.42
+        var lineCalc = _service.CalculateLine(new LineCalculationInput
+        {
+            Quantity = 6m, UnitPrice = 12.93m, DiscountPercentage = 6.649616m, TaxRate = 0.16m
+        });
 
         var lines = new List<DocumentLineInput>
         {
-            new() { Subtotal = net, DiscountAmount = discount, IsTaxable = true }
+            new() { Subtotal = lineCalc.Subtotal, DiscountAmount = lineCalc.DiscountAmount, IsTaxable = true,
+                     TaxAmount = lineCalc.TaxAmount, TaxBase = lineCalc.TaxBase }
         };
 
         var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
@@ -143,14 +154,14 @@ public class PricingCalculationServiceTests
             Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = false
         });
 
-        // CFDI validation: SubTotal = Σ Importe = Σ (Subtotal + DiscountAmount) per line
-        Assert.That(result.Subtotal, Is.EqualTo(gross), "SubTotal must equal gross (72.42 + 5.16 = 77.58)");
-        Assert.That(result.ItemDiscountAmount, Is.EqualTo(discount), "Discount must be 5.16");
+        // CFDI validation: SubTotal = Σ Importe (gross)
+        Assert.That(result.Subtotal, Is.EqualTo(lineCalc.GrossAmount), "SubTotal must equal gross");
+        Assert.That(result.ItemDiscountAmount, Is.EqualTo(Math.Round(lineCalc.DiscountAmount, 2)), "Discount");
 
-        var expectedTax = Math.Round((gross - discount) * 0.16m, 2); // 72.42 × 0.16 = 11.59
-        Assert.That(result.TaxAmount, Is.EqualTo(expectedTax), "Tax = (gross - discount) × 16%");
+        // Tax must match centralized per-line calculation
+        Assert.That(result.TaxAmount, Is.EqualTo(lineCalc.TaxAmount), "Tax must come from centralized calculation");
 
-        var expectedTotal = gross - discount + expectedTax; // 77.58 - 5.16 + 11.59 = 84.01
+        var expectedTotal = lineCalc.GrossAmount - Math.Round(lineCalc.DiscountAmount, 2) + lineCalc.TaxAmount;
         Assert.That(result.Total, Is.EqualTo(expectedTotal), "Total = SubTotal - Descuento + IVA");
     }
 
@@ -216,6 +227,110 @@ public class PricingCalculationServiceTests
 
         // Key invariant: Importe - Descuento = Base (no double discounting)
         Assert.That(cfdiImporte - cfdiDescuento, Is.EqualTo(cfdiBase), "Importe - Descuento must equal Base");
+    }
+
+    #endregion
+
+    #region Tax validation — fail fast when tax data is missing
+
+    [Test]
+    public void CalculateDocument_WhenTaxAmountNotProvided_ThrowsInvalidOperation()
+    {
+        // This is the exact bug: UI passes DocumentLineInput WITHOUT TaxAmount/TaxBase.
+        // Instead of silently returning $0 tax, we fail fast.
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = 7.00m, DiscountAmount = 0m, IsTaxable = true }
+            // TaxAmount = 0, TaxBase = 0 — missing!
+        };
+
+        var input = new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = false
+        };
+
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.CalculateDocumentAsync(input));
+        Assert.That(ex!.Message, Does.Contain("TaxAmount=0"),
+            "Error message should indicate missing tax data");
+    }
+
+    [Test]
+    public async Task CalculateDocument_WhenTaxAmountProvided_UsesProvidedValue()
+    {
+        var lineCalc = _service.CalculateLine(new LineCalculationInput
+        {
+            Quantity = 1m, UnitPrice = 7.00m, DiscountPercentage = 0, TaxRate = 0.16m
+        });
+
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = lineCalc.Subtotal, DiscountAmount = 0m, IsTaxable = true,
+                     TaxAmount = lineCalc.TaxAmount, TaxBase = lineCalc.TaxBase }
+        };
+
+        var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = false
+        });
+
+        Assert.That(result.TaxAmount, Is.EqualTo(lineCalc.TaxAmount),
+            "When TaxAmount is provided, it should be used directly");
+    }
+
+    [Test]
+    public void CalculateDocument_MixedTaxableAndExempt_WithoutTaxOnTaxable_Throws()
+    {
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = 100.00m, DiscountAmount = 0m, IsTaxable = true },  // missing tax!
+            new() { Subtotal = 50.00m, DiscountAmount = 0m, IsTaxable = false }    // exempt, no tax needed
+        };
+
+        var input = new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = false
+        };
+
+        Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.CalculateDocumentAsync(input),
+            "Should throw when taxable line is missing tax data");
+    }
+
+    [Test]
+    public async Task CalculateDocument_NonTaxableLines_WithoutTaxAmount_DoesNotThrow()
+    {
+        // Non-taxable lines don't need TaxAmount — should NOT throw
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = 50.00m, DiscountAmount = 0m, IsTaxable = false }
+        };
+
+        var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = false
+        });
+
+        Assert.That(result.TaxAmount, Is.EqualTo(0m), "Non-taxable lines should have $0 tax");
+        Assert.That(result.Total, Is.EqualTo(50.00m));
+    }
+
+    [Test]
+    public async Task CalculateDocument_ZeroTaxRate_WithoutTaxAmount_DoesNotThrow()
+    {
+        // When TaxRate is 0 (no tax configured), missing TaxAmount is fine
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = 100.00m, DiscountAmount = 0m, IsTaxable = true }
+        };
+
+        var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0m, ApplyRounding = false
+        });
+
+        Assert.That(result.TaxAmount, Is.EqualTo(0m));
+        Assert.That(result.Total, Is.EqualTo(100.00m));
     }
 
     #endregion
