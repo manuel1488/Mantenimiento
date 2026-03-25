@@ -5,6 +5,9 @@
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Shop
 @using App.Core.Constants
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 @inject IProductService ProductService
 @inject IInventoryQueryService InventoryQueryService

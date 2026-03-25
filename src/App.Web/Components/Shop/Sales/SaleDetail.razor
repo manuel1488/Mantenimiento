@@ -4,6 +4,9 @@
 @using App.Core.Interfaces.Shop
 @using App.Core.Constants
 @using App.Web.Components.Shared.Dialogs
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 @inject ISaleService SaleService
 @inject IStringLocalizer<SaleDetail> L
