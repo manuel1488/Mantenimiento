@@ -1,6 +1,8 @@
 ﻿@page "/shop/sales/{Id:long}"
 @using App.Core.DTOs.Shop
+@using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces
+@using App.Core.Interfaces.Billing
 @using App.Core.Interfaces.Shop
 @using App.Core.Constants
 @using App.Web.Components.Shared.Dialogs
@@ -9,6 +11,8 @@
 @attribute [Authorize]
 
 @inject ISaleService SaleService
+@inject ICustomerService CustomerService
+@inject IMexicoInvoiceService InvoiceService
 @inject IStringLocalizer<SaleDetail> L
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -55,7 +59,7 @@
                             <MudButton Variant="Variant.Outlined"
                                     StartIcon="@Icons.Material.Filled.ArrowBack"
                                     Class="da-button-rounded"
-                                    OnClick="@(() => Navigation.NavigateTo("/shop/sales"))">
+                                    OnClick="@(() => Navigation.NavigateTo("/shop/sales-history"))">
                                 @L["Back to List"]
                             </MudButton>
                         </MudStack>
@@ -90,13 +94,37 @@
                                         @(string.Join(", ", _sale.Payments.Select(p => p.PaymentMethodName)))
                                     </MudText>
                                 </MudListItem>
-                                
-                                @if (_sale.DiscountPercentage > 0)
+
+                                <MudListItem>
+                                    <MudText Typo="Typo.body2">
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Invoice"]: </MudText>
+                                        @if (_invoice != null && _invoice.IsStamped)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">
+                                                @L["Invoiced"] — @_invoice.FolioDisplay
+                                            </MudChip>
+                                        }
+                                        else if (_invoice != null && !string.IsNullOrEmpty(_invoice.StampError))
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error">
+                                                @L["Stamp Error"]
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default" Icon="@Icons.Material.Filled.RemoveCircleOutline">
+                                                @L["Not Invoiced"]
+                                            </MudChip>
+                                        }
+                                    </MudText>
+                                </MudListItem>
+
+                                @if (_sale.DiscountAmount > 0)
                                 {
                                     <MudListItem>
                                         <MudText Typo="Typo.body2">
                                             <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Discount"]: </MudText>
-                                            @_sale.DiscountPercentage.ToString("0.##")% (@_sale.DiscountAmount.ToString("C"))
+                                            @_sale.DiscountAmount.ToString("C")
                                         </MudText>
                                     </MudListItem>
                                     
@@ -118,16 +146,89 @@
                     <MudItem xs="12" md="6">
                         <MudPaper Elevation="0" Class="pa-4">
                             <MudText Typo="Typo.h6" Class="mb-4">@L["Customer Information"]</MudText>
-                            
-                            <MudList T="SaleDto">
+
+                            <MudList T="string" Dense="true">
                                 <MudListItem>
                                     <MudText Typo="Typo.body2">
-                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Customer"]: </MudText>
+                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Name"]: </MudText>
                                         <MudLink Href="@($"/customers/{_sale.CustomerId}")">
                                             @_sale.CustomerName
                                         </MudLink>
                                     </MudText>
                                 </MudListItem>
+
+                                @if (_customer != null)
+                                {
+                                    @if (!string.IsNullOrEmpty(_customer.Email))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Email"]: </MudText>
+                                                @_customer.Email
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(_customer.Phone))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Phone"]: </MudText>
+                                                @_customer.Phone
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(_customer.TaxId))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Tax ID (RFC)"]: </MudText>
+                                                @_customer.TaxId
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(_customer.LegalName))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Legal Name"]: </MudText>
+                                                @_customer.LegalName
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(_customer.FiscalRegime))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Fiscal Regime"]: </MudText>
+                                                @_customer.FiscalRegime
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(_customer.PostalCode))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Postal Code"]: </MudText>
+                                                @_customer.PostalCode
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(BuildAddress(_customer)))
+                                    {
+                                        <MudListItem>
+                                            <MudText Typo="Typo.body2">
+                                                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Address"]: </MudText>
+                                                @BuildAddress(_customer)
+                                            </MudText>
+                                        </MudListItem>
+                                    }
+                                }
                             </MudList>
                         </MudPaper>
                     </MudItem>
@@ -143,7 +244,9 @@
                                     <MudTh>@L["Unit Price"]</MudTh>
                                     <MudTh>@L["Price Type"]</MudTh>
                                     <MudTh>@L["Quantity"]</MudTh>
+                                    <MudTh>@L["Amount"]</MudTh>
                                     <MudTh>@L["Discount"]</MudTh>
+                                    <MudTh>@L["Tax Rate"]</MudTh>
                                     <MudTh>@L["Tax"]</MudTh>
                                     <MudTh>@L["Subtotal"]</MudTh>
                                     <MudTh>@L["Total"]</MudTh>
@@ -167,17 +270,19 @@
                                         }
                                     </MudTd>
                                     <MudTd DataLabel="@L["Quantity"]">@contextItem.Quantity</MudTd>
+                                    <MudTd DataLabel="@L["Amount"]">@((contextItem.Quantity * contextItem.UnitPrice).ToString("C"))</MudTd>
                                     <MudTd DataLabel="@L["Discount"]">
-                                        @if (contextItem.DiscountPercentage > 0)
+                                        @if (contextItem.DiscountAmount > 0)
                                         {
-                                            <text>@contextItem.DiscountPercentage.ToString("0.##")% (@contextItem.DiscountAmount.ToString("C"))</text>
+                                            <text>@contextItem.DiscountAmount.ToString("C")</text>
                                         }
                                         else
                                         {
                                             <span>-</span>
                                         }
                                     </MudTd>
-                                    <MudTd DataLabel="@L["Tax"]">@((contextItem.TaxRate * 100).ToString("0.##"))% (@contextItem.TaxAmount.ToString("C"))</MudTd>
+                                    <MudTd DataLabel="@L["Tax Rate"]">@((contextItem.TaxRate * 100).ToString("0.##"))%</MudTd>
+                                    <MudTd DataLabel="@L["Tax"]">@contextItem.TaxAmount.ToString("C")</MudTd>
                                     <MudTd DataLabel="@L["Subtotal"]">@contextItem.Subtotal.ToString("C")</MudTd>
                                     <MudTd DataLabel="@L["Total"]">@contextItem.Total.ToString("C")</MudTd>
                                 </RowTemplate>
@@ -269,6 +374,8 @@
 @code {
     [Parameter] public long Id { get; set; }
     private SaleDto? _sale;
+    private App.Core.DTOs.Customer.CustomerDto? _customer;
+    private MexicoInvoiceDto? _invoice;
     private TimeZoneInfo? _companyTimeZone;
     private bool _loading = true;
     private string _cancellationReason = "";
@@ -276,7 +383,7 @@
     protected override async Task OnInitializedAsync()
     {
         _companyTimeZone = await SettingsService.GetCurrentTimeZoneAsync();
-        await LoadSale();        
+        await LoadSale();
     }
 
     private async Task LoadSale()
@@ -285,6 +392,11 @@
         {
             _loading = true;
             _sale = await SaleService.GetSaleByIdAsync(Id);
+            if (_sale != null)
+            {
+                _customer = await CustomerService.GetCustomerByIdAsync(_sale.CustomerId);
+                _invoice = await InvoiceService.GetBySaleIdAsync(_sale.Id);
+            }
         }
         catch (Exception ex)
         {
@@ -295,6 +407,24 @@
         {
             _loading = false;
         }
+    }
+
+    private string BuildAddress(App.Core.DTOs.Customer.CustomerDto customer)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(customer.Street))
+        {
+            var street = customer.Street;
+            if (!string.IsNullOrEmpty(customer.ExteriorNumber))
+                street += $" #{customer.ExteriorNumber}";
+            if (!string.IsNullOrEmpty(customer.InteriorNumber))
+                street += $" Int. {customer.InteriorNumber}";
+            parts.Add(street);
+        }
+        if (!string.IsNullOrEmpty(customer.Neighborhood)) parts.Add(customer.Neighborhood);
+        if (!string.IsNullOrEmpty(customer.City)) parts.Add(customer.City);
+        if (!string.IsNullOrEmpty(customer.State)) parts.Add(customer.State);
+        return string.Join(", ", parts);
     }
 
     private async Task OpenCancelDialog()

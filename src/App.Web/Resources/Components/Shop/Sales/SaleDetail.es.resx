@@ -56,6 +56,48 @@
     <value>Cliente</value>
     <comment>Etiqueta para el nombre del cliente</comment>
   </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Tax ID (RFC)" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Razón Social</value>
+  </data>
+  <data name="Fiscal Regime" xml:space="preserve">
+    <value>Régimen Fiscal</value>
+  </data>
+  <data name="Postal Code" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Tax Rate" xml:space="preserve">
+    <value>Tasa de Impuesto</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Importe</value>
+  </data>
+  <data name="Invoice" xml:space="preserve">
+    <value>Factura</value>
+  </data>
+  <data name="Invoiced" xml:space="preserve">
+    <value>Facturada</value>
+  </data>
+  <data name="Not Invoiced" xml:space="preserve">
+    <value>Sin Facturar</value>
+  </data>
+  <data name="Stamp Error" xml:space="preserve">
+    <value>Error de Timbrado</value>
+  </data>
   <data name="Items" xml:space="preserve">
     <value>Artículos</value>
     <comment>Encabezado de sección para artículos/productos de la venta</comment>

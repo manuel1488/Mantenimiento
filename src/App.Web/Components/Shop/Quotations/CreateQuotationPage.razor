@@ -344,18 +344,21 @@
             {
                 Quantity = line.Quantity,
                 UnitPrice = line.UnitPrice,
-                DiscountPercentage = line.DiscountPercentage
+                DiscountPercentage = line.DiscountPercentage,
+                TaxRate = _taxRate
             });
 
             line.LineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-            line.LineTax = Math.Round(lineCalc.Subtotal * _taxRate, 2);
+            line.LineTax = lineCalc.TaxAmount;
             line.LineTotal = Math.Round(lineCalc.Subtotal + line.LineTax, 2);
 
             documentLines.Add(new DocumentLineInput
             {
                 Subtotal = lineCalc.Subtotal,
                 DiscountAmount = lineCalc.DiscountAmount,
-                IsTaxable = true
+                IsTaxable = true,
+                TaxBase = lineCalc.TaxBase,
+                TaxAmount = lineCalc.TaxAmount
             });
         }
 
