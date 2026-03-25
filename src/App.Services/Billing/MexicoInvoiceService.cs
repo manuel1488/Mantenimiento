@@ -44,6 +44,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private const string DefaultUnitCode = "H87"; // Pieza (SAT standard)
     private const string IvaCode = "002";
     private const string IvaFactorType = "Tasa";
+    private const string RoundingProductServiceCode = "84111506"; // Servicios de facturación
+    private const string RoundingUnitCode = "ACT"; // Actividad
+    private const string RoundingDescription = "Ajuste por redondeo";
 
     public MexicoInvoiceService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -172,6 +175,11 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 }
                 var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
                 var comprobante = BuildComprobante(invoice, sale, serie, folio, folioLength, dto, issueDate);
+
+                // Update invoice record with CFDI-computed totals (may include rounding concepto)
+                invoice.Subtotal = comprobante.SubTotal;
+                invoice.TaxAmount = comprobante.Impuestos?.TotalImpuestosTrasladados ?? 0;
+                invoice.Total = comprobante.Total;
 
                 // 7. Generate XML
                 var xmlResult = await _xmlService.GenerateXmlAsync(comprobante);
@@ -1174,15 +1182,45 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         DateTime issueDate)
     {
         // Build conceptos first so we can derive SubTotal and Descuento from them.
-        // CFDI 4.0 requires SubTotal == sum(Concepto.Importe) and Descuento == sum(Concepto.Descuento).
-        // Using sale.Subtotal from the DB can cause CFDI40108 if it was rounded differently.
+        // Line-level amounts use 6-decimal precision; document-level totals round to 2.
         var conceptos = BuildConceptos(sale);
-        var impuestos = BuildImpuestos(sale);
 
-        var cfdiSubTotal = conceptos.Sum(c => c.Importe);
-        var cfdiDescuento = conceptos.Sum(c => c.Descuento);
+        // Check if a rounding adjustment is needed to match the sale total.
+        // This bridges precision differences (6-dec POS vs CFDI rounding) and POS rounding.
+        var impuestos = BuildImpuestosFromConceptos(conceptos);
+        var cfdiSubTotal = Math.Round(conceptos.Sum(c => c.Importe), 2);
+        var cfdiDescuento = Math.Round(conceptos.Sum(c => c.Descuento), 2);
         var cfdiTotalImpuestos = impuestos?.TotalImpuestosTrasladados ?? 0m;
         var cfdiTotal = cfdiSubTotal - cfdiDescuento + cfdiTotalImpuestos;
+
+        var adjustment = sale.Total - cfdiTotal;
+        if (adjustment > 0)
+        {
+            // Add a non-taxable "Redondeo" concepto to bridge the gap.
+            // ObjetoImp="01" means no tax — avoids cascading tax base changes.
+            conceptos.Add(new Concepto
+            {
+                ClaveProdServ = RoundingProductServiceCode,
+                Cantidad = 1,
+                ClaveUnidad = RoundingUnitCode,
+                Descripcion = RoundingDescription,
+                ValorUnitario = adjustment,
+                Importe = adjustment,
+                ObjetoImp = "01"
+            });
+
+            // Recalculate document totals with the rounding concepto
+            cfdiSubTotal = Math.Round(conceptos.Sum(c => c.Importe), 2);
+            cfdiDescuento = Math.Round(conceptos.Sum(c => c.Descuento), 2);
+            cfdiTotal = cfdiSubTotal - cfdiDescuento + cfdiTotalImpuestos;
+        }
+        else if (adjustment < 0)
+        {
+            _logger.LogWarning(
+                "Sale {SaleId} has negative rounding adjustment ({Adjustment}). " +
+                "CFDI total {CfdiTotal} differs from sale total {SaleTotal}.",
+                sale.Id, adjustment, cfdiTotal, sale.Total);
+        }
 
         var comprobante = new Comprobante
         {
@@ -1230,6 +1268,12 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             var satCode = product.MexicoProductService?.Code ?? DefaultProductServiceCode;
             var unitCode = product.UnitMeasure?.MexicoSatUnit?.Code ?? DefaultUnitCode;
 
+            // Line-level amounts use 6-decimal precision (SAT Anexo 20 allows up to 6
+            // for Concepto). This matches PricingCalculationService.CalculateLine so that
+            // POS totals and CFDI totals converge at the document level.
+            var grossAmount = Math.Round(detail.Quantity * detail.UnitPrice, 6);
+            var roundedDiscount = Math.Round(detail.DiscountAmount, 6);
+
             var concepto = new Concepto
             {
                 ClaveProdServ = satCode,
@@ -1239,15 +1283,14 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Unidad = product.UnitMeasure?.Name,
                 Descripcion = product.Name,
                 ValorUnitario = detail.UnitPrice,
-                Importe = Math.Round(detail.Quantity * detail.UnitPrice, 2),
-                Descuento = detail.DiscountAmount,
+                Importe = grossAmount,
+                Descuento = roundedDiscount,
                 ObjetoImp = product.IsTaxable ? "02" : "01"
             };
 
             if (product.IsTaxable && detail.TaxRate > 0)
             {
-                var grossAmount = Math.Round(detail.Quantity * detail.UnitPrice, 2);
-                var taxBase = grossAmount - detail.DiscountAmount;
+                var taxBase = grossAmount - roundedDiscount;
                 concepto.Impuestos = new ConceptoImpuestos
                 {
                     Traslados = new List<ConceptoTraslado>
@@ -1258,7 +1301,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                             Impuesto = IvaCode,
                             TipoFactor = IvaFactorType,
                             TasaOCuota = detail.TaxRate,
-                            Importe = Math.Round(taxBase * detail.TaxRate, 2)
+                            Importe = Math.Round(taxBase * detail.TaxRate, 6)
                         }
                     }
                 };
@@ -1268,37 +1311,34 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         }).ToList();
     }
 
-    private Impuestos? BuildImpuestos(Sale sale)
+    /// <summary>
+    /// Builds Impuestos from the already-built Conceptos list.
+    /// This ensures the global tax summary matches the per-concept values exactly,
+    /// including any rounding concepto that may have been added.
+    /// CFDI40215: Global Base = sum of per-concept bases (grouped by rate).
+    /// CFDI40216: Global Importe = sum of per-concept importes (NOT recalculated from base sum).
+    /// Document-level amounts (Traslado.Base, Traslado.Importe, TotalTraslados) use 2 decimals.
+    /// </summary>
+    private Impuestos? BuildImpuestosFromConceptos(List<Concepto> conceptos)
     {
-        // Group taxable details
-        var taxableDetails = sale.Details
-            .Where(d => d.Product.IsTaxable && d.TaxRate > 0)
+        // Collect all per-concept tax lines
+        var allTraslados = conceptos
+            .Where(c => c.Impuestos?.Traslados != null)
+            .SelectMany(c => c.Impuestos!.Traslados!)
             .ToList();
 
-        if (!taxableDetails.Any()) return null;
+        if (!allTraslados.Any()) return null;
 
-        // Group by tax rate — derive all values from per-detail calculations.
-        // CFDI40215: Base must equal sum of per-concept bases.
-        // CFDI40216: Importe must equal sum of per-concept importes (NOT recalculated from base sum,
-        //            because Round(a*r) + Round(b*r) may differ from Round((a+b)*r)).
-        var traslados = taxableDetails
-            .GroupBy(d => d.TaxRate)
-            .Select(g =>
+        // Group by tax rate — sum per-concept values, then round to 2 for document level
+        var traslados = allTraslados
+            .GroupBy(t => t.TasaOCuota)
+            .Select(g => new Traslado
             {
-                var baseSum = g.Sum(d => Math.Round(d.Quantity * d.UnitPrice, 2) - d.DiscountAmount);
-                var importeSum = g.Sum(d =>
-                {
-                    var taxBase = Math.Round(d.Quantity * d.UnitPrice, 2) - d.DiscountAmount;
-                    return Math.Round(taxBase * d.TaxRate, 2);
-                });
-                return new Traslado
-                {
-                    Base = baseSum,
-                    Impuesto = IvaCode,
-                    TipoFactor = IvaFactorType,
-                    TasaOCuota = g.Key,
-                    Importe = importeSum
-                };
+                Base = Math.Round(g.Sum(t => t.Base), 2),
+                Impuesto = IvaCode,
+                TipoFactor = IvaFactorType,
+                TasaOCuota = g.Key,
+                Importe = Math.Round(g.Sum(t => t.Importe), 2)
             }).ToList();
 
         var totalImpuestos = traslados.Sum(t => t.Importe);

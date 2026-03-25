@@ -130,8 +130,8 @@ public class PricingCalculationServiceTests
 
         Assert.That(result.Subtotal, Is.EqualTo(line1.GrossAmount + line2.GrossAmount),
             "Document Subtotal should be sum of gross amounts");
-        Assert.That(result.TaxAmount, Is.EqualTo(line1.TaxAmount + line2.TaxAmount),
-            "Document TaxAmount should be sum of per-line tax amounts");
+        Assert.That(result.TaxAmount, Is.EqualTo(Math.Round(line1.TaxAmount + line2.TaxAmount, 2)),
+            "Document TaxAmount should be sum of per-line tax amounts rounded to 2 decimals");
     }
 
     [Test]
@@ -158,11 +158,11 @@ public class PricingCalculationServiceTests
         Assert.That(result.Subtotal, Is.EqualTo(lineCalc.GrossAmount), "SubTotal must equal gross");
         Assert.That(result.ItemDiscountAmount, Is.EqualTo(Math.Round(lineCalc.DiscountAmount, 2)), "Discount");
 
-        // Tax must match centralized per-line calculation
-        Assert.That(result.TaxAmount, Is.EqualTo(lineCalc.TaxAmount), "Tax must come from centralized calculation");
+        // Tax must match centralized per-line calculation (rounded to 2 at document level)
+        Assert.That(result.TaxAmount, Is.EqualTo(Math.Round(lineCalc.TaxAmount, 2)), "Tax must come from centralized calculation");
 
-        var expectedTotal = lineCalc.GrossAmount - Math.Round(lineCalc.DiscountAmount, 2) + lineCalc.TaxAmount;
-        Assert.That(result.Total, Is.EqualTo(expectedTotal), "Total = SubTotal - Descuento + IVA");
+        var expectedTotal = lineCalc.GrossAmount - Math.Round(lineCalc.DiscountAmount, 2) + Math.Round(lineCalc.TaxAmount, 2);
+        Assert.That(result.Total, Is.EqualTo(Math.Round(expectedTotal, 2)), "Total = SubTotal - Descuento + IVA");
     }
 
     #endregion
@@ -331,6 +331,70 @@ public class PricingCalculationServiceTests
 
         Assert.That(result.TaxAmount, Is.EqualTo(0m));
         Assert.That(result.Total, Is.EqualTo(100.00m));
+    }
+
+    [Test]
+    public async Task CalculateDocument_NegativeRounding_IsNotApplied()
+    {
+        // Floor rounding gives a negative adjustment — should be ignored (only positive applied)
+        _roundingMock
+            .Setup(r => r.ApplyRoundingAsync(It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((decimal amount, CancellationToken _) =>
+            {
+                // Simulate Floor rounding: 137.99 → 137.00 = -0.99
+                var rounded = Math.Floor(amount);
+                return Result<(decimal, decimal)>.Success((rounded, rounded - amount));
+            });
+
+        var lineCalc = _service.CalculateLine(new LineCalculationInput
+            { Quantity = 1m, UnitPrice = 100m, DiscountPercentage = 0, TaxRate = 0.16m });
+
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = lineCalc.Subtotal, DiscountAmount = 0, IsTaxable = true,
+                     TaxAmount = lineCalc.TaxAmount, TaxBase = lineCalc.TaxBase }
+        };
+
+        var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = true
+        });
+
+        // Negative rounding should NOT be applied
+        Assert.That(result.RoundingAmount, Is.EqualTo(0m), "Negative rounding must not be applied");
+        Assert.That(result.Total, Is.EqualTo(result.PreRoundingTotal), "Total must equal pre-rounding total when rounding is negative");
+    }
+
+    [Test]
+    public async Task CalculateDocument_PositiveRounding_IsApplied()
+    {
+        // Ceiling rounding gives a positive adjustment — should be applied
+        _roundingMock
+            .Setup(r => r.ApplyRoundingAsync(It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((decimal amount, CancellationToken _) =>
+            {
+                var rounded = Math.Ceiling(amount);
+                return Result<(decimal, decimal)>.Success((rounded, rounded - amount));
+            });
+
+        // Use a price that produces a non-integer total so Ceiling has effect
+        var lineCalc = _service.CalculateLine(new LineCalculationInput
+            { Quantity = 3m, UnitPrice = 10.50m, DiscountPercentage = 0, TaxRate = 0.16m });
+
+        var lines = new List<DocumentLineInput>
+        {
+            new() { Subtotal = lineCalc.Subtotal, DiscountAmount = 0, IsTaxable = true,
+                     TaxAmount = lineCalc.TaxAmount, TaxBase = lineCalc.TaxBase }
+        };
+
+        var result = await _service.CalculateDocumentAsync(new DocumentCalculationInput
+        {
+            Lines = lines, GlobalDiscountPercentage = 0, TaxRate = 0.16m, ApplyRounding = true
+        });
+
+        // preRoundingTotal = 36.54, Ceiling → 37.00, roundingAmount = 0.46
+        Assert.That(result.RoundingAmount, Is.GreaterThan(0m), "Positive rounding must be applied");
+        Assert.That(result.Total, Is.GreaterThan(result.PreRoundingTotal));
     }
 
     #endregion

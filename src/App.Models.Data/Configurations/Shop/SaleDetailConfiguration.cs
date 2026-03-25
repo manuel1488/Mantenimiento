@@ -27,7 +27,7 @@ public class SaleDetailConfiguration : IEntityTypeConfiguration<SaleDetail>
             .HasColumnType("decimal(5,2)");
 
         builder.Property(e => e.SurchargeAmount)
-            .HasColumnType("decimal(10,2)");
+            .HasColumnType("decimal(10,6)");
 
         builder.Property(e => e.BasePriceBeforeSurcharge)
             .HasColumnType("decimal(10,6)");

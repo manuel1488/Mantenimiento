@@ -53,14 +53,15 @@ public class PricingCalculationService : IPricingCalculationService
         decimal surchargeAmount = afterDiscount * (input.SurchargePercentage / 100);
         decimal subtotal = afterDiscount + surchargeAmount;
 
-        // CFDI-compliant rounded values (used for tax calculation and invoicing)
-        // Concepto.Importe = Round(Qty × UnitPrice, 2)
-        decimal grossAmount = Math.Round(input.Quantity * input.UnitPrice, 2);
-        decimal roundedDiscount = Math.Round(discountAmount, 2);
-        // Concepto.Impuestos.Traslado.Base = Importe - Descuento
+        // Line-level values keep 6-decimal precision so that rounding errors
+        // don't accumulate (e.g. $6.034483 × 1.16 must yield $7.00, not $6.99).
+        // Document-level totals round to 2 decimals for currency compliance.
+        // CFDI XML generation (MexicoInvoiceService) applies its own 2-decimal
+        // rounding per SAT Anexo 20 independently.
+        decimal grossAmount = Math.Round(input.Quantity * input.UnitPrice, 6);
+        decimal roundedDiscount = Math.Round(discountAmount, 6);
         decimal taxBase = grossAmount - roundedDiscount;
-        // Concepto.Impuestos.Traslado.Importe = Round(Base × Rate, 2)
-        decimal taxAmount = input.TaxRate > 0 ? Math.Round(taxBase * input.TaxRate, 2) : 0;
+        decimal taxAmount = input.TaxRate > 0 ? Math.Round(taxBase * input.TaxRate, 6) : 0;
 
         return new LineCalculationResult
         {
@@ -120,6 +121,8 @@ public class PricingCalculationService : IPricingCalculationService
             taxAmount = input.Lines.Sum(l => l.TaxAmount);
         }
 
+        // Round tax to 2 decimals at document level (currency precision)
+        taxAmount = Math.Round(taxAmount, 2);
         decimal preRoundingTotal = Math.Round(subtotal - totalDiscount + taxAmount, 2);
 
         // Apply rounding if enabled
@@ -129,8 +132,12 @@ public class PricingCalculationService : IPricingCalculationService
         if (input.ApplyRounding)
         {
             var roundingResult = await _roundingSettingsService.ApplyRoundingAsync(preRoundingTotal);
-            if (roundingResult.IsSuccess)
+            if (roundingResult.IsSuccess && roundingResult.Value.RoundingAmount > 0)
             {
+                // Only apply positive rounding (customer pays more).
+                // Negative rounding (Floor) is not applied — CFDI cannot
+                // reduce the total via a non-taxable concepto without
+                // cascading tax base changes.
                 roundingAmount = Math.Round(roundingResult.Value.RoundingAmount, 2);
                 total = Math.Round(roundingResult.Value.RoundedTotal, 2);
             }

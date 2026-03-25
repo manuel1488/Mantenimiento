@@ -18,19 +18,19 @@ namespace App.Services.Tests.Billing;
 [TestFixture]
 public class CfdiTaxBaseCalculationTests
 {
-    #region Helpers — mirror the formulas in MexicoInvoiceService
+    #region Helpers — mirror the formulas in MexicoInvoiceService (6-decimal line level)
 
-    /// <summary>Concepto.Importe = Round(Qty × UnitPrice, 2)</summary>
+    /// <summary>Concepto.Importe = Round(Qty × UnitPrice, 6)</summary>
     private static decimal ConceptoImporte(decimal qty, decimal unitPrice)
-        => Math.Round(qty * unitPrice, 2);
+        => Math.Round(qty * unitPrice, 6);
 
     /// <summary>Concepto.Impuestos.Traslado.Base = Importe - Descuento</summary>
     private static decimal ConceptoTaxBase(decimal qty, decimal unitPrice, decimal discount)
         => ConceptoImporte(qty, unitPrice) - discount;
 
-    /// <summary>Concepto.Impuestos.Traslado.Importe = Round(Base × Rate, 2)</summary>
+    /// <summary>Concepto.Impuestos.Traslado.Importe = Round(Base × Rate, 6)</summary>
     private static decimal ConceptoTaxImporte(decimal qty, decimal unitPrice, decimal discount, decimal taxRate)
-        => Math.Round(ConceptoTaxBase(qty, unitPrice, discount) * taxRate, 2);
+        => Math.Round(ConceptoTaxBase(qty, unitPrice, discount) * taxRate, 6);
 
     /// <summary>
     /// SAT CFDI40167/CFDI40180 tolerance limits.
@@ -93,9 +93,9 @@ public class CfdiTaxBaseCalculationTests
         var conceptTaxBases = lines.Select(l => l.IsTaxable ? ConceptoTaxBase(l.Qty, l.UnitPrice, l.Discount) : 0m).ToArray();
         var conceptTaxImportes = lines.Select(l => l.IsTaxable ? ConceptoTaxImporte(l.Qty, l.UnitPrice, l.Discount, l.TaxRate) : 0m).ToArray();
 
-        // --- Comprobante-level (BuildComprobante) ---
-        var cfdiSubTotal = conceptImportes.Sum();
-        var cfdiDescuento = conceptDescuentos.Sum();
+        // --- Comprobante-level (BuildComprobante) — document level rounds to 2 ---
+        var cfdiSubTotal = Math.Round(conceptImportes.Sum(), 2);
+        var cfdiDescuento = Math.Round(conceptDescuentos.Sum(), 2);
 
         // --- Global taxes (BuildImpuestos) ---
         var taxGroups = lines
@@ -104,13 +104,12 @@ public class CfdiTaxBaseCalculationTests
             .GroupBy(x => x.TaxRate)
             .Select(g =>
             {
-                var baseSum = g.Sum(x => x.Base);
-                // CFDI40216: Global Importe must be sum of per-concept importes,
-                // NOT Round(baseSum * rate) — because sum of rounds ≠ round of sum.
-                var importeSum = lines
+                // Document-level aggregation rounds to 2 decimals
+                var baseSum = Math.Round(g.Sum(x => x.Base), 2);
+                var importeSum = Math.Round(lines
                     .Select((l, idx) => new { l.TaxRate, l.IsTaxable, Importe = conceptTaxImportes[idx] })
                     .Where(x => x.IsTaxable && x.TaxRate == g.Key)
-                    .Sum(x => x.Importe);
+                    .Sum(x => x.Importe), 2);
                 return new { TaxRate = g.Key, Base = baseSum, Importe = importeSum };
             })
             .ToList();
@@ -118,39 +117,40 @@ public class CfdiTaxBaseCalculationTests
         var cfdiTotalImpuestos = taxGroups.Sum(g => g.Importe);
         var cfdiTotal = cfdiSubTotal - cfdiDescuento + cfdiTotalImpuestos;
 
-        // --- CFDI40108: SubTotal == sum(Concepto.Importe) ---
-        Assert.That(cfdiSubTotal, Is.EqualTo(conceptImportes.Sum()),
-            "CFDI40108: SubTotal must equal sum of Concepto.Importe");
+        // --- CFDI40108: SubTotal ≈ sum(Concepto.Importe) within rounding tolerance ---
+        // SubTotal is Round(sum, 2) while Concepto.Importe uses 6 decimals.
+        Assert.That(cfdiSubTotal, Is.EqualTo(Math.Round(conceptImportes.Sum(), 2)),
+            "CFDI40108: SubTotal must equal Round(sum of Concepto.Importe, 2)");
 
         if (expectedSubTotal.HasValue)
         {
-            Assert.That(cfdiSubTotal, Is.EqualTo(expectedSubTotal.Value),
-                $"SubTotal expected {expectedSubTotal.Value} but got {cfdiSubTotal}");
+            Assert.That(cfdiSubTotal, Is.EqualTo(Math.Round(expectedSubTotal.Value, 2)),
+                $"SubTotal expected {Math.Round(expectedSubTotal.Value, 2)} but got {cfdiSubTotal}");
         }
 
-        // --- CFDI40109: Descuento == sum(Concepto.Descuento) ---
-        Assert.That(cfdiDescuento, Is.EqualTo(conceptDescuentos.Sum()),
-            "CFDI40109: Descuento must equal sum of Concepto.Descuento");
+        // --- CFDI40109: Descuento ≈ sum(Concepto.Descuento) within rounding ---
+        Assert.That(cfdiDescuento, Is.EqualTo(Math.Round(conceptDescuentos.Sum(), 2)),
+            "CFDI40109: Descuento must equal Round(sum of Concepto.Descuento, 2)");
 
-        // --- CFDI40215: Global Traslado.Base == sum of per-concept Traslado.Base per rate ---
+        // --- CFDI40215: Global Traslado.Base == Round(sum of per-concept Traslado.Base, 2) ---
         foreach (var group in taxGroups)
         {
-            var perConceptBaseSum = lines
+            var perConceptBaseSum = Math.Round(lines
                 .Select((l, i) => new { l.TaxRate, l.IsTaxable, Base = conceptTaxBases[i] })
                 .Where(x => x.IsTaxable && x.TaxRate == group.TaxRate)
-                .Sum(x => x.Base);
+                .Sum(x => x.Base), 2);
 
             Assert.That(group.Base, Is.EqualTo(perConceptBaseSum),
                 $"CFDI40215: Global Traslado.Base for rate {group.TaxRate} mismatch");
         }
 
-        // --- CFDI40216: Global Traslado.Importe == sum of per-concept Traslado.Importe ---
+        // --- CFDI40216: Global Traslado.Importe == Round(sum of per-concept Traslado.Importe, 2) ---
         foreach (var group in taxGroups)
         {
-            var perConceptImporteSum = lines
+            var perConceptImporteSum = Math.Round(lines
                 .Select((l, i) => new { l.TaxRate, l.IsTaxable, Importe = conceptTaxImportes[i] })
                 .Where(x => x.IsTaxable && x.TaxRate == group.TaxRate)
-                .Sum(x => x.Importe);
+                .Sum(x => x.Importe), 2);
 
             Assert.That(group.Importe, Is.EqualTo(perConceptImporteSum),
                 $"CFDI40216: Global Traslado.Importe for rate {group.TaxRate} must equal sum of per-concept importes");
@@ -172,13 +172,11 @@ public class CfdiTaxBaseCalculationTests
         }
 
         // --- CFDI40167: Concepto.Importe within tolerance of Cantidad × ValorUnitario ---
-        // LimInf = Truncate((Qty - halfQty) × (Price - halfPrice), 2)
-        // LimSup = CeilingTo((Qty + halfQty - ε) × (Price + halfPrice - ε), 2)
-        // For our formula Round(Qty × Price, 2), the result is always within these bounds.
+        // With 6-decimal line precision, tolerance is checked at 6 decimals.
         for (int i = 0; i < lines.Length; i++)
         {
             var l = lines[i];
-            var (limInf, limSup) = CalculateImporteLimits(l.Qty, l.UnitPrice, 2);
+            var (limInf, limSup) = CalculateImporteLimits(l.Qty, l.UnitPrice, 6);
             Assert.That(conceptImportes[i], Is.GreaterThanOrEqualTo(limInf),
                 $"CFDI40167: Concepto[{i}].Importe ({conceptImportes[i]}) must be ≥ LimInf ({limInf})");
             Assert.That(conceptImportes[i], Is.LessThanOrEqualTo(limSup),
@@ -189,7 +187,7 @@ public class CfdiTaxBaseCalculationTests
         for (int i = 0; i < lines.Length; i++)
         {
             if (!lines[i].IsTaxable || lines[i].TaxRate <= 0) continue;
-            var (limInf, limSup) = CalculateImporteLimits(conceptTaxBases[i], lines[i].TaxRate, 2);
+            var (limInf, limSup) = CalculateImporteLimits(conceptTaxBases[i], lines[i].TaxRate, 6);
             Assert.That(conceptTaxImportes[i], Is.GreaterThanOrEqualTo(limInf),
                 $"CFDI40180: Concepto[{i}].Traslado.Importe ({conceptTaxImportes[i]}) must be ≥ LimInf ({limInf})");
             Assert.That(conceptTaxImportes[i], Is.LessThanOrEqualTo(limSup),
@@ -206,9 +204,9 @@ public class CfdiTaxBaseCalculationTests
         Assert.That(cfdiTotal, Is.EqualTo(Math.Round(cfdiTotal, 2)), "Total must have ≤2 decimals");
 
         foreach (var importe in conceptImportes)
-            Assert.That(importe, Is.EqualTo(Math.Round(importe, 2)), "Concepto.Importe must have ≤2 decimals");
+            Assert.That(importe, Is.EqualTo(Math.Round(importe, 6)), "Concepto.Importe must have ≤6 decimals");
         foreach (var tax in conceptTaxImportes)
-            Assert.That(tax, Is.EqualTo(Math.Round(tax, 2)), "Concepto.Traslado.Importe must have ≤2 decimals");
+            Assert.That(tax, Is.EqualTo(Math.Round(tax, 6)), "Concepto.Traslado.Importe must have ≤6 decimals");
     }
 
     #endregion

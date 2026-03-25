@@ -46,7 +46,7 @@ public class Concepto
     [XmlAttribute("Importe")]
     public string ImporteString
     {
-        get => CfdiFormatHelper.FormatAmount(Importe);
+        get => CfdiFormatHelper.FormatLineAmount(Importe);
         set => Importe = decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
     }
 
@@ -56,7 +56,7 @@ public class Concepto
     [XmlAttribute("Descuento")]
     public string DescuentoString
     {
-        get => CfdiFormatHelper.FormatAmount(Descuento);
+        get => CfdiFormatHelper.FormatLineAmount(Descuento);
         set => Descuento = decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
     }
 

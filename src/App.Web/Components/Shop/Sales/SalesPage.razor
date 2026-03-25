@@ -610,20 +610,11 @@ else
     private bool _showPricesWithTax = false;
     private double PaidPercentage => _total > 0 ? Math.Min(100, (double)(_paymentEntries.Sum(e => e.Amount) / _total * 100)) : 0;
 
-    // Gross (pre-discount) IVA-inclusive subtotal. Uses i.Subtotal + i.DiscountAmount = original
-    // price per item, which mirrors how _subtotal = _cart.Sum(i => i.Subtotal + i.DiscountAmount).
-    private decimal DisplaySubtotal =>
-        _showPricesWithTax
-            ? _cart.Sum(i => i.IsTaxable
-                ? (i.Subtotal + i.DiscountAmount) * (1 + _taxRate)
-                : (i.Subtotal + i.DiscountAmount))
-            : _subtotal;
+    // Subtotal always shows the pre-tax amount (without IVA).
+    private decimal DisplaySubtotal => _subtotal;
 
-    // Discount in IVA-inclusive terms = DisplaySubtotal(gross) - Total(net, unchanged).
-    private decimal DisplayDiscountAmount =>
-        _showPricesWithTax && _discountAmount > 0
-            ? DisplaySubtotal - (_total - _roundingAmount)
-            : _discountAmount;
+    // Discount always in pre-tax terms, consistent with subtotal.
+    private decimal DisplayDiscountAmount => _discountAmount;
 
     // Wholesale mode
     private App.Core.Enums.Shop.WholesalePriceMode _wholesaleMode = App.Core.Enums.Shop.WholesalePriceMode.Percentage;

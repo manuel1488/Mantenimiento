@@ -20,19 +20,19 @@ public class SaleDetail : BaseEntity<long>
     [Column(TypeName = "decimal(5,2)")]
     public decimal DiscountPercentage { get; set; } = 0;
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal DiscountAmount { get; set; } = 0;
 
     [Column(TypeName = "decimal(5,2)")]
     public decimal TaxRate { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal TaxAmount { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal Subtotal { get; set; }
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal Total { get; set; }
 
     public bool IsDiscountAuthorized { get; set; } = false;
@@ -60,7 +60,7 @@ public class SaleDetail : BaseEntity<long>
     /// <summary>
     /// Surcharge amount in currency.
     /// </summary>
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(10,6)")]
     public decimal SurchargeAmount { get; set; } = 0;
 
     /// <summary>

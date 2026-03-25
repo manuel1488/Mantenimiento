@@ -86,7 +86,7 @@ public class ConceptoTraslado
     [XmlAttribute("Base")]
     public string BaseString
     {
-        get => CfdiFormatHelper.FormatAmount(Base);
+        get => CfdiFormatHelper.FormatLineAmount(Base);
         set => Base = decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
     }
 
@@ -116,7 +116,7 @@ public class ConceptoTraslado
     [XmlAttribute("Importe")]
     public string ImporteString
     {
-        get => CfdiFormatHelper.FormatAmount(Importe);
+        get => CfdiFormatHelper.FormatLineAmount(Importe);
         set => Importe = decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
     }
 

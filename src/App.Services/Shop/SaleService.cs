@@ -749,10 +749,11 @@ public class SaleService : ISaleService
                     TaxRate = taxRate
                 });
 
-                // Use centralized CFDI-compliant rounded values
-                var detailSubtotal = Math.Round(lineCalc.Subtotal, 2);
-                var detailDiscountAmount = Math.Round(lineCalc.DiscountAmount, 2);
-                var detailTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
+                // Store with full 6-decimal precision from CalculateLine.
+                // DB columns are decimal(10,6). CFDI reads these directly.
+                var detailSubtotal = lineCalc.Subtotal;
+                var detailDiscountAmount = lineCalc.DiscountAmount;
+                var detailTotal = lineCalc.TaxBase + lineCalc.TaxAmount;
 
                 var detail = new SaleDetail
                 {
