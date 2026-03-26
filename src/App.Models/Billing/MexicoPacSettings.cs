@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Core.Enums.Billing;
 
 namespace App.Models.Billing;
 
@@ -74,4 +75,7 @@ public class MexicoPacSettings : BaseEntity<int>
 
     /// <summary>When true, the invoice prompt allows editing all CFDI fields. When false, only the email is shown.</summary>
     public bool AllowEditFiscalDataInPrompt { get; set; } = true;
+
+    /// <summary>How to resolve CFDI FormaPago when a sale has multiple payment methods.</summary>
+    public MultiPaymentFormPolicy MultiPaymentFormPolicy { get; set; } = MultiPaymentFormPolicy.UseHighestAmount;
 }

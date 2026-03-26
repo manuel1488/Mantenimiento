@@ -1,3 +1,5 @@
+using App.Core.Enums.Billing;
+
 namespace App.Core.DTOs.Billing.Mexico;
 
 public class MexicoPacSettingsDto
@@ -26,6 +28,7 @@ public class MexicoPacSettingsDto
     // Auto-invoice behavior
     public bool AutoInvoicePromptEnabled { get; set; }
     public bool AllowEditFiscalDataInPrompt { get; set; } = true;
+    public MultiPaymentFormPolicy MultiPaymentFormPolicy { get; set; } = MultiPaymentFormPolicy.UseHighestAmount;
 
     /// <summary>True when PAC credentials and CSD are present.</summary>
     public bool IsConfigured =>

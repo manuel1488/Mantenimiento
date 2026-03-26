@@ -224,6 +224,11 @@
             _dto.SendToEmail = CustomerEmail;
             _dto.PaymentMethod = "PUE";
 
+            // Pre-fill payment form from the sale's actual payment methods
+            var saleInfoResult = await InvoiceService.GetSaleInfoForInvoicingAsync(SaleId);
+            if (saleInfoResult.IsSuccess)
+                _dto.PaymentForm = saleInfoResult.Value!.ResolvedPaymentForm;
+
             // Load catalogs and check existing invoice in parallel
             _fiscalRegimes = (await FiscalCatalogService.GetFiscalRegimesAsync()).ToList();
             _allCfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();

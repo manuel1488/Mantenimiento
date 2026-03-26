@@ -5,6 +5,7 @@
 @using App.Services.Resources.EmailTemplates
 
 @inject IEmailTemplateSettingsService TemplateSettingsService
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<EmailTemplatePresetsDialog> L
 @inject NavigationManager NavigationManager
@@ -50,13 +51,17 @@
                                     }
                                 </div>
                             </MudCardContent>
-                            <MudCardActions>
+                            <MudCardActions Class="d-flex gap-2">
                                 <MudButton Variant="@(p.Key == _selected ? Variant.Filled : Variant.Outlined)"
                                            Color="Color.Primary"
-                                           FullWidth="true"
+                                           Style="flex:1;"
                                            OnClick="@(() => SelectPreset(p.Key))">
                                     @(p.Key == _selected ? L["Selected"] : L["Select"])
                                 </MudButton>
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Color="Color.Secondary"
+                                               title="@L["Edit before applying"]"
+                                               OnClick="@(() => EditPresetAsync(p.Key))" />
                             </MudCardActions>
                         </MudCard>
                     </MudItem>
@@ -153,6 +158,28 @@
         finally
         {
             _applying = false;
+        }
+    }
+
+    private async Task EditPresetAsync(string key)
+    {
+        var preset = _presets[key];
+        var parameters = new DialogParameters<EmailTemplateEditorDialog>
+        {
+            { x => x.TemplateName, TemplateName },
+            { x => x.InitialHtml, preset.HtmlContent },
+            { x => x.InitialCss, preset.CssContent }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<EmailTemplateEditorDialog>(
+            $"{L["Edit"]} — {preset.Name}", parameters, options);
+
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled)
+        {
+            // Editor saved successfully — close presets dialog too
+            MudDialog.Close(DialogResult.Ok(true));
         }
     }
 

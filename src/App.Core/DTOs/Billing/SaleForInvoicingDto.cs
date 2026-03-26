@@ -8,4 +8,9 @@ public class SaleForInvoicingDto
     public string CustomerName { get; set; } = string.Empty;
     public string? CustomerEmail { get; set; }
     public bool CustomerSendInvoiceEmail { get; set; }
+
+    /// <summary>
+    /// CFDI FormaPago code resolved from the sale's payment methods and the configured MultiPaymentFormPolicy.
+    /// </summary>
+    public string ResolvedPaymentForm { get; set; } = string.Empty;
 }

@@ -1,5 +1,6 @@
 @using App.Core.DTOs.Settings
 @using App.Core.Interfaces
+@using App.Services.Resources.EmailTemplates
 @using Microsoft.Extensions.Localization
 @using MudBlazor
 
@@ -142,8 +143,27 @@ else
 
     private async Task OpenPreview(string name)
     {
+        var row = _rows.FirstOrDefault(r => r.Name == name);
         var sampleData = EmailTemplateSampleData.GetSampleData(name, "es", NavigationManager.BaseUri);
-        var html = await EmailTemplateService.GetTemplateAsync(name, sampleData);
+
+        string html;
+        if (row != null && row.HasCustom && !string.IsNullOrEmpty(row.HtmlContent))
+        {
+            // Build full HTML combining body + CSS explicitly (same as editor preview)
+            var fullHtml = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>" +
+                           row.CssContent + "</style></head><body>" + row.HtmlContent + "</body></html>";
+            var template = Scriban.Template.Parse(fullHtml);
+            html = await template.RenderAsync(sampleData);
+        }
+        else
+        {
+            // Default template: load from embedded files
+            var fullHtml = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>" +
+                           DefaultEmailTemplates.ClassicCss + "</style></head><body>" +
+                           DefaultEmailTemplates.ClassicHtml + "</body></html>";
+            var template = Scriban.Template.Parse(fullHtml);
+            html = await template.RenderAsync(sampleData);
+        }
 
         var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };
         await DialogService.ShowAsync<EmailTemplatePreviewDialog>(L["Preview"], new DialogParameters<EmailTemplatePreviewDialog>

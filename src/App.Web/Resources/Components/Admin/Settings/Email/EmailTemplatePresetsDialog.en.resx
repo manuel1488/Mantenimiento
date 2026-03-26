@@ -21,4 +21,10 @@
   <data name="Preset file not found" xml:space="preserve">
     <value>Preset file not found</value>
   </data>
+  <data name="Edit before applying" xml:space="preserve">
+    <value>Edit before applying</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
 </root>

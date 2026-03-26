@@ -1,3 +1,5 @@
+using App.Core.Enums.Billing;
+
 namespace App.Core.DTOs.Billing.Mexico;
 
 public class UpdateMexicoBillingPreferencesDto
@@ -7,4 +9,5 @@ public class UpdateMexicoBillingPreferencesDto
     public int FolioLength { get; set; } = 0;
     public bool AutoInvoicePromptEnabled { get; set; }
     public bool AllowEditFiscalDataInPrompt { get; set; } = true;
+    public MultiPaymentFormPolicy MultiPaymentFormPolicy { get; set; } = MultiPaymentFormPolicy.UseHighestAmount;
 }

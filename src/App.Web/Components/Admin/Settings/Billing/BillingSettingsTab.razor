@@ -1,5 +1,6 @@
 @using App.Core.Constants
 @using App.Core.DTOs.Billing.Mexico
+@using App.Core.Enums.Billing
 @using App.Core.Interfaces.Billing
 @using App.Web.Services
 @using MudBlazor
@@ -71,6 +72,23 @@
                                 @L["When disabled, only the email is shown in the invoice prompt"]
                             </MudText>
                         </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_model.MultiPaymentFormPolicy"
+                                       Label="@L["Multiple payment methods (CFDI)"]"
+                                       Variant="Variant.Outlined"
+                                       Disabled="@(!_hasWriteAccess)"
+                                       AnchorOrigin="Origin.BottomCenter">
+                                <MudSelectItem Value="MultiPaymentFormPolicy.UseHighestAmount">
+                                    @L["Use payment method with highest amount"]
+                                </MudSelectItem>
+                                <MudSelectItem Value="MultiPaymentFormPolicy.UseUndefined99">
+                                    @L["Use 99 - Undefined"]
+                                </MudSelectItem>
+                            </MudSelect>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-1 mt-1">
+                                @L["How to determine CFDI FormaPago when a sale has multiple payment methods. On tie, the method with lowest sort order is used."]
+                            </MudText>
+                        </MudItem>
                     </MudGrid>
                 </MudItem>
 
@@ -130,7 +148,8 @@
                     StartFolio = settings.StartFolio,
                     FolioLength = settings.FolioLength,
                     AutoInvoicePromptEnabled = settings.AutoInvoicePromptEnabled,
-                    AllowEditFiscalDataInPrompt = settings.AllowEditFiscalDataInPrompt
+                    AllowEditFiscalDataInPrompt = settings.AllowEditFiscalDataInPrompt,
+                    MultiPaymentFormPolicy = settings.MultiPaymentFormPolicy
                 };
             }
         }

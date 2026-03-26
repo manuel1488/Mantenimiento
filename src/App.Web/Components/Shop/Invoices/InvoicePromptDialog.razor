@@ -185,6 +185,7 @@
     [Parameter] public string? CustomerDefaultCfdiUse { get; set; }
     [Parameter] public bool CustomerSendEmail { get; set; }
     [Parameter] public bool AllowEditFiscalData { get; set; } = true;
+    [Parameter, EditorRequired] public string ResolvedPaymentForm { get; set; } = string.Empty;
 
     private bool _loading;
     private bool _processing;
@@ -207,8 +208,9 @@
         _dto.CustomerLegalName = CustomerLegalName ?? string.Empty;
         _dto.CustomerPostalCode = CustomerPostalCode ?? string.Empty;
         _dto.CustomerFiscalRegime = CustomerFiscalRegime ?? string.Empty;
-        _dto.SendToEmail = CustomerSendEmail ? CustomerEmail : null;
+        _dto.SendToEmail = CustomerEmail;
         _dto.PaymentMethod = "PUE";
+        _dto.PaymentForm = ResolvedPaymentForm;
         _dto.CfdiUse = CustomerDefaultCfdiUse ?? "G03";
 
         if (AllowEditFiscalData)
@@ -246,13 +248,6 @@
 
     private async Task GenerateInvoice()
     {
-        // In simple mode, fill defaults if needed
-        if (!AllowEditFiscalData)
-        {
-            if (string.IsNullOrEmpty(_dto.PaymentForm)) _dto.PaymentForm = "01";
-            if (string.IsNullOrEmpty(_dto.CfdiUse)) _dto.CfdiUse = "G03";
-        }
-
         if (string.IsNullOrWhiteSpace(_dto.CustomerRfc) ||
             string.IsNullOrWhiteSpace(_dto.CustomerLegalName) ||
             string.IsNullOrWhiteSpace(_dto.CustomerPostalCode) ||

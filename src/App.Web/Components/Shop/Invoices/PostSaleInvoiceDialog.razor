@@ -296,6 +296,7 @@
         {
             SaleId = _saleInfo.SaleId,
             PaymentMethod = "PUE",
+            PaymentForm = _saleInfo.ResolvedPaymentForm,
             CfdiUse = "G03",
             SendToEmail = _saleInfo.CustomerSendInvoiceEmail ? _saleInfo.CustomerEmail : null
         };

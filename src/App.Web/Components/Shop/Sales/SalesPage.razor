@@ -6,6 +6,7 @@
 @using App.Core.DTOs.Location
 @using App.Core.DTOs.Settings
 @using App.Core.DTOs.Billing.Mexico
+@using App.Core.Enums.Billing
 @using App.Core.Enums.Shop
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Settings
@@ -1798,7 +1799,7 @@ else
             {
                 SaleId = saleId,
                 CfdiUse = _selectedCustomer!.DefaultCfdiUse ?? "G03",
-                PaymentForm = "01",
+                PaymentForm = ResolvePaymentFormCode(),
                 PaymentMethod = "PUE",
                 CustomerRfc = _selectedCustomer.TaxId ?? string.Empty,
                 CustomerLegalName = _selectedCustomer.LegalName ?? string.Empty,
@@ -1834,11 +1835,47 @@ else
             { x => x.CustomerEmail, _selectedCustomer.Email },
             { x => x.CustomerDefaultCfdiUse, _selectedCustomer.DefaultCfdiUse },
             { x => x.CustomerSendEmail, _selectedCustomer.SendInvoiceEmail },
-            { x => x.AllowEditFiscalData, _pacSettings!.AllowEditFiscalDataInPrompt }
+            { x => x.AllowEditFiscalData, _pacSettings!.AllowEditFiscalDataInPrompt },
+            { x => x.ResolvedPaymentForm, ResolvePaymentFormCode() }
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
         await DialogService.ShowAsync<InvoicePromptDialog>(L["Invoice?"], parameters, options);
+    }
+
+    /// <summary>
+    /// Resolves the CFDI FormaPago code from the current payment entries.
+    /// Single payment method: uses its MxCfdiFormCode.
+    /// Multiple payment methods: applies the configured MultiPaymentFormPolicy.
+    /// </summary>
+    private string ResolvePaymentFormCode()
+    {
+        // Group by payment method to get distinct methods
+        var distinctMethods = _paymentEntries
+            .GroupBy(e => e.PaymentMethod.Id)
+            .Select(g => new
+            {
+                PaymentMethod = g.First().PaymentMethod,
+                TotalAmount = g.Sum(e => e.Amount)
+            })
+            .ToList();
+
+        if (distinctMethods.Count == 1)
+            return distinctMethods[0].PaymentMethod.MxCfdiFormCode!;
+
+        // Multiple payment methods
+        var policy = _pacSettings?.MultiPaymentFormPolicy ?? MultiPaymentFormPolicy.UseHighestAmount;
+
+        if (policy == MultiPaymentFormPolicy.UseUndefined99)
+            return "99";
+
+        // UseHighestAmount: pick the method with the highest amount; on tie, lowest SortOrder wins
+        var winner = distinctMethods
+            .OrderByDescending(m => m.TotalAmount)
+            .ThenBy(m => m.PaymentMethod.SortOrder)
+            .First();
+
+        return winner.PaymentMethod.MxCfdiFormCode!;
     }
 
     private async Task ClearCartAndFormAsync()
@@ -1855,6 +1892,7 @@ else
         };
 
         await LoadDefaultCustomerAsync();
+        _customerAutocomplete.ForceRender(forceTextUpdate: true);
         await UpdateTotalsAsync();
         await _productAutocomplete.FocusAsync();
     }

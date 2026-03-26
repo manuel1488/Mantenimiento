@@ -54,4 +54,16 @@
   <data name="Settings saved successfully" xml:space="preserve">
     <value>Configuración guardada exitosamente</value>
   </data>
+  <data name="Multiple payment methods (CFDI)" xml:space="preserve">
+    <value>Múltiples formas de pago (CFDI)</value>
+  </data>
+  <data name="Use payment method with highest amount" xml:space="preserve">
+    <value>Usar la forma de pago con mayor monto</value>
+  </data>
+  <data name="Use 99 - Undefined" xml:space="preserve">
+    <value>Usar 99 - Por definir</value>
+  </data>
+  <data name="How to determine CFDI FormaPago when a sale has multiple payment methods. On tie, the method with lowest sort order is used." xml:space="preserve">
+    <value>Cómo determinar la FormaPago del CFDI cuando una venta tiene múltiples formas de pago. En caso de empate, se usa la forma con menor orden.</value>
+  </data>
 </root>

@@ -31,8 +31,8 @@
         <strong>Uso CFDI:</strong> {{ cfdi_use }}
       </td>
       <td width="50%">
-        <strong>Forma de Pago:</strong> {{ payment_form }}<br>
-        <strong>Método:</strong> {{ payment_method }}
+        <strong>Forma de Pago:</strong> {{ payment_form }}{{ if payment_form_description != "" }} - {{ payment_form_description }}{{ end }}<br>
+        <strong>Método:</strong> {{ payment_method }}{{ if payment_method_description != "" }} - {{ payment_method_description }}{{ end }}
       </td>
     </tr>
   </table>

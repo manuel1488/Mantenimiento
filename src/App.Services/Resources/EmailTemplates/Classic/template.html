@@ -77,8 +77,8 @@
 
   <div class="payment-totals-section">
     <div class="payment-info">
-      <p><strong>Forma de pago:</strong> {{ payment_form }}</p>
-      <p><strong>Método de pago:</strong> {{ payment_method }}</p>
+      <p><strong>Forma de pago:</strong> {{ payment_form }}{{ if payment_form_description != "" }} - {{ payment_form_description }}{{ end }}</p>
+      <p><strong>Método de pago:</strong> {{ payment_method }}{{ if payment_method_description != "" }} - {{ payment_method_description }}{{ end }}</p>
     </div>
     <div class="totals-box">
       <div class="totals-header">TOTALES</div>

@@ -67,8 +67,8 @@
   <div class="payment-summary-section">
     <div class="payment-details">
       <div class="section-label">PAGO</div>
-      <div class="payment-item"><span class="payment-label">Forma de pago:</span>{{ payment_form }}</div>
-      <div class="payment-item"><span class="payment-label">Método de pago:</span>{{ payment_method }}</div>
+      <div class="payment-item"><span class="payment-label">Forma de pago:</span>{{ payment_form }}{{ if payment_form_description != "" }} - {{ payment_form_description }}{{ end }}</div>
+      <div class="payment-item"><span class="payment-label">Método de pago:</span>{{ payment_method }}{{ if payment_method_description != "" }} - {{ payment_method_description }}{{ end }}</div>
     </div>
     <div class="summary">
       <div class="summary-row"><span>Subtotal</span><span>$ {{ subtotal }} {{ currency }}</span></div>

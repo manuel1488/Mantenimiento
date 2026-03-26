@@ -2,6 +2,7 @@ using System.Text;
 using App.Core.Common;
 using App.Core.DTOs.Billing;
 using App.Core.DTOs.Billing.Mexico;
+using App.Core.Enums.Billing;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Billing;
@@ -255,8 +256,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     }).ToList();
                     var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+                    var (formDesc2, methodDesc2) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
                     var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
-                        discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty);
+                        discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
+                        paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2);
                     var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
                     var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
                     context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
@@ -363,8 +366,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             }).ToList();
             var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
             var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+            var (formDesc, methodDesc) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
             var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
-                discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty);
+                discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
+                paymentFormDescription: formDesc, paymentMethodDescription: methodDesc);
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
             var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
 
@@ -549,8 +554,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     }).ToList();
                     var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+                    var (formDesc2, methodDesc2) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
                     var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
-                        discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty);
+                        discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
+                        paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2);
                     var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
                     var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
                     context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
@@ -1139,6 +1146,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             var sale = await context.Sales
                 .AsNoTracking()
                 .Include(s => s.Customer)
+                .Include(s => s.Payments)
+                    .ThenInclude(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(s => s.Id == saleId);
 
             if (sale == null)
@@ -1154,6 +1163,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             if (alreadyInvoiced)
                 return Result<SaleForInvoicingDto>.Failure("Esta venta ya tiene una factura generada");
 
+            // Resolve CFDI FormaPago from the sale's actual payment methods
+            var pacSettings = await context.MexicoPacSettings.AsNoTracking().FirstOrDefaultAsync();
+            var policy = pacSettings?.MultiPaymentFormPolicy ?? MultiPaymentFormPolicy.UseHighestAmount;
+
             var dto = new SaleForInvoicingDto
             {
                 SaleId = sale.Id,
@@ -1161,7 +1174,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 SaleDate = sale.CreatedAt,
                 CustomerName = sale.Customer?.Name ?? string.Empty,
                 CustomerEmail = sale.Customer?.Email,
-                CustomerSendInvoiceEmail = sale.Customer?.SendInvoiceEmail ?? false
+                CustomerSendInvoiceEmail = sale.Customer?.SendInvoiceEmail ?? false,
+                ResolvedPaymentForm = ResolvePaymentFormFromSale(sale, policy)
             };
 
             return Result<SaleForInvoicingDto>.Success(dto);
@@ -1174,6 +1188,56 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     }
 
     #region Private helpers
+
+    /// <summary>
+    /// Resolves the CFDI FormaPago code from a sale's payment records.
+    /// Single method: returns its MxCfdiFormCode.
+    /// Multiple methods: applies the configured policy (highest amount or "99").
+    /// On amount tie: the method with lowest SortOrder wins.
+    /// </summary>
+    private static string ResolvePaymentFormFromSale(Sale sale, MultiPaymentFormPolicy policy)
+    {
+        var distinctMethods = sale.Payments
+            .GroupBy(p => p.PaymentMethodId)
+            .Select(g => new
+            {
+                g.First().PaymentMethod,
+                TotalAmount = g.Sum(p => p.Amount)
+            })
+            .ToList();
+
+        if (distinctMethods.Count <= 1)
+            return distinctMethods.FirstOrDefault()?.PaymentMethod.MxCfdiFormCode ?? "01";
+
+        if (policy == MultiPaymentFormPolicy.UseUndefined99)
+            return "99";
+
+        var winner = distinctMethods
+            .OrderByDescending(m => m.TotalAmount)
+            .ThenBy(m => m.PaymentMethod.SortOrder)
+            .First();
+
+        return winner.PaymentMethod.MxCfdiFormCode!;
+    }
+
+    private static async Task<(string formDesc, string methodDesc)> GetPaymentDescriptionsAsync(
+        ApplicationDbContext context, string paymentFormCode, string paymentMethodCode)
+    {
+        var formDesc = await context.Set<MexicoPaymentForm>()
+            .AsNoTracking()
+            .Where(f => f.Code == paymentFormCode)
+            .Select(f => f.Description)
+            .FirstOrDefaultAsync() ?? string.Empty;
+
+        var methodDesc = paymentMethodCode switch
+        {
+            "PUE" => "Pago en una sola exhibición",
+            "PPD" => "Pago en parcialidades o diferido",
+            _ => string.Empty
+        };
+
+        return (formDesc, methodDesc);
+    }
 
     private static string FormatFolio(long folio, int folioLength) =>
         folioLength > 0 ? folio.ToString().PadLeft(folioLength, '0') : folio.ToString();
@@ -1461,12 +1525,14 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 ? invoice.CancellationDate.Value.ToString("dd/MM/yyyy")
                 : string.Empty;
 
+            var (formDesc, methodDesc) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
             var pdfData = BuildInvoiceTemplateData(
                 invoice, folioDisplay, pdfItems, hasPdf: true,
                 discountTotal: discountTotal, logoBase64: logoBase64,
                 serie: invoice.Serie ?? string.Empty,
                 isCancelled: true,
-                cancellationDate: cancellationDate);
+                cancellationDate: cancellationDate,
+                paymentFormDescription: formDesc, paymentMethodDescription: methodDesc);
 
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
             html = InjectCancellationWatermark(html, cancellationDate);
@@ -1570,7 +1636,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private Dictionary<string, object> BuildInvoiceTemplateData(
         MexicoInvoice invoice, string folioDisplay, List<object> items, bool hasPdf,
         decimal discountTotal = 0, string logoBase64 = "", string serie = "",
-        bool isCancelled = false, string cancellationDate = "")
+        bool isCancelled = false, string cancellationDate = "",
+        string paymentFormDescription = "", string paymentMethodDescription = "")
     {
         var qrCode = string.Empty;
         if (!string.IsNullOrEmpty(invoice.Uuid) && !string.IsNullOrEmpty(invoice.SelloCfdi))
@@ -1601,7 +1668,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             { "issue_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
             { "uuid", invoice.Uuid ?? string.Empty },
             { "payment_form", invoice.PaymentForm },
+            { "payment_form_description", paymentFormDescription },
             { "payment_method", invoice.PaymentMethod },
+            { "payment_method_description", paymentMethodDescription },
             { "currency", invoice.Currency },
             { "customer_legal_name", invoice.CustomerLegalName },
             { "customer_rfc", invoice.CustomerRfc },
