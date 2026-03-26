@@ -223,6 +223,17 @@
                                 </MudTooltip>
                             }
 
+                            <!-- Send by email (only for stamped invoices with PDF) -->
+                            @if (context.IsStamped && context.HasPdf)
+                            {
+                                <MudTooltip Text="@L["Send by Email"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Email"
+                                                   Size="Size.Small"
+                                                   Color="Color.Primary"
+                                                   OnClick="@(() => OpenSendEmailDialog(context))" />
+                                </MudTooltip>
+                            }
+
                             <!-- Download Acuse (available when cancellation has been processed) -->
                             @if (context.HasCancellationAcuse)
                             {
@@ -555,6 +566,20 @@
         await JS.InvokeVoidAsync("downloadFile",
             $"Acuse_Cancelacion_{invoice.FolioDisplay}.xml", "application/xml",
             Convert.ToBase64String(result.Value!));
+    }
+
+    private async Task OpenSendEmailDialog(MexicoInvoiceSummaryDto invoice)
+    {
+        var parameters = new DialogParameters<SendInvoiceDialog>
+        {
+            { x => x.InvoiceId, invoice.Id },
+            { x => x.CustomerEmail, invoice.CustomerEmail }
+        };
+
+        await DialogService.ShowAsync<SendInvoiceDialog>(
+            L["Send Invoice by Email"],
+            parameters,
+            new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false });
     }
 
     private Color GetStatusColor(string status) => status switch

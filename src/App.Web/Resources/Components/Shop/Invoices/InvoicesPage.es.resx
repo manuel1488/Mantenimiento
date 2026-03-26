@@ -180,4 +180,10 @@
   <data name="Error generating PDF" xml:space="preserve">
     <value>Error al generar PDF</value>
   </data>
+  <data name="Send by Email" xml:space="preserve">
+    <value>Enviar por correo</value>
+  </data>
+  <data name="Send Invoice by Email" xml:space="preserve">
+    <value>Enviar factura por correo</value>
+  </data>
 </root>

@@ -23,6 +23,7 @@ public class MexicoInvoiceSummaryDto : AuditableDto
     public bool HasXml { get; set; }
     public bool HasPdf { get; set; }
     public string? StampError { get; set; }
+    public string? CustomerEmail { get; set; }
 }
 
 public class MexicoInvoiceDto : MexicoInvoiceSummaryDto

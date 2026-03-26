@@ -693,7 +693,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 CreatedAt = i.CreatedAt,
                 CreatedBy = i.CreatedBy,
                 ModifiedAt = i.ModifiedAt,
-                ModifiedBy = i.ModifiedBy
+                ModifiedBy = i.ModifiedBy,
+                CustomerEmail = i.Sale.Customer != null ? i.Sale.Customer.Email : null
             })
             .ToListAsync();
 
