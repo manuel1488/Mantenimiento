@@ -124,7 +124,7 @@
                                                    Size="Size.Small"
                                                    Color="Color.Info"
                                                    title="@L["View Sale"]"
-                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/sales-history"))" />
+                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/sales-history?saleId={context.Item.ConsolidatedSaleId}"))" />
                                 }
                             </MudStack>
                         </CellTemplate>

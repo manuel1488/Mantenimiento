@@ -84,7 +84,8 @@ public class SaleService : ISaleService
         DateTime? endDate = null,
         string? status = null,
         SaleType? saleType = null,
-        int? locationId = null)
+        int? locationId = null,
+        long? saleId = null)
     {
         try
         {
@@ -135,6 +136,11 @@ public class SaleService : ISaleService
             if (locationId.HasValue)
             {
                 query = query.Where(s => s.LocationId == locationId.Value);
+            }
+
+            if (saleId.HasValue)
+            {
+                query = query.Where(s => s.Id == saleId.Value);
             }
 
             // Get total count

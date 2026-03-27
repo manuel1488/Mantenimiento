@@ -247,6 +247,9 @@
 
 
 @code {
+    [SupplyParameterFromQuery(Name = "saleId")]
+    public long? FilterSaleId { get; set; }
+
     private MudDataGrid<SaleDto> _dataGrid = null!;
     private bool _loading;
     private string _searchString = "";
@@ -266,18 +269,27 @@
 
         _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
 
-        // Set default date range to current month
-        var today = DateTime.Today;
-        var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
-        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        if (FilterSaleId.HasValue)
+        {
+            // When filtering by specific sale, clear date/location filters
+            _dateRange = new DateRange(null, null);
+            _selectedLocationId = null;
+        }
+        else
+        {
+            // Set default date range to current month
+            var today = DateTime.Today;
+            var firstDayOfMonth = new DateTime(today.Year, today.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
-        _dateRange = new DateRange(firstDayOfMonth, lastDayOfMonth);
+            _dateRange = new DateRange(firstDayOfMonth, lastDayOfMonth);
+
+            // Default to active location if set
+            _selectedLocationId = CurrentUserService.ActiveLocationId;
+        }
 
         // Load locations for filter
         await LoadLocations();
-
-        // Default to active location if set
-        _selectedLocationId = CurrentUserService.ActiveLocationId;
     }
 
     private async Task LoadLocations()
@@ -311,7 +323,8 @@
                 endDate: _dateRange.End,
                 status: _selectedStatus,
                 saleType: _selectedSaleType,
-                locationId: _selectedLocationId);
+                locationId: _selectedLocationId,
+                saleId: FilterSaleId);
 
             // Check which sales have invoices
             await LoadInvoiceStatusAsync(items);

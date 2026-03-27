@@ -18,7 +18,8 @@ public interface ISaleService
         DateTime? endDate = null,
         string? status = null,
         SaleType? saleType = null,
-        int? locationId = null);
+        int? locationId = null,
+        long? saleId = null);
 
     /// <summary>
     /// Gets a sale by ID with all details
