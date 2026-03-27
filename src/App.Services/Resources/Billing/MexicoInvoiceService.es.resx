@@ -3,4 +3,10 @@
   <data name="Electronic Invoice {0} - {1}" xml:space="preserve">
     <value>Factura Electrónica {0} - {1}</value>
   </data>
+  <data name="The previous invoice is pending cancellation. Wait for SAT confirmation." xml:space="preserve">
+    <value>La factura anterior está pendiente de cancelación por el SAT. Espere la confirmación.</value>
+  </data>
+  <data name="This sale already has an active invoice" xml:space="preserve">
+    <value>Esta venta ya tiene una factura activa</value>
+  </data>
 </root>

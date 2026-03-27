@@ -7,7 +7,7 @@ public class MexicoInvoiceConfiguration : IEntityTypeConfiguration<MexicoInvoice
 {
     public void Configure(EntityTypeBuilder<MexicoInvoice> builder)
     {
-        builder.HasIndex(e => e.SaleId).IsUnique();
+        builder.HasIndex(e => e.SaleId);
         builder.HasIndex(e => e.Uuid).IsUnique().HasFilter("Uuid IS NOT NULL");
         builder.HasIndex(e => new { e.Serie, e.Folio }).IsUnique();
         builder.HasIndex(e => e.IsStamped);

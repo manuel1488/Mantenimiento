@@ -387,7 +387,10 @@
         {
             var saleIds = sales.Select(s => s.Id).ToList();
             var (_, invoices) = await InvoiceService.GetHistoryAsync(pageSize: saleIds.Count + 10);
-            _invoicedSaleIds = invoices.Select(i => i.SaleId).ToHashSet();
+            _invoicedSaleIds = invoices
+                .Where(i => i.Status != "Cancelled" && i.Status != "StampError")
+                .Select(i => i.SaleId)
+                .ToHashSet();
         }
         catch (Exception ex)
         {

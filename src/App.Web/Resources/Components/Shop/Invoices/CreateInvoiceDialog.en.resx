@@ -93,4 +93,10 @@
   <data name="Invoice" xml:space="preserve">
     <value>Invoice</value>
   </data>
+  <data name="This sale has cancelled invoices. You may create a replacement." xml:space="preserve">
+    <value>This sale has cancelled invoices. You may create a replacement.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
 </root>

@@ -233,6 +233,8 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
+    [Parameter] public long? PrefilledSaleId { get; set; }
+
     #region Fields
     private int _step = 1;
     private long _saleId;
@@ -250,6 +252,17 @@
     private List<MexicoCfdiUseDto> _allCfdiUses = [];
     private List<MexicoCfdiUseDto> _filteredCfdiUses = [];
     private List<MexicoPaymentFormDto> _paymentForms = [];
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        if (PrefilledSaleId.HasValue && PrefilledSaleId.Value > 0)
+        {
+            _saleId = PrefilledSaleId.Value;
+            await LookupSale();
+        }
+    }
     #endregion
 
     #region Methods

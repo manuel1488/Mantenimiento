@@ -189,4 +189,7 @@
   <data name="Send Invoice by Email" xml:space="preserve">
     <value>Enviar factura por correo</value>
   </data>
+  <data name="Re-Invoice" xml:space="preserve">
+    <value>Re-Facturar</value>
+  </data>
 </root>

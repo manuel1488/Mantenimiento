@@ -9,8 +9,11 @@ public interface IMexicoInvoiceService
     /// <summary>Creates and stamps a CFDI invoice for a completed sale.</summary>
     Task<Result<MexicoInvoiceDto>> CreateAndStampAsync(CreateMexicoInvoiceDto dto);
 
-    /// <summary>Returns the invoice for a sale, or null if not invoiced.</summary>
+    /// <summary>Returns the active (non-cancelled, non-error) invoice for a sale, or null.</summary>
     Task<MexicoInvoiceDto?> GetBySaleIdAsync(long saleId);
+
+    /// <summary>Returns all invoices (active + cancelled) for a sale, ordered by date descending.</summary>
+    Task<IList<MexicoInvoiceSummaryDto>> GetAllBySaleIdAsync(long saleId);
 
     /// <summary>Returns an invoice by its internal ID.</summary>
     Task<MexicoInvoiceDto?> GetByIdAsync(long id);

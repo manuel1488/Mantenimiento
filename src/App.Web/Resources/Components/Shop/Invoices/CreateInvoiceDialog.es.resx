@@ -93,4 +93,10 @@
   <data name="Invoice" xml:space="preserve">
     <value>Factura</value>
   </data>
+  <data name="This sale has cancelled invoices. You may create a replacement." xml:space="preserve">
+    <value>Esta venta tiene facturas canceladas. Puede generar una de reemplazo.</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelada</value>
+  </data>
 </root>

@@ -35,6 +35,16 @@
         }
         else
         {
+            @if (_cancelledInvoices.Count > 0)
+            {
+                <MudAlert Severity="Severity.Info" Class="mb-4">
+                    <MudText Typo="Typo.body2">@L["This sale has cancelled invoices. You may create a replacement."]</MudText>
+                    @foreach (var prev in _cancelledInvoices)
+                    {
+                        <MudText Typo="Typo.caption">@prev.FolioDisplay - UUID: @prev.Uuid — @L["Cancelled"]</MudText>
+                    }
+                </MudAlert>
+            }
             <MudForm @ref="_form" @bind-IsValid="_isValid">
                 <MudGrid Spacing="2">
                     <!-- Sale info summary -->
@@ -203,6 +213,7 @@
     private bool _loading;
     private bool _processing;
     private MexicoInvoiceDto? _existingInvoice;
+    private IList<MexicoInvoiceSummaryDto> _cancelledInvoices = [];
 
     private CreateMexicoInvoiceDto _dto = new();
     private List<MexicoFiscalRegimeDto> _fiscalRegimes = [];
@@ -244,6 +255,13 @@
             _allCfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();
             _paymentForms = (await FiscalCatalogService.GetPaymentFormsAsync()).ToList();
             _existingInvoice = await InvoiceService.GetBySaleIdAsync(SaleId);
+
+            // Load cancelled invoice history for informational banner
+            if (_existingInvoice == null)
+            {
+                var allInvoices = await InvoiceService.GetAllBySaleIdAsync(SaleId);
+                _cancelledInvoices = allInvoices.Where(i => i.Status == "Cancelled").ToList();
+            }
 
             // Filter CFDI uses by pre-filled regime (if any)
             await ApplyCfdiFilter(_dto.CustomerFiscalRegime);

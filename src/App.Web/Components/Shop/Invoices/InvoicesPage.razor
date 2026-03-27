@@ -319,11 +319,27 @@
 
         @if (_cancelReason == "01")
         {
-            <MudTextField @bind-Value="_cancelReplacementUuid"
-                          Label="@L["Replacement Invoice UUID"]"
-                          Variant="Variant.Outlined"
-                          Placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                          FullWidth />
+            @if (_siblingStampedInvoices.Count > 0)
+            {
+                <MudSelect T="string" @bind-Value="_cancelReplacementUuid"
+                           Label="@L["Replacement Invoice UUID"]"
+                           Variant="Variant.Outlined"
+                           FullWidth
+                           Class="mb-2">
+                    @foreach (var sibling in _siblingStampedInvoices)
+                    {
+                        <MudSelectItem T="string" Value="@sibling.Uuid">@sibling.FolioDisplay - @sibling.Uuid</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MudTextField @bind-Value="_cancelReplacementUuid"
+                              Label="@L["Replacement Invoice UUID"]"
+                              Variant="Variant.Outlined"
+                              Placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                              FullWidth />
+            }
         }
     </DialogContent>
     <DialogActions>
@@ -538,16 +554,33 @@
     private string _cancelReason = "02";
     private string? _cancelReplacementUuid;
     private MexicoInvoiceSummaryDto? _invoiceToCancel;
+    private IList<MexicoInvoiceSummaryDto> _siblingStampedInvoices = [];
     private bool _cancelDialogOpen;
     private bool _cancelProcessing;
 
-    private void OpenCancelDialog(MexicoInvoiceSummaryDto invoice)
+    private async Task OpenCancelDialog(MexicoInvoiceSummaryDto invoice)
     {
         _invoiceToCancel = invoice;
         _cancelReason = "02";
         _cancelReplacementUuid = null;
+        _siblingStampedInvoices = [];
+
+        // Load sibling stamped invoices for the same sale (for reason 01 auto-fill)
+        try
+        {
+            var allForSale = await InvoiceService.GetAllBySaleIdAsync(invoice.SaleId);
+            _siblingStampedInvoices = allForSale
+                .Where(i => i.Id != invoice.Id && i.Status == "Stamped" && !string.IsNullOrEmpty(i.Uuid))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading sibling invoices for sale {SaleId}", invoice.SaleId);
+        }
+
         _cancelDialogOpen = true;
     }
+
 
     private async Task ExecuteCancel()
     {

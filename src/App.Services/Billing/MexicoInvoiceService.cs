@@ -634,11 +634,66 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     public async Task<MexicoInvoiceDto?> GetBySaleIdAsync(long saleId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
+        var activeStatuses = new[] { "Draft", "Stamped", "CancellationPending" };
         var invoice = await context.MexicoInvoices
             .AsNoTracking()
-            .FirstOrDefaultAsync(i => i.SaleId == saleId);
+            .FirstOrDefaultAsync(i => i.SaleId == saleId && activeStatuses.Contains(i.Status));
 
         return invoice == null ? null : await BuildInvoiceDtoFromEntity(invoice);
+    }
+
+    public async Task<IList<MexicoInvoiceSummaryDto>> GetAllBySaleIdAsync(long saleId)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var items = await context.MexicoInvoices
+            .AsNoTracking()
+            .Include(i => i.Sale)
+                .ThenInclude(s => s.Customer)
+            .Where(i => i.SaleId == saleId)
+            .OrderByDescending(i => i.Folio)
+            .Select(i => new MexicoInvoiceSummaryDto
+            {
+                Id = i.Id,
+                SaleId = i.SaleId,
+                Serie = i.Serie,
+                Folio = i.Folio,
+                Uuid = i.Uuid,
+                Status = i.Status,
+                IsStamped = i.IsStamped,
+                StampDate = i.StampDate,
+                CustomerRfc = i.CustomerRfc,
+                CustomerLegalName = i.CustomerLegalName,
+                Total = i.Total,
+                CfdiUse = i.CfdiUse,
+                CancellationStatus = i.CancellationStatus,
+                CancellationDate = i.CancellationDate,
+                HasCancellationAcuse = i.CancellationAcuse != null,
+                StampError = i.StampError,
+                CreatedAt = i.CreatedAt,
+                CreatedBy = i.CreatedBy,
+                ModifiedAt = i.ModifiedAt,
+                ModifiedBy = i.ModifiedBy,
+                CustomerEmail = i.Sale.Customer != null ? i.Sale.Customer.Email : null
+            })
+            .ToListAsync();
+
+        if (items.Count > 0)
+        {
+            var invoiceIds = items.Select(i => i.Id).ToList();
+            var fileTypes = await context.MexicoInvoiceFiles
+                .AsNoTracking()
+                .Where(f => invoiceIds.Contains(f.InvoiceId))
+                .Select(f => new { f.InvoiceId, f.FileType })
+                .ToListAsync();
+
+            foreach (var item in items)
+            {
+                item.HasXml = fileTypes.Any(f => f.InvoiceId == item.Id && f.FileType == "XML");
+                item.HasPdf = fileTypes.Any(f => f.InvoiceId == item.Id && f.FileType == "PDF");
+            }
+        }
+
+        return items;
     }
 
     public async Task<MexicoInvoiceDto?> GetByIdAsync(long id)
@@ -1159,12 +1214,20 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         if (sale.Status == SaleStatus.Cancelled)
             return Result.Failure("No se puede facturar una venta cancelada");
 
-        var alreadyInvoiced = await context.MexicoInvoices
+        var pendingCancel = await context.MexicoInvoices
             .AsNoTracking()
-            .AnyAsync(i => i.SaleId == saleId && i.Status != "StampError");
+            .AnyAsync(i => i.SaleId == saleId && i.Status == "CancellationPending");
 
-        if (alreadyInvoiced)
-            return Result.Failure("Esta venta ya tiene una factura generada");
+        if (pendingCancel)
+            return Result.Failure(_localizer["The previous invoice is pending cancellation. Wait for SAT confirmation."]);
+
+        var activeStatuses = new[] { "Draft", "Stamped", "CancellationPending" };
+        var hasActiveInvoice = await context.MexicoInvoices
+            .AsNoTracking()
+            .AnyAsync(i => i.SaleId == saleId && activeStatuses.Contains(i.Status));
+
+        if (hasActiveInvoice)
+            return Result.Failure(_localizer["This sale already has an active invoice"]);
 
         return Result.Success();
     }
@@ -1188,12 +1251,20 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             if (sale.Status == SaleStatus.Cancelled)
                 return Result<SaleForInvoicingDto>.Failure("No se puede facturar una venta cancelada");
 
-            var alreadyInvoiced = await context.MexicoInvoices
+            var pendingCancel = await context.MexicoInvoices
                 .AsNoTracking()
-                .AnyAsync(i => i.SaleId == saleId && i.Status != "StampError");
+                .AnyAsync(i => i.SaleId == saleId && i.Status == "CancellationPending");
 
-            if (alreadyInvoiced)
-                return Result<SaleForInvoicingDto>.Failure("Esta venta ya tiene una factura generada");
+            if (pendingCancel)
+                return Result<SaleForInvoicingDto>.Failure(_localizer["The previous invoice is pending cancellation. Wait for SAT confirmation."]);
+
+            var activeStatuses = new[] { "Draft", "Stamped", "CancellationPending" };
+            var hasActiveInvoice = await context.MexicoInvoices
+                .AsNoTracking()
+                .AnyAsync(i => i.SaleId == saleId && activeStatuses.Contains(i.Status));
+
+            if (hasActiveInvoice)
+                return Result<SaleForInvoicingDto>.Failure(_localizer["This sale already has an active invoice"]);
 
             // Resolve CFDI FormaPago from the sale's actual payment methods
             var pacSettings = await context.MexicoPacSettings.AsNoTracking().FirstOrDefaultAsync();
