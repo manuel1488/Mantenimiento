@@ -464,13 +464,26 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 }
                 var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
 
+                // Use fresh customer data from DB (not stale invoice data)
+                // so that corrections to customer fiscal info are picked up on retry
+                var freshRfc = sale.Customer?.TaxId ?? invoice.CustomerRfc;
+                var freshLegalName = sale.Customer?.LegalName ?? invoice.CustomerLegalName;
+                var freshPostalCode = sale.Customer?.PostalCode ?? invoice.CustomerPostalCode;
+                var freshFiscalRegime = sale.Customer?.FiscalRegime ?? invoice.CustomerFiscalRegime;
+
+                // Update invoice record with corrected customer data
+                invoice.CustomerRfc = freshRfc;
+                invoice.CustomerLegalName = freshLegalName;
+                invoice.CustomerPostalCode = freshPostalCode;
+                invoice.CustomerFiscalRegime = freshFiscalRegime;
+
                 var dto = new CreateMexicoInvoiceDto
                 {
                     SaleId = invoice.SaleId,
-                    CustomerRfc = invoice.CustomerRfc,
-                    CustomerLegalName = invoice.CustomerLegalName,
-                    CustomerPostalCode = invoice.CustomerPostalCode,
-                    CustomerFiscalRegime = invoice.CustomerFiscalRegime,
+                    CustomerRfc = freshRfc,
+                    CustomerLegalName = freshLegalName,
+                    CustomerPostalCode = freshPostalCode,
+                    CustomerFiscalRegime = freshFiscalRegime,
                     CfdiUse = invoice.CfdiUse,
                     PaymentForm = invoice.PaymentForm,
                     PaymentMethod = invoice.PaymentMethod
@@ -1175,6 +1188,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 CustomerName = sale.Customer?.Name ?? string.Empty,
                 CustomerEmail = sale.Customer?.Email,
                 CustomerSendInvoiceEmail = sale.Customer?.SendInvoiceEmail ?? false,
+                CustomerRfc = sale.Customer?.TaxId,
+                CustomerLegalName = sale.Customer?.LegalName,
+                CustomerPostalCode = sale.Customer?.PostalCode,
+                CustomerFiscalRegime = sale.Customer?.FiscalRegime,
                 ResolvedPaymentForm = ResolvePaymentFormFromSale(sale, policy)
             };
 

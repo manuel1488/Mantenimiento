@@ -215,19 +215,29 @@
         _loading = true;
         try
         {
-            // Pre-fill DTO from customer data
+            // Pre-fill DTO from fresh customer data in DB
             _dto.SaleId = SaleId;
-            _dto.CustomerRfc = CustomerRfc ?? string.Empty;
-            _dto.CustomerLegalName = CustomerLegalName ?? string.Empty;
-            _dto.CustomerPostalCode = CustomerPostalCode ?? string.Empty;
-            _dto.CustomerFiscalRegime = CustomerFiscalRegime ?? string.Empty;
-            _dto.SendToEmail = CustomerEmail;
             _dto.PaymentMethod = "PUE";
 
-            // Pre-fill payment form from the sale's actual payment methods
             var saleInfoResult = await InvoiceService.GetSaleInfoForInvoicingAsync(SaleId);
             if (saleInfoResult.IsSuccess)
-                _dto.PaymentForm = saleInfoResult.Value!.ResolvedPaymentForm;
+            {
+                var saleInfo = saleInfoResult.Value!;
+                _dto.CustomerRfc = saleInfo.CustomerRfc ?? CustomerRfc ?? string.Empty;
+                _dto.CustomerLegalName = saleInfo.CustomerLegalName ?? CustomerLegalName ?? string.Empty;
+                _dto.CustomerPostalCode = saleInfo.CustomerPostalCode ?? CustomerPostalCode ?? string.Empty;
+                _dto.CustomerFiscalRegime = saleInfo.CustomerFiscalRegime ?? CustomerFiscalRegime ?? string.Empty;
+                _dto.SendToEmail = saleInfo.CustomerEmail ?? CustomerEmail;
+                _dto.PaymentForm = saleInfo.ResolvedPaymentForm;
+            }
+            else
+            {
+                _dto.CustomerRfc = CustomerRfc ?? string.Empty;
+                _dto.CustomerLegalName = CustomerLegalName ?? string.Empty;
+                _dto.CustomerPostalCode = CustomerPostalCode ?? string.Empty;
+                _dto.CustomerFiscalRegime = CustomerFiscalRegime ?? string.Empty;
+                _dto.SendToEmail = CustomerEmail;
+            }
 
             // Load catalogs and check existing invoice in parallel
             _fiscalRegimes = (await FiscalCatalogService.GetFiscalRegimesAsync()).ToList();

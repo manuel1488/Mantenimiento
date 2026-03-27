@@ -298,6 +298,10 @@
             PaymentMethod = "PUE",
             PaymentForm = _saleInfo.ResolvedPaymentForm,
             CfdiUse = "G03",
+            CustomerRfc = _saleInfo.CustomerRfc ?? string.Empty,
+            CustomerLegalName = _saleInfo.CustomerLegalName ?? string.Empty,
+            CustomerPostalCode = _saleInfo.CustomerPostalCode ?? string.Empty,
+            CustomerFiscalRegime = _saleInfo.CustomerFiscalRegime ?? string.Empty,
             SendToEmail = _saleInfo.CustomerSendInvoiceEmail ? _saleInfo.CustomerEmail : null
         };
 
@@ -305,8 +309,19 @@
         {
             _fiscalRegimes = (await FiscalCatalogService.GetFiscalRegimesAsync()).ToList();
             _allCfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();
-            _filteredCfdiUses = [];
             _paymentForms = (await FiscalCatalogService.GetPaymentFormsAsync()).ToList();
+
+            // Filter CFDI uses by pre-filled fiscal regime
+            if (!string.IsNullOrEmpty(_dto.CustomerFiscalRegime))
+            {
+                _filteredCfdiUses = (await FiscalCatalogService.GetCfdiUsesByFiscalRegimeAsync(_dto.CustomerFiscalRegime)).ToList();
+                if (!_filteredCfdiUses.Any(u => u.Code == _dto.CfdiUse))
+                    _dto.CfdiUse = _filteredCfdiUses.Any(u => u.Code == "G03") ? "G03" : string.Empty;
+            }
+            else
+            {
+                _filteredCfdiUses = [];
+            }
         }
         catch (Exception ex)
         {
