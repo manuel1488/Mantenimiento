@@ -169,6 +169,11 @@
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" HeaderStyle="width: 90px;" />
+                    <TemplateColumn Title="@L["Created By"]" HeaderStyle="width: 100px;">
+                        <CellTemplate>
+                            @(context.Item.CreatedBy ?? "—")
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Title="@L["Status"]" Sortable="false" Filterable="false" HeaderStyle="width: 75px;">
                         <CellTemplate>
                             <MudChip Size="Size.Small" T="string" Color="@GetStatusColor(context.Item.Status)">

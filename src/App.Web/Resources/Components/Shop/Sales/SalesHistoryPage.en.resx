@@ -97,6 +97,9 @@
     <value>Location</value>
     <comment>Location filter label and column header</comment>
   </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Created By</value>
+  </data>
   <data name="No location" xml:space="preserve">
     <value>No location</value>
     <comment>Displayed when sale has no location assigned</comment>

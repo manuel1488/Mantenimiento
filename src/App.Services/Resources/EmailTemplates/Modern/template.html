@@ -32,17 +32,19 @@
       <span>•</span>
       <span>C.P. {{ customer_postal_code }}</span>
       <span>•</span>
-      <span>Régimen: {{ customer_fiscal_regime }}</span>
+      <span>Régimen: {{ customer_fiscal_regime }}{{ if customer_fiscal_regime_description != "" }} - {{ customer_fiscal_regime_description }}{{ end }}</span>
       <span>•</span>
-      <span>Uso CFDI: {{ cfdi_use }}</span>
+      <span>Uso CFDI: {{ cfdi_use }}{{ if cfdi_use_description != "" }} - {{ cfdi_use_description }}{{ end }}</span>
     </div>
   </div>
 
   <table class="modern-items">
     <thead>
       <tr>
-        <th width="7%">CANT.</th>
-        <th width="54%">DESCRIPCIÓN</th>
+        <th width="6%">CANT.</th>
+        <th width="36%">DESCRIPCIÓN</th>
+        <th width="7%">CVE. UNIDAD</th>
+        <th width="12%">OBJ. IMP.</th>
         <th width="13%" class="text-right">PRECIO U.</th>
         <th width="12%" class="text-right">DESCUENTO</th>
         <th width="14%" class="text-right">TOTAL</th>
@@ -54,8 +56,10 @@
         <td class="text-center">{{ item.quantity }}</td>
         <td>
           <div class="item-desc">{{ item.description }}</div>
-          <div class="item-code">{{ item.sat_code }}</div>
+          <div class="item-code">{{ item.sat_code }} | {{ item.unit_name }}</div>
         </td>
+        <td class="text-center" style="font-size:7pt;">{{ item.unit_code }}</td>
+        <td style="font-size:6pt;">{{ item.tax_object }}</td>
         <td class="text-right">$ {{ item.unit_price }}</td>
         <td class="text-right">{{ if item.has_discount }}$ {{ item.discount }}{{ end }}</td>
         <td class="text-right"><strong>$ {{ item.amount }}</strong></td>

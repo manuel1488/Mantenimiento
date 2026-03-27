@@ -61,6 +61,18 @@ window.openInNewTab = (url) => {
     window.open(url, '_blank', 'noopener,noreferrer');
 };
 
+// Open base64 content in a new browser tab
+window.openFileInNewTab = (contentType, base64Data) => {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const blob = new Blob([byteNumbers], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener,noreferrer');
+};
+
 // File download helper — called from Blazor via JS interop
 window.downloadFile = (fileName, contentType, base64Data) => {
     const link = document.createElement('a');

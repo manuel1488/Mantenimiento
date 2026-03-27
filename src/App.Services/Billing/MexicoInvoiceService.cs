@@ -249,6 +249,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
                         { "description", d.Product.Name },
                         { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                        { "unit_code", d.Product.UnitMeasure?.MexicoSatUnit?.Code ?? DefaultUnitCode },
+                        { "unit_name", d.Product.UnitMeasure?.Name ?? string.Empty },
+                        { "tax_object", d.Product.IsTaxable ? "02 - Sí objeto de impuesto" : "01 - No objeto de impuesto" },
                         { "unit_price", d.UnitPrice.ToString("N2") },
                         { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                         { "has_discount", (object)(d.DiscountAmount > 0) },
@@ -257,9 +260,11 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
                     var (formDesc2, methodDesc2) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
+                    var (regimeDesc2, useDesc2) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
                     var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
                         discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
-                        paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2);
+                        paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2,
+                        customerFiscalRegimeDescription: regimeDesc2, cfdiUseDescription: useDesc2);
                     var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
                     var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
                     context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
@@ -335,6 +340,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                         .ThenInclude(p => p.MexicoProductService)
+                .Include(s => s.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.UnitMeasure)
+                            .ThenInclude(u => u.MexicoSatUnit)
                 .FirstOrDefaultAsync(s => s.Id == invoice.SaleId);
 
             if (sale == null)
@@ -359,6 +368,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
                 { "description", d.Product.Name },
                 { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                { "unit_code", d.Product.UnitMeasure?.MexicoSatUnit?.Code ?? DefaultUnitCode },
+                { "unit_name", d.Product.UnitMeasure?.Name ?? string.Empty },
+                { "tax_object", d.Product.IsTaxable ? "02 - Sí objeto de impuesto" : "01 - No objeto de impuesto" },
                 { "unit_price", d.UnitPrice.ToString("N2") },
                 { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                 { "has_discount", (object)(d.DiscountAmount > 0) },
@@ -367,9 +379,11 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
             var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
             var (formDesc, methodDesc) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
+            var (regimeDesc, useDesc) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
             var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
                 discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
-                paymentFormDescription: formDesc, paymentMethodDescription: methodDesc);
+                paymentFormDescription: formDesc, paymentMethodDescription: methodDesc,
+                customerFiscalRegimeDescription: regimeDesc, cfdiUseDescription: useDesc);
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
             var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
 
@@ -560,6 +574,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
                         { "description", d.Product.Name },
                         { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                        { "unit_code", d.Product.UnitMeasure?.MexicoSatUnit?.Code ?? DefaultUnitCode },
+                        { "unit_name", d.Product.UnitMeasure?.Name ?? string.Empty },
+                        { "tax_object", d.Product.IsTaxable ? "02 - Sí objeto de impuesto" : "01 - No objeto de impuesto" },
                         { "unit_price", d.UnitPrice.ToString("N2") },
                         { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                         { "has_discount", (object)(d.DiscountAmount > 0) },
@@ -568,9 +585,11 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
                     var (formDesc2, methodDesc2) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
+                    var (regimeDesc2, useDesc2) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
                     var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
                         discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
-                        paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2);
+                        paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2,
+                        customerFiscalRegimeDescription: regimeDesc2, cfdiUseDescription: useDesc2);
                     var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
                     var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
                     context.MexicoInvoiceFiles.Add(new MexicoInvoiceFile
@@ -1256,6 +1275,28 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         return (formDesc, methodDesc);
     }
 
+    private static async Task<(string fiscalRegimeDesc, string cfdiUseDesc)> GetCatalogDescriptionsAsync(
+        ApplicationDbContext context, string? fiscalRegimeCode, string? cfdiUseCode)
+    {
+        var regimeDesc = string.IsNullOrEmpty(fiscalRegimeCode)
+            ? string.Empty
+            : await context.Set<MexicoFiscalRegime>()
+                .AsNoTracking()
+                .Where(r => r.Code == fiscalRegimeCode)
+                .Select(r => r.Description)
+                .FirstOrDefaultAsync() ?? string.Empty;
+
+        var useDesc = string.IsNullOrEmpty(cfdiUseCode)
+            ? string.Empty
+            : await context.Set<MexicoCfdiUse>()
+                .AsNoTracking()
+                .Where(u => u.Code == cfdiUseCode)
+                .Select(u => u.Description)
+                .FirstOrDefaultAsync() ?? string.Empty;
+
+        return (regimeDesc, useDesc);
+    }
+
     private static string FormatFolio(long folio, int folioLength) =>
         folioLength > 0 ? folio.ToString().PadLeft(folioLength, '0') : folio.ToString();
 
@@ -1511,6 +1552,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                         .ThenInclude(p => p.MexicoProductService)
+                .Include(s => s.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.UnitMeasure)
+                            .ThenInclude(u => u.MexicoSatUnit)
                 .FirstOrDefaultAsync(s => s.Id == invoice.SaleId);
 
             if (sale == null)
@@ -1530,6 +1575,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? DefaultProductServiceCode) },
                 { "description", d.Product.Name },
                 { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                { "unit_code", d.Product.UnitMeasure?.MexicoSatUnit?.Code ?? DefaultUnitCode },
+                { "unit_name", d.Product.UnitMeasure?.Name ?? string.Empty },
+                { "tax_object", d.Product.IsTaxable ? "02 - Sí objeto de impuesto" : "01 - No objeto de impuesto" },
                 { "unit_price", d.UnitPrice.ToString("N2") },
                 { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                 { "has_discount", (object)(d.DiscountAmount > 0) },
@@ -1543,13 +1591,15 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 : string.Empty;
 
             var (formDesc, methodDesc) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
+            var (regimeDesc, useDesc) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
             var pdfData = BuildInvoiceTemplateData(
                 invoice, folioDisplay, pdfItems, hasPdf: true,
                 discountTotal: discountTotal, logoBase64: logoBase64,
                 serie: invoice.Serie ?? string.Empty,
                 isCancelled: true,
                 cancellationDate: cancellationDate,
-                paymentFormDescription: formDesc, paymentMethodDescription: methodDesc);
+                paymentFormDescription: formDesc, paymentMethodDescription: methodDesc,
+                customerFiscalRegimeDescription: regimeDesc, cfdiUseDescription: useDesc);
 
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
             html = InjectCancellationWatermark(html, cancellationDate);
@@ -1654,7 +1704,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         MexicoInvoice invoice, string folioDisplay, List<object> items, bool hasPdf,
         decimal discountTotal = 0, string logoBase64 = "", string serie = "",
         bool isCancelled = false, string cancellationDate = "",
-        string paymentFormDescription = "", string paymentMethodDescription = "")
+        string paymentFormDescription = "", string paymentMethodDescription = "",
+        string customerFiscalRegimeDescription = "", string cfdiUseDescription = "")
     {
         var qrCode = string.Empty;
         if (!string.IsNullOrEmpty(invoice.Uuid) && !string.IsNullOrEmpty(invoice.SelloCfdi))
@@ -1692,8 +1743,10 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             { "customer_legal_name", invoice.CustomerLegalName },
             { "customer_rfc", invoice.CustomerRfc },
             { "customer_fiscal_regime", invoice.CustomerFiscalRegime },
+            { "customer_fiscal_regime_description", customerFiscalRegimeDescription },
             { "customer_postal_code", invoice.CustomerPostalCode },
             { "cfdi_use", invoice.CfdiUse },
+            { "cfdi_use_description", cfdiUseDescription },
             { "subtotal", invoice.Subtotal.ToString("N2") },
             { "tax_amount", invoice.TaxAmount.ToString("N2") },
             { "total", invoice.Total.ToString("N2") },

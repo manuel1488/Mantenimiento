@@ -57,6 +57,9 @@
   <data name="Download XML" xml:space="preserve">
     <value>Download XML</value>
   </data>
+  <data name="View PDF" xml:space="preserve">
+    <value>View PDF</value>
+  </data>
   <data name="Download PDF" xml:space="preserve">
     <value>Download PDF</value>
   </data>

@@ -140,8 +140,8 @@
                     <MudTh>@L["Customer"]</MudTh>
                     <MudTh>@L["UUID"]</MudTh>
                     <MudTh Style="text-align: right;">@L["Total"]</MudTh>
-                    <MudTh>@L["Status"]</MudTh>
-                    <MudTh Style="text-align: center; width: 160px;">@L["Actions"]</MudTh>
+                    <MudTh Style="max-width: 150px;">@L["Status"]</MudTh>
+                    <MudTh Style="text-align: center; width: 200px;">@L["Actions"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="@L["Folio"]"><b>@context.FolioDisplay</b></MudTd>
@@ -169,7 +169,7 @@
                         @if (context.Status == "StampError" && !string.IsNullOrEmpty(context.StampError))
                         {
                             <MudTooltip Text="@context.StampError">
-                                <MudText Typo="Typo.caption" Color="Color.Error" Class="d-block" Style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help;">
+                                <MudText Typo="Typo.caption" Color="Color.Error" Class="d-block" Style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help;">
                                     @context.StampError
                                 </MudText>
                             </MudTooltip>
@@ -199,6 +199,17 @@
                                                    Size="Size.Small"
                                                    Color="@(context.IsStamped ? Color.Info : Color.Warning)"
                                                    OnClick="@(() => DownloadXml(context))" />
+                                </MudTooltip>
+                            }
+
+                            <!-- View PDF in new tab -->
+                            @if (context.HasPdf)
+                            {
+                                <MudTooltip Text="@L["View PDF"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                                   Size="Size.Small"
+                                                   Color="Color.Default"
+                                                   OnClick="@(() => ViewPdf(context.Id))" />
                                 </MudTooltip>
                             }
 
@@ -430,11 +441,23 @@
         var result = await InvoiceService.GetXmlAsync(invoice.Id);
         if (!result.IsSuccess)
         {
-            Snackbar.Add(result.Error, Severity.Error);
+            Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
             return;
         }
         var fileName = $"{invoice.FolioDisplay}{(invoice.IsStamped ? $"_{invoice.Uuid?[..8]}" : "_error")}.xml";
         await JS.InvokeVoidAsync("downloadFile", fileName, "application/xml",
+            Convert.ToBase64String(result.Value!));
+    }
+
+    private async Task ViewPdf(long invoiceId)
+    {
+        var result = await InvoiceService.GetPdfAsync(invoiceId);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
+            return;
+        }
+        await JS.InvokeVoidAsync("openFileInNewTab", "application/pdf",
             Convert.ToBase64String(result.Value!));
     }
 
@@ -443,7 +466,7 @@
         var result = await InvoiceService.GetPdfAsync(invoiceId);
         if (!result.IsSuccess)
         {
-            Snackbar.Add(result.Error, Severity.Error);
+            Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
             return;
         }
         await JS.InvokeVoidAsync("downloadFile", $"factura_{invoiceId}.pdf", "application/pdf",
@@ -465,7 +488,7 @@
             }
             else
             {
-                Snackbar.Add(result.Error, Severity.Error);
+                Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
             }
         }
         catch (Exception ex)
@@ -497,7 +520,7 @@
             }
             else
             {
-                Snackbar.Add(result.Error, Severity.Error);
+                Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
             }
             await _table.ReloadServerData();
         }
@@ -540,7 +563,7 @@
         }
         else
         {
-            Snackbar.Add(result.Error, Severity.Error);
+            Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
         }
     }
 
@@ -560,7 +583,7 @@
         var result = await InvoiceService.GetCancellationAcuseAsync(invoice.Id);
         if (!result.IsSuccess)
         {
-            Snackbar.Add(result.Error, Severity.Error);
+            Snackbar.Add(result.Error ?? L["Error"], Severity.Error);
             return;
         }
         await JS.InvokeVoidAsync("downloadFile",
