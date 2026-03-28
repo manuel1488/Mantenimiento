@@ -84,4 +84,6 @@
   <data name="Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments." xml:space="preserve">
     <value>Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments.</value>
   </data>
+  <data name="Quotation not found" xml:space="preserve"><value>Quotation not found</value></data>
+  <data name="Only accepted quotations can be converted to a sale" xml:space="preserve"><value>Only accepted quotations can be converted to a sale</value></data>
 </root>

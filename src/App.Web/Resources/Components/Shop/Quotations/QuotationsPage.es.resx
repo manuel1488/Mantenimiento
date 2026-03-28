@@ -10,7 +10,7 @@
   <data name="All statuses" xml:space="preserve"><value>Todos los estados</value></data>
   <data name="All" xml:space="preserve"><value>Todos</value></data>
   <data name="Draft" xml:space="preserve"><value>Borrador</value></data>
-  <data name="Sent" xml:space="preserve"><value>Enviada</value></data>
+  <data name="Pending" xml:space="preserve"><value>Pendiente</value></data>
   <data name="Accepted" xml:space="preserve"><value>Aceptada</value></data>
   <data name="Rejected" xml:space="preserve"><value>Rechazada</value></data>
   <data name="Expired" xml:space="preserve"><value>Expirada</value></data>
@@ -27,6 +27,7 @@
   <data name="Send by email" xml:space="preserve"><value>Enviar por email</value></data>
   <data name="Mark as Accepted" xml:space="preserve"><value>Marcar como aceptada</value></data>
   <data name="Mark as Rejected" xml:space="preserve"><value>Marcar como rechazada</value></data>
+  <data name="Mark as Pending" xml:space="preserve"><value>Marcar como pendiente</value></data>
   <data name="Mark as Expired" xml:space="preserve"><value>Marcar como expirada</value></data>
   <data name="Delete" xml:space="preserve"><value>Eliminar</value></data>
   <data name="Edit Quotation" xml:space="preserve"><value>Editar cotización</value></data>
@@ -36,4 +37,6 @@
   <data name="Confirm Delete" xml:space="preserve"><value>Confirmar eliminación</value></data>
   <data name="Are you sure you want to delete quotation {0}?" xml:space="preserve"><value>¿Está seguro de eliminar la cotización {0}?</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Convert to Remission" xml:space="preserve"><value>Convertir a Remisión</value></data>
+  <data name="Convert to Sale" xml:space="preserve"><value>Convertir a Venta</value></data>
 </root>

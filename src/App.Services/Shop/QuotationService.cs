@@ -409,6 +409,15 @@ public class QuotationService : IQuotationService
             if (quotation is null)
                 return Result.Failure(_localizer["Quotation not found"]);
 
+            var validTransitions = new Dictionary<QuotationStatus, QuotationStatus[]>
+            {
+                [QuotationStatus.Draft]   = [QuotationStatus.Pending],
+                [QuotationStatus.Pending] = [QuotationStatus.Accepted, QuotationStatus.Rejected, QuotationStatus.Expired],
+            };
+
+            if (!validTransitions.TryGetValue(quotation.Status, out var allowed) || !allowed.Contains(status))
+                return Result.Failure(_localizer["This quotation is already closed and cannot be changed"]);
+
             quotation.Status = status;
             quotation.ModifiedBy = _currentUserService.UserId ?? "System";
             quotation.ModifiedAt = _dateTime.Now;
@@ -502,7 +511,8 @@ public class QuotationService : IQuotationService
             if (!emailResult.Success)
                 return Result.Failure(emailResult.Error ?? _localizer["Failed to send email"]);
 
-            quotation.Status = QuotationStatus.Sent;
+            if (quotation.Status == QuotationStatus.Draft)
+                quotation.Status = QuotationStatus.Pending;
             quotation.SentAt = _dateTime.Now;
             quotation.SentToEmail = toEmail;
             quotation.ModifiedBy = _currentUserService.UserId ?? "System";

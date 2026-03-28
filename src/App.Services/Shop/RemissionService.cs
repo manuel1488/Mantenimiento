@@ -146,6 +146,17 @@ public class RemissionService : IRemissionService
 
             try
             {
+                // Validate source quotation status
+                if (dto.QuotationId.HasValue)
+                {
+                    var sourceQuotation = await context.Quotations
+                        .FirstOrDefaultAsync(q => q.Id == dto.QuotationId.Value);
+                    if (sourceQuotation is null)
+                        return Result<RemissionDto>.Failure(_localizer["Quotation not found"]);
+                    if (sourceQuotation.Status != App.Core.Enums.Shop.QuotationStatus.Accepted)
+                        return Result<RemissionDto>.Failure(_localizer["Only accepted quotations can be converted to a remission"]);
+                }
+
                 var customer = await context.Customers
                     .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.IsDeleted == 0);
@@ -215,6 +226,7 @@ public class RemissionService : IRemissionService
                     Notes = dto.Notes,
                     DiscountPercentage = dto.DiscountPercentage,
                     TaxRate = taxRate,
+                    QuotationId = dto.QuotationId,
                     CreatedBy = currentUser,
                     CreatedAt = now,
                     ModifiedBy = currentUser,
@@ -321,6 +333,7 @@ public class RemissionService : IRemissionService
                 var created = await context.Remissions
                     .Include(r => r.Customer)
                     .Include(r => r.Location)
+                    .Include(r => r.Quotation)
                     .Include(r => r.Details)
                     .FirstAsync(r => r.Id == remission.Id);
 
@@ -354,6 +367,9 @@ public class RemissionService : IRemissionService
 
                 if (remission is null)
                     return Result.Failure(_localizer["Remission not found"]);
+
+                if (remission.Status == RemissionStatus.Consolidated)
+                    return Result.Failure(_localizer["Cannot cancel a consolidated remission. Cancel the associated sale first."]);
 
                 if (remission.Status != RemissionStatus.Pending)
                     return Result.Failure(_localizer["Only pending remissions can be cancelled"]);

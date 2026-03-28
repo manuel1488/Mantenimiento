@@ -320,6 +320,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.EditQuotation, policy => policy.RequireClaim(ApplicationClaims.Shop.EditQuotation));
         options.AddPolicy(ApplicationClaims.Shop.DeleteQuotation, policy => policy.RequireClaim(ApplicationClaims.Shop.DeleteQuotation));
         options.AddPolicy(ApplicationClaims.Shop.SendQuotation, policy => policy.RequireClaim(ApplicationClaims.Shop.SendQuotation));
+        options.AddPolicy(ApplicationClaims.Shop.ConvertQuotationToRemission, policy => policy.RequireClaim(ApplicationClaims.Shop.ConvertQuotationToRemission));
+        options.AddPolicy(ApplicationClaims.Shop.ConvertQuotationToSale, policy => policy.RequireClaim(ApplicationClaims.Shop.ConvertQuotationToSale));
 
         options.AddPolicy(ApplicationClaims.Shop.ViewRemissions, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewRemissions));
         options.AddPolicy(ApplicationClaims.Shop.CreateRemission, policy => policy.RequireClaim(ApplicationClaims.Shop.CreateRemission));

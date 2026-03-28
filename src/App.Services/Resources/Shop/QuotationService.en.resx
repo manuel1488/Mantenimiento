@@ -32,4 +32,5 @@
   <data name="Only draft quotations can be edited" xml:space="preserve"><value>Only draft quotations can be edited</value></data>
   <data name="Quotation must have at least one detail" xml:space="preserve"><value>Quotation must have at least one detail</value></data>
   <data name="Error retrieving quotations" xml:space="preserve"><value>Error retrieving quotations</value></data>
+  <data name="This quotation is already closed and cannot be changed" xml:space="preserve"><value>This quotation is already closed and cannot be changed</value></data>
 </root>

@@ -34,6 +34,9 @@ public class SaleDto : AuditableDto
     public decimal TaxableAmount { get; set; } // Amount subject to tax (after discount, before tax)
     public decimal NonTaxableAmount { get; set; } // Amount not subject to tax
     
+    public long? QuotationId { get; set; }
+    public string? QuotationNumber { get; set; }
+
     public List<SaleDetailDto> Details { get; set; } = new();
     public List<SalePaymentDto> Payments { get; set; } = new();
 }

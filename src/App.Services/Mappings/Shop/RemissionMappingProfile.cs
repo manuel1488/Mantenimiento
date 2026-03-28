@@ -13,6 +13,8 @@ public class RemissionMappingProfile : Profile
                 opt => opt.MapFrom(src => src.Customer.Name))
             .ForMember(dest => dest.LocationName,
                 opt => opt.MapFrom(src => src.Location != null ? src.Location.Name : null))
+            .ForMember(dest => dest.QuotationNumber,
+                opt => opt.MapFrom(src => src.Quotation != null ? src.Quotation.QuotationNumber : null))
             .ForMember(dest => dest.Details,
                 opt => opt.MapFrom(src => src.Details));
 

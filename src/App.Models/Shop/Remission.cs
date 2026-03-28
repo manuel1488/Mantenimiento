@@ -41,6 +41,12 @@ public class Remission : BaseEntity<long>
     [Column(TypeName = "decimal(10,2)")]
     public decimal Total { get; set; }
 
+    // Quotation origin (optional)
+    public long? QuotationId { get; set; }
+
+    [ForeignKey(nameof(QuotationId))]
+    public virtual Quotation? Quotation { get; set; }
+
     // Consolidation tracking
     public long? ConsolidatedSaleId { get; set; }
     public DateTime? ConsolidatedAt { get; set; }

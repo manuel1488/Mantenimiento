@@ -15,6 +15,8 @@ public class CreateRemissionDto
     [Range(0, 100)]
     public decimal DiscountPercentage { get; set; } = 0;
 
+    public long? QuotationId { get; set; }
+
     [StringLength(2000)]
     public string? Notes { get; set; }
 

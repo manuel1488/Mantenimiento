@@ -1,0 +1,271 @@
+@using App.Core.DTOs.Settings
+@using App.Core.DTOs.Shop
+@using App.Core.Interfaces.Settings
+@using App.Core.Interfaces.Shop
+@using App.Shared.Services
+@using MudBlazor
+@inject IQuotationService QuotationService
+@inject ISaleService SaleService
+@inject IPaymentMethodService PaymentMethodService
+@inject ICashRegisterService CashRegisterService
+@inject ICurrentUserService CurrentUserService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<ConvertQuotationToSaleDialog> L
+
+<MudDialog>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_quotation is not null)
+        {
+            <MudStack Spacing="4">
+
+                @* Cash register status *@
+                @if (_activeCashRegister is null)
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@L["No open cash register. Open a cash register before converting to a sale."]</MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Success" Dense="true">
+                        @string.Format(L["Cash register: {0}"], _activeCashRegister.LocationName)
+                    </MudAlert>
+                }
+
+                @* Customer info *@
+                <MudAlert Severity="Severity.Info" Dense="true">
+                    @string.Format(L["Quotation {0} — Customer: {1}"], _quotation.QuotationNumber, _quotation.CustomerName)
+                </MudAlert>
+
+                @* Products (read-only) *@
+                <MudText Typo="Typo.subtitle1">@L["Products"]</MudText>
+                <MudTable T="QuotationDetailDto" Items="_quotation.Details" Dense="true" Hover="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>@L["Product"]</MudTh>
+                        <MudTh Style="text-align:right">@L["Qty"]</MudTh>
+                        <MudTh Style="text-align:right">@L["Unit Price"]</MudTh>
+                        <MudTh Style="text-align:right">@L["Total"]</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="@L["Product"]">@context.ProductName</MudTd>
+                        <MudTd DataLabel="@L["Qty"]" Style="text-align:right">@context.Quantity.ToString("N2")</MudTd>
+                        <MudTd DataLabel="@L["Unit Price"]" Style="text-align:right">@context.UnitPrice.ToString("C2")</MudTd>
+                        <MudTd DataLabel="@L["Total"]" Style="text-align:right">@context.Total.ToString("C2")</MudTd>
+                    </RowTemplate>
+                </MudTable>
+
+                @* Totals *@
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="4">
+                    <MudStack Spacing="1" Style="min-width:200px;">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.body2">@L["Subtotal"]</MudText>
+                            <MudText Typo="Typo.body2">@_quotation.Subtotal.ToString("C2")</MudText>
+                        </MudStack>
+                        @if (_quotation.DiscountAmount > 0)
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.body2" Color="Color.Error">@L["Discount"]</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Error">-@_quotation.DiscountAmount.ToString("C2")</MudText>
+                            </MudStack>
+                        }
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.body2">@L["Tax"]</MudText>
+                            <MudText Typo="Typo.body2">@_quotation.TaxAmount.ToString("C2")</MudText>
+                        </MudStack>
+                        <MudDivider />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.subtitle1"><strong>@L["Total"]</strong></MudText>
+                            <MudText Typo="Typo.subtitle1"><strong>@_quotation.Total.ToString("C2")</strong></MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+
+                <MudDivider />
+
+                @* Payment lines *@
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.subtitle1">@L["Payments"]</MudText>
+                    <MudButton StartIcon="@Icons.Material.Filled.Add"
+                               Size="Size.Small"
+                               Variant="Variant.Text"
+                               Color="Color.Primary"
+                               OnClick="AddPaymentLine">
+                        @L["Add Payment"]
+                    </MudButton>
+                </MudStack>
+
+                @foreach (var payment in _paymentLines)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudSelect T="int"
+                                   Value="payment.PaymentMethodId"
+                                   ValueChanged="@(id => payment.PaymentMethodId = id)"
+                                   Label="@L["Payment Method"]"
+                                   Variant="Variant.Outlined"
+                                   Dense="true"
+                                   Style="flex:1">
+                            @foreach (var pm in _paymentMethods)
+                            {
+                                <MudSelectItem T="int" Value="@pm.Id">@pm.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudNumericField T="decimal"
+                                         Value="payment.Amount"
+                                         ValueChanged="@(v => payment.Amount = v)"
+                                         Label="@L["Amount"]"
+                                         Variant="Variant.Outlined"
+                                         Dense="true"
+                                         Format="N2"
+                                         Style="width:150px" />
+                        @if (_paymentLines.Count > 1)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           OnClick="@(() => RemovePaymentLine(payment))" />
+                        }
+                    </MudStack>
+                }
+
+                @* Payment validation *@
+                @{
+                    var totalPaid = _paymentLines.Sum(p => p.Amount);
+                    var remaining = _quotation.Total - totalPaid;
+                }
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                    @if (Math.Abs(remaining) > 0.01m)
+                    {
+                        <MudAlert Severity="@(remaining > 0 ? Severity.Warning : Severity.Error)" Dense="true">
+                            @(remaining > 0
+                                ? string.Format(L["Remaining: {0}"], remaining.ToString("C2"))
+                                : string.Format(L["Overpaid by: {0}"], Math.Abs(remaining).ToString("C2")))
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Success" Dense="true">@L["Payment complete"]</MudAlert>
+                    }
+                </MudStack>
+
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="ConfirmAsync"
+                   Disabled="@(!CanConfirm)">
+            @if (_processing)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            }
+            @L["Confirm Sale"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public long QuotationId { get; set; }
+
+    #region Fields
+    private QuotationDto? _quotation;
+    private CashRegisterDto? _activeCashRegister;
+    private List<PaymentMethodDto> _paymentMethods = [];
+    private List<PaymentLine> _paymentLines = [];
+    private bool _loading = true;
+    private bool _processing;
+    #endregion
+
+    private bool CanConfirm =>
+        _quotation is not null &&
+        _activeCashRegister is not null &&
+        _paymentLines.Count > 0 &&
+        _paymentLines.All(p => p.PaymentMethodId > 0 && p.Amount > 0) &&
+        Math.Abs(_quotation.Total - _paymentLines.Sum(p => p.Amount)) <= 0.01m &&
+        !_processing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = CurrentUserService.UserId ?? string.Empty;
+        var cashResult = await CashRegisterService.GetActiveCashRegisterByUserAsync(userId);
+        if (cashResult.IsSuccess && cashResult.Value is not null)
+            _activeCashRegister = cashResult.Value;
+
+        _paymentMethods = (await PaymentMethodService.GetActiveAsync()).ToList();
+        _quotation = await QuotationService.GetByIdAsync(QuotationId);
+
+        if (_quotation is not null)
+        {
+            _paymentLines.Add(new PaymentLine
+            {
+                PaymentMethodId = _paymentMethods.FirstOrDefault()?.Id ?? 0,
+                Amount = _quotation.Total
+            });
+        }
+
+        _loading = false;
+    }
+
+    private void AddPaymentLine()
+    {
+        var remaining = (_quotation?.Total ?? 0) - _paymentLines.Sum(p => p.Amount);
+        _paymentLines.Add(new PaymentLine
+        {
+            PaymentMethodId = _paymentMethods.FirstOrDefault()?.Id ?? 0,
+            Amount = remaining > 0 ? remaining : 0
+        });
+    }
+
+    private void RemovePaymentLine(PaymentLine line) => _paymentLines.Remove(line);
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task ConfirmAsync()
+    {
+        if (!CanConfirm || _quotation is null) return;
+
+        _processing = true;
+
+        var createDto = new CreateSaleDto
+        {
+            CustomerId = _quotation.CustomerId,
+            QuotationId = _quotation.Id,
+            LocationId = _activeCashRegister?.LocationId,
+            Details = _quotation.Details.Select(d => new CreateSaleDetailDto
+            {
+                ProductId = d.ProductId,
+                Quantity = d.Quantity,
+                DiscountPercentage = d.DiscountPercentage
+            }).ToList(),
+            Payments = _paymentLines.Select(p => new CreateSalePaymentDto
+            {
+                PaymentMethodId = p.PaymentMethodId,
+                Amount = p.Amount
+            }).ToList()
+        };
+
+        var result = await SaleService.CreateSaleAsync(createDto);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Sale created successfully"], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(result.Value.Id));
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+
+        _processing = false;
+    }
+
+    private class PaymentLine
+    {
+        public int PaymentMethodId { get; set; }
+        public decimal Amount { get; set; }
+    }
+}

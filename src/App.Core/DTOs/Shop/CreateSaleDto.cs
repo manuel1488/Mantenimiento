@@ -12,6 +12,8 @@ public class CreateSaleDto
 
     public SaleType SaleType { get; set; } = SaleType.Public;
 
+    public long? QuotationId { get; set; }
+
     public int? LocationId { get; set; }
 
     [Range(0, 100)]

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Quotation {0} — Customer: {1}" xml:space="preserve"><value>Quotation {0} — Customer: {1}</value></data>
+  <data name="Products" xml:space="preserve"><value>Products</value></data>
+  <data name="Product" xml:space="preserve"><value>Product</value></data>
+  <data name="Qty" xml:space="preserve"><value>Qty</value></data>
+  <data name="Unit Price" xml:space="preserve"><value>Unit Price</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Subtotal</value></data>
+  <data name="Discount" xml:space="preserve"><value>Discount</value></data>
+  <data name="Tax" xml:space="preserve"><value>Tax</value></data>
+  <data name="Payments" xml:space="preserve"><value>Payments</value></data>
+  <data name="Add Payment" xml:space="preserve"><value>Add Payment</value></data>
+  <data name="Payment Method" xml:space="preserve"><value>Payment Method</value></data>
+  <data name="Amount" xml:space="preserve"><value>Amount</value></data>
+  <data name="Remaining: {0}" xml:space="preserve"><value>Remaining: {0}</value></data>
+  <data name="Overpaid by: {0}" xml:space="preserve"><value>Overpaid by: {0}</value></data>
+  <data name="Payment complete" xml:space="preserve"><value>Payment complete</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Confirm Sale" xml:space="preserve"><value>Confirm Sale</value></data>
+  <data name="Sale created successfully" xml:space="preserve"><value>Sale created successfully</value></data>
+  <data name="Convert to Sale" xml:space="preserve"><value>Convert to Sale</value></data>
+  <data name="No open cash register. Open a cash register before converting to a sale." xml:space="preserve"><value>No open cash register. Open a cash register before converting to a sale.</value></data>
+  <data name="Cash register: {0}" xml:space="preserve"><value>Cash register: {0}</value></data>
+</root>

@@ -20,6 +20,9 @@ public class RemissionDto : AuditableDto
     public decimal TaxRate { get; set; }
     public decimal TaxAmount { get; set; }
     public decimal Total { get; set; }
+    public long? QuotationId { get; set; }
+    public string? QuotationNumber { get; set; }
+
     public long? ConsolidatedSaleId { get; set; }
     public DateTime? ConsolidatedAt { get; set; }
     public string? ConsolidatedBy { get; set; }

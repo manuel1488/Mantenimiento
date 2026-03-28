@@ -70,6 +70,8 @@ public static class ApplicationClaims
         public const string EditQuotation = "Shop.Quotations.Edit";
         public const string DeleteQuotation = "Shop.Quotations.Delete";
         public const string SendQuotation = "Shop.Quotations.Send";
+        public const string ConvertQuotationToRemission = "Shop.Quotations.ConvertToRemission";
+        public const string ConvertQuotationToSale = "Shop.Quotations.ConvertToSale";
 
         // Remisiones
         public const string ViewRemissions = "Shop.Remissions.View";

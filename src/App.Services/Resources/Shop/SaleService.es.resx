@@ -84,4 +84,6 @@
   <data name="Cash register limit reached ({0:C}). Please make a withdrawal before accepting more cash payments." xml:space="preserve">
     <value>Límite de caja alcanzado ({0:C}). Realiza un retiro antes de aceptar más pagos en efectivo.</value>
   </data>
+  <data name="Quotation not found" xml:space="preserve"><value>Cotización no encontrada</value></data>
+  <data name="Only accepted quotations can be converted to a sale" xml:space="preserve"><value>Solo las cotizaciones aceptadas pueden convertirse en venta</value></data>
 </root>

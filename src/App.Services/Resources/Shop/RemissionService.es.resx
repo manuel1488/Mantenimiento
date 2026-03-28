@@ -12,6 +12,7 @@
   <data name="Error creating remission" xml:space="preserve"><value>Error al crear remisión</value></data>
   <data name="Remission not found" xml:space="preserve"><value>Remisión no encontrada</value></data>
   <data name="Only pending remissions can be cancelled" xml:space="preserve"><value>Solo se pueden cancelar remisiones pendientes</value></data>
+  <data name="Cannot cancel a consolidated remission. Cancel the associated sale first." xml:space="preserve"><value>No se puede cancelar una remisión consolidada. Primero cancela la venta asociada.</value></data>
   <data name="Error reverting inventory: {0}" xml:space="preserve"><value>Error revirtiendo inventario: {0}</value></data>
   <data name="Error cancelling remission" xml:space="preserve"><value>Error al cancelar remisión</value></data>
   <data name="Error getting pending remissions" xml:space="preserve"><value>Error al obtener remisiones pendientes</value></data>
@@ -34,4 +35,6 @@
   <data name="Notes" xml:space="preserve"><value>Notas</value></data>
   <data name="Location" xml:space="preserve"><value>Ubicación</value></data>
   <data name="This document is not an invoice" xml:space="preserve"><value>Este documento no es una factura</value></data>
+  <data name="Quotation not found" xml:space="preserve"><value>Cotización no encontrada</value></data>
+  <data name="Only accepted quotations can be converted to a remission" xml:space="preserve"><value>Solo las cotizaciones aceptadas pueden convertirse en remisión</value></data>
 </root>

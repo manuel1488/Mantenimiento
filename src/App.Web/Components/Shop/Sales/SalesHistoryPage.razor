@@ -169,6 +169,20 @@
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" HeaderStyle="width: 90px;" />
+                    <TemplateColumn Title="@L["Quotation"]" HeaderStyle="width: 100px;">
+                        <CellTemplate>
+                            @if (context.Item.QuotationNumber is not null)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                                    @context.Item.QuotationNumber
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Title="@L["Created By"]" HeaderStyle="width: 100px;">
                         <CellTemplate>
                             @(context.Item.CreatedBy ?? "—")

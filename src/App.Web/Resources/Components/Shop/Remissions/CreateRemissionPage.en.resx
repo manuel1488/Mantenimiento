@@ -26,4 +26,5 @@
   <data name="Save" xml:space="preserve"><value>Save</value></data>
   <data name="Remission saved successfully" xml:space="preserve"><value>Remission saved successfully</value></data>
   <data name="Discount" xml:space="preserve"><value>Discount</value></data>
+  <data name="Creating remission from quotation {0}" xml:space="preserve"><value>Creating remission from quotation {0}</value></data>
 </root>

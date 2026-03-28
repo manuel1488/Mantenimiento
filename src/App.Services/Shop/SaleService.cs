@@ -95,6 +95,7 @@ public class SaleService : ISaleService
                 .AsNoTracking()
                 .Include(s => s.Customer)
                 .Include(s => s.Location)
+                .Include(s => s.Quotation)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                 .Include(s => s.Payments)
@@ -175,6 +176,7 @@ public class SaleService : ISaleService
                 .AsNoTracking()
                 .Include(s => s.Customer)
                 .Include(s => s.Location)
+                .Include(s => s.Quotation)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                 .Include(s => s.Payments)
@@ -204,11 +206,21 @@ public class SaleService : ISaleService
                 return Result<SaleDto>.Failure(configValidation.Error!);
             }
 
+            // Validate source quotation status
+            if (createDto.QuotationId.HasValue)
+            {
+                var sourceQuotation = await context.Quotations
+                    .FirstOrDefaultAsync(q => q.Id == createDto.QuotationId.Value);
+                if (sourceQuotation is null)
+                    return Result<SaleDto>.Failure(L["Quotation not found"]);
+                if (sourceQuotation.Status != App.Core.Enums.Shop.QuotationStatus.Accepted)
+                    return Result<SaleDto>.Failure(L["Only accepted quotations can be converted to a sale"]);
+            }
+
             // Validate active cash register for current user+location
-            // Skip for remission-consolidated sales (administrative operation, no register needed)
             long? cashRegisterId = null;
             var saleLocationId = createDto.LocationId;
-            if (saleLocationId.HasValue && createDto.SaleType != SaleType.Remission)
+            if (saleLocationId.HasValue)
             {
                 var cashRegResult = await _cashRegisterService.GetActiveCashRegisterAsync(
                     saleLocationId.Value,
@@ -457,35 +469,58 @@ public class SaleService : ISaleService
 
             // Use LocationId from the sale entity
             int? locationId = sale.LocationId;
+            var currentUser = _currentUserService.UserId ?? "System";
+            var now = _dateTime.Now;
 
-            // Return inventory for products that require inventory tracking
-            var cancelProductIds = sale.Details.Select(d => d.ProductId).ToList();
-            var cancelInventoryFlags = await context.Products
-                .AsNoTracking()
-                .Where(p => cancelProductIds.Contains(p.Id))
-                .Select(p => new { p.Id, p.RequiresInventory })
-                .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
-
-            foreach (var detail in sale.Details)
+            if (sale.SaleType == SaleType.Remission)
             {
-                if (cancelInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
-                    continue;
+                // For remission-consolidated sales, inventory is owned by the remissions.
+                // Revert associated remissions back to Pending so they can be cancelled individually.
+                var remissions = await context.Remissions
+                    .Where(r => r.ConsolidatedSaleId == sale.Id)
+                    .ToListAsync();
 
-                var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
+                foreach (var remission in remissions)
                 {
-                    ProductId = detail.ProductId,
-                    LocationId = locationId ?? 0, // TODO: Validate locationId properly
-                    Quantity = detail.Quantity,
-                    MovementType = InventoryMovementType.Return,
-                    MovementSubType = InventoryMovementSubType.DirectSale,
-                    Reference = $"Cancel-Sale-{sale.Id}",
-                    Reason = reason
-                });
+                    remission.Status = RemissionStatus.Pending;
+                    remission.ConsolidatedSaleId = null;
+                    remission.ConsolidatedAt = null;
+                    remission.ConsolidatedBy = null;
+                    remission.ModifiedBy = currentUser;
+                    remission.ModifiedAt = now;
+                }
+            }
+            else
+            {
+                // Return inventory for products that require inventory tracking
+                var cancelProductIds = sale.Details.Select(d => d.ProductId).ToList();
+                var cancelInventoryFlags = await context.Products
+                    .AsNoTracking()
+                    .Where(p => cancelProductIds.Contains(p.Id))
+                    .Select(p => new { p.Id, p.RequiresInventory })
+                    .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
 
-                if (!movementResult.Success)
+                foreach (var detail in sale.Details)
                 {
-                    throw new InvalidOperationException(
-                        L["Error returning inventory: {0}", movementResult.Message ?? "Unknown error"]);
+                    if (cancelInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
+                        continue;
+
+                    var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
+                    {
+                        ProductId = detail.ProductId,
+                        LocationId = locationId ?? 0,
+                        Quantity = detail.Quantity,
+                        MovementType = InventoryMovementType.Return,
+                        MovementSubType = InventoryMovementSubType.DirectSale,
+                        Reference = $"Cancel-Sale-{sale.Id}",
+                        Reason = reason
+                    });
+
+                    if (!movementResult.Success)
+                    {
+                        throw new InvalidOperationException(
+                            L["Error returning inventory: {0}", movementResult.Message ?? "Unknown error"]);
+                    }
                 }
             }
 
@@ -640,6 +675,7 @@ public class SaleService : ISaleService
                 CashRegisterId = cashRegisterId,
                 DiscountPercentage = createDto.DiscountPercentage,
                 DiscountAuthorizedBy = createDto.DiscountAuthorizedBy,
+                QuotationId = createDto.QuotationId,
                 CreatedBy = _currentUserService.FullName,
                 CreatedAt = _dateTime.Now,
                 Details = new List<SaleDetail>()

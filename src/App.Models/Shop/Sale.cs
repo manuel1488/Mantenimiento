@@ -61,6 +61,12 @@ public class Sale : BaseEntity<long>
     [ForeignKey(nameof(CashRegisterId))]
     public virtual CashRegister? CashRegister { get; set; }
 
+    // Quotation origin (optional)
+    public long? QuotationId { get; set; }
+
+    [ForeignKey(nameof(QuotationId))]
+    public virtual Quotation? Quotation { get; set; }
+
     public virtual ICollection<SaleDetail> Details { get; set; } = new List<SaleDetail>();
 
     public virtual ICollection<SalePayment> Payments { get; set; } = new List<SalePayment>();

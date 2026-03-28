@@ -40,7 +40,7 @@
                            Style="min-width: 180px;">
                     <MudSelectItem T="string?" Value="@((string?)null)">@L["All"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Draft")">@L["Draft"]</MudSelectItem>
-                    <MudSelectItem T="string?" Value="@("Sent")">@L["Sent"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Pending")">@L["Pending"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Accepted")">@L["Accepted"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Rejected")">@L["Rejected"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Expired")">@L["Expired"]</MudSelectItem>
@@ -123,30 +123,54 @@
                                                        OnClick="@(() => OpenSendDialog(context.Item))" />
                                     </Authorized>
                                 </AuthorizeView>
-                                <AuthorizeView Policy="@ApplicationClaims.Shop.EditQuotation">
-                                    <Authorized Context="statusAuth">
-                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
-                                            @if (context.Item.Status != QuotationStatus.Accepted)
-                                            {
-                                                <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Accepted))">
-                                                    @L["Mark as Accepted"]
-                                                </MudMenuItem>
-                                            }
-                                            @if (context.Item.Status != QuotationStatus.Rejected)
-                                            {
-                                                <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Rejected))">
-                                                    @L["Mark as Rejected"]
-                                                </MudMenuItem>
-                                            }
-                                            @if (context.Item.Status != QuotationStatus.Expired)
-                                            {
-                                                <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Expired))">
-                                                    @L["Mark as Expired"]
-                                                </MudMenuItem>
-                                            }
-                                        </MudMenu>
-                                    </Authorized>
-                                </AuthorizeView>
+                                @if (context.Item.Status == QuotationStatus.Accepted)
+                                {
+                                    <AuthorizeView Policy="@ApplicationClaims.Shop.ConvertQuotationToRemission">
+                                        <Authorized Context="remissionAuth">
+                                            <MudIconButton Icon="@Icons.Material.Filled.LocalShipping"
+                                                           Size="Size.Small"
+                                                           Color="Color.Warning"
+                                                           title="@L["Convert to Remission"]"
+                                                           OnClick="@(() => Navigation.NavigateTo($"/shop/remissions/new?quotationId={context.Item.Id}"))" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                    <AuthorizeView Policy="@ApplicationClaims.Shop.ConvertQuotationToSale">
+                                        <Authorized Context="saleAuth">
+                                            <MudIconButton Icon="@Icons.Material.Filled.ShoppingCartCheckout"
+                                                           Size="Size.Small"
+                                                           Color="Color.Success"
+                                                           title="@L["Convert to Sale"]"
+                                                           OnClick="@(() => OpenConvertToSaleDialog(context.Item))" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                }
+                                @if (context.Item.Status == QuotationStatus.Draft || context.Item.Status == QuotationStatus.Pending)
+                                {
+                                    <AuthorizeView Policy="@ApplicationClaims.Shop.EditQuotation">
+                                        <Authorized Context="statusAuth">
+                                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                                                @if (context.Item.Status == QuotationStatus.Draft)
+                                                {
+                                                    <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Pending))">
+                                                        @L["Mark as Pending"]
+                                                    </MudMenuItem>
+                                                }
+                                                @if (context.Item.Status == QuotationStatus.Pending)
+                                                {
+                                                    <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Accepted))">
+                                                        @L["Mark as Accepted"]
+                                                    </MudMenuItem>
+                                                    <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Rejected))">
+                                                        @L["Mark as Rejected"]
+                                                    </MudMenuItem>
+                                                    <MudMenuItem OnClick="@(() => ChangeStatusAsync(context.Item, QuotationStatus.Expired))">
+                                                        @L["Mark as Expired"]
+                                                    </MudMenuItem>
+                                                }
+                                            </MudMenu>
+                                        </Authorized>
+                                    </AuthorizeView>
+                                }
                                 <AuthorizeView Policy="@ApplicationClaims.Shop.DeleteQuotation">
                                     <Authorized Context="deleteAuth">
                                         @if (context.Item.Status == QuotationStatus.Draft)
@@ -220,6 +244,19 @@
         }
     }
 
+    private async Task OpenConvertToSaleDialog(QuotationDto quotation)
+    {
+        var parameters = new DialogParameters<ConvertQuotationToSaleDialog>
+        {
+            { x => x.QuotationId, quotation.Id }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<ConvertQuotationToSaleDialog>(L["Convert to Sale"], parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+            await _grid!.ReloadServerData();
+    }
+
     private async Task OpenSendDialog(QuotationDto quotation)
     {
         var parameters = new DialogParameters<SendQuotationDialog>
@@ -276,7 +313,7 @@
     private static Color GetStatusColor(QuotationStatus status) => status switch
     {
         QuotationStatus.Draft => Color.Default,
-        QuotationStatus.Sent => Color.Info,
+        QuotationStatus.Pending => Color.Info,
         QuotationStatus.Accepted => Color.Success,
         QuotationStatus.Rejected => Color.Error,
         QuotationStatus.Expired => Color.Warning,

@@ -32,4 +32,5 @@
   <data name="Only draft quotations can be edited" xml:space="preserve"><value>Solo se pueden editar cotizaciones en borrador</value></data>
   <data name="Quotation must have at least one detail" xml:space="preserve"><value>La cotización debe tener al menos un producto</value></data>
   <data name="Error retrieving quotations" xml:space="preserve"><value>Error al obtener las cotizaciones</value></data>
+  <data name="This quotation is already closed and cannot be changed" xml:space="preserve"><value>Esta cotización ya está cerrada y no puede modificarse</value></data>
 </root>

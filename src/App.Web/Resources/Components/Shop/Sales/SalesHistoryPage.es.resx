@@ -100,6 +100,9 @@
   <data name="Created By" xml:space="preserve">
     <value>Vendedor</value>
   </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Cotización</value>
+  </data>
   <data name="No location" xml:space="preserve">
     <value>Sin sucursal</value>
     <comment>Se muestra cuando la venta no tiene sucursal asignada</comment>
