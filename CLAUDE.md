@@ -1,6 +1,19 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
+
+## Documentation Index
+
+| Folder | Contents |
+|---|---|
+| [`docs/01-Architecture/`](docs/01-Architecture/) | ADRs, system diagrams, architecture decisions |
+| [`docs/02-Development/`](docs/02-Development/) | Development guides and patterns |
+| [`docs/03-Modules/`](docs/03-Modules/) | Module-specific documentation |
+| [`docs/99-Archive/`](docs/99-Archive/) | Archived / legacy files |
+
+### Key guides
+- [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
+- [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
 
 ## Project Overview
 App is a .NET 9 Blazor Server application for product sales and inventory management. The application uses an N-Layer architecture with MySQL database and Entity Framework Core. It includes Mexico CFDI billing support.
@@ -611,4 +624,6 @@ Icons.Material.Filled.CheckCircle           → Success confirm
 | `MudDialogInstance` | `IMudDialogInstance` | Use interface, not class |
 | `Title="..."` on HTML attrs | `title="..."` | MUD0002 warning |
 
-> **MudDataGrid column sizing guide**: See `docs/mudblazor-datagrid-guide.md` for MudDataGrid vs MudTable comparison, column width control, `ColumnResizeMode`, and ServerData migration patterns. **Always use MudDataGrid over MudTable for data listing pages.**
+> **MudDataGrid column sizing guide**: See [`docs/02-Development/mudblazor-datagrid-guide.md`](docs/02-Development/mudblazor-datagrid-guide.md). **Always use MudDataGrid over MudTable for data listing pages.**
+
+> **Workflow diagrams**: Use inline SVG inside MudDialog — NOT Z.Blazor.Diagrams (SVG layer fails in dialog portals). See [`docs/02-Development/workflow-diagram-guide.md`](docs/02-Development/workflow-diagram-guide.md).

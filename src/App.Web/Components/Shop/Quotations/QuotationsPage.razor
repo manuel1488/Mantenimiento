@@ -16,7 +16,15 @@
 
 <PageTitle>@L["Quotations"]</PageTitle>
 
-<MudText Typo="Typo.h4" GutterBottom="true">@L["Quotations"]</MudText>
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-2">
+    <MudText Typo="Typo.h4">@L["Quotations"]</MudText>
+    <MudTooltip Text="@L["View workflow"]">
+        <MudIconButton Icon="@Icons.Material.Outlined.Help"
+                       Size="Size.Small"
+                       Color="Color.Default"
+                       OnClick="@(() => OpenWorkflowDialog(null))" />
+    </MudTooltip>
+</MudStack>
 
 <MudGrid>
     <MudItem xs="12">
@@ -223,6 +231,16 @@
     #endregion
 
     #region Actions
+    private async Task OpenWorkflowDialog(QuotationStatus? status)
+    {
+        var parameters = new DialogParameters<QuotationWorkflowDialog>
+        {
+            { x => x.CurrentStatus, status }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        await DialogService.ShowAsync<QuotationWorkflowDialog>(L["Quotation Workflow"], parameters, options);
+    }
+
     private async Task PreviewPdfAsync(QuotationDto quotation)
     {
         await JS.InvokeVoidAsync("openInNewTab", $"/api/quotations/{quotation.Id}/pdf");

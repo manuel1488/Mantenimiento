@@ -39,4 +39,6 @@
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Convert to Remission" xml:space="preserve"><value>Convert to Remission</value></data>
   <data name="Convert to Sale" xml:space="preserve"><value>Convert to Sale</value></data>
+  <data name="View workflow" xml:space="preserve"><value>View workflow</value></data>
+  <data name="Quotation Workflow" xml:space="preserve"><value>Quotation Workflow</value></data>
 </root>

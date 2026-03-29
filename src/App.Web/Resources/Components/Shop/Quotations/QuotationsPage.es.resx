@@ -39,4 +39,6 @@
   <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
   <data name="Convert to Remission" xml:space="preserve"><value>Convertir a Remisión</value></data>
   <data name="Convert to Sale" xml:space="preserve"><value>Convertir a Venta</value></data>
+  <data name="View workflow" xml:space="preserve"><value>Ver flujo de trabajo</value></data>
+  <data name="Quotation Workflow" xml:space="preserve"><value>Flujo de cotización</value></data>
 </root>

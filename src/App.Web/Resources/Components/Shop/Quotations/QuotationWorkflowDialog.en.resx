@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Quotation Workflow" xml:space="preserve"><value>Quotation Workflow</value></data>
+  <data name="Workflow description" xml:space="preserve"><value>This diagram shows the allowed status transitions for a quotation. Terminal states (Rejected, Expired) cannot be changed. Only accepted quotations can be converted to a sale or remission.</value></data>
+  <data name="Current status:" xml:space="preserve"><value>Current status:</value></data>
+  <data name="Legend" xml:space="preserve"><value>Legend</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="Accepted" xml:space="preserve"><value>Accepted</value></data>
+  <data name="Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Sale" xml:space="preserve"><value>Sale</value></data>
+  <data name="Remission" xml:space="preserve"><value>Remission</value></data>
+  <data name="Send / Mark pending" xml:space="preserve"><value>Send / Mark pending</value></data>
+  <data name="Mark accepted" xml:space="preserve"><value>Mark accepted</value></data>
+  <data name="Mark rejected" xml:space="preserve"><value>Mark rejected</value></data>
+  <data name="Mark expired" xml:space="preserve"><value>Mark expired</value></data>
+  <data name="Convert" xml:space="preserve"><value>Convert</value></data>
+  <data name="Draft — editable, not yet sent" xml:space="preserve"><value>Draft — editable, not yet sent</value></data>
+  <data name="Pending — sent to customer, awaiting response" xml:space="preserve"><value>Pending — sent to customer, awaiting response</value></data>
+  <data name="Accepted — customer approved, ready to convert" xml:space="preserve"><value>Accepted — customer approved, ready to convert</value></data>
+  <data name="Rejected — customer declined (terminal)" xml:space="preserve"><value>Rejected — customer declined (terminal)</value></data>
+  <data name="Expired — past validity date (terminal)" xml:space="preserve"><value>Expired — past validity date (terminal)</value></data>
+</root>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Quotation Workflow" xml:space="preserve"><value>Flujo de cotización</value></data>
+  <data name="Workflow description" xml:space="preserve"><value>Este diagrama muestra las transiciones de estado permitidas para una cotización. Los estados terminales (Rechazada, Vencida) no pueden modificarse. Solo las cotizaciones aceptadas pueden convertirse en venta o remisión.</value></data>
+  <data name="Current status:" xml:space="preserve"><value>Estado actual:</value></data>
+  <data name="Legend" xml:space="preserve"><value>Leyenda</value></data>
+  <data name="Close" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="Draft" xml:space="preserve"><value>Borrador</value></data>
+  <data name="Pending" xml:space="preserve"><value>Pendiente</value></data>
+  <data name="Accepted" xml:space="preserve"><value>Aceptada</value></data>
+  <data name="Rejected" xml:space="preserve"><value>Rechazada</value></data>
+  <data name="Expired" xml:space="preserve"><value>Vencida</value></data>
+  <data name="Sale" xml:space="preserve"><value>Venta</value></data>
+  <data name="Remission" xml:space="preserve"><value>Remisión</value></data>
+  <data name="Send / Mark pending" xml:space="preserve"><value>Enviar / Marcar pendiente</value></data>
+  <data name="Mark accepted" xml:space="preserve"><value>Marcar aceptada</value></data>
+  <data name="Mark rejected" xml:space="preserve"><value>Marcar rechazada</value></data>
+  <data name="Mark expired" xml:space="preserve"><value>Marcar vencida</value></data>
+  <data name="Convert" xml:space="preserve"><value>Convertir</value></data>
+  <data name="Draft — editable, not yet sent" xml:space="preserve"><value>Borrador — editable, aún no enviada</value></data>
+  <data name="Pending — sent to customer, awaiting response" xml:space="preserve"><value>Pendiente — enviada al cliente, esperando respuesta</value></data>
+  <data name="Accepted — customer approved, ready to convert" xml:space="preserve"><value>Aceptada — cliente aprobó, lista para convertir</value></data>
+  <data name="Rejected — customer declined (terminal)" xml:space="preserve"><value>Rechazada — cliente declinó (terminal)</value></data>
+  <data name="Expired — past validity date (terminal)" xml:space="preserve"><value>Vencida — pasó la fecha de validez (terminal)</value></data>
+</root>
