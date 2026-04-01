@@ -214,7 +214,7 @@
                         <RowTemplate>
                             <MudTd>@context.Id</MudTd>
                             <MudTd>@context.CustomerName</MudTd>
-                            <MudTd>@context.SaleDate.ToLocalTime().ToString("g")</MudTd>
+                            <MudTd>@DateTimeService.FormatToTimezone(context.SaleDate, _timeZone)</MudTd>
                             <MudTd>@context.Total.ToString("C")</MudTd>
                             <MudTd>
                                 <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
