@@ -15,4 +15,5 @@ public class QuotationDetailDto
     public decimal TaxAmount { get; set; }
     public decimal Subtotal { get; set; }
     public decimal Total { get; set; }
+    public bool RequiresInventory { get; set; }
 }

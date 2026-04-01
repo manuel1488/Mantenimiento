@@ -83,6 +83,7 @@ public class RemissionService : IRemissionService
             .Include(r => r.Customer)
             .Include(r => r.Location)
             .Include(r => r.Details)
+            .Include(r => r.Quotation)
             .Where(r => r.IsDeleted == 0);
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -153,6 +154,9 @@ public class RemissionService : IRemissionService
                         .FirstOrDefaultAsync(q => q.Id == dto.QuotationId.Value);
                     if (sourceQuotation is null)
                         return Result<RemissionDto>.Failure(_localizer["Quotation not found"]);
+                    if (sourceQuotation.Status == App.Core.Enums.Shop.QuotationStatus.ConvertedToSale ||
+                        sourceQuotation.Status == App.Core.Enums.Shop.QuotationStatus.ConvertedToRemission)
+                        return Result<RemissionDto>.Failure(_localizer["This quotation has already been converted"]);
                     if (sourceQuotation.Status != App.Core.Enums.Shop.QuotationStatus.Accepted)
                         return Result<RemissionDto>.Failure(_localizer["Only accepted quotations can be converted to a remission"]);
                 }
@@ -222,7 +226,7 @@ public class RemissionService : IRemissionService
                     CustomerId = dto.CustomerId,
                     RemissionDate = dto.RemissionDate ?? now,
                     LocationId = dto.LocationId,
-                    Status = RemissionStatus.Pending,
+                    Status = RemissionStatus.Active,
                     Notes = dto.Notes,
                     DiscountPercentage = dto.DiscountPercentage,
                     TaxRate = taxRate,
@@ -293,6 +297,18 @@ public class RemissionService : IRemissionService
                 remission.TaxAmount = docCalc.TaxAmount;
                 remission.Total = docCalc.Total;
 
+                // Mark source quotation as converted to remission (same SaveChangesAsync = atomic)
+                if (dto.QuotationId.HasValue)
+                {
+                    var quotation = await context.Quotations.FindAsync(dto.QuotationId.Value);
+                    if (quotation is not null)
+                    {
+                        quotation.Status = App.Core.Enums.Shop.QuotationStatus.ConvertedToRemission;
+                        quotation.ModifiedBy = currentUser;
+                        quotation.ModifiedAt = now;
+                    }
+                }
+
                 context.Remissions.Add(remission);
                 await context.SaveChangesAsync();
 
@@ -315,7 +331,7 @@ public class RemissionService : IRemissionService
                         LocationId = dto.LocationId,
                         Quantity = detail.Quantity,
                         MovementType = InventoryMovementType.Sale,
-                        MovementSubType = InventoryMovementSubType.DirectSale,
+                        MovementSubType = InventoryMovementSubType.Remission,
                         Reference = $"Remission-{remission.Id}",
                         Reason = $"Remission {remission.RemissionNumber} - {detail.Quantity} units"
                     });
@@ -371,7 +387,7 @@ public class RemissionService : IRemissionService
                 if (remission.Status == RemissionStatus.Consolidated)
                     return Result.Failure(_localizer["Cannot cancel a consolidated remission. Cancel the associated sale first."]);
 
-                if (remission.Status != RemissionStatus.Pending)
+                if (remission.Status != RemissionStatus.Active)
                     return Result.Failure(_localizer["Only pending remissions can be cancelled"]);
 
                 var now = _dateTime.Now;
@@ -450,9 +466,9 @@ public class RemissionService : IRemissionService
                 .Include(r => r.Details)
                 .Where(r => r.IsDeleted == 0 &&
                             r.CustomerId == customerId &&
-                            r.Status == RemissionStatus.Pending)
-                .OrderBy(r => r.RemissionDate)
-                .ThenBy(r => r.Id)
+                            r.Status == RemissionStatus.Active)
+                .OrderByDescending(r => r.RemissionDate)
+                .ThenByDescending(r => r.Id)
                 .ToListAsync();
 
             return Result<List<RemissionDto>>.Success(_mapper.Map<List<RemissionDto>>(remissions));
@@ -492,7 +508,7 @@ public class RemissionService : IRemissionService
                     _localizer["All remissions must belong to the same customer"]);
 
             // Validate all are Pending
-            var nonPending = remissions.Where(r => r.Status != RemissionStatus.Pending).ToList();
+            var nonPending = remissions.Where(r => r.Status != RemissionStatus.Active).ToList();
             if (nonPending.Count > 0)
                 return Result<long>.Failure(
                     string.Format(_localizer["Remissions not in pending status: {0}"],

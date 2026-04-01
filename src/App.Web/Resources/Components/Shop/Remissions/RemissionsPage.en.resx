@@ -8,7 +8,7 @@
   <data name="Search by number or customer..." xml:space="preserve"><value>Search by number or customer...</value></data>
   <data name="All statuses" xml:space="preserve"><value>All statuses</value></data>
   <data name="All" xml:space="preserve"><value>All</value></data>
-  <data name="Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="Active" xml:space="preserve"><value>Active</value></data>
   <data name="Consolidated" xml:space="preserve"><value>Consolidated</value></data>
   <data name="Cancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="New Remission" xml:space="preserve"><value>New Remission</value></data>
@@ -28,4 +28,7 @@
   <data name="Consolidate Remissions" xml:space="preserve"><value>Consolidate Remissions</value></data>
   <data name="Remissions consolidated successfully" xml:space="preserve"><value>Remissions consolidated successfully</value></data>
   <data name="Quotation" xml:space="preserve"><value>Quotation</value></data>
+  <data name="View Quotation" xml:space="preserve"><value>View Quotation</value></data>
+  <data name="View detail" xml:space="preserve"><value>View detail</value></data>
+  <data name="View Origin Quotation" xml:space="preserve"><value>View Origin Quotation</value></data>
 </root>

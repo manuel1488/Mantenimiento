@@ -95,6 +95,21 @@
                                     </MudText>
                                 </MudListItem>
 
+                                @if (_sale.QuotationId.HasValue)
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body2">
+                                            <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Origin"]: </MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info"
+                                                     Icon="@Icons.Material.Filled.RequestQuote"
+                                                     Href="@($"/shop/quotations")"
+                                                     title="@L["View quotation"]">
+                                                @L["Quotation"] #@_sale.QuotationNumber
+                                            </MudChip>
+                                        </MudText>
+                                    </MudListItem>
+                                }
+
                                 <MudListItem>
                                     <MudText Typo="Typo.body2">
                                         <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Invoice"]: </MudText>
@@ -256,7 +271,13 @@
                                     <MudTd DataLabel="@L["Code"]">@contextItem.ProductCode</MudTd>
                                     <MudTd DataLabel="@L["Unit Price"]">@contextItem.UnitPrice.ToString("C")</MudTd>
                                     <MudTd DataLabel="@L["Price Type"]">
-                                        @if (contextItem.IsCustomPrice)
+                                        @if (_sale?.QuotationId.HasValue == true)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.RequestQuote">
+                                                @L["Quotation"]
+                                            </MudChip>
+                                        }
+                                        else if (contextItem.IsCustomPrice)
                                         {
                                             <MudChip T="string" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Filled.Edit">
                                                 @L["Custom"]

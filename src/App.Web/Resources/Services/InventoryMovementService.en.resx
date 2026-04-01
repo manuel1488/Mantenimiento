@@ -54,6 +54,9 @@
   <data name="SubType_DirectSale" xml:space="preserve">
     <value>Direct Sale</value>
   </data>
+  <data name="SubType_Remission" xml:space="preserve">
+    <value>Remission</value>
+  </data>
   <data name="SubType_ProductionUse" xml:space="preserve">
     <value>Production Use</value>
   </data>

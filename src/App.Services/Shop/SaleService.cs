@@ -213,6 +213,9 @@ public class SaleService : ISaleService
                     .FirstOrDefaultAsync(q => q.Id == createDto.QuotationId.Value);
                 if (sourceQuotation is null)
                     return Result<SaleDto>.Failure(L["Quotation not found"]);
+                if (sourceQuotation.Status == App.Core.Enums.Shop.QuotationStatus.ConvertedToSale ||
+                    sourceQuotation.Status == App.Core.Enums.Shop.QuotationStatus.ConvertedToRemission)
+                    return Result<SaleDto>.Failure(L["This quotation has already been converted"]);
                 if (sourceQuotation.Status != App.Core.Enums.Shop.QuotationStatus.Accepted)
                     return Result<SaleDto>.Failure(L["Only accepted quotations can be converted to a sale"]);
             }
@@ -321,6 +324,18 @@ public class SaleService : ISaleService
                     ModifiedBy = currentUser,
                     ModifiedAt = now
                 });
+            }
+
+            // Mark source quotation as converted to sale (same SaveChangesAsync = atomic)
+            if (createDto.QuotationId.HasValue)
+            {
+                var quotation = await context.Quotations.FindAsync(createDto.QuotationId.Value);
+                if (quotation is not null)
+                {
+                    quotation.Status = App.Core.Enums.Shop.QuotationStatus.ConvertedToSale;
+                    quotation.ModifiedBy = currentUser;
+                    quotation.ModifiedAt = now;
+                }
             }
 
             // Save the sale entity
@@ -482,7 +497,7 @@ public class SaleService : ISaleService
 
                 foreach (var remission in remissions)
                 {
-                    remission.Status = RemissionStatus.Pending;
+                    remission.Status = RemissionStatus.Active;
                     remission.ConsolidatedSaleId = null;
                     remission.ConsolidatedAt = null;
                     remission.ConsolidatedBy = null;
@@ -777,8 +792,8 @@ public class SaleService : ISaleService
                 }
                 else
                 {
-                    effectiveUnitPrice = product.Price;
-                    basePriceBeforeSurcharge = product.Price * detailDto.Quantity;
+                    effectiveUnitPrice = detailDto.UnitPrice ?? product.Price;
+                    basePriceBeforeSurcharge = effectiveUnitPrice * detailDto.Quantity;
                 }
 
                 // Use centralized pricing service for line calculation
@@ -787,6 +802,7 @@ public class SaleService : ISaleService
                     Quantity = detailDto.Quantity,
                     UnitPrice = effectiveUnitPrice,
                     DiscountPercentage = detailDto.DiscountPercentage,
+                    DiscountAmount = detailDto.DiscountAmount,
                     SurchargePercentage = surchargePercentage,
                     TaxRate = taxRate
                 });

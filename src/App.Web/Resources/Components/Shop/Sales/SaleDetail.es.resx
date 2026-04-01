@@ -126,6 +126,10 @@
     <value>Catálogo</value>
     <comment>Etiqueta para tipo de precio de catálogo</comment>
   </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Cotización</value>
+    <comment>Etiqueta para tipo de precio de cotización (precio bloqueado desde una cotización)</comment>
+  </data>
   <data name="Quantity" xml:space="preserve">
     <value>Cantidad</value>
     <comment>Encabezado de columna de tabla para cantidad</comment>
@@ -193,6 +197,12 @@
   <data name="Error cancelling sale" xml:space="preserve">
     <value>Error al cancelar la venta</value>
     <comment>Mensaje de error cuando falla la cancelación de venta</comment>
+  </data>
+  <data name="Origin" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="View quotation" xml:space="preserve">
+    <value>Ver cotización</value>
   </data>
   <data name="Created" xml:space="preserve">
     <value>Creada</value>

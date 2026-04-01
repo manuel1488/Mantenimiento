@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Consolidate Remissions" xml:space="preserve"><value>Consolidate Remissions</value></data>
+  <data name="Customer" xml:space="preserve"><value>Customer</value></data>
+  <data name="Pending Remissions" xml:space="preserve"><value>Pending Remissions</value></data>
+  <data name="#" xml:space="preserve"><value>#</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Location" xml:space="preserve"><value>Location</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="{0} remissions selected — Total: {1}" xml:space="preserve"><value>{0} remissions selected — Total: {1}</value></data>
+  <data name="{0} selected — {1}" xml:space="preserve"><value>{0} selected — {1}</value></data>
+  <data name="Product" xml:space="preserve"><value>Product</value></data>
+  <data name="Qty" xml:space="preserve"><value>Qty</value></data>
+  <data name="Unit Price" xml:space="preserve"><value>Unit Price</value></data>
+  <data name="No pending remissions for this customer" xml:space="preserve"><value>No pending remissions for this customer</value></data>
+  <data name="No open cash register. Open a cash register before consolidating." xml:space="preserve"><value>No open cash register. Open a cash register before consolidating.</value></data>
+  <data name="Payment Methods" xml:space="preserve"><value>Payment Methods</value></data>
+  <data name="Complete" xml:space="preserve"><value>Complete</value></data>
+  <data name="Remaining" xml:space="preserve"><value>Remaining</value></data>
+  <data name="No payment methods configured" xml:space="preserve"><value>No payment methods configured</value></data>
+  <data name="Cash change" xml:space="preserve"><value>Cash change</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Paid" xml:space="preserve"><value>Paid</value></data>
+  <data name="Confirm Consolidation" xml:space="preserve"><value>Confirm Consolidation</value></data>
+  <data name="Processing..." xml:space="preserve"><value>Processing...</value></data>
+  <data name="Remissions consolidated successfully" xml:space="preserve"><value>Remissions consolidated successfully</value></data>
+  <data name="Back" xml:space="preserve"><value>Back</value></data>
+</root>

@@ -436,8 +436,8 @@ else
                     }
                     else
                     {
-                        <!-- Payment method buttons – 4 columns -->
-                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; margin-bottom:8px;">
+                        <!-- Payment method buttons – 2 columns -->
+                        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:5px; margin-bottom:8px;">
                             @for (var i = 0; i < _availablePaymentMethods.Count; i++)
                             {
                                 var pm = _availablePaymentMethods[i];
@@ -446,10 +446,10 @@ else
                                     Color="Color.Default"
                                     Size="Size.Small"
                                     OnClick="@(async () => await OpenPaymentGroupDialog(pm))"
-                                    Style="height:44px; text-transform:none; font-size:10px; flex-direction:row; gap:4px; padding:4px 6px; justify-content:flex-start;"
+                                    Style="height:40px; text-transform:none; font-size:11px; flex-direction:row; gap:6px; padding:4px 8px; justify-content:flex-start;"
                                     Disabled="@IsPaymentButtonDisabled(pm)">
-                                    <MudIcon Icon="@pm.Icon" Size="Size.Small" />
-                                    <span style="flex:1; line-height:1.1; text-align:left;">@pm.Name</span>
+                                    <MudIcon Icon="@pm.Icon" Size="Size.Small" Style="flex-shrink:0;" />
+                                    <span style="flex:1; line-height:1.2; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">@pm.Name</span>
                                     @if (!string.IsNullOrEmpty(keyLabel))
                                     {
                                         <kbd class="pos-kbd">@keyLabel</kbd>

@@ -126,6 +126,10 @@
     <value>Catalog</value>
     <comment>Label for catalog price type</comment>
   </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Quotation</value>
+    <comment>Label for quotation price type (price locked from a quotation)</comment>
+  </data>
   <data name="Quantity" xml:space="preserve">
     <value>Quantity</value>
     <comment>Table column header for quantity</comment>
@@ -193,6 +197,12 @@
   <data name="Error cancelling sale" xml:space="preserve">
     <value>Error cancelling sale</value>
     <comment>Error message when sale cancellation fails</comment>
+  </data>
+  <data name="Origin" xml:space="preserve">
+    <value>Origin</value>
+  </data>
+  <data name="View quotation" xml:space="preserve">
+    <value>View quotation</value>
   </data>
   <data name="Created" xml:space="preserve">
     <value>Created</value>

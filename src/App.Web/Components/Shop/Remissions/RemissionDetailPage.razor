@@ -1,0 +1,205 @@
+@page "/shop/remissions/{Id:long}"
+@using App.Core.Constants
+@using App.Core.DTOs.Shop
+@using App.Core.Enums.Shop
+@using App.Core.Interfaces.Shop
+@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
+
+@inject IRemissionService RemissionService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject IStringLocalizer<RemissionDetailPage> L
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewRemissions)]
+
+<PageTitle>@L["Remission Detail"]</PageTitle>
+
+@if (_loading)
+{
+    <div style="display:flex; justify-content:center; padding:60px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_remission is null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-3">@L["Remission not found"]</MudAlert>
+    <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack">@L["Back"]</MudButton>
+}
+else
+{
+    @* Title row *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Default"
+                       OnClick="GoBack"
+                       title="@L["Back"]" />
+        <MudText Typo="Typo.h5" Style="flex:1;">@_remission.RemissionNumber</MudText>
+        <MudChip T="string" Color="@GetStatusColor(_remission.Status)" Size="Size.Small">
+            @L[_remission.Status.ToString()]
+        </MudChip>
+        <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                       Color="Color.Default"
+                       title="@L["Preview PDF"]"
+                       OnClick="PreviewPdfAsync" />
+        <MudIconButton Icon="@Icons.Material.Filled.Download"
+                       Color="Color.Secondary"
+                       title="@L["Download PDF"]"
+                       OnClick="DownloadPdfAsync" />
+    </MudStack>
+
+    <MudPaper Elevation="2" Class="pa-4">
+
+        @* Header info *@
+        <MudGrid Spacing="2" Class="mb-4">
+            <MudItem xs="12" sm="6" md="4">
+                <MudText Typo="Typo.caption" Style="color:#888;">@L["Customer"]</MudText>
+                <MudText Typo="Typo.body1"><strong>@_remission.CustomerName</strong></MudText>
+            </MudItem>
+            <MudItem xs="6" sm="3" md="2">
+                <MudText Typo="Typo.caption" Style="color:#888;">@L["Date"]</MudText>
+                <MudText Typo="Typo.body1">@_remission.RemissionDate.ToString("dd/MM/yyyy")</MudText>
+            </MudItem>
+            <MudItem xs="6" sm="3" md="2">
+                <MudText Typo="Typo.caption" Style="color:#888;">@L["Location"]</MudText>
+                <MudText Typo="Typo.body1">@_remission.LocationName</MudText>
+            </MudItem>
+            @if (!string.IsNullOrWhiteSpace(_remission.Notes))
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Style="color:#888;">@L["Notes"]</MudText>
+                    <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@_remission.Notes</MudText>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <MudDivider Class="mb-3" />
+
+        @* Products table *@
+        <MudSimpleTable Dense="true" Hover="true" Style="margin-bottom:16px;">
+            <thead>
+                <tr>
+                    <th>@L["Product"]</th>
+                    <th style="text-align:right; width:90px">@L["Qty"]</th>
+                    <th style="text-align:right; width:130px">@L["Unit Price"]</th>
+                    <th style="text-align:right; width:130px">@L["Amount"]</th>
+                    <th style="text-align:right; width:130px">@L["Discount"]</th>
+                    <th style="text-align:right; width:130px">@L["Total"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in _remission.Details)
+                {
+                    <tr>
+                        <td>
+                            <span>@d.ProductName</span>
+                            <span style="font-size:11px; color:#888; margin-left:4px;">(@d.ProductCode)</span>
+                        </td>
+                        <td style="text-align:right">@d.Quantity.ToString("N2")</td>
+                        <td style="text-align:right">@d.UnitPrice.ToString("C2")</td>
+                        <td style="text-align:right">@((d.Quantity * d.UnitPrice).ToString("C2"))</td>
+                        <td style="text-align:right; color:#E53935;">@(d.DiscountAmount > 0 ? $"-{d.DiscountAmount:C2}" : "—")</td>
+                        <td style="text-align:right; font-weight:600;">@d.Total.ToString("C2")</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+
+        @* Totals *@
+        <MudStack Row="true" Justify="Justify.FlexEnd">
+            <MudStack Spacing="1" Style="min-width:260px;">
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Subtotal"]:</MudText>
+                    <MudText Typo="Typo.body2">@_remission.Subtotal.ToString("C2")</MudText>
+                </MudStack>
+                @if (_remission.DiscountAmount > 0)
+                {
+                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Discount"]:</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Error">-@_remission.DiscountAmount.ToString("C2")</MudText>
+                    </MudStack>
+                }
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Tax"]:</MudText>
+                    <MudText Typo="Typo.body2">@_remission.TaxAmount.ToString("C2")</MudText>
+                </MudStack>
+                <MudDivider />
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.subtitle1"><strong>@L["Total"]:</strong></MudText>
+                    <MudText Typo="Typo.subtitle1" Color="Color.Primary"><strong>@_remission.Total.ToString("C2")</strong></MudText>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+
+        @* Related links *@
+        @if (_remission.QuotationId.HasValue || _remission.ConsolidatedSaleId.HasValue)
+        {
+            <MudDivider Class="mt-4 mb-3" />
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.caption" Style="color:#888;">@L["Related"]:</MudText>
+                @if (_remission.QuotationId.HasValue)
+                {
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.RequestQuote"
+                               Color="Color.Tertiary"
+                               OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/{_remission.QuotationId}/view"))">
+                        @_remission.QuotationNumber
+                    </MudButton>
+                }
+                @if (_remission.ConsolidatedSaleId.HasValue)
+                {
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.PointOfSale"
+                               Color="Color.Success"
+                               OnClick="@(() => Navigation.NavigateTo($"/shop/sales-history?saleId={_remission.ConsolidatedSaleId}"))">
+                        @L["View Sale"]
+                    </MudButton>
+                }
+            </MudStack>
+        }
+
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public long Id { get; set; }
+
+    private RemissionDto? _remission;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _remission = await RemissionService.GetByIdAsync(Id);
+        _loading = false;
+    }
+
+    private async Task PreviewPdfAsync()
+        => await JS.InvokeVoidAsync("openInNewTab", $"/api/remissions/{Id}/pdf");
+
+    private async Task DownloadPdfAsync()
+    {
+        try
+        {
+            var bytes = await RemissionService.GeneratePdfAsync(Id);
+            await JS.InvokeVoidAsync("downloadFile",
+                $"remision_{_remission?.RemissionNumber}.pdf",
+                "application/pdf",
+                Convert.ToBase64String(bytes));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/shop/remissions");
+
+    private static Color GetStatusColor(RemissionStatus status) => status switch
+    {
+        RemissionStatus.Active => Color.Primary,
+        RemissionStatus.Consolidated => Color.Success,
+        RemissionStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+}

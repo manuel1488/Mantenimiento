@@ -48,7 +48,9 @@ public class PricingCalculationService : IPricingCalculationService
 
         // No rounding at item level — keep full precision for consistent display
         decimal basePriceBeforeSurcharge = input.Quantity * input.UnitPrice;
-        decimal discountAmount = basePriceBeforeSurcharge * (input.DiscountPercentage / 100);
+        decimal discountAmount = input.DiscountAmount.HasValue
+            ? input.DiscountAmount.Value
+            : basePriceBeforeSurcharge * (input.DiscountPercentage / 100);
         decimal afterDiscount = basePriceBeforeSurcharge - discountAmount;
         decimal surchargeAmount = afterDiscount * (input.SurchargePercentage / 100);
         decimal subtotal = afterDiscount + surchargeAmount;

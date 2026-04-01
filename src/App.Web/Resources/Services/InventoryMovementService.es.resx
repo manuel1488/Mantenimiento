@@ -54,6 +54,9 @@
   <data name="SubType_DirectSale" xml:space="preserve">
     <value>Venta Directa</value>
   </data>
+  <data name="SubType_Remission" xml:space="preserve">
+    <value>Remisión</value>
+  </data>
   <data name="SubType_ProductionUse" xml:space="preserve">
     <value>Uso en Producción</value>
   </data>

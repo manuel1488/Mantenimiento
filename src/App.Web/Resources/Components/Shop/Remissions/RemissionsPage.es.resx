@@ -8,7 +8,7 @@
   <data name="Search by number or customer..." xml:space="preserve"><value>Buscar por número o cliente...</value></data>
   <data name="All statuses" xml:space="preserve"><value>Todos los estados</value></data>
   <data name="All" xml:space="preserve"><value>Todos</value></data>
-  <data name="Pending" xml:space="preserve"><value>Pendiente</value></data>
+  <data name="Active" xml:space="preserve"><value>Activa</value></data>
   <data name="Consolidated" xml:space="preserve"><value>Consolidada</value></data>
   <data name="Cancelled" xml:space="preserve"><value>Cancelada</value></data>
   <data name="New Remission" xml:space="preserve"><value>Nueva Remisión</value></data>
@@ -28,4 +28,7 @@
   <data name="Consolidate Remissions" xml:space="preserve"><value>Consolidar Remisiones</value></data>
   <data name="Remissions consolidated successfully" xml:space="preserve"><value>Remisiones consolidadas exitosamente</value></data>
   <data name="Quotation" xml:space="preserve"><value>Cotización</value></data>
+  <data name="View Quotation" xml:space="preserve"><value>Ver Cotización</value></data>
+  <data name="View detail" xml:space="preserve"><value>Ver detalle</value></data>
+  <data name="View Origin Quotation" xml:space="preserve"><value>Ver Cotización de Origen</value></data>
 </root>

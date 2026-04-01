@@ -8,6 +8,7 @@
   <data name="Back" xml:space="preserve"><value>Back</value></data>
   <data name="Quotation not found" xml:space="preserve"><value>Quotation not found</value></data>
   <data name="Only draft quotations can be edited" xml:space="preserve"><value>Only draft quotations can be edited</value></data>
+  <data name="This quotation is read-only because it is no longer in draft status" xml:space="preserve"><value>This quotation is read-only because it is no longer in draft status</value></data>
   <data name="Customer" xml:space="preserve"><value>Customer</value></data>
   <data name="Customer is required" xml:space="preserve"><value>Customer is required</value></data>
   <data name="Quote Date" xml:space="preserve"><value>Quote Date</value></data>

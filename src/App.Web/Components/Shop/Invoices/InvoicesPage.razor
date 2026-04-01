@@ -187,26 +187,23 @@
                             <MudTooltip Text="@L["View Sale"]">
                                 <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart"
                                                Size="Size.Small"
-                                               Color="Color.Default"
+                                               Color="Color.Info"
                                                OnClick="@(() => Navigation.NavigateTo($"/shop/sales/{context.SaleId}"))" />
                             </MudTooltip>
 
                             <!-- Download XML (available for stamped and error invoices) -->
                             @if (context.HasXml)
                             {
-                                <MudTooltip Text="@L["Download XML"]">
-                                    <MudIconButton Icon="@Icons.Material.Filled.Code"
-                                                   Size="Size.Small"
-                                                   Color="@(context.IsStamped ? Color.Info : Color.Warning)"
-                                                   OnClick="@(() => DownloadXml(context))" />
-                                </MudTooltip>
+                                <XmlIconButton Title="@L["Download XML"]"
+                                               Color="@(context.IsStamped ? Color.Info : Color.Warning)"
+                                               OnClick="@(() => DownloadXml(context))" />
                             }
 
                             <!-- View PDF in new tab -->
                             @if (context.HasPdf)
                             {
                                 <MudTooltip Text="@L["View PDF"]">
-                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                    <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
                                                    Size="Size.Small"
                                                    Color="Color.Default"
                                                    OnClick="@(() => ViewPdf(context.Id))" />
@@ -217,9 +214,9 @@
                             @if (context.HasPdf)
                             {
                                 <MudTooltip Text="@L["Download PDF"]">
-                                    <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                    <MudIconButton Icon="@Icons.Material.Filled.Download"
                                                    Size="Size.Small"
-                                                   Color="Color.Error"
+                                                   Color="Color.Secondary"
                                                    OnClick="@(() => DownloadPdf(context.Id))" />
                                 </MudTooltip>
                             }
@@ -240,7 +237,7 @@
                                 <MudTooltip Text="@L["Send by Email"]">
                                     <MudIconButton Icon="@Icons.Material.Filled.Email"
                                                    Size="Size.Small"
-                                                   Color="Color.Primary"
+                                                   Color="Color.Info"
                                                    OnClick="@(() => OpenSendEmailDialog(context))" />
                                 </MudTooltip>
                             }

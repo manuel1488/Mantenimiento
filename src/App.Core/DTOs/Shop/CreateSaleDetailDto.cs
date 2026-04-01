@@ -20,6 +20,17 @@ public class CreateSaleDetailDto
     public bool IsCustomPrice { get; set; } = false;
 
     /// <summary>
+    /// Override unit price (e.g. when converting from a quotation with a locked price).
+    /// When set, the service uses this instead of the current catalog price.
+    /// </summary>
+    public decimal? UnitPrice { get; set; }
+
+    /// <summary>
+    /// Fixed discount amount override. When set, used directly instead of computing from DiscountPercentage.
+    /// </summary>
+    public decimal? DiscountAmount { get; set; }
+
+    /// <summary>
     /// Selected partial sale fraction ID (for fractional sales).
     /// </summary>
     public int? PartialSaleFractionId { get; set; }

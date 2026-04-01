@@ -39,7 +39,7 @@
                            Clearable="true"
                            Style="min-width: 180px;">
                     <MudSelectItem T="string?" Value="@((string?)null)">@L["All"]</MudSelectItem>
-                    <MudSelectItem T="string?" Value="@("Pending")">@L["Pending"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("Active")">@L["Active"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Consolidated")">@L["Consolidated"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Cancelled")">@L["Cancelled"]</MudSelectItem>
                 </MudSelect>
@@ -58,7 +58,7 @@
                         <MudButton Variant="Variant.Outlined"
                                    Color="Color.Secondary"
                                    StartIcon="@Icons.Material.Filled.MergeType"
-                                   OnClick="@OpenConsolidateDialog">
+                                   OnClick="@(() => Navigation.NavigateTo("/shop/remissions/consolidate"))">
                             @L["Consolidate"]
                         </MudButton>
                     </Authorized>
@@ -81,16 +81,6 @@
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" />
-                    <TemplateColumn Title="@L["Quotation"]">
-                        <CellTemplate>
-                            @if (context.Item.QuotationNumber is not null)
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
-                                    @context.Item.QuotationNumber
-                                </MudChip>
-                            }
-                        </CellTemplate>
-                    </TemplateColumn>
                     <TemplateColumn Title="@L["Total"]">
                         <CellTemplate>
                             @context.Item.Total.ToString("C2")
@@ -106,19 +96,24 @@
                     <TemplateColumn Title="@L["Actions"]">
                         <CellTemplate>
                             <MudStack Row="true" Spacing="0">
-                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                <MudIconButton Icon="@Icons.Material.Filled.Article"
+                                               Size="Size.Small"
+                                               Color="Color.Default"
+                                               title="@L["View detail"]"
+                                               OnClick="@(() => Navigation.NavigateTo($"/shop/remissions/{context.Item.Id}"))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
                                                Size="Size.Small"
                                                Color="Color.Default"
                                                title="@L["Preview PDF"]"
                                                OnClick="@(() => PreviewPdfAsync(context.Item))" />
-                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                <MudIconButton Icon="@Icons.Material.Filled.Download"
                                                Size="Size.Small"
                                                Color="Color.Secondary"
                                                title="@L["Download PDF"]"
                                                OnClick="@(() => DownloadPdfAsync(context.Item))" />
                                 <AuthorizeView Policy="@ApplicationClaims.Shop.CancelRemission">
                                     <Authorized Context="cancelAuth">
-                                        @if (context.Item.Status == RemissionStatus.Pending)
+                                        @if (context.Item.Status == RemissionStatus.Active)
                                         {
                                             <MudIconButton Icon="@Icons.Material.Filled.Cancel"
                                                            Size="Size.Small"
@@ -128,6 +123,14 @@
                                         }
                                     </Authorized>
                                 </AuthorizeView>
+                                @if (context.Item.QuotationId.HasValue)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.RequestQuote"
+                                                   Size="Size.Small"
+                                                   Color="Color.Info"
+                                                   title="@($"{L["View Origin Quotation"]}: {context.Item.QuotationNumber}")"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/{context.Item.QuotationId}/view"))" />
+                                }
                                 @if (context.Item.Status == RemissionStatus.Consolidated && context.Item.ConsolidatedSaleId.HasValue)
                                 {
                                     <MudIconButton Icon="@Icons.Material.Filled.Receipt"
@@ -214,22 +217,9 @@
         }
     }
 
-    private async Task OpenConsolidateDialog()
-    {
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ConsolidateRemissionsDialog>(
-            L["Consolidate Remissions"], options);
-        var dialogResult = await dialog.Result;
-        if (dialogResult is { Canceled: false })
-        {
-            Snackbar.Add(L["Remissions consolidated successfully"], Severity.Success);
-            await _grid!.ReloadServerData();
-        }
-    }
-
     private static Color GetStatusColor(RemissionStatus status) => status switch
     {
-        RemissionStatus.Pending => Color.Warning,
+        RemissionStatus.Active => Color.Primary,
         RemissionStatus.Consolidated => Color.Success,
         RemissionStatus.Cancelled => Color.Error,
         _ => Color.Default

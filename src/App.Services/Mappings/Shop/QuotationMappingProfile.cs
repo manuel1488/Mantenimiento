@@ -16,6 +16,8 @@ public class QuotationMappingProfile : Profile
             .ForMember(dest => dest.Details,
                 opt => opt.MapFrom(src => src.Details));
 
-        CreateMap<QuotationDetail, QuotationDetailDto>();
+        CreateMap<QuotationDetail, QuotationDetailDto>()
+            .ForMember(dest => dest.RequiresInventory,
+                opt => opt.MapFrom(src => src.Product != null && src.Product.RequiresInventory));
     }
 }

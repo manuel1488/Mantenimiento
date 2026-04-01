@@ -18,7 +18,7 @@ public class Remission : BaseEntity<long>
 
     public int LocationId { get; set; }
 
-    public RemissionStatus Status { get; set; } = RemissionStatus.Pending;
+    public RemissionStatus Status { get; set; } = RemissionStatus.Active;
 
     [StringLength(2000)]
     public string? Notes { get; set; }

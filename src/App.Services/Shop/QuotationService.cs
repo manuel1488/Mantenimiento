@@ -101,7 +101,34 @@ public class QuotationService : IQuotationService
             .Take(pageSize)
             .ToListAsync();
 
-        return (totalCount, _mapper.Map<IList<QuotationDto>>(items));
+        var dtos = _mapper.Map<IList<QuotationDto>>(items);
+
+        // Populate converted sale/remission IDs without requiring an inverse FK
+        var convertedIds = items
+            .Where(q => q.Status is QuotationStatus.ConvertedToSale or QuotationStatus.ConvertedToRemission)
+            .Select(q => q.Id)
+            .ToList();
+
+        if (convertedIds.Count > 0)
+        {
+            var saleLinks = await context.Sales
+                .Where(s => s.QuotationId.HasValue && convertedIds.Contains(s.QuotationId.Value))
+                .Select(s => new { s.QuotationId, s.Id })
+                .ToListAsync();
+
+            var remissionLinks = await context.Remissions
+                .Where(r => r.QuotationId.HasValue && convertedIds.Contains(r.QuotationId.Value))
+                .Select(r => new { r.QuotationId, r.Id })
+                .ToListAsync();
+
+            foreach (var dto in dtos)
+            {
+                dto.ConvertedSaleId = saleLinks.FirstOrDefault(s => s.QuotationId == dto.Id)?.Id;
+                dto.ConvertedRemissionId = remissionLinks.FirstOrDefault(r => r.QuotationId == dto.Id)?.Id;
+            }
+        }
+
+        return (totalCount, dtos);
     }
 
     public async Task<QuotationDto?> GetByIdAsync(long id)

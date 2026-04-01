@@ -26,4 +26,10 @@
   <data name="Convert to Sale" xml:space="preserve"><value>Convert to Sale</value></data>
   <data name="No open cash register. Open a cash register before converting to a sale." xml:space="preserve"><value>No open cash register. Open a cash register before converting to a sale.</value></data>
   <data name="Cash register: {0}" xml:space="preserve"><value>Cash register: {0}</value></data>
+  <data name="Payment" xml:space="preserve"><value>Payment</value></data>
+  <data name="Complete" xml:space="preserve"><value>Complete</value></data>
+  <data name="Remaining" xml:space="preserve"><value>Remaining</value></data>
+  <data name="Overpaid" xml:space="preserve"><value>Overpaid</value></data>
+  <data name="Add another" xml:space="preserve"><value>Add another</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
 </root>

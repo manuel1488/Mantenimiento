@@ -47,7 +47,87 @@
     }
     else if (_readOnly)
     {
-        <MudAlert Severity="Severity.Warning">@L["Only draft quotations can be edited"]</MudAlert>
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">@L["This quotation is read-only because it is no longer in draft status"]</MudAlert>
+
+            <MudGrid Class="mb-3">
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.caption" Style="color:#888;">@L["Customer"]</MudText>
+                    <MudText Typo="Typo.body1"><strong>@_roCustomerName</strong></MudText>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudText Typo="Typo.caption" Style="color:#888;">@L["Quote Date"]</MudText>
+                    <MudText Typo="Typo.body1">@_quoteDate?.ToString("dd/MM/yyyy")</MudText>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudText Typo="Typo.caption" Style="color:#888;">@L["Valid Until"]</MudText>
+                    <MudText Typo="Typo.body1">@_validUntil?.ToString("dd/MM/yyyy")</MudText>
+                </MudItem>
+                @if (!string.IsNullOrWhiteSpace(_notes))
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Style="color:#888;">@L["Notes & Conditions"]</MudText>
+                        <MudText Typo="Typo.body2">@_notes</MudText>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            <MudDivider Class="mb-3" />
+
+            <MudSimpleTable Dense="true" Hover="false">
+                <thead>
+                    <tr>
+                        <th>@L["Product"]</th>
+                        <th style="text-align:right; width:90px">@L["Qty"]</th>
+                        <th style="text-align:right; width:120px">@L["Unit Price"]</th>
+                        <th style="text-align:right; width:120px">@L["Amount"]</th>
+                        <th style="text-align:right; width:120px">@L["Discount"]</th>
+                        <th style="text-align:right; width:120px">@L["Total"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in _roDetails)
+                    {
+                        <tr>
+                            <td>
+                                @d.ProductName
+                                <span style="font-size:11px; color:#888; margin-left:4px;">(@d.ProductCode)</span>
+                            </td>
+                            <td style="text-align:right">@d.Quantity.ToString("N2")</td>
+                            <td style="text-align:right">@d.UnitPrice.ToString("C2")</td>
+                            <td style="text-align:right">@((d.Quantity * d.UnitPrice).ToString("C2"))</td>
+                            <td style="text-align:right">@(d.DiscountAmount > 0 ? $"-{d.DiscountAmount:C2}" : "—")</td>
+                            <td style="text-align:right">@d.Total.ToString("C2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                <MudStack Spacing="1" Style="min-width:240px">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Subtotal"]:</MudText>
+                        <MudText Typo="Typo.body2">@_roSubtotal.ToString("C2")</MudText>
+                    </MudStack>
+                    @if (_roDiscountAmount > 0)
+                    {
+                        <MudStack Row="true" Justify="Justify.SpaceBetween">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Discount"]:</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Error">-@_roDiscountAmount.ToString("C2")</MudText>
+                        </MudStack>
+                    }
+                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Tax"]:</MudText>
+                        <MudText Typo="Typo.body2">@_roTaxAmount.ToString("C2")</MudText>
+                    </MudStack>
+                    <MudDivider />
+                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                        <MudText Typo="Typo.subtitle1">@L["Total"]:</MudText>
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary">@_roTotal.ToString("C2")</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
     }
     else
     {
@@ -255,6 +335,14 @@
     private bool _readOnly;
     private string? _quotationNumber;
 
+    // Read-only view fields
+    private string? _roCustomerName;
+    private List<QuotationDetailDto> _roDetails = [];
+    private decimal _roSubtotal;
+    private decimal _roDiscountAmount;
+    private decimal _roTaxAmount;
+    private decimal _roTotal;
+
     private CustomerDto? _selectedCustomer;
     private DateTime? _quoteDate = DateTime.Today;
     private DateTime? _validUntil = DateTime.Today.AddDays(15);
@@ -292,6 +380,15 @@
         if (quotation.Status != QuotationStatus.Draft)
         {
             _readOnly = true;
+            _roCustomerName = quotation.CustomerName;
+            _quoteDate = quotation.QuoteDate;
+            _validUntil = quotation.ValidUntil;
+            _notes = quotation.Notes;
+            _roDetails = quotation.Details;
+            _roSubtotal = quotation.Subtotal;
+            _roDiscountAmount = quotation.DiscountAmount;
+            _roTaxAmount = quotation.TaxAmount;
+            _roTotal = quotation.Total;
             _loading = false;
             return;
         }
@@ -315,9 +412,11 @@
             DiscountPercentage = d.DiscountPercentage
         }).ToList();
 
-        // Load wholesale prices for existing lines
+        // Load product and wholesale prices for existing lines
         foreach (var line in _lines)
         {
+            line.SelectedProduct = await ProductService.GetProductByIdAsync(line.ProductId);
+
             var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(line.ProductId);
             line.WholesalePrices = wpResult.IsSuccess ? wpResult.Value.ToList() : [];
             ApplyWholesaleDiscount(line);
@@ -419,18 +518,21 @@
             {
                 Quantity = line.Quantity,
                 UnitPrice = line.UnitPrice,
-                DiscountPercentage = line.DiscountPercentage
+                DiscountPercentage = line.DiscountPercentage,
+                TaxRate = _taxRate
             });
 
             line.LineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
-            line.LineTax = Math.Round(lineCalc.Subtotal * _taxRate, 2);
+            line.LineTax = lineCalc.TaxAmount;
             line.LineTotal = Math.Round(lineCalc.Subtotal + line.LineTax, 2);
 
             documentLines.Add(new DocumentLineInput
             {
                 Subtotal = lineCalc.Subtotal,
                 DiscountAmount = lineCalc.DiscountAmount,
-                IsTaxable = true
+                IsTaxable = true,
+                TaxBase = lineCalc.TaxBase,
+                TaxAmount = lineCalc.TaxAmount
             });
         }
 

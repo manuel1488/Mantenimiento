@@ -14,6 +14,10 @@
   <data name="Accepted" xml:space="preserve"><value>Accepted</value></data>
   <data name="Rejected" xml:space="preserve"><value>Rejected</value></data>
   <data name="Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Converted to Sale" xml:space="preserve"><value>Converted to Sale</value></data>
+  <data name="Converted to Remission" xml:space="preserve"><value>Converted to Remission</value></data>
+  <data name="ConvertedToSale" xml:space="preserve"><value>Converted to Sale</value></data>
+  <data name="ConvertedToRemission" xml:space="preserve"><value>Converted to Remission</value></data>
   <data name="#" xml:space="preserve"><value>#</value></data>
   <data name="Customer" xml:space="preserve"><value>Customer</value></data>
   <data name="Date" xml:space="preserve"><value>Date</value></data>
@@ -39,6 +43,9 @@
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Convert to Remission" xml:space="preserve"><value>Convert to Remission</value></data>
   <data name="Convert to Sale" xml:space="preserve"><value>Convert to Sale</value></data>
+  <data name="View sale" xml:space="preserve"><value>View sale</value></data>
+  <data name="View remission" xml:space="preserve"><value>View remission</value></data>
+  <data name="View detail" xml:space="preserve"><value>View detail</value></data>
   <data name="View workflow" xml:space="preserve"><value>View workflow</value></data>
   <data name="Quotation Workflow" xml:space="preserve"><value>Quotation Workflow</value></data>
 </root>

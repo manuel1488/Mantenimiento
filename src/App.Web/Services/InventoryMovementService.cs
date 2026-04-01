@@ -43,6 +43,7 @@ public class InventoryMovementService
         // Existing StockOut subtypes
         InventoryMovementSubType.CustomerOrder => L["SubType_CustomerOrder"],
         InventoryMovementSubType.DirectSale => L["SubType_DirectSale"],
+        InventoryMovementSubType.Remission => L["SubType_Remission"],
         InventoryMovementSubType.ProductionUse => L["SubType_ProductionUse"],
         InventoryMovementSubType.Consumption => L["SubType_Consumption"],
         InventoryMovementSubType.Damage => L["SubType_Damage"],

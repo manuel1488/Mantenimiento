@@ -52,6 +52,8 @@
                     <MudSelectItem T="string?" Value="@("Accepted")">@L["Accepted"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Rejected")">@L["Rejected"]</MudSelectItem>
                     <MudSelectItem T="string?" Value="@("Expired")">@L["Expired"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("ConvertedToSale")">@L["Converted to Sale"]</MudSelectItem>
+                    <MudSelectItem T="string?" Value="@("ConvertedToRemission")">@L["Converted to Remission"]</MudSelectItem>
                 </MudSelect>
                 <AuthorizeView Policy="@ApplicationClaims.Shop.CreateQuotation">
                     <Authorized Context="createAuth">
@@ -112,12 +114,17 @@
                                         }
                                     </Authorized>
                                 </AuthorizeView>
-                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                <MudIconButton Icon="@Icons.Material.Filled.Article"
+                                               Size="Size.Small"
+                                               Color="Color.Default"
+                                               title="@L["View detail"]"
+                                               OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/{context.Item.Id}/view"))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
                                                Size="Size.Small"
                                                Color="Color.Default"
                                                title="@L["Preview PDF"]"
                                                OnClick="@(() => PreviewPdfAsync(context.Item))" />
-                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                <MudIconButton Icon="@Icons.Material.Filled.Download"
                                                Size="Size.Small"
                                                Color="Color.Secondary"
                                                title="@L["Download PDF"]"
@@ -148,9 +155,25 @@
                                                            Size="Size.Small"
                                                            Color="Color.Success"
                                                            title="@L["Convert to Sale"]"
-                                                           OnClick="@(() => OpenConvertToSaleDialog(context.Item))" />
+                                                           OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/{context.Item.Id}/convert"))" />
                                         </Authorized>
                                     </AuthorizeView>
+                                }
+                                @if (context.Item.Status == QuotationStatus.ConvertedToSale && context.Item.ConvertedSaleId.HasValue)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.PointOfSale"
+                                                   Size="Size.Small"
+                                                   Color="Color.Info"
+                                                   title="@L["View sale"]"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/sales/{context.Item.ConvertedSaleId}"))" />
+                                }
+                                @if (context.Item.Status == QuotationStatus.ConvertedToRemission && context.Item.ConvertedRemissionId.HasValue)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.LocalShipping"
+                                                   Size="Size.Small"
+                                                   Color="Color.Info"
+                                                   title="@L["View remission"]"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/remissions/{context.Item.ConvertedRemissionId}"))" />
                                 }
                                 @if (context.Item.Status == QuotationStatus.Draft || context.Item.Status == QuotationStatus.Pending)
                                 {
@@ -204,10 +227,23 @@
 </MudGrid>
 
 @code {
+    #region Parameters
+    [SupplyParameterFromQuery(Name = "search")]
+    public string? SearchQuery { get; set; }
+    #endregion
+
     #region Fields
     private MudDataGrid<QuotationDto>? _grid;
     private string? _search;
     private string? _statusFilter;
+    #endregion
+
+    #region Lifecycle
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrWhiteSpace(SearchQuery))
+            _search = SearchQuery;
+    }
     #endregion
 
     private async Task OnStatusFilterChanged(string? value)
@@ -335,6 +371,8 @@
         QuotationStatus.Accepted => Color.Success,
         QuotationStatus.Rejected => Color.Error,
         QuotationStatus.Expired => Color.Warning,
+        QuotationStatus.ConvertedToSale => Color.Tertiary,
+        QuotationStatus.ConvertedToRemission => Color.Dark,
         _ => Color.Default
     };
     #endregion

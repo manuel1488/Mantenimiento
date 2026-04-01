@@ -180,4 +180,7 @@
   <data name="Invoice" xml:space="preserve">
     <value>Factura</value>
   </data>
+  <data name="View quotation" xml:space="preserve">
+    <value>Ver cotización</value>
+  </data>
 </root>

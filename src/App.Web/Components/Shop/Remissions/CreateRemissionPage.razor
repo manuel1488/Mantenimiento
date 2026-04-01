@@ -132,14 +132,23 @@
                             {
                                 <tr>
                                     <td>
-                                        <div id="@($"line-{line.LineId}")">
+                                        <div id="@($"line-{line.LineId}")" style="display:flex;align-items:center;gap:4px;">
                                             <MudAutocomplete T="ProductDto"
                                                              Value="line.SelectedProduct"
                                                              ValueChanged="@((p) => OnProductSelected(line, p))"
                                                              SearchFunc="@SearchProductsAsync"
                                                              ToStringFunc="@(p => p is null ? string.Empty : $"{p.Code} - {p.Name}")"
                                                              Variant="Variant.Text"
-                                                             Dense="true" />
+                                                             Dense="true"
+                                                             Style="flex:1" />
+                                            @if (line.SelectedProduct?.RequiresInventory == false)
+                                            {
+                                                <MudTooltip Text="@L["This product does not affect inventory"]">
+                                                    <MudIcon Icon="@Icons.Material.Outlined.Inventory"
+                                                             Size="Size.Small"
+                                                             Color="Color.Warning" />
+                                                </MudTooltip>
+                                            }
                                         </div>
                                     </td>
                                     <td>
@@ -478,6 +487,7 @@
                 LocationId = _selectedLocationId.Value,
                 RemissionDate = _remissionDate,
                 Notes = _notes,
+                QuotationId = QuotationId,
                 Details = _lines.Select(l => new CreateRemissionDetailDto
                 {
                     ProductId = l.ProductId,

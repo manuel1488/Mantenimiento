@@ -201,6 +201,14 @@
                                 var sale = context.Item;
                             }
                             <MudButtonGroup Variant="Variant.Text" Size="Size.Small">
+                                @if (sale.QuotationId.HasValue)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.RequestQuote"
+                                                   Size="Size.Small"
+                                                   Color="Color.Info"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/quotations?search={sale.QuotationNumber}"))"
+                                                   title="@L["View quotation"]" />
+                                }
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                                Size="Size.Small"
                                                Color="Color.Primary"

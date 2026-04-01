@@ -9,11 +9,12 @@ public static class InventoryMovementSubType
     public const string OpeningBalance = "OPENING_BALANCE"; // Saldo inicial              
     
     // Subtypes for StockOut
-    public const string CustomerOrder = "CUSTOMER_ORDER";     
-    public const string DirectSale = "DIRECT_SALE";         
-    public const string ProductionUse = "PRODUCTION_USE";       
-    public const string Consumption = "CONSUMPTION";         
-    public const string Damage = "DAMAGE";                  
+    public const string CustomerOrder = "CUSTOMER_ORDER";
+    public const string DirectSale = "DIRECT_SALE";
+    public const string Remission = "REMISSION";
+    public const string ProductionUse = "PRODUCTION_USE";
+    public const string Consumption = "CONSUMPTION";
+    public const string Damage = "DAMAGE";
     public const string Expiry = "EXPIRY";                 
 
     // Subtypes for Transfer

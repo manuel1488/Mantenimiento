@@ -21,5 +21,7 @@ public class QuotationDto : AuditableDto
     public decimal Total { get; set; }
     public DateTime? SentAt { get; set; }
     public string? SentToEmail { get; set; }
+    public long? ConvertedSaleId { get; set; }
+    public long? ConvertedRemissionId { get; set; }
     public List<QuotationDetailDto> Details { get; set; } = [];
 }

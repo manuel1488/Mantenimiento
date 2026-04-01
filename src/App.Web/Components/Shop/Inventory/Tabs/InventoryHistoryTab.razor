@@ -144,14 +144,10 @@
                             </MudTd>
                             <MudTd DataLabel="@L["Type"]">
                                 <MudChip T="string" Size="Size.Small" Color="@MovementService.GetMovementTypeColor(contextHistory.MovementType)">
-                                    @GetMovementTypeDisplay(contextHistory.MovementType)
+                                    @(string.IsNullOrEmpty(contextHistory.MovementSubType)
+                                        ? GetMovementTypeDisplay(contextHistory.MovementType)
+                                        : MovementService.GetMovementSubTypeDisplay(contextHistory.MovementSubType))
                                 </MudChip>
-                                @if (!string.IsNullOrEmpty(contextHistory.MovementSubType))
-                                {
-                                    <MudText Typo="Typo.caption">
-                                        @MovementService.GetMovementSubTypeDisplay(contextHistory.MovementSubType)
-                                    </MudText>
-                                }
                             </MudTd>
                             <MudTd DataLabel="@L["Source"]">@contextHistory.LocationName</MudTd>
                             <MudTd DataLabel="@L["Destination"]">
