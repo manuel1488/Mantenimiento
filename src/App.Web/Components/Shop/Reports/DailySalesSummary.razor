@@ -5,6 +5,7 @@
 @using App.Core.DTOs.Shop
 @using App.Core.Interfaces
 @using App.Core.Options
+@using App.Shared.Services
 @using Microsoft.Extensions.Options
 @using Microsoft.AspNetCore.Authorization
 
@@ -16,6 +17,8 @@
 @inject NavigationManager NavigationManager
 @inject ILogger<DailySalesSummary> Logger
 @inject IOptions<ExportOptions> ExportOptions
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
 
 <PageTitle>@L["Daily Sales Summary"]</PageTitle>
 
@@ -209,7 +212,7 @@
                     <PropertyColumn Property="x => x.Id" Title="@L["ID"]" />
                     <PropertyColumn Property="x => x.SaleDate" Title="@L["Date"]" Format="dd/MM/yyyy HH:mm">
                         <CellTemplate>
-                            @context.Item.SaleDate.ToLocalTime().ToString("g")
+                            @FormatDate(context.Item.SaleDate)
                         </CellTemplate>
                     </PropertyColumn>
                     <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]" />
@@ -256,6 +259,7 @@
     private string _selectedFilter = "Today";
     private SaleType _saleType = SaleType.Public;
     private string? _selectedStatus = null;
+    private TimeZoneInfo? _companyTimeZone;
 
     private SalesSummaryDto? _summary;
     private IList<SaleDto> _sales = new List<SaleDto>();
@@ -263,7 +267,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
         await RefreshReport();
+    }
+
+    private DateTime? ToUtc(DateTime? localDate)
+    {
+        if (localDate is null || _companyTimeZone is null) return localDate;
+        return DateTimeService.ToUtc(DateTime.SpecifyKind(localDate.Value, DateTimeKind.Unspecified), _companyTimeZone);
+    }
+
+    private string FormatDate(DateTime utcDate)
+    {
+        if (_companyTimeZone is null) return utcDate.ToLocalTime().ToString("g");
+        return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
     }
 
     private async Task SetQuickFilter(string filter)
@@ -309,25 +326,10 @@
 
             SaleType? saleType = SaleType.Public;
 
-            // Convertir fechas locales a UTC para la consulta
-            DateTime? startDateUtc = null;
-            DateTime? endDateUtc = null;
-
-            if (_dateRange?.Start != null)
-            {
-                startDateUtc = DateTime.SpecifyKind(_dateRange.Start.Value, DateTimeKind.Local).ToUniversalTime();
-            }
-
-            if (_dateRange?.End != null)
-            {
-                // Fin del día en UTC
-                endDateUtc = DateTime.SpecifyKind(_dateRange.End.Value.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local).ToUniversalTime();
-            }
-
             var request = new SalesReportRequestDto
             {
-                StartDate = startDateUtc,
-                EndDate = endDateUtc,
+                StartDate = ToUtc(_dateRange?.Start),
+                EndDate = ToUtc(_dateRange?.End),
                 SaleType = saleType,
                 Status = _selectedStatus,
                 PageSize = 1000
@@ -396,18 +398,11 @@
 
                 var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
 
-                // Convertir fechas locales a UTC (inicio del día y fin del día)
                 if (_dateRange?.Start != null)
-                {
-                    var startUtc = DateTime.SpecifyKind(_dateRange.Start.Value, DateTimeKind.Local).ToUniversalTime();
-                    queryParams["startDate"] = startUtc.ToString("o");
-                }
+                    queryParams["startDate"] = ToUtc(_dateRange.Start)?.ToString("o");
 
                 if (_dateRange?.End != null)
-                {
-                    var endUtc = DateTime.SpecifyKind(_dateRange.End.Value.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local).ToUniversalTime();
-                    queryParams["endDate"] = endUtc.ToString("o");
-                }
+                    queryParams["endDate"] = ToUtc(_dateRange.End)?.ToString("o");
 
                 if (saleType.HasValue)
                     queryParams["saleType"] = ((int)saleType.Value).ToString();
@@ -450,18 +445,11 @@
 
                 var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
 
-                // Convertir fechas locales a UTC (inicio del día y fin del día)
                 if (_dateRange?.Start != null)
-                {
-                    var startUtc = DateTime.SpecifyKind(_dateRange.Start.Value, DateTimeKind.Local).ToUniversalTime();
-                    queryParams["startDate"] = startUtc.ToString("o");
-                }
+                    queryParams["startDate"] = ToUtc(_dateRange.Start)?.ToString("o");
 
                 if (_dateRange?.End != null)
-                {
-                    var endUtc = DateTime.SpecifyKind(_dateRange.End.Value.Date.AddDays(1).AddSeconds(-1), DateTimeKind.Local).ToUniversalTime();
-                    queryParams["endDate"] = endUtc.ToString("o");
-                }
+                    queryParams["endDate"] = ToUtc(_dateRange.End)?.ToString("o");
 
                 if (saleType.HasValue)
                     queryParams["saleType"] = ((int)saleType.Value).ToString();

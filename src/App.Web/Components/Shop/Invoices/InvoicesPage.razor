@@ -1,7 +1,9 @@
 @page "/shop/invoices"
 @using App.Core.Constants
 @using App.Core.DTOs.Billing.Mexico
+@using App.Core.Interfaces
 @using App.Core.Interfaces.Billing
+@using App.Shared.Services
 @using App.Web.Services.Background
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
@@ -14,6 +16,8 @@
 @inject ILogger<InvoicesPage> Logger
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewInvoice)]
 
@@ -177,7 +181,7 @@
                         @if (context.CancellationDate.HasValue)
                         {
                             <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
-                                @context.CancellationDate.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                                @FormatDate(context.CancellationDate.Value)
                             </MudText>
                         }
                     </MudTd>
@@ -368,9 +372,12 @@
     private bool _hasPendingCancellations;
     private int _pendingCancellationCount;
     private bool _refreshingCancellations;
+    private TimeZoneInfo? _companyTimeZone;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+
         if (SaleIdFilter.HasValue)
         {
             _searchString = SaleIdFilter.Value.ToString();
@@ -392,8 +399,8 @@
                 page: state.Page + 1,
                 pageSize: state.PageSize,
                 searchString: _searchString,
-                startDate: _dateRange.Start,
-                endDate: _dateRange.End,
+                startDate: ToUtc(_dateRange.Start),
+                endDate: ToUtc(_dateRange.End),
                 status: _selectedStatus);
 
             _pendingCancellationCount = items.Count(i => i.Status == "CancellationPending");
@@ -655,7 +662,21 @@
         _ => status
     };
 
-    private string FormatDate(DateTime dt) => dt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+    private DateTime? ToUtc(DateTime? localDate)
+    {
+        if (localDate is null || _companyTimeZone is null)
+            return localDate;
+        return DateTimeService.ToUtc(
+            DateTime.SpecifyKind(localDate.Value, DateTimeKind.Unspecified),
+            _companyTimeZone);
+    }
+
+    private string FormatDate(DateTime utcDate)
+    {
+        if (_companyTimeZone is null)
+            return utcDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+        return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+    }
 
     private string FormatRelativeTime(DateTime utcTime)
     {

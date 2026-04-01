@@ -341,8 +341,8 @@
                 page: state.Page + 1,
                 pageSize: state.PageSize,
                 searchString: _searchString,
-                startDate: _dateRange.Start,
-                endDate: _dateRange.End,
+                startDate: ToUtc(_dateRange.Start),
+                endDate: ToUtc(_dateRange.End),
                 status: _selectedStatus,
                 saleType: _selectedSaleType,
                 locationId: _selectedLocationId,
@@ -495,6 +495,15 @@
                 Snackbar.Add(L["Error cancelling sale"], Severity.Error);
             }
         }
+    }
+
+    private DateTime? ToUtc(DateTime? localDate)
+    {
+        if (localDate is null || _companyTimeZone is null)
+            return localDate;
+        return DateTimeService.ToUtc(
+            DateTime.SpecifyKind(localDate.Value, DateTimeKind.Unspecified),
+            _companyTimeZone);
     }
 
     private string FormatToCompanyTimezone(DateTime utcDate)

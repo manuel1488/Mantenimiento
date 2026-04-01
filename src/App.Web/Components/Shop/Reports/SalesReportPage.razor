@@ -6,6 +6,7 @@
 @using App.Core.DTOs.Shop
 @using App.Core.Interfaces
 @using App.Core.Options
+@using App.Shared.Services
 @using System.Timers
 @using App.Web.Components.Shared.Dialogs
 @using Microsoft.Extensions.Options
@@ -18,6 +19,8 @@
 @inject NavigationManager NavigationManager
 @inject ILogger<SalesReportPage> Logger
 @inject IOptions<ExportOptions> ExportOptions
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
 
 <PageTitle>@L["Sales Report"]</PageTitle>
 
@@ -215,7 +218,7 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="@L["ID"]">@context.Id</MudTd>
-                    <MudTd DataLabel="@L["Date"]">@context.SaleDate.ToLocalTime().ToString("g")</MudTd>
+                    <MudTd DataLabel="@L["Date"]">@FormatDate(context.SaleDate)</MudTd>
                     <MudTd DataLabel="@L["Customer"]">@context.CustomerName</MudTd>
                     <MudTd DataLabel="@L["Type"]">
                         <MudChip T="string" Size="Size.Small" Color="Color.Secondary">
@@ -251,6 +254,7 @@
     private bool _exporting = false;
     private DateRange _dateRange = new(DateTime.Now.AddMonths(-1), DateTime.Now);
     private Timer? _debounceTimer;
+    private TimeZoneInfo? _companyTimeZone;
 
     private SaleType? _selectedType = null;
     private string? _selectedStatus = null;
@@ -258,6 +262,18 @@
 
     private SalesSummaryDto? _summary;
     private IList<SaleDto> _sales = new List<SaleDto>();
+
+    private DateTime? ToUtc(DateTime? localDate)
+    {
+        if (localDate is null || _companyTimeZone is null) return localDate;
+        return DateTimeService.ToUtc(DateTime.SpecifyKind(localDate.Value, DateTimeKind.Unspecified), _companyTimeZone);
+    }
+
+    private string FormatDate(DateTime utcDate)
+    {
+        if (_companyTimeZone is null) return utcDate.ToLocalTime().ToString("g");
+        return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+    }
 
     // Chart data for MudBlazor charts
     private List<ChartSeries> _trendSeries = new();
@@ -319,6 +335,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+
         _debounceTimer = new Timer(500);
         _debounceTimer.Elapsed += async (_, _) => await DebouncedRefresh();
         _debounceTimer.AutoReset = false;
@@ -403,8 +421,8 @@
 
             var request = new SalesReportRequestDto
             {
-                StartDate = _dateRange?.Start,
-                EndDate = _dateRange?.End,
+                StartDate = ToUtc(_dateRange?.Start),
+                EndDate = ToUtc(_dateRange?.End),
                 SaleType = _selectedType,
                 Status = _selectedStatus,
                 CustomerId = _selectedCustomer?.Id,
@@ -453,8 +471,8 @@
 
                 var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
 
-                queryParams["startDate"] = _dateRange?.Start?.ToString("o");
-                queryParams["endDate"] = _dateRange?.End?.ToString("o");
+                queryParams["startDate"] = ToUtc(_dateRange?.Start)?.ToString("o");
+                queryParams["endDate"] = ToUtc(_dateRange?.End)?.ToString("o");
 
                 if (_selectedType.HasValue)
                     queryParams["saleType"] = ((int)_selectedType.Value).ToString();
@@ -496,8 +514,8 @@
             {
                 var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
 
-                queryParams["startDate"] = _dateRange?.Start?.ToString("o");
-                queryParams["endDate"] = _dateRange?.End?.ToString("o");
+                queryParams["startDate"] = ToUtc(_dateRange?.Start)?.ToString("o");
+                queryParams["endDate"] = ToUtc(_dateRange?.End)?.ToString("o");
 
                 if (_selectedType.HasValue)
                     queryParams["saleType"] = ((int)_selectedType.Value).ToString();

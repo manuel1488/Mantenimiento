@@ -258,8 +258,8 @@
 
             var (movements, totalCount) = await InventoryHistoryService.GetWarehouseMovementHistoryAsync(
                 _selectedLocation,
-                _dateRange.Start,
-                _dateRange.End,
+                ToUtc(_dateRange.Start),
+                ToUtc(_dateRange.End),
                 _searchString,
                 _selectedMovementType,
                 null,
@@ -316,10 +316,10 @@
                 queryParams.Add($"locationId={_selectedLocation.Value}");
                     
             if (_dateRange.Start.HasValue)
-                queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
-                    
+                queryParams.Add($"startDate={Uri.EscapeDataString(ToUtc(_dateRange.Start)!.Value.ToString("O"))}");
+
             if (_dateRange.End.HasValue)
-                queryParams.Add($"endDate={Uri.EscapeDataString(_dateRange.End.Value.ToString("O"))}");
+                queryParams.Add($"endDate={Uri.EscapeDataString(ToUtc(_dateRange.End)!.Value.ToString("O"))}");
                     
             if (!string.IsNullOrEmpty(_searchString))
                 queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
@@ -354,10 +354,10 @@
                 queryParams.Add($"locationId={_selectedLocation.Value}");
                     
             if (_dateRange.Start.HasValue)
-                queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
-                    
+                queryParams.Add($"startDate={Uri.EscapeDataString(ToUtc(_dateRange.Start)!.Value.ToString("O"))}");
+
             if (_dateRange.End.HasValue)
-                queryParams.Add($"endDate={Uri.EscapeDataString(_dateRange.End.Value.ToString("O"))}");
+                queryParams.Add($"endDate={Uri.EscapeDataString(ToUtc(_dateRange.End)!.Value.ToString("O"))}");
                     
             if (!string.IsNullOrEmpty(_searchString))
                 queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
@@ -396,6 +396,12 @@
     private async Task OnMovementTypeFilterChange()
     {
         await _table.ReloadServerData();
+    }
+
+    private DateTime? ToUtc(DateTime? localDate)
+    {
+        if (localDate is null || _companyTimeZone is null) return localDate;
+        return DateTimeService.ToUtc(DateTime.SpecifyKind(localDate.Value, DateTimeKind.Unspecified), _companyTimeZone);
     }
 
     private string FormatToCompanyTimezone(DateTime utcDate)
