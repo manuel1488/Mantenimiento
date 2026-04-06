@@ -98,6 +98,193 @@ namespace App.Models.Data.Migrations
                     b.ToTable("cat_cfdi_postal_codes");
                 });
 
+            modelBuilder.Entity("App.Models.Billing.GlobalInvoice", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CadenaOriginalSat")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CancellationAcuse")
+                        .HasColumnType("mediumtext");
+
+                    b.Property<DateTime?>("CancellationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(2)");
+
+                    b.Property<string>("CancellationStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("Folio")
+                        .HasColumnType("bigint");
+
+                    b.Property<uint>("IsDeleted")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<string>("IssuerFiscalRegime")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(5)");
+
+                    b.Property<string>("IssuerLegalName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("IssuerPostalCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("IssuerRfc")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("NoCertificadoCfdi")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("NoCertificadoSat")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("PaymentForm")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(5)");
+
+                    b.Property<string>("PeriodMonth")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(2)");
+
+                    b.Property<int>("PeriodYear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Periodicity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReplacementUuid")
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<int>("SaleCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SelloCfdi")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SelloSat")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Serie")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("StampDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("StampError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("Uuid")
+                        .HasMaxLength(36)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<string>("XmlContent")
+                        .HasColumnType("mediumtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("Uuid")
+                        .IsUnique()
+                        .HasFilter("Uuid IS NOT NULL");
+
+                    b.HasIndex("Serie", "Folio")
+                        .IsUnique();
+
+                    b.HasIndex("StartDate", "EndDate");
+
+                    b.ToTable("mx_global_invoices");
+                });
+
+            modelBuilder.Entity("App.Models.Billing.GlobalInvoiceSale", b =>
+                {
+                    b.Property<long>("GlobalInvoiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SaleId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("GlobalInvoiceId", "SaleId");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("mx_global_invoice_sales");
+                });
+
             modelBuilder.Entity("App.Models.Billing.MexicoCfdiUse", b =>
                 {
                     b.Property<int>("Id")
@@ -356,6 +543,9 @@ namespace App.Models.Data.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("varchar(36)");
 
+                    b.Property<DateTime?>("RequestedInvoiceDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<long>("SaleId")
                         .HasColumnType("bigint");
 
@@ -507,6 +697,16 @@ namespace App.Models.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
+
+                    b.Property<int>("GlobalInvoiceFolioLength")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GlobalInvoiceSerie")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<long>("GlobalInvoiceStartFolio")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("InvoiceSerie")
                         .ValueGeneratedOnAdd()
@@ -1813,6 +2013,9 @@ namespace App.Models.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(5)");
 
+                    b.Property<int?>("MxMaxBackdateHours")
+                        .HasColumnType("int");
+
                     b.Property<string>("PostalCode")
                         .HasMaxLength(20)
                         .IsUnicode(false)
@@ -1918,6 +2121,12 @@ namespace App.Models.Data.Migrations
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
+
+                    b.Property<int>("PortSettlingDelayMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PrintChunkSize")
+                        .HasColumnType("int");
 
                     b.Property<int>("PrintFlushDelayMs")
                         .HasColumnType("int");
@@ -4423,6 +4632,25 @@ namespace App.Models.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -4553,6 +4781,25 @@ namespace App.Models.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("App.Models.Billing.GlobalInvoiceSale", b =>
+                {
+                    b.HasOne("App.Models.Billing.GlobalInvoice", "GlobalInvoice")
+                        .WithMany("GlobalInvoiceSales")
+                        .HasForeignKey("GlobalInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("App.Models.Shop.Sale", "Sale")
+                        .WithMany()
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GlobalInvoice");
+
+                    b.Navigation("Sale");
                 });
 
             modelBuilder.Entity("App.Models.Billing.MexicoInvoice", b =>
@@ -5127,6 +5374,11 @@ namespace App.Models.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("App.Models.Billing.GlobalInvoice", b =>
+                {
+                    b.Navigation("GlobalInvoiceSales");
                 });
 
             modelBuilder.Entity("App.Models.Billing.MexicoInvoice", b =>

@@ -9,4 +9,10 @@
   <data name="This sale already has an active invoice" xml:space="preserve">
     <value>This sale already has an active invoice</value>
   </data>
+  <data name="Invoice date cannot be in the future" xml:space="preserve">
+    <value>Invoice date cannot be in the future</value>
+  </data>
+  <data name="Invoice date exceeds the maximum backdate window of {0} hours" xml:space="preserve">
+    <value>Invoice date exceeds the maximum backdate window of {0} hours</value>
+  </data>
 </root>

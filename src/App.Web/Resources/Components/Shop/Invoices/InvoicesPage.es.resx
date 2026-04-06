@@ -34,7 +34,10 @@
     <value>Venta #</value>
   </data>
   <data name="Date" xml:space="preserve">
-    <value>Fecha</value>
+    <value>Fecha CFDI</value>
+  </data>
+  <data name="Stamped at" xml:space="preserve">
+    <value>Timbrado</value>
   </data>
   <data name="Customer RFC" xml:space="preserve">
     <value>RFC Cliente</value>

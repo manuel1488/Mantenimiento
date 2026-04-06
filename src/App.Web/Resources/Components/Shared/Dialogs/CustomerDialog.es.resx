@@ -141,4 +141,7 @@
   <data name="Automatically send the invoice email after generation" xml:space="preserve">
     <value>Enviar automáticamente el correo con la factura al generarla</value>
   </data>
+  <data name="Not available for Público General — use Global Invoices" xml:space="preserve">
+    <value>No disponible para Público General — usa Facturas Globales</value>
+  </data>
 </root>

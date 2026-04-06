@@ -20,6 +20,11 @@ public class MexicoPacSettingsDto
     public long StartFolio { get; set; } = 1;
     public int FolioLength { get; set; } = 0;
 
+    // Global invoice config
+    public string? GlobalInvoiceSerie { get; set; }
+    public long GlobalInvoiceStartFolio { get; set; } = 1;
+    public int GlobalInvoiceFolioLength { get; set; } = 0;
+
     // CSD certificate info
     public bool HasCsdCertificate { get; set; }
     public bool HasCsdPrivateKey { get; set; }

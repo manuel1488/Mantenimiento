@@ -105,8 +105,22 @@
                                                 <MudItem xs="12" sm="6">
                                                     <MudNumericField @bind-Value="_model.PrintFlushDelayMs"
                                                         Label="@L["Safety buffer after print (ms)"]"
-                                                        HelperText="@L["Added on top of the auto-calculated transmission time. Increase if receipts are cut off on slow hardware (default 200 ms)."]"
-                                                        Min="0" Max="3000" Step="50"
+                                                        HelperText="@L["Extra wait for the printer to finish mechanically (default 500 ms). Increase if tickets are cut off."]"
+                                                        Min="100" Max="5000" Step="50"
+                                                        ReadOnly="@(!_hasManagePermission)" />
+                                                </MudItem>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudNumericField @bind-Value="_model.PrintChunkSize"
+                                                        Label="@L["Write chunk size (bytes)"]"
+                                                        HelperText="@L["Max bytes per serial write. Keep below 4096 (printer buffer). Default 2048."]"
+                                                        Min="256" Max="4096" Step="256"
+                                                        ReadOnly="@(!_hasManagePermission)" />
+                                                </MudItem>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudNumericField @bind-Value="_model.PortSettlingDelayMs"
+                                                        Label="@L["Port settling delay (ms)"]"
+                                                        HelperText="@L["Wait after opening the COM port before sending data. Prevents first-print truncation on virtual COM drivers (default 250 ms)."]"
+                                                        Min="0" Max="2000" Step="50"
                                                         ReadOnly="@(!_hasManagePermission)" />
                                                 </MudItem>
                                                 <MudItem xs="12">
@@ -425,6 +439,8 @@
                 DefaultCopies = _model.DefaultCopies,
                 DirectPrintEnabled = _model.DirectPrintEnabled,
                 PrintFlushDelayMs = _model.PrintFlushDelayMs,
+                PrintChunkSize = _model.PrintChunkSize,
+                PortSettlingDelayMs = _model.PortSettlingDelayMs,
                 CashDrawerEnabled = _model.CashDrawerEnabled,
                 CashDrawerCommand = _model.CashDrawerCommand
             };

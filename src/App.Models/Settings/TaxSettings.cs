@@ -62,4 +62,7 @@ public class TaxSettings : BaseEntity<int>
     public int? PostalCodeOffsetWinter { get; set; }
 
     public int? PostalCodeOffsetSummer { get; set; }
+
+    /// <summary>Maximum hours in the past an invoice date can be backdated. Null = no enforced limit.</summary>
+    public int? MxMaxBackdateHours { get; set; }
 }

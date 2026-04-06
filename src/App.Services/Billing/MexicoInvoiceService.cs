@@ -108,6 +108,41 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 return Result<MexicoInvoiceDto>.Failure(
                     "Los datos fiscales del emisor no están configurados. Configure en Administración > Configuración > Fiscal.");
 
+            // 2c. Resolve issuer timezone and validate invoice date before creating the draft record
+            TimeZoneInfo issuerTimeZone;
+            if (!string.IsNullOrEmpty(taxSettings.PostalCodeIanaTimeZoneId))
+            {
+                issuerTimeZone = TimeZoneInfo.FindSystemTimeZoneById(taxSettings.PostalCodeIanaTimeZoneId);
+            }
+            else
+            {
+                _logger.LogWarning("Postal code timezone not configured — falling back to company timezone for CFDI Fecha");
+                issuerTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+            }
+
+            var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
+            DateTime issueDate;
+
+            if (dto.InvoiceDate.HasValue)
+            {
+                if (dto.InvoiceDate.Value > nowLocal.AddMinutes(5))
+                    return Result<MexicoInvoiceDto>.Failure(_localizer["Invoice date cannot be in the future"]);
+
+                if (taxSettings.MxMaxBackdateHours.HasValue)
+                {
+                    var minAllowed = nowLocal.AddHours(-taxSettings.MxMaxBackdateHours.Value);
+                    if (dto.InvoiceDate.Value < minAllowed)
+                        return Result<MexicoInvoiceDto>.Failure(
+                            string.Format(_localizer["Invoice date exceeds the maximum backdate window of {0} hours"],
+                                taxSettings.MxMaxBackdateHours.Value));
+                }
+                issueDate = dto.InvoiceDate.Value;
+            }
+            else
+            {
+                issueDate = nowLocal;
+            }
+
             // 3. Load sale with details
             await using var context = await _contextFactory.CreateDbContextAsync();
             var sale = await context.Sales
@@ -150,6 +185,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 ExchangeRate = 1,
                 Status = "Draft",
                 IsStamped = false,
+                RequestedInvoiceDate = dto.InvoiceDate.HasValue
+                    ? TimeZoneInfo.ConvertTimeToUtc(dto.InvoiceDate.Value, issuerTimeZone)
+                    : null,
                 CreatedBy = _currentUserService.UserId,
                 CreatedAt = _dateTime.Now,
                 ModifiedBy = _currentUserService.UserId,
@@ -161,20 +199,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
             try
             {
-                // 6. Build Comprobante — resolve local time from issuer postal code timezone
-                // Using postal code timezone ensures the CFDI Fecha matches the issuer's local time,
-                // preventing PAC rejection when the issuer is in a different timezone than Mexico City.
-                TimeZoneInfo issuerTimeZone;
-                if (!string.IsNullOrEmpty(taxSettings.PostalCodeIanaTimeZoneId))
-                {
-                    issuerTimeZone = TimeZoneInfo.FindSystemTimeZoneById(taxSettings.PostalCodeIanaTimeZoneId);
-                }
-                else
-                {
-                    _logger.LogWarning("Postal code timezone not configured — falling back to company timezone for CFDI Fecha");
-                    issuerTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
-                }
-                var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
+                // 6. Build Comprobante — issueDate was resolved in step 2c (before draft creation)
+                // It is either the user-requested backdated date or the current local time in the issuer's timezone.
                 var comprobante = BuildComprobante(invoice, sale, serie, folio, folioLength, dto, issueDate);
 
                 // Update invoice record with CFDI-computed totals (may include rounding concepto)
@@ -465,7 +491,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
             try
             {
-                // Build Comprobante with fresh timestamp
+                // Resolve issuer timezone for Comprobante date
                 TimeZoneInfo issuerTimeZone;
                 if (!string.IsNullOrEmpty(taxSettings.PostalCodeIanaTimeZoneId))
                 {
@@ -476,7 +502,11 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     _logger.LogWarning("Postal code timezone not configured — falling back to company timezone for CFDI Fecha");
                     issuerTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
                 }
-                var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
+
+                // Honor the original backdated date if the invoice was created with one; otherwise use current time.
+                var issueDate = invoice.RequestedInvoiceDate.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(invoice.RequestedInvoiceDate.Value, issuerTimeZone)
+                    : TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
 
                 // Use fresh customer data from DB (not stale invoice data)
                 // so that corrections to customer fiscal info are picked up on retry
@@ -661,6 +691,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Status = i.Status,
                 IsStamped = i.IsStamped,
                 StampDate = i.StampDate,
+                RequestedInvoiceDate = i.RequestedInvoiceDate,
                 CustomerRfc = i.CustomerRfc,
                 CustomerLegalName = i.CustomerLegalName,
                 Total = i.Total,
@@ -776,6 +807,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 Status = i.Status,
                 IsStamped = i.IsStamped,
                 StampDate = i.StampDate,
+                RequestedInvoiceDate = i.RequestedInvoiceDate,
                 CustomerRfc = i.CustomerRfc,
                 CustomerLegalName = i.CustomerLegalName,
                 Total = i.Total,
@@ -1587,6 +1619,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             Status = i.Status,
             IsStamped = i.IsStamped,
             StampDate = i.StampDate,
+            RequestedInvoiceDate = i.RequestedInvoiceDate,
             CustomerRfc = i.CustomerRfc,
             CustomerLegalName = i.CustomerLegalName,
             CustomerPostalCode = i.CustomerPostalCode,

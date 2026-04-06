@@ -9,4 +9,10 @@
   <data name="This sale already has an active invoice" xml:space="preserve">
     <value>Esta venta ya tiene una factura activa</value>
   </data>
+  <data name="Invoice date cannot be in the future" xml:space="preserve">
+    <value>La fecha de la factura no puede ser futura</value>
+  </data>
+  <data name="Invoice date exceeds the maximum backdate window of {0} hours" xml:space="preserve">
+    <value>La fecha de la factura excede la ventana máxima de antedatado de {0} horas</value>
+  </data>
 </root>

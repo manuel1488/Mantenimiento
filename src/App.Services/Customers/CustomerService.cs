@@ -163,6 +163,13 @@ public class CustomerService : ICustomerService
 
             var customer = _mapper.Map<Customer>(createDto);
 
+            // Público General (XAXX010101000) is covered by global invoices — never auto-invoice
+            if (string.Equals(customer.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
+            {
+                customer.AutoInvoice = false;
+                customer.SendInvoiceEmail = false;
+            }
+
             // Compute fiscal readiness flag
             customer.HasFiscalData = customer.CountryCode == "MX"
                 && !string.IsNullOrEmpty(customer.TaxId)
@@ -219,6 +226,13 @@ public class CustomerService : ICustomerService
 
             // Update properties
             _mapper.Map(updateDto, customer);
+
+            // Público General (XAXX010101000) is covered by global invoices — never auto-invoice
+            if (string.Equals(customer.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
+            {
+                customer.AutoInvoice = false;
+                customer.SendInvoiceEmail = false;
+            }
 
             // Recompute fiscal readiness flag after update
             customer.HasFiscalData = customer.CountryCode == "MX"

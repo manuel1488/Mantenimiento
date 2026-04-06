@@ -47,18 +47,6 @@
                     </Authorized>
                 </AuthorizeView>
 
-                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInvoice">
-                    <Authorized Context="invoicesAuth">
-                        <MudNavLink Href="/shop/invoices">@L["Invoices"]</MudNavLink>
-                    </Authorized>
-                </AuthorizeView>
-
-                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewStampBalance">
-                    <Authorized Context="stampAuth">
-                        <MudNavLink Href="/shop/stamp-balance">@L["Stamp Balance"]</MudNavLink>
-                    </Authorized>
-                </AuthorizeView>
-
                 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewDailySalesSummary">
                     <Authorized Context="dailySummaryAuth">
                         <MudNavLink Href="/shop/daily-sales-summary">@L["Daily Sales Summary"]</MudNavLink>
@@ -86,6 +74,33 @@
                 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewCashRegister">
                     <Authorized Context="cashRegisterAuth">
                         <MudNavLink Href="/shop/cash-register">@L["Cash Register"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
+    <!-- Sección Factura Electrónica (Billing) -->
+    <AuthorizeView Policy="@ApplicationClaims.Billing.BillingAccess">
+        <Authorized Context="billingAuth">
+            <MudNavGroup Title="@L["Electronic Invoicing"]"
+                        Icon="@Icons.Material.Filled.ReceiptLong"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInvoice">
+                    <Authorized>
+                        <MudNavLink Href="/shop/invoices">@L["Invoices"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewGlobalInvoices">
+                    <Authorized>
+                        <MudNavLink Href="/admin/global-invoices">@L["Global Invoices"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewStampBalance">
+                    <Authorized>
+                        <MudNavLink Href="/shop/stamp-balance">@L["Stamp Balance"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
             </MudNavGroup>
@@ -158,6 +173,7 @@
                         <MudNavLink Href="/admin/cash-stations" Icon="@Icons.Material.Filled.PointOfSale">@L["Cash Stations"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
+
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

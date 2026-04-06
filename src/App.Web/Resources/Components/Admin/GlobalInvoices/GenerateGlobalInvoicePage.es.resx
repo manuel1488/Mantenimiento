@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Generate Global Invoice" xml:space="preserve">
+    <value>Generar Factura Global</value>
+  </data>
+  <data name="Periodicity" xml:space="preserve">
+    <value>Periodicidad</value>
+  </data>
+  <data name="Payment Form" xml:space="preserve">
+    <value>Forma de Pago</value>
+  </data>
+  <data name="Calculate Preview" xml:space="preserve">
+    <value>Calcular Vista Previa</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Resumen</value>
+  </data>
+  <data name="Sales included:" xml:space="preserve">
+    <value>Ventas incluidas:</value>
+  </data>
+  <data name="Subtotal:" xml:space="preserve">
+    <value>Subtotal:</value>
+  </data>
+  <data name="Discounts:" xml:space="preserve">
+    <value>Descuentos:</value>
+  </data>
+  <data name="Tax (IVA):" xml:space="preserve">
+    <value>IVA:</value>
+  </data>
+  <data name="Total:" xml:space="preserve">
+    <value>Total:</value>
+  </data>
+  <data name="Warning: {0} sale(s) already have an individual CFDI and will be excluded." xml:space="preserve">
+    <value>Aviso: {0} venta(s) ya tienen CFDI individual y serán excluidas.</value>
+  </data>
+  <data name="No eligible sales found for this period." xml:space="preserve">
+    <value>No se encontraron ventas elegibles para este período.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Generate and Stamp" xml:space="preserve">
+    <value>Generar y Timbrar</value>
+  </data>
+  <data name="Invoice created but stamp failed: {0}" xml:space="preserve">
+    <value>Factura creada pero el timbre falló: {0}</value>
+  </data>
+  <data name="Global invoice generated and stamped successfully!" xml:space="preserve">
+    <value>¡Factura global generada y timbrada correctamente!</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>Diaria</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>Semanal</value>
+  </data>
+  <data name="Biweekly" xml:space="preserve">
+    <value>Quincenal</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>Mensual</value>
+  </data>
+  <data name="Calculate a preview to see the eligible sales." xml:space="preserve">
+    <value>Calcula una vista previa para ver las ventas elegibles.</value>
+  </data>
+  <data name="Included Sales" xml:space="preserve">
+    <value>Ventas incluidas</value>
+  </data>
+  <data name="#" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Pago</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="IVA" xml:space="preserve">
+    <value>IVA</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Preview PDF" xml:space="preserve">
+    <value>Vista Previa PDF</value>
+  </data>
+</root>

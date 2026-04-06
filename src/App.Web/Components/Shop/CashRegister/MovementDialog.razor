@@ -140,18 +140,19 @@
 
             if (MovementType == CashRegisterMovementType.Withdrawal && result.Value is not null)
             {
-                try
+                var printResult = await ThermalPrinter.PrintWithdrawalAsync(result.Value.Id);
+                if (!printResult.IsSuccess)
                 {
-                    var printResult = await ThermalPrinter.PrintWithdrawalAsync(result.Value.Id);
-                    if (!printResult.IsSuccess)
+                    Logger.LogInformation("Direct print skipped for withdrawal {MovementId}: {Reason} — falling back to PDF", result.Value.Id, printResult.Error);
+                    try
                     {
                         var ticketUrl = TicketService.GetWithdrawalTicketUrl(result.Value.Id);
                         await JS.InvokeVoidAsync("printTicket", ticketUrl);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogWarning(ex, "Could not print withdrawal ticket");
+                    catch (Exception ex)
+                    {
+                        Logger.LogWarning(ex, "Failed to open PDF for withdrawal {MovementId}", result.Value.Id);
+                    }
                 }
             }
 

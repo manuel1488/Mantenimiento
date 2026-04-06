@@ -2,6 +2,7 @@ using App.Core.Common;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
+using App.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
@@ -15,6 +16,7 @@ public class ThermalPrinterService : IThermalPrinterService
     private readonly ISaleService _saleService;
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ICompanySettingsService _companySettingsService;
+    private readonly ICurrentUserService _currentUser;
     private readonly ILogger<ThermalPrinterService> _logger;
     private readonly IStringLocalizer<ThermalPrinterService> _localizer;
 
@@ -24,6 +26,7 @@ public class ThermalPrinterService : IThermalPrinterService
         ISaleService saleService,
         IDbContextFactory<ApplicationDbContext> contextFactory,
         ICompanySettingsService companySettingsService,
+        ICurrentUserService currentUser,
         ILogger<ThermalPrinterService> logger,
         IStringLocalizer<ThermalPrinterService> localizer)
     {
@@ -32,6 +35,7 @@ public class ThermalPrinterService : IThermalPrinterService
         _saleService = saleService;
         _contextFactory = contextFactory;
         _companySettingsService = companySettingsService;
+        _currentUser = currentUser;
         _logger = logger;
         _localizer = localizer;
     }
@@ -123,8 +127,14 @@ public class ThermalPrinterService : IThermalPrinterService
                 }
             };
 
-            var success = await _js.InvokeAsync<bool>("thermalPrint.printSale", data, config.PrintFlushDelayMs);
-            if (!success) return Result.Failure(_localizer["Printer did not confirm success"]);
+            var printResult = await _js.InvokeAsync<DirectPrintResult?>(
+                "thermalPrint.printSale", data, config.PrintFlushDelayMs, config.PrintChunkSize, config.PortSettlingDelayMs);
+            if (printResult == null)
+                return Result.Failure(_localizer["No response from printer — refresh the page and try again"]);
+            LogPrintResult("Sale", saleId, printResult);
+
+            if (!printResult.Success)
+                return Result.Failure(_localizer["Printer did not confirm success"]);
 
             if (config.CashDrawerEnabled && !string.IsNullOrWhiteSpace(config.CashDrawerCommand))
             {
@@ -140,10 +150,14 @@ public class ThermalPrinterService : IThermalPrinterService
 
             return Result.Success();
         }
+        catch (JSDisconnectedException)
+        {
+            return Result.Failure("circuit-disconnected");
+        }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Direct print failed for sale {SaleId}", saleId);
-            return Result.Failure(ex.Message);
+            _logger.LogWarning(ex, "Direct print failed for sale {SaleId} by user {User}", saleId, _currentUser.UserName ?? _currentUser.UserId);
+            return Result.Failure(_localizer["Print failed — check printer connection and try again"]);
         }
     }
 
@@ -189,13 +203,24 @@ public class ThermalPrinterService : IThermalPrinterService
                 }
             };
 
-            var success = await _js.InvokeAsync<bool>("thermalPrint.printWithdrawal", data, config.PrintFlushDelayMs);
-            return success ? Result.Success() : Result.Failure(_localizer["Printer did not confirm success"]);
+            var printResult = await _js.InvokeAsync<DirectPrintResult?>(
+                "thermalPrint.printWithdrawal", data, config.PrintFlushDelayMs, config.PrintChunkSize, config.PortSettlingDelayMs);
+            if (printResult == null)
+                return Result.Failure(_localizer["No response from printer — refresh the page and try again"]);
+            LogPrintResult("Withdrawal", movementId, printResult);
+
+            return printResult.Success
+                ? Result.Success()
+                : Result.Failure(_localizer["Printer did not confirm success"]);
+        }
+        catch (JSDisconnectedException)
+        {
+            return Result.Failure("circuit-disconnected");
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Direct print failed for withdrawal {MovementId}", movementId);
-            return Result.Failure(ex.Message);
+            _logger.LogWarning(ex, "Direct print failed for withdrawal {MovementId} by user {User}", movementId, _currentUser.UserName ?? _currentUser.UserId);
+            return Result.Failure(_localizer["Print failed — check printer connection and try again"]);
         }
     }
 
@@ -203,13 +228,20 @@ public class ThermalPrinterService : IThermalPrinterService
     {
         try
         {
-            var success = await _js.InvokeAsync<bool>("thermalPrint.printTest");
-            return success ? Result.Success() : Result.Failure(_localizer["Printer did not confirm success"]);
+            var config = await _ticketService.GetTicketConfigurationAsync();
+            var printResult = await _js.InvokeAsync<DirectPrintResult?>("thermalPrint.printTest", config.PortSettlingDelayMs);
+            if (printResult == null)
+                return Result.Failure(_localizer["No response from printer — refresh the page and try again"]);
+            LogPrintResult("TestPage", 0, printResult);
+
+            return printResult.Success
+                ? Result.Success()
+                : Result.Failure(_localizer["Printer did not confirm success"]);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Test print failed");
-            return Result.Failure(ex.Message);
+            _logger.LogWarning(ex, "Test print failed by user {User}", _currentUser.UserName ?? _currentUser.UserId);
+            return Result.Failure(_localizer["Print failed — check printer connection and try again"]);
         }
     }
 
@@ -233,6 +265,30 @@ public class ThermalPrinterService : IThermalPrinterService
         }
     }
 
+    private void LogPrintResult(string operation, long entityId, DirectPrintResult? result)
+    {
+        if (result == null) return;
+        if (result.Success)
+        {
+            _logger.LogInformation(
+                "Direct print {Operation} #{EntityId}: {BytesSent} bytes, paper: {PaperStatus}",
+                operation, entityId, result.BytesSent, result.PaperStatus ?? "unknown");
+
+            if (result.PaperStatus == "near-end")
+                _logger.LogWarning("Printer paper near end — replace soon");
+            else if (result.PaperStatus == "empty")
+                _logger.LogWarning("Printer paper empty");
+        }
+        else
+        {
+            _logger.LogWarning(
+                "Direct print {Operation} #{EntityId} failed: {Error} ({BytesSent} bytes sent) portFresh={PortFresh} DSR={Dsr} CTS={Cts} — user {User}",
+                operation, entityId, result.Error ?? "unknown", result.BytesSent,
+                result.PortFresh, result.Dsr, result.Cts,
+                _currentUser.UserName ?? _currentUser.UserId);
+        }
+    }
+
     private static DateTime ConvertDate(DateTime utc, TimeZoneInfo? tz)
     {
         if (tz == null) return utc.ToLocalTime();
@@ -241,4 +297,5 @@ public class ThermalPrinterService : IThermalPrinterService
     }
 
     private record PortRequestResult(bool Success, string Description);
+    private record DirectPrintResult(bool Success, int BytesSent, string? PaperStatus, string? Error, bool? PortFresh, bool? Dsr, bool? Cts);
 }

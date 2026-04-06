@@ -174,4 +174,16 @@
   <data name="Error opening drawer" xml:space="preserve">
     <value>Error opening drawer</value>
   </data>
+  <data name="Safety buffer after print (ms)" xml:space="preserve">
+    <value>Safety buffer after print (ms)</value>
+  </data>
+  <data name="Extra wait for the printer to finish mechanically (default 500 ms). Increase if tickets are cut off." xml:space="preserve">
+    <value>Extra wait for the printer to finish mechanically (default 500 ms). Increase if tickets are cut off.</value>
+  </data>
+  <data name="Write chunk size (bytes)" xml:space="preserve">
+    <value>Write chunk size (bytes)</value>
+  </data>
+  <data name="Max bytes per serial write. Keep below 4096 (printer buffer). Default 2048." xml:space="preserve">
+    <value>Max bytes per serial write. Keep below 4096 (printer buffer). Default 2048.</value>
+  </data>
 </root>

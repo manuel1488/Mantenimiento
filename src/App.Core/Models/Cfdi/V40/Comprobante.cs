@@ -92,6 +92,12 @@ public class Comprobante
     [XmlAttribute("LugarExpedicion")]
     public string LugarExpedicion { get; set; } = string.Empty;
 
+    /// <summary>Required for facturas de público en general (global invoices).</summary>
+    [XmlElement("InformacionGlobal")]
+    public InformacionGlobal? InformacionGlobal { get; set; }
+
+    public bool ShouldSerializeInformacionGlobal() => InformacionGlobal != null;
+
     [XmlElement("Emisor")]
     public Emisor Emisor { get; set; } = new();
 

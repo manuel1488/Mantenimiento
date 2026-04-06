@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 
+using Microsoft.AspNetCore.DataProtection;
+
 using App.Core.Constants;
 using App.Core.Identity.Interfaces;
 using App.Core.Interfaces;
@@ -241,6 +243,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Admin.ViewBillingSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewBillingSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageBillingSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageBillingSettings));
 
+        options.AddPolicy(ApplicationClaims.Admin.ViewGlobalInvoices, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewGlobalInvoices));
+        options.AddPolicy(ApplicationClaims.Admin.CreateGlobalInvoice, policy => policy.RequireClaim(ApplicationClaims.Admin.CreateGlobalInvoice));
+        options.AddPolicy(ApplicationClaims.Admin.CancelGlobalInvoice, policy => policy.RequireClaim(ApplicationClaims.Admin.CancelGlobalInvoice));
+
         options.AddPolicy(ApplicationClaims.Admin.ViewWarehouseSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewWarehouseSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageWarehouseSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageWarehouseSettings));
 
@@ -364,6 +370,14 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
             policy.RequireAssertion(context =>
                 context.User.HasClaim(c => c.Type.StartsWith("Shop."))));
 
+        // Billing (Factura Electrónica) access — user has any invoice or global invoice claim
+        options.AddPolicy(ApplicationClaims.Billing.BillingAccess, policy =>
+            policy.RequireAssertion(context =>
+                context.User.HasClaim(c =>
+                    c.Type == ApplicationClaims.Shop.ViewInvoice ||
+                    c.Type == ApplicationClaims.Shop.ViewStampBalance ||
+                    c.Type == ApplicationClaims.Admin.ViewGlobalInvoices)));
+
         // Labels policies
         options.AddPolicy(ApplicationClaims.Labels.ViewLabels, policy => policy.RequireClaim(ApplicationClaims.Labels.ViewLabels));
         options.AddPolicy(ApplicationClaims.Labels.PrintLabels, policy => policy.RequireClaim(ApplicationClaims.Labels.PrintLabels));
@@ -386,6 +400,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.ViewLocationFormats.Add("/Views/Reports/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/Quotations/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/Remissions/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Views/GlobalInvoices/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/{0}.cshtml");
 
         options.ViewLocationFormats.Add("/Views/Reports/{1}/_ViewImports.cshtml");
@@ -409,6 +424,12 @@ void ConfigureDatabase(IServiceCollection services, IConfiguration configuration
     var databaseOptions = configuration
         .GetSection(DatabaseOptions.SectionName)
         .Get<DatabaseOptions>();
+
+    // Persist Data Protection keys in MySQL so they survive container restarts/redeployments.
+    // Without this, cookies and antiforgery tokens are invalidated on every redeploy.
+    services.AddDataProtection()
+        .PersistKeysToDbContext<ApplicationDbContext>()
+        .SetApplicationName("Cleeny");
 
     // DbContextFactory con configuración independiente
     services.AddDbContextFactory<ApplicationDbContext>((serviceProvider, options) =>
@@ -716,6 +737,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IMexicoCsdSigningService, MexicoCsdSigningService>();
     services.AddScoped<ISwSapienService, SwSapienService>();
     services.AddScoped<IMexicoInvoiceService, MexicoInvoiceService>();
+    services.AddScoped<IGlobalInvoiceService, GlobalInvoiceService>();
     services.AddScoped<IMexicoStampAlertService, MexicoStampAlertService>();
 
     // Cancellation monitor — singleton so UI can inject and call TriggerAsync

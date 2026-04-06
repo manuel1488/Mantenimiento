@@ -69,6 +69,12 @@
   <data name="Cash Stations" xml:space="preserve">
     <value>Cash Stations</value>
   </data>
+  <data name="Global Invoices" xml:space="preserve">
+    <value>Global Invoices</value>
+  </data>
+  <data name="Electronic Invoicing" xml:space="preserve">
+    <value>Electronic Invoicing</value>
+  </data>
   <data name="Labeling" xml:space="preserve">
     <value>Labeling</value>
   </data>

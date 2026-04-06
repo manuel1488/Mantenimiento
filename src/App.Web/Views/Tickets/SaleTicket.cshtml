@@ -2,7 +2,6 @@
 @using App.Shared.Services
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<App.Web.Views.Tickets.SaleTicket> L
-@inject IDateTime DateTimeService
 
 <!DOCTYPE html>
 <html>
@@ -277,7 +276,7 @@
         @* Sale Information *@
         <div class="sale-info">
             <div><strong>@L["Sale"]:</strong> #@Model.Data.Id</div>
-            <div><strong>@L["Date"]:</strong> @(Model.TimeZone != null ? DateTimeService.FormatToTimezone(Model.Data.SaleDate, Model.TimeZone) : Model.Data.SaleDate.ToString("dd/MM/yyyy h:mm tt"))</div>
+            <div><strong>@L["Date"]:</strong> @Model.Data.SaleDate.ToString("dd/MM/yyyy h:mm tt")</div>
             <div><strong>@L["Customer"]:</strong> @Model.Data.CustomerName</div>
         </div>
 

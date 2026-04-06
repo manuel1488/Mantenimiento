@@ -9,8 +9,71 @@
  *  1. Assign the TM-T20IV USB to a COM port using "Epson TM Virtual Port Assignment Tool"
  *  2. In Admin → Settings → Ticket, click "Connect printer port" and select that COM port
  *  3. Chrome remembers the permission — subsequent prints are automatic
+ *
+ * Port lifecycle: the port is opened once and kept open between prints.
+ * On any hardware error (no-signal, dle-eot-timeout, send-error) the port is
+ * closed and nulled so the next print attempt opens it fresh.
  */
 window.thermalPrint = {
+
+    // ── Persistent port state ──────────────────────────────────────────────
+
+    /** Kept open between prints — null when closed or after an error. */
+    _port: null,
+
+    /**
+     * Returns the open port, opening it if necessary.
+     * Returns null (with console.warn) if no port is configured or open times out.
+     */
+    _ensurePortOpen: async function () {
+        var t = window.thermalPrint;
+
+        if (t._port !== null) {
+            console.log('[thermalPrint] reusing open port');
+            return t._port;
+        }
+
+        var ports = await navigator.serial.getPorts();
+        if (ports.length === 0) {
+            console.warn('[thermalPrint] no-port: no serial port has been granted permission');
+            return null;
+        }
+
+        var port = ports[0];
+        console.log('[thermalPrint] opening port...');
+
+        // port.open() can block indefinitely when the device is physically
+        // disconnected but the virtual COM port driver keeps the entry alive in
+        // Windows. Race against a 4 s timeout so we fall back to PDF instead.
+        var openResult = await Promise.race([
+            port.open({ baudRate: 9600 }).then(function () { return 'ok'; }),
+            new Promise(function (resolve) { setTimeout(function () { resolve('timeout'); }, 4000); })
+        ]);
+
+        if (openResult === 'timeout') {
+            console.warn('[thermalPrint] open-timeout: port.open() did not resolve in 4 s — virtual driver may be hung or printer USB disconnected');
+            return null;
+        }
+
+        console.log('[thermalPrint] port opened successfully');
+        t._port = port;
+        return port;
+    },
+
+    /**
+     * Closes the port and clears _port.
+     * Called after any error so the next print attempt reopens cleanly.
+     * @param {string} reason — logged for diagnostics
+     */
+    _dropPort: async function (reason) {
+        var t = window.thermalPrint;
+        if (t._port === null) return;
+        console.warn('[thermalPrint] dropping port — reason: %s', reason);
+        try { await t._port.close(); } catch (e) {
+            console.warn('[thermalPrint] port.close() threw while dropping: %s', e.message);
+        }
+        t._port = null;
+    },
 
     // ── Public API ─────────────────────────────────────────────────────────
 
@@ -40,21 +103,26 @@ window.thermalPrint = {
         } catch { return false; }
     },
 
-    printSale: async function (data, flushDelayMs) {
-        return window.thermalPrint._send(await window.thermalPrint._buildSale(data), flushDelayMs);
+    /**
+     * Print functions return {success, bytesSent, paperStatus, error}.
+     * paperStatus: 'ok' | 'near-end' | 'empty' | null (null = could not read).
+     */
+    printSale: async function (data, flushDelayMs, chunkSize, settlingDelayMs) {
+        return window.thermalPrint._send(await window.thermalPrint._buildSale(data), flushDelayMs, chunkSize, true, settlingDelayMs);
     },
 
-    printWithdrawal: async function (data, flushDelayMs) {
-        return window.thermalPrint._send(window.thermalPrint._buildWithdrawal(data), flushDelayMs);
+    printWithdrawal: async function (data, flushDelayMs, chunkSize, settlingDelayMs) {
+        return window.thermalPrint._send(window.thermalPrint._buildWithdrawal(data), flushDelayMs, chunkSize, true, settlingDelayMs);
     },
 
-    printTest: async function () {
-        return window.thermalPrint._send(window.thermalPrint._buildTest());
+    printTest: async function (settlingDelayMs) {
+        return window.thermalPrint._send(window.thermalPrint._buildTest(), 0, 0, true, settlingDelayMs);
     },
 
     /**
      * Opens the cash drawer by sending an ESC/POS command via the serial port.
      * commandHex: space-separated hex bytes, e.g. "1B 70 00 19 FA"
+     * Returns boolean (no print confirmation needed).
      */
     openDrawer: async function (commandHex, flushDelayMs) {
         try {
@@ -62,7 +130,8 @@ window.thermalPrint = {
                 return parseInt(h, 16);
             }).filter(function (b) { return !isNaN(b); });
             if (bytes.length === 0) return false;
-            return window.thermalPrint._send(bytes, flushDelayMs || 200);
+            var result = await window.thermalPrint._send(bytes, flushDelayMs || 200);
+            return result.success;
         } catch (e) {
             console.error('[thermalPrint] openDrawer error:', e);
             return false;
@@ -71,61 +140,209 @@ window.thermalPrint = {
 
     // ── Serial port send ───────────────────────────────────────────────────
 
-    _send: async function (bytes, safetyBufferMs) {
-        let isOpen = false;
-        let port = null;
+    /**
+     * Core send function. Uses the persistent _port — opens it if needed,
+     * drops it on any hardware error so the next call reopens cleanly.
+     *
+     * @param {number[]} bytes          ESC/POS payload
+     * @param {number}   safetyBufferMs Timeout for GS r read / fallback delay (default 2000)
+     * @param {number}   chunkSize      Max bytes per write (default 2048)
+     * @param {boolean}  confirmPrint   Append GS r 1 and wait for completion response
+     * @returns {{success:boolean, bytesSent:number, paperStatus:string|null, error:string|null}}
+     */
+    _send: async function (bytes, safetyBufferMs, chunkSize, confirmPrint, settlingDelayMs) {
+        var t = window.thermalPrint;
+        var sent = 0;
+        // Diagnostics — hoisted so every return path can include them
+        var portFresh = t._port === null;
+        var dsr = null, cts = null;
         try {
-            const ports = await navigator.serial.getPorts();
-            if (ports.length === 0) return false;
-
-            port = ports[0];
-
-            // port.open() can block indefinitely when the device is physically disconnected
-            // but the virtual COM port driver keeps the port entry alive in Windows.
-            // Use a race so we give up after 4 s and let the fallback open the PDF instead.
-            const openResult = await Promise.race([
-                port.open({ baudRate: 9600 }).then(() => 'ok'),
-                new Promise(resolve => setTimeout(() => resolve('timeout'), 4000))
-            ]);
-            if (openResult === 'timeout') {
-                console.warn('[thermalPrint] port.open() timed out — printer may be disconnected');
-                return false; // do NOT close — open is still pending in background
+            var port = await t._ensurePortOpen();
+            if (port === null) {
+                // Distinguish no-port from open-timeout (_ensurePortOpen already logged)
+                var ports = await navigator.serial.getPorts();
+                return { success: false, bytesSent: 0, paperStatus: null, error: ports.length === 0 ? 'no-port' : 'open-timeout', portFresh: portFresh, dsr: dsr, cts: cts };
             }
-            isOpen = true;
 
-            // After opening, verify the printer is physically present via hardware signals.
-            // For the Epson TM Virtual Port driver, DSR/CTS are de-asserted when the USB
-            // printer is unplugged, so both being false reliably indicates no printer.
-            // If getSignals() is unsupported the catch skips this check.
+            // ── Virtual COM port settling delay ───────────────────────────
+            // After port.open(), the Epson TM Virtual Port Driver asserts
+            // DTR/RTS and undergoes a brief driver-USB init cycle. Any bytes
+            // written before it completes are silently discarded by the driver
+            // — causing the first ticket to be truncated. Must come BEFORE
+            // the DLE EOT health check or that check also fails on first print.
+            if (portFresh) {
+                var delay = (settlingDelayMs != null && settlingDelayMs >= 0) ? settlingDelayMs : 250;
+                console.log('[thermalPrint] fresh port — settling delay %d ms', delay);
+                await new Promise(function (r) { setTimeout(r, delay); });
+            }
+
+            // ── Hardware signal check ──────────────────────────────────────
+            // DSR (Data Set Ready) or CTS (Clear To Send) being HIGH means the
+            // printer is powered and connected via USB. Both LOW = powered off
+            // or USB cable unplugged.
             try {
-                const signals = await port.getSignals();
-                if (!signals.dataSetReady && !signals.clearToSend) {
-                    console.warn('[thermalPrint] DSR and CTS both low — printer not connected');
-                    await port.close();
-                    return false;
+                var signals = await port.getSignals();
+                dsr = signals.dataSetReady;
+                cts = signals.clearToSend;
+                if (!dsr && !cts) {
+                    console.warn('[thermalPrint] no-signal: DSR=%s CTS=%s — printer powered off or USB disconnected', dsr, cts);
+                    await t._dropPort('no-signal');
+                    return { success: false, bytesSent: 0, paperStatus: null, error: 'no-signal', portFresh: portFresh, dsr: dsr, cts: cts };
                 }
-            } catch { /* getSignals() not available on this port type — proceed optimistically */ }
+                console.log('[thermalPrint] signals ok — DSR=%s CTS=%s', dsr, cts);
+            } catch (e) {
+                console.log('[thermalPrint] getSignals() not available (%s) — skipping signal check', e.message);
+            }
 
-            const writer = port.writable.getWriter();
-            await writer.write(new Uint8Array(bytes));
-            // Wait until the stream has accepted the write into its buffer
-            await writer.ready;
+            // ── DLE EOT health check ───────────────────────────────────────
+            // Real-time command that bypasses the receive buffer — detects a
+            // powered-off printer faster than a full write attempt.
+            try {
+                var probeOk = await t._dleEot(port);
+                if (!probeOk) {
+                    console.warn('[thermalPrint] dle-eot-timeout: printer did not respond to DLE EOT within 1.5 s — may be in error state or paper jam');
+                    await t._dropPort('dle-eot-timeout');
+                    return { success: false, bytesSent: 0, paperStatus: null, error: 'dle-eot-timeout', portFresh: portFresh, dsr: dsr, cts: cts };
+                }
+            } catch (e) {
+                console.log('[thermalPrint] DLE EOT threw (%s) — skipping health check', e.message);
+            }
+
+            // ── Build payload ──────────────────────────────────────────────
+            // Append GS r n=1 (paper sensor status) after the payload when
+            // confirmPrint is requested. GS r is processed FIFO — the 1-byte
+            // response only arrives after the printer finishes the cut.
+            var payload;
+            if (confirmPrint) {
+                payload = new Uint8Array(bytes.length + 3);
+                payload.set(new Uint8Array(bytes));
+                payload.set([0x1D, 0x72, 0x01], bytes.length); // GS r n=1
+            } else {
+                payload = new Uint8Array(bytes);
+            }
+
+            // ── Write in chunks ────────────────────────────────────────────
+            // Stay within the printer's 4 KB receive buffer.
+            var chunk = chunkSize || 2048;
+            var writer = port.writable.getWriter();
+
+            for (var off = 0; off < payload.length; off += chunk) {
+                await writer.write(payload.subarray(off, Math.min(off + chunk, payload.length)));
+                await writer.ready;
+            }
+            sent = payload.length;
+
+            // releaseLock() (not close()) keeps the writable stream alive so
+            // the port stays open for the next print without a full reopen cycle.
+            // writer.ready in the loop above ensures all bytes are flushed to
+            // the OS driver buffer before the lock is released.
             writer.releaseLock();
 
-            // Calculate minimum time to transmit all bytes at 9600 baud (960 bytes/sec, 8N1)
-            // then add the user-configured safety buffer on top
-            const transmitMs = Math.ceil(bytes.length / 960 * 1000);
-            const totalDelay = transmitMs + (safetyBufferMs || 200);
-            await new Promise(r => setTimeout(r, totalDelay));
+            // ── Read GS r response ─────────────────────────────────────────
+            var paperStatus = null;
+            var timeoutMs = safetyBufferMs || 2000;
 
-            await port.close();
-            return true;
+            if (confirmPrint) {
+                try {
+                    paperStatus = await t._readPaperStatus(port, timeoutMs);
+                    console.log('[thermalPrint] print confirmed — %d bytes sent (%d-byte chunks), paper: %s',
+                        sent, chunk, paperStatus ?? 'unknown (read timed out)');
+                } catch (e) {
+                    console.warn('[thermalPrint] GS r read failed (%s) — falling back to %d ms delay', e.message, timeoutMs);
+                    await new Promise(function (r) { setTimeout(r, timeoutMs); });
+                }
+            } else {
+                // No confirmation (e.g. cash drawer) — simple delay
+                if (timeoutMs > 0) await new Promise(function (r) { setTimeout(r, timeoutMs); });
+            }
+
+            return { success: true, bytesSent: sent, paperStatus: paperStatus, error: null, portFresh: portFresh, dsr: dsr, cts: cts };
+
         } catch (e) {
-            console.error('[thermalPrint] send error:', e);
-            if (isOpen) {
-                try { await port.close(); } catch {}
+            console.error('[thermalPrint] send error — %s bytes sent before failure. Error: %s', sent, e.message, e);
+            await t._dropPort('send-error: ' + e.message);
+            return { success: false, bytesSent: sent, paperStatus: null, error: e.message || 'send-error', portFresh: portFresh, dsr: dsr, cts: cts };
+        }
+    },
+
+    /**
+     * Reads the 1-byte response to GS r n=1 (paper sensor status).
+     *   Bits 2-3: 00 = paper OK,  0C = paper near end
+     *   Bits 5-6: 00 = paper present, 60 = paper not present
+     * Returns 'ok' | 'near-end' | 'empty' | null (timeout).
+     */
+    _readPaperStatus: async function (port, timeoutMs) {
+        var reader = port.readable.getReader();
+        try {
+            var result = await Promise.race([
+                reader.read(),
+                new Promise(function (resolve) {
+                    setTimeout(function () { resolve({ value: null, done: true }); }, timeoutMs);
+                })
+            ]);
+
+            if (!result.value || result.value.length === 0) {
+                console.warn('[thermalPrint] GS r: no response within %d ms', timeoutMs);
+                return null;
+            }
+
+            var status = result.value[0];
+            var paperEmpty   = (status & 0x60) !== 0;
+            var paperNearEnd = (status & 0x0C) !== 0;
+
+            console.log('[thermalPrint] GS r status: 0x%s (empty=%s, nearEnd=%s)',
+                status.toString(16).padStart(2, '0'), paperEmpty, paperNearEnd);
+
+            if (paperEmpty)   return 'empty';
+            if (paperNearEnd) return 'near-end';
+            return 'ok';
+        } finally {
+            try { reader.cancel(); } catch (_) {}
+            reader.releaseLock();
+        }
+    },
+
+    // ── DLE EOT — real-time printer health check ────────────────────────────
+
+    /**
+     * Sends DLE EOT n=1 (0x10 0x04 0x01) and reads the 1-byte status response.
+     * This is a real-time command — it bypasses the printer's receive buffer
+     * and is processed immediately even if the printer is offline.
+     *
+     * Response byte (n=1, printer status):
+     *   Bit 2: 0 = drawer closed,  1 = drawer open
+     *   Bit 3: 0 = online,         1 = waiting for online recovery
+     *   Bits 0,1,4-7: fixed values
+     *
+     * Returns true if the printer responded, false on timeout.
+     */
+    _dleEot: async function (port) {
+        const writer = port.writable.getWriter();
+        await writer.write(new Uint8Array([0x10, 0x04, 0x01]));
+        await writer.ready;
+        writer.releaseLock();
+
+        const reader = port.readable.getReader();
+        try {
+            const result = await Promise.race([
+                reader.read(),
+                new Promise(function (resolve) {
+                    setTimeout(function () { resolve({ value: null, done: true }); }, 1500);
+                })
+            ]);
+
+            if (result.value && result.value.length > 0) {
+                var status = result.value[0];
+                console.log('[thermalPrint] DLE EOT status: 0x%s (drawer %s, online recovery %s)',
+                    status.toString(16).padStart(2, '0'),
+                    (status & 0x04) ? 'open' : 'closed',
+                    (status & 0x08) ? 'waiting' : 'ok');
+                return true;
             }
             return false;
+        } finally {
+            try { reader.cancel(); } catch (_) {}
+            reader.releaseLock();
         }
     },
 

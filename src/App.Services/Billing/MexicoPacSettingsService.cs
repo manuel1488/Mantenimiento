@@ -111,6 +111,9 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
             settings.InvoiceSerie = dto.InvoiceSerie;
             settings.StartFolio = dto.StartFolio;
             settings.FolioLength = dto.FolioLength;
+            settings.GlobalInvoiceSerie = dto.GlobalInvoiceSerie;
+            settings.GlobalInvoiceStartFolio = dto.GlobalInvoiceStartFolio;
+            settings.GlobalInvoiceFolioLength = dto.GlobalInvoiceFolioLength;
             settings.AutoInvoicePromptEnabled = dto.AutoInvoicePromptEnabled;
             settings.AllowEditFiscalDataInPrompt = dto.AllowEditFiscalDataInPrompt;
             settings.MultiPaymentFormPolicy = dto.MultiPaymentFormPolicy;
@@ -165,6 +168,9 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
         InvoiceSerie = s.InvoiceSerie,
         StartFolio = s.StartFolio,
         FolioLength = s.FolioLength,
+        GlobalInvoiceSerie = s.GlobalInvoiceSerie,
+        GlobalInvoiceStartFolio = s.GlobalInvoiceStartFolio,
+        GlobalInvoiceFolioLength = s.GlobalInvoiceFolioLength,
         HasCsdCertificate = !string.IsNullOrEmpty(s.CsdCertificateBase64),
         HasCsdPrivateKey = !string.IsNullOrEmpty(s.CsdPrivateKeyBase64),
         HasCsdPassword = !string.IsNullOrEmpty(s.CsdPassword),

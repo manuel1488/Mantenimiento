@@ -1,7 +1,6 @@
 @model App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
 @using App.Core.Enums.Shop
 @using App.Shared.Services
-@inject IDateTime DateTimeService
 
 <!DOCTYPE html>
 <html>
@@ -157,18 +156,10 @@
         <div class="info">
             <div><strong>Ubicación:</strong> @Model.Data.LocationName</div>
             <div><strong>Cajero:</strong> @Model.Data.CashierName</div>
-            @{
-                var openedStr = Model.TimeZone != null
-                    ? DateTimeService.FormatToTimezone(Model.Data.OpenedAt, Model.TimeZone)
-                    : Model.Data.OpenedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
-            }
-            <div><strong>Abierta el:</strong> @openedStr</div>
+            <div><strong>Abierta el:</strong> @Model.Data.OpenedAt.ToString("dd/MM/yyyy h:mm tt")</div>
             @if (Model.Data.ClosedAt.HasValue)
             {
-                var closedStr = Model.TimeZone != null
-                    ? DateTimeService.FormatToTimezone(Model.Data.ClosedAt.Value, Model.TimeZone)
-                    : Model.Data.ClosedAt.Value.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
-                <div><strong>Cerrada el:</strong> @closedStr</div>
+                <div><strong>Cerrada el:</strong> @Model.Data.ClosedAt.Value.ToString("dd/MM/yyyy h:mm tt")</div>
             }
         </div>
 
@@ -242,7 +233,7 @@
                     @if (!string.IsNullOrWhiteSpace(m.Reason))
                     {
                         <tr>
-                            <td colspan="2" style="font-size:9px; color:gray;">@m.Reason — @m.CreatedAt.ToLocalTime().ToString("t")</td>
+                            <td colspan="2" style="font-size:9px; color:gray;">@m.Reason — @m.CreatedAt.ToString("t")</td>
                         </tr>
                     }
                 </table>

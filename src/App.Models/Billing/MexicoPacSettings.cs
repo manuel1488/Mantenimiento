@@ -55,6 +55,19 @@ public class MexicoPacSettings : BaseEntity<int>
     /// </summary>
     public int FolioLength { get; set; } = 0;
 
+    // Global invoice series/folio
+    [StringLength(10)]
+    public string? GlobalInvoiceSerie { get; set; } = "G";
+
+    /// <summary>The folio number to start from (inclusive) for global invoices. Default: 1.</summary>
+    public long GlobalInvoiceStartFolio { get; set; } = 1;
+
+    /// <summary>
+    /// Total length of the folio string padded with leading zeros for global invoices.
+    /// 0 = no padding. Any positive value pads to that length.
+    /// </summary>
+    public int GlobalInvoiceFolioLength { get; set; } = 0;
+
     // CSD (Certificado de Sello Digital) — stored as Base64
     [Column(TypeName = "text")]
     public string? CsdCertificateBase64 { get; set; }

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Global Invoices" xml:space="preserve">
+    <value>Facturas Globales</value>
+  </data>
+  <data name="Generate Global Invoice" xml:space="preserve">
+    <value>Generar Factura Global</value>
+  </data>
+  <data name="Folio" xml:space="preserve">
+    <value>Folio</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Periodo</value>
+  </data>
+  <data name="Periodicity" xml:space="preserve">
+    <value>Periodicidad</value>
+  </data>
+  <data name="Sales" xml:space="preserve">
+    <value>Ventas</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="UUID" xml:space="preserve">
+    <value>UUID</value>
+  </data>
+  <data name="Stamped At" xml:space="preserve">
+    <value>Timbrado</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Download XML" xml:space="preserve">
+    <value>Descargar XML</value>
+  </data>
+  <data name="View PDF" xml:space="preserve">
+    <value>Ver PDF</value>
+  </data>
+  <data name="Download PDF" xml:space="preserve">
+    <value>Descargar PDF</value>
+  </data>
+  <data name="Cancel Invoice" xml:space="preserve">
+    <value>Cancelar Factura</value>
+  </data>
+  <data name="View Error" xml:space="preserve">
+    <value>Ver Error</value>
+  </data>
+  <data name="Stamp Error" xml:space="preserve">
+    <value>Error de Timbre</value>
+  </data>
+  <data name="Stamped" xml:space="preserve">
+    <value>Timbrada</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelada</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Borrador</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>Diaria</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>Semanal</value>
+  </data>
+  <data name="Biweekly" xml:space="preserve">
+    <value>Quincenal</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>Mensual</value>
+  </data>
+  <data name="XML — Global Invoice" xml:space="preserve">
+    <value>XML — Factura Global</value>
+  </data>
+  <data name="Unknown error" xml:space="preserve">
+    <value>Error desconocido</value>
+  </data>
+  <data name="View info" xml:space="preserve">
+    <value>Ver información</value>
+  </data>
+  <data name="Global Invoice Info" xml:space="preserve">
+    <value>Factura Global — Cómo funciona</value>
+  </data>
+  <data name="Download Cancellation Acuse" xml:space="preserve">
+    <value>Descargar Acuse de Cancelación</value>
+  </data>
+</root>

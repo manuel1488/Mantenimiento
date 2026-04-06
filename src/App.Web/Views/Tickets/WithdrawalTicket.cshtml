@@ -2,7 +2,6 @@
 @using App.Shared.Services
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<App.Web.Views.Tickets.WithdrawalTicket> L
-@inject IDateTime DateTimeService
 
 <!DOCTYPE html>
 <html>
@@ -178,22 +177,11 @@
             {
                 <div><strong>@L["Withdrawal #"]:</strong> @Model.Data.WithdrawalNumber</div>
             }
-            <div><strong>@L["Date"]:</strong> @(Model.TimeZone != null ? DateTimeService.FormatToTimezone(Model.Data.CreatedAt, Model.TimeZone) : Model.Data.CreatedAt.ToString("dd/MM/yyyy h:mm tt"))</div>
+            <div><strong>@L["Date"]:</strong> @Model.Data.CreatedAt.ToString("dd/MM/yyyy h:mm tt")</div>
             <div><strong>@L["Cashier"]:</strong> @Model.Data.CashierName</div>
             <div><strong>@L["Location"]:</strong> @Model.Data.LocationName</div>
-            @{
-                var openedAtStr = Model.TimeZone != null
-                    ? DateTimeService.FormatToTimezone(Model.Data.CashRegisterOpenedAt, Model.TimeZone)
-                    : Model.Data.CashRegisterOpenedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
-            }
-            <div><strong>@L["Session Opened"]:</strong> @openedAtStr</div>
-            @{
-                var printedAt = DateTimeService.Now;
-                var printedAtStr = Model.TimeZone != null
-                    ? DateTimeService.FormatToTimezone(printedAt, Model.TimeZone)
-                    : printedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
-            }
-            <div><strong>@L["Printed"]:</strong> @printedAtStr</div>
+            <div><strong>@L["Session Opened"]:</strong> @Model.Data.CashRegisterOpenedAt.ToString("dd/MM/yyyy h:mm tt")</div>
+            <div><strong>@L["Printed"]:</strong> @Model.Data.PrintedAt.ToString("dd/MM/yyyy h:mm tt")</div>
         </div>
 
         <div class="divider"></div>

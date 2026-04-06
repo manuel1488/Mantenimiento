@@ -39,9 +39,25 @@ public class TicketConfiguration : BaseEntity<int>
 
     /// <summary>
     /// Milliseconds to wait after writing ESC/POS bytes before closing the serial port.
-    /// Increase when printing logos or large receipts to avoid truncation.
+    /// Covers the printer's mechanical processing time (print head, cutter).
     /// </summary>
-    public int PrintFlushDelayMs { get; set; } = 200;
+    public int PrintFlushDelayMs { get; set; } = 500;
+
+    /// <summary>
+    /// Milliseconds to wait after opening a fresh COM port before sending data.
+    /// The Epson TM Virtual Port Driver asserts DTR/RTS on open and needs time to
+    /// complete its internal USB initialization cycle. Bytes sent before this
+    /// window expires are silently discarded, causing the first print to be
+    /// truncated. 250 ms covers worst-case user-mode driver init on Windows.
+    /// </summary>
+    public int PortSettlingDelayMs { get; set; } = 250;
+
+    /// <summary>
+    /// Maximum bytes per Web Serial write chunk.  The TM-T20IV has a 4 KB
+    /// receive buffer; keeping chunks below that lets USB back-pressure
+    /// pace the data flow and prevents buffer overflows on large receipts.
+    /// </summary>
+    public int PrintChunkSize { get; set; } = 2048;
 
     // Cash drawer
     public bool CashDrawerEnabled { get; set; } = false;

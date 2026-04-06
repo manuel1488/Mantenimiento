@@ -24,6 +24,18 @@
     </div>
   </div>
 
+  {{ if is_preview }}
+  <div style="background:#FFF8E1;border:2px dashed #F9A825;border-radius:4px;text-align:center;padding:10px;font-size:10pt;font-weight:bold;color:#F57F17;letter-spacing:2px;margin-bottom:16px;">
+    ⚠ VISTA PREVIA — DOCUMENTO NO VÁLIDO FISCALMENTE
+  </div>
+  {{ end }}
+
+  {{ if is_cancelled }}
+  <div style="background:#FFEBEE;border:2px solid #C62828;border-radius:4px;text-align:center;padding:8px;font-size:12pt;font-weight:bold;color:#C62828;letter-spacing:2px;margin-bottom:16px;">
+    CANCELADA
+  </div>
+  {{ end }}
+
   <div class="client-section">
     <div class="section-label">CLIENTE</div>
     <div class="client-name">{{ customer_legal_name }}</div>
@@ -37,6 +49,18 @@
       <span>Uso CFDI: {{ cfdi_use }}{{ if cfdi_use_description != "" }} - {{ cfdi_use_description }}{{ end }}</span>
     </div>
   </div>
+
+  {{ if period_start_date && period_start_date != "" }}
+  <div style="background:#FFF1F2;border-left:4px solid #E53935;padding:12px 15px;margin-bottom:20px;">
+    <div style="font-size:9pt;font-weight:700;color:#64748b;letter-spacing:1px;margin-bottom:8px;">INFORMACIÓN GLOBAL</div>
+    <div style="display:table;width:100%;font-size:9pt;">
+      <div style="display:table-cell;padding-right:20px;"><span style="font-weight:600;color:#64748b;">Período: </span>{{ period_start_date }} — {{ period_end_date }}</div>
+      <div style="display:table-cell;padding-right:20px;"><span style="font-weight:600;color:#64748b;">Mes / Año: </span>{{ period_month }} / {{ period_year }}</div>
+      <div style="display:table-cell;padding-right:20px;"><span style="font-weight:600;color:#64748b;">Periodicidad: </span>{{ periodicity }}</div>
+      <div style="display:table-cell;"><span style="font-weight:600;color:#64748b;">Ventas incluidas: </span>{{ sale_count }}</div>
+    </div>
+  </div>
+  {{ end }}
 
   <table class="modern-items">
     <thead>

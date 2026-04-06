@@ -21,6 +21,18 @@
     </div>
   </div>
 
+  {{ if is_preview }}
+  <div style="background:#FFF8E1;border:2px dashed #F9A825;border-radius:3px;text-align:center;padding:7px;font-size:10pt;font-weight:bold;color:#F57F17;letter-spacing:2px;margin-bottom:12px;">
+    ⚠ VISTA PREVIA — DOCUMENTO NO VÁLIDO FISCALMENTE
+  </div>
+  {{ end }}
+
+  {{ if is_cancelled }}
+  <div style="background:#FFEBEE;border:2px solid #C62828;border-radius:3px;text-align:center;padding:5px;font-size:12pt;font-weight:bold;color:#C62828;letter-spacing:2px;margin-bottom:12px;">
+    CANCELADA
+  </div>
+  {{ end }}
+
   <div class="data-section">
     <div class="receptor-box">
       <div class="box-header">Receptor del Comprobante Fiscal</div>
@@ -47,6 +59,20 @@
       </div>
     </div>
   </div>
+
+  {{ if period_start_date && period_start_date != "" }}
+  <div style="background:#FFEBEE;border:1px solid #EF9A9A;border-radius:3px;padding:6px 10px;margin-bottom:12px;">
+    <div style="font-size:7pt;font-weight:bold;color:#C62828;text-transform:uppercase;margin-bottom:5px;">Información Global (InformacionGlobal)</div>
+    <table style="width:100%;border-collapse:collapse;font-size:8pt;">
+      <tr>
+        <td style="padding:2px 8px 2px 0;"><strong>Período:</strong> {{ period_start_date }} — {{ period_end_date }}</td>
+        <td style="padding:2px 8px;"><strong>Mes / Año:</strong> {{ period_month }} / {{ period_year }}</td>
+        <td style="padding:2px 8px;"><strong>Periodicidad:</strong> {{ periodicity }}</td>
+        <td style="padding:2px 0 2px 8px;"><strong>Ventas incluidas:</strong> {{ sale_count }}</td>
+      </tr>
+    </table>
+  </div>
+  {{ end }}
 
   <div class="items-section">
     <table class="items-table">

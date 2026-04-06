@@ -113,6 +113,11 @@ public static class ApplicationClaims
         public const string ViewBillingSettings = "Admin.BillingSettings.View";
         public const string ManageBillingSettings = "Admin.BillingSettings.Manage";
 
+        // Facturas globales de público en general
+        public const string ViewGlobalInvoices = "Admin.GlobalInvoices.View";
+        public const string CreateGlobalInvoice = "Admin.GlobalInvoices.Create";
+        public const string CancelGlobalInvoice = "Admin.GlobalInvoices.Cancel";
+
         // Warehouse Settings
         public const string ViewWarehouseSettings = "Admin.WarehouseSettings.View";
         public const string ManageWarehouseSettings = "Admin.WarehouseSettings.Manage";
@@ -181,6 +186,11 @@ public static class ApplicationClaims
         // Reportes Generales
         public const string ViewReports = "Shared.Reports.View";
         public const string GenerateReports = "Shared.Reports.Generate";
+    }
+
+    public static class Billing
+    {
+        public const string BillingAccess = "Billing.Access";
     }
 
     public static class Labels

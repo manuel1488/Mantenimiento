@@ -83,6 +83,9 @@ public class MexicoInvoice : BaseEntity<long>
     [Column(TypeName = "decimal(18,6)")]
     public decimal ExchangeRate { get; set; } = 1;
 
+    /// <summary>UTC date/time the user requested for the CFDI Fecha. Null means the invoice was issued at stamp time.</summary>
+    public DateTime? RequestedInvoiceDate { get; set; }
+
     // Stamping status
     [Required]
     [StringLength(20)]

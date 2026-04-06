@@ -138,4 +138,10 @@
     <data name="You don't have permission to view this page" xml:space="preserve">
         <value>You don't have permission to view this page</value>
     </data>
+    <data name="Max Backdate Hours" xml:space="preserve">
+        <value>Max Backdate Hours</value>
+    </data>
+    <data name="MaxBackdateHoursHelp" xml:space="preserve">
+        <value>Max hours in the past an invoice date can be set (e.g. 72). Leave empty for no limit.</value>
+    </data>
 </root>

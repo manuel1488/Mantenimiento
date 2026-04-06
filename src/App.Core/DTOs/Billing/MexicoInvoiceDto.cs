@@ -13,6 +13,8 @@ public class MexicoInvoiceSummaryDto : AuditableDto
     public string Status { get; set; } = string.Empty;
     public bool IsStamped { get; set; }
     public DateTime? StampDate { get; set; }
+    /// <summary>UTC date/time the user requested for the CFDI Fecha. Null = invoice was issued at stamp time.</summary>
+    public DateTime? RequestedInvoiceDate { get; set; }
     public string CustomerRfc { get; set; } = string.Empty;
     public string CustomerLegalName { get; set; } = string.Empty;
     public decimal Total { get; set; }

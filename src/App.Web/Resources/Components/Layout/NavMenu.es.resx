@@ -69,6 +69,12 @@
   <data name="Cash Stations" xml:space="preserve">
     <value>Cajas</value>
   </data>
+  <data name="Global Invoices" xml:space="preserve">
+    <value>Facturas Globales</value>
+  </data>
+  <data name="Electronic Invoicing" xml:space="preserve">
+    <value>Factura Electrónica</value>
+  </data>
   <data name="Labeling" xml:space="preserve">
     <value>Etiquetado</value>
   </data>

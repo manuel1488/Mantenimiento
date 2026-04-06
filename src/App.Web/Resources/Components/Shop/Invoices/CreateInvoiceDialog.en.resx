@@ -99,4 +99,16 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelled</value>
   </data>
+  <data name="Invoice Date (optional)" xml:space="preserve">
+    <value>Invoice Date (optional)</value>
+  </data>
+  <data name="Invoice Time" xml:space="preserve">
+    <value>Invoice Time</value>
+  </data>
+  <data name="InvoiceDateHelp" xml:space="preserve">
+    <value>Optional. Sets the CFDI Fecha. Max {0}h in the past.</value>
+  </data>
+  <data name="InvoiceDateHelpNoLimit" xml:space="preserve">
+    <value>Optional. Sets the CFDI Fecha (no backdate limit configured).</value>
+  </data>
 </root>

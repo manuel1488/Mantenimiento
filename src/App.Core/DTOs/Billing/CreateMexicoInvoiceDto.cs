@@ -41,4 +41,11 @@ public class CreateMexicoInvoiceDto
 
     /// <summary>Optional email to send the invoice to. If null, no email is sent.</summary>
     public string? SendToEmail { get; set; }
+
+    /// <summary>
+    /// Optional invoice date in issuer local time (DateTimeKind.Unspecified).
+    /// When set the CFDI Fecha will use this value instead of the current time.
+    /// The service validates that it is not in the future and within the configured backdate window.
+    /// </summary>
+    public DateTime? InvoiceDate { get; set; }
 }

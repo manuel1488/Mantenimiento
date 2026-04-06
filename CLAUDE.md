@@ -15,6 +15,13 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
 
+### ADRs
+- [ADR-007: Factura Global](docs/01-Architecture/adr/0007-factura-global-publica-en-general.md) — Períodos fijos SAT, selección individual rechazada, regla 2.7.1.24 RMF
+
+### CFDI References (docs/03-Modules/)
+- [Guía de llenado CFDI global v4.0](docs/03-Modules/Guia_llenado_CFDI_global.md) — Nodo InformacionGlobal, concepto único, RFC genérico
+- [Anexo 20 — Guía de llenado CFDI](docs/03-Modules/Anexo_20_Guia_de_llenado_CFDI.md) — Especificación técnica CFDI 4.0
+
 ## Project Overview
 App is a .NET 9 Blazor Server application for product sales and inventory management. The application uses an N-Layer architecture with MySQL database and Entity Framework Core. It includes Mexico CFDI billing support.
 

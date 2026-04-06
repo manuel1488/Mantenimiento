@@ -150,7 +150,15 @@
                 <RowTemplate>
                     <MudTd DataLabel="@L["Folio"]"><b>@context.FolioDisplay</b></MudTd>
                     <MudTd DataLabel="@L["Sale #"]">@context.SaleId</MudTd>
-                    <MudTd DataLabel="@L["Date"]">@FormatDate(context.StampDate ?? context.CreatedAt)</MudTd>
+                    <MudTd DataLabel="@L["Date"]">
+                        @FormatDate(context.RequestedInvoiceDate ?? context.StampDate ?? context.CreatedAt)
+                        @if (context.RequestedInvoiceDate.HasValue && context.StampDate.HasValue)
+                        {
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
+                                @L["Stamped at"]: @FormatDate(context.StampDate.Value)
+                            </MudText>
+                        }
+                    </MudTd>
                     <MudTd DataLabel="@L["Customer RFC"]">@context.CustomerRfc</MudTd>
                     <MudTd DataLabel="@L["Customer"]">@context.CustomerLegalName</MudTd>
                     <MudTd DataLabel="@L["UUID"]">

@@ -21,6 +21,18 @@
     </tr>
   </table>
 
+  {{ if is_preview }}
+  <div style="background:#FFF8E1;border:2px dashed #F9A825;text-align:center;padding:6px;font-size:9pt;font-weight:bold;color:#F57F17;letter-spacing:2px;margin-bottom:10px;">
+    ⚠ VISTA PREVIA — DOCUMENTO NO VÁLIDO FISCALMENTE
+  </div>
+  {{ end }}
+
+  {{ if is_cancelled }}
+  <div style="background:#FFEBEE;border:2px solid #C62828;text-align:center;padding:5px;font-size:11pt;font-weight:bold;color:#C62828;letter-spacing:2px;margin-bottom:10px;">
+    CANCELADA
+  </div>
+  {{ end }}
+
   <table class="info-grid">
     <tr>
       <td width="50%">
@@ -36,6 +48,16 @@
       </td>
     </tr>
   </table>
+
+  {{ if period_start_date && period_start_date != "" }}
+  <div style="background:#FFEBEE;border:1px solid #EF9A9A;padding:6px 8px;margin:8px 0;font-size:8pt;">
+    <div style="font-size:7pt;font-weight:bold;color:#C62828;text-transform:uppercase;margin-bottom:4px;">Información Global</div>
+    <strong>Período:</strong> {{ period_start_date }} — {{ period_end_date }} &nbsp;|&nbsp;
+    <strong>Mes / Año:</strong> {{ period_month }} / {{ period_year }} &nbsp;|&nbsp;
+    <strong>Periodicidad:</strong> {{ periodicity }} &nbsp;|&nbsp;
+    <strong>Ventas incluidas:</strong> {{ sale_count }}
+  </div>
+  {{ end }}
 
   <table class="compact-items">
     <thead>

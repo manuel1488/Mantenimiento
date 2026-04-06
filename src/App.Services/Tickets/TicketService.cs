@@ -179,17 +179,7 @@ public class TicketService : ITicketService
             var config = await GetTicketConfigurationAsync();
             var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
 
-            DateTime createdAt;
-            if (companyTimeZone != null)
-            {
-                try { createdAt = TimeZoneInfo.ConvertTimeFromUtc(movement.CreatedAt, companyTimeZone); }
-                catch { createdAt = movement.CreatedAt.ToLocalTime(); }
-            }
-            else
-            {
-                createdAt = movement.CreatedAt.ToLocalTime();
-            }
-
+            var rawOpenedAt = movement.CashRegister?.OpenedAt ?? DateTime.UtcNow;
             var data = new App.Core.DTOs.Shop.WithdrawalTicketDataDto
             {
                 MovementId = movement.Id,
@@ -198,8 +188,15 @@ public class TicketService : ITicketService
                 Reason = movement.Reason,
                 CashierName = movement.CashRegister?.CreatedBy ?? string.Empty,
                 LocationName = movement.CashRegister?.Location?.Name ?? string.Empty,
-                CashRegisterOpenedAt = movement.CashRegister?.OpenedAt ?? DateTime.UtcNow,
-                CreatedAt = createdAt
+                CashRegisterOpenedAt = companyTimeZone != null
+                    ? _dateTime.ConvertToTimezone(rawOpenedAt, companyTimeZone)
+                    : rawOpenedAt.ToLocalTime(),
+                CreatedAt = companyTimeZone != null
+                    ? _dateTime.ConvertToTimezone(movement.CreatedAt, companyTimeZone)
+                    : movement.CreatedAt.ToLocalTime(),
+                PrintedAt = companyTimeZone != null
+                    ? _dateTime.ConvertToTimezone(_dateTime.Now, companyTimeZone)
+                    : _dateTime.Now.ToLocalTime()
             };
 
             var ticketDto = new App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.WithdrawalTicketDataDto>
@@ -250,9 +247,12 @@ public class TicketService : ITicketService
             var config = await GetTicketConfigurationAsync();
             var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
 
+            var report = reportResult.Value;
+            ConvertReportDates(report, companyTimeZone);
+
             var ticketDto = new App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
             {
-                Data = reportResult.Value,
+                Data = report,
                 CompanyName = config.CompanyName,
                 CompanyLogoBase64 = config.ShowCompanyLogo ? config.CompanyLogoBase64 : null,
                 CompanyAddress = config.CompanyAddress,
@@ -296,9 +296,12 @@ public class TicketService : ITicketService
             var config = await GetTicketConfigurationAsync();
             var companyTimeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
 
+            var report = reportResult.Value;
+            ConvertReportDates(report, companyTimeZone);
+
             var ticketDto = new App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
             {
-                Data = reportResult.Value,
+                Data = report,
                 CompanyName = config.CompanyName,
                 CompanyLogoBase64 = config.ShowCompanyLogo ? config.CompanyLogoBase64 : null,
                 CompanyAddress = config.CompanyAddress,
@@ -360,6 +363,8 @@ public class TicketService : ITicketService
                     CompanyLogoBase64 = map.CompanyLogoBase64,
                     DirectPrintEnabled = map.DirectPrintEnabled,
                     PrintFlushDelayMs = map.PrintFlushDelayMs,
+                    PrintChunkSize = map.PrintChunkSize,
+                    PortSettlingDelayMs = map.PortSettlingDelayMs,
                     CashDrawerEnabled = map.CashDrawerEnabled,
                     CashDrawerCommand = map.CashDrawerCommand
                 };
@@ -453,6 +458,12 @@ public class TicketService : ITicketService
             if (updateDto.PrintFlushDelayMs.HasValue)
                 config.PrintFlushDelayMs = updateDto.PrintFlushDelayMs.Value;
 
+            if (updateDto.PrintChunkSize.HasValue)
+                config.PrintChunkSize = updateDto.PrintChunkSize.Value;
+
+            if (updateDto.PortSettlingDelayMs.HasValue)
+                config.PortSettlingDelayMs = updateDto.PortSettlingDelayMs.Value;
+
             if (updateDto.CashDrawerEnabled.HasValue)
                 config.CashDrawerEnabled = updateDto.CashDrawerEnabled.Value;
 
@@ -468,6 +479,23 @@ public class TicketService : ITicketService
             _logger.LogError(ex, "Error actualizando configuración de tickets");
             throw;
         }
+    }
+
+    private void ConvertReportDates(App.Core.DTOs.Shop.CashRegisterReportDto report, TimeZoneInfo? tz)
+    {
+        report.OpenedAt = tz != null
+            ? _dateTime.ConvertToTimezone(report.OpenedAt, tz)
+            : report.OpenedAt.ToLocalTime();
+
+        if (report.ClosedAt.HasValue)
+            report.ClosedAt = tz != null
+                ? _dateTime.ConvertToTimezone(report.ClosedAt.Value, tz)
+                : report.ClosedAt.Value.ToLocalTime();
+
+        foreach (var m in report.Movements)
+            m.CreatedAt = tz != null
+                ? _dateTime.ConvertToTimezone(m.CreatedAt, tz)
+                : m.CreatedAt.ToLocalTime();
     }
 
     private string GenerateQRCode(string content)

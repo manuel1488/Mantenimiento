@@ -10,4 +10,5 @@ public class WithdrawalTicketDataDto
     public string LocationName { get; set; } = string.Empty;
     public DateTime CashRegisterOpenedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime PrintedAt { get; set; }
 }

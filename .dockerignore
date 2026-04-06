@@ -30,8 +30,14 @@ x86/
 **/*.pfx
 **/*.key
 
-# Docs
+# Docs and development tools
 docs/
+tools/
+CLAUDE.md
+*.md
 
-# Images files
-src/DA.Web/wwwroot/uploads/
+# Legacy / unrelated projects
+Inventario.Web/
+
+# Uploaded files (runtime-generated, not part of the image)
+src/App.Web/wwwroot/uploads/

@@ -191,6 +191,20 @@
                                     }
                                 </MudSelect>
                             </MudItem>
+
+                            <!-- Max Backdate Hours -->
+                            <MudItem xs="12" md="4">
+                                <MudNumericField T="int?"
+                                                 Value="@_model.MxMaxBackdateHours"
+                                                 ValueChanged="@((int? value) => { _model.MxMaxBackdateHours = value; StateHasChanged(); })"
+                                                 Label="@L["Max Backdate Hours"]"
+                                                 Min="0"
+                                                 Max="168"
+                                                 ReadOnly="@(!_hasWriteAccess)"
+                                                 Variant="Variant.Outlined"
+                                                 HelperText="@L["MaxBackdateHoursHelp"]"
+                                                 Clearable="true" />
+                            </MudItem>
                         </MudGrid>
                     </MudItem>
 
@@ -505,7 +519,8 @@
                     CaGstNumber = _settings.CaGstNumber,
                     CaPstNumber = _settings.CaPstNumber,
                     CaHstNumber = _settings.CaHstNumber,
-                    CaQstNumber = _settings.CaQstNumber
+                    CaQstNumber = _settings.CaQstNumber,
+                    MxMaxBackdateHours = _settings.MxMaxBackdateHours
                 };
             }
         }

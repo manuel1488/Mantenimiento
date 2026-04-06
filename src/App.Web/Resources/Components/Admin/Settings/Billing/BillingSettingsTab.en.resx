@@ -21,6 +21,18 @@
   <data name="Total digits padded with zeros. 0 = no padding. Example: length 6, folio 42 → 000042" xml:space="preserve">
     <value>Total digits padded with zeros. 0 = no padding. Example: length 6, folio 42 → 000042</value>
   </data>
+  <data name="Global Invoice Numbering" xml:space="preserve">
+    <value>Global Invoice Numbering</value>
+  </data>
+  <data name="Global Invoice Serie" xml:space="preserve">
+    <value>Global Invoice Serie</value>
+  </data>
+  <data name="Letter prefix for global invoice folio (e.g. G)" xml:space="preserve">
+    <value>Letter prefix for global invoice folio (e.g. G)</value>
+  </data>
+  <data name="First folio number to use (applied when no global invoices exist yet)" xml:space="preserve">
+    <value>First folio number to use (applied when no global invoices exist yet)</value>
+  </data>
   <data name="Auto-Invoice Settings" xml:space="preserve">
     <value>Auto-Invoice Settings</value>
   </data>

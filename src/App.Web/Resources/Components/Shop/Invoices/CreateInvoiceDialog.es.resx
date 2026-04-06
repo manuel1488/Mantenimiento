@@ -99,4 +99,16 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelada</value>
   </data>
+  <data name="Invoice Date (optional)" xml:space="preserve">
+    <value>Fecha de Factura (opcional)</value>
+  </data>
+  <data name="Invoice Time" xml:space="preserve">
+    <value>Hora de Factura</value>
+  </data>
+  <data name="InvoiceDateHelp" xml:space="preserve">
+    <value>Opcional. Define la Fecha del CFDI. Máx. {0}h en el pasado.</value>
+  </data>
+  <data name="InvoiceDateHelpNoLimit" xml:space="preserve">
+    <value>Opcional. Define la Fecha del CFDI (sin límite de antedatado configurado).</value>
+  </data>
 </root>

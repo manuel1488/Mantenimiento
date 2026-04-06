@@ -1,7 +1,6 @@
 @model App.Core.DTOs.Ticket.TicketDto<App.Core.DTOs.Shop.CashRegisterReportDto>
 @using App.Core.Enums.Shop
 @using App.Shared.Services
-@inject IDateTime DateTimeService
 
 <!DOCTYPE html>
 <html>
@@ -90,25 +89,17 @@
     </div>
 
     <!-- Session Info -->
-    @{
-        var openedStr = Model.TimeZone != null
-            ? DateTimeService.FormatToTimezone(Model.Data.OpenedAt, Model.TimeZone)
-            : Model.Data.OpenedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
-    }
     <table class="info-table">
         <tr>
             <td><strong>Ubicación:</strong> @Model.Data.LocationName</td>
             <td><strong>Cajero:</strong> @Model.Data.CashierName</td>
         </tr>
         <tr>
-            <td><strong>Abierta el:</strong> @openedStr</td>
+            <td><strong>Abierta el:</strong> @Model.Data.OpenedAt.ToString("dd/MM/yyyy h:mm tt")</td>
             <td>
                 @if (Model.Data.ClosedAt.HasValue)
                 {
-                    var closedStr = Model.TimeZone != null
-                        ? DateTimeService.FormatToTimezone(Model.Data.ClosedAt.Value, Model.TimeZone)
-                        : Model.Data.ClosedAt.Value.ToLocalTime().ToString("dd/MM/yyyy h:mm tt");
-                    <span><strong>Cerrada el:</strong> @closedStr</span>
+                    <span><strong>Cerrada el:</strong> @Model.Data.ClosedAt.Value.ToString("dd/MM/yyyy h:mm tt")</span>
                 }
             </td>
         </tr>
@@ -213,7 +204,7 @@
                         <td>@(m.Type == CashRegisterMovementType.Withdrawal ? "Retiro" : "Depósito")</td>
                         <td>@m.Reason</td>
                         <td class="text-right">@(m.Type == CashRegisterMovementType.Withdrawal ? "-" : "+")@m.Amount.ToString("C2")</td>
-                        <td>@m.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy h:mm tt")</td>
+                        <td>@m.CreatedAt.ToString("dd/MM/yyyy h:mm tt")</td>
                     </tr>
                 }
             </tbody>

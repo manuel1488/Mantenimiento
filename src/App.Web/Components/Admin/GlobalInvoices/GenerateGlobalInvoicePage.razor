@@ -1,0 +1,424 @@
+@page "/admin/global-invoices/new"
+@using App.Core.DTOs.Billing
+@using App.Core.DTOs.Billing.Mexico
+@using App.Core.Enums.Billing
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Billing
+@using App.Core.Constants
+@using MudBlazor
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.CreateGlobalInvoice)]
+
+@inject IGlobalInvoiceService GlobalInvoiceService
+@inject IMexicoFiscalCatalogService FiscalCatalogService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<GenerateGlobalInvoicePage> L
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>@L["Generate Global Invoice"]</PageTitle>
+
+<MudText Typo="Typo.h5" GutterBottom="true">@L["Generate Global Invoice"]</MudText>
+
+<MudGrid>
+    <!-- Left: config panel -->
+    <MudItem xs="12" md="4">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudStack Spacing="3">
+
+                <!-- Periodicity -->
+                <MudText Typo="Typo.subtitle2">@L["Periodicity"]</MudText>
+                <MudButtonGroup Variant="Variant.Outlined" Color="Color.Primary" OverrideStyles="false" Class="flex-wrap">
+                    @foreach (var p in _periodicities)
+                    {
+                        <MudButton Color="@(_periodicity == p ? Color.Primary : Color.Default)"
+                                   Variant="@(_periodicity == p ? Variant.Filled : Variant.Outlined)"
+                                   OnClick="@(() => SetPeriodicity(p))">
+                            @L[p.ToString()]
+                        </MudButton>
+                    }
+                </MudButtonGroup>
+
+                <!-- Period navigator -->
+                <MudPaper Outlined="true" Class="pa-2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PrevPeriod" Disabled="@_processing" />
+                        <MudStack Spacing="0" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:600">@PeriodLabel</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @_startDate.ToString("dd/MM/yyyy") — @_endDate.ToString("dd/MM/yyyy")
+                            </MudText>
+                        </MudStack>
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                       OnClick="NextPeriod"
+                                       Disabled="@(_endDate >= DateTime.Today || _processing)" />
+                    </MudStack>
+                </MudPaper>
+
+                <!-- Payment Form -->
+                <MudSelect T="string"
+                           @bind-Value="_paymentForm"
+                           Label="@L["Payment Form"]"
+                           Variant="Variant.Outlined">
+                    @foreach (var pf in _paymentForms)
+                    {
+                        <MudSelectItem Value="@pf.Code">@pf.Code — @pf.Description</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <!-- Preview button -->
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Info"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Visibility"
+                           OnClick="PreviewAsync"
+                           Disabled="@(_previewing || _processing)">
+                    @if (_previewing)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    @L["Calculate Preview"]
+                </MudButton>
+
+                <!-- PDF preview button -->
+                @if (_preview != null && _preview.SaleCount > 0)
+                {
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                               OnClick="PreviewPdfAsync"
+                               Disabled="@(_pdfPreviewing || _processing)">
+                        @if (_pdfPreviewing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        @L["Preview PDF"]
+                    </MudButton>
+                }
+
+                <!-- Totals summary -->
+                @if (_preview != null)
+                {
+                    <MudPaper Outlined="true" Class="pa-3">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Summary"]</MudText>
+                        <MudGrid Spacing="1">
+                            <MudItem xs="7"><MudText Typo="Typo.body2">@L["Sales included:"]</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@_preview.SaleCount</MudText></MudItem>
+
+                            <MudItem xs="7"><MudText Typo="Typo.body2">@L["Subtotal:"]</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@_preview.Subtotal.ToString("C2")</MudText></MudItem>
+
+                            @if (_preview.DiscountAmount > 0)
+                            {
+                                <MudItem xs="7"><MudText Typo="Typo.body2">@L["Discounts:"]</MudText></MudItem>
+                                <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right" Color="Color.Error">-@_preview.DiscountAmount.ToString("C2")</MudText></MudItem>
+                            }
+
+                            <MudItem xs="7"><MudText Typo="Typo.body2">@L["Tax (IVA):"]</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@_preview.TaxAmount.ToString("C2")</MudText></MudItem>
+
+                            <MudItem xs="12"><MudDivider /></MudItem>
+
+                            <MudItem xs="7"><MudText Typo="Typo.subtitle2">@L["Total:"]</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.subtitle2" Align="Align.Right">@_preview.Total.ToString("C2")</MudText></MudItem>
+                        </MudGrid>
+
+                        @if (_preview.AlreadyInvoicedCount > 0)
+                        {
+                            <MudAlert Severity="Severity.Warning" Class="mt-2" Dense="true">
+                                @string.Format(L["Warning: {0} sale(s) already have an individual CFDI and will be excluded."].Value, _preview.AlreadyInvoicedCount)
+                            </MudAlert>
+                        }
+
+                        @if (_preview.SaleCount == 0)
+                        {
+                            <MudAlert Severity="Severity.Info" Class="mt-2" Dense="true">
+                                @L["No eligible sales found for this period."]
+                            </MudAlert>
+                        }
+                    </MudPaper>
+                }
+
+                <!-- Actions -->
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudButton Variant="Variant.Outlined"
+                               OnClick="Cancel"
+                               Disabled="@_processing">
+                        @L["Cancel"]
+                    </MudButton>
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Receipt"
+                               OnClick="GenerateAsync"
+                               Disabled="@(!CanGenerate || _processing)">
+                        @if (_processing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        @L["Generate and Stamp"]
+                    </MudButton>
+                </MudStack>
+
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Right: sales table -->
+    <MudItem xs="12" md="8">
+        <MudPaper Elevation="2" Class="pa-4">
+            @if (_preview == null)
+            {
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height:200px">
+                    <MudIcon Icon="@Icons.Material.Filled.Receipt" Color="Color.Default" Size="Size.Large" Style="opacity:0.3" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Calculate a preview to see the eligible sales."]</MudText>
+                </MudStack>
+            }
+            else if (_preview.Sales.Count == 0)
+            {
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height:200px">
+                    <MudIcon Icon="@Icons.Material.Filled.SearchOff" Color="Color.Default" Size="Size.Large" Style="opacity:0.3" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["No eligible sales found for this period."]</MudText>
+                </MudStack>
+            }
+            else
+            {
+                <MudText Typo="Typo.subtitle2" Class="mb-3">@L["Included Sales"]</MudText>
+                <MudDataGrid T="GlobalInvoicePreviewSaleDto"
+                             Items="@_preview.Sales"
+                             Dense="true"
+                             Hover="true"
+                             SortMode="SortMode.Single"
+                             RowsPerPage="10">
+                    <Columns>
+                        <PropertyColumn Property="x => x.SaleId" Title="@L["#"]" />
+                        <PropertyColumn Property="x => x.SaleDateLocal" Title="@L["Date"]" />
+                        <PropertyColumn Property="x => x.PaymentMethods" Title="@L["Payment"]" />
+                        <PropertyColumn Property="x => x.Subtotal" Title="@L["Subtotal"]" Format="C2" />
+                        <PropertyColumn Property="x => x.TaxAmount" Title="@L["IVA"]" Format="C2" />
+                        <PropertyColumn Property="x => x.Total" Title="@L["Total"]" Format="C2" />
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="GlobalInvoicePreviewSaleDto" />
+                    </PagerContent>
+                </MudDataGrid>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private GlobalInvoicePeriodicity _periodicity = GlobalInvoicePeriodicity.Monthly;
+    private DateTime _referenceDate = DateTime.Today;
+    private DateTime _startDate;
+    private DateTime _endDate;
+    private string _paymentForm = "99";
+    private GlobalInvoicePreviewDto? _preview;
+    private bool _previewing = false;
+    private bool _pdfPreviewing = false;
+    private bool _processing = false;
+    private List<MexicoPaymentFormDto> _paymentForms = [];
+
+    private static readonly GlobalInvoicePeriodicity[] _periodicities =
+    [
+        GlobalInvoicePeriodicity.Monthly,
+        GlobalInvoicePeriodicity.Biweekly,
+        GlobalInvoicePeriodicity.Weekly,
+        GlobalInvoicePeriodicity.Daily
+    ];
+    #endregion
+
+    #region Computed
+    private bool CanGenerate => _preview != null && _preview.SaleCount > 0 && !_previewing;
+
+    private string PeriodLabel => _periodicity switch
+    {
+        GlobalInvoicePeriodicity.Daily =>
+            _startDate.ToString("dd/MM/yyyy"),
+        GlobalInvoicePeriodicity.Weekly =>
+            $"Sem. {_startDate.ToString("dd/MM")} – {_endDate.ToString("dd/MM/yyyy")}",
+        GlobalInvoicePeriodicity.Biweekly =>
+            _startDate.Day == 1
+                ? $"1ª Quincena {MonthName(_startDate)} {_startDate.Year}"
+                : $"2ª Quincena {MonthName(_startDate)} {_startDate.Year}",
+        _ =>
+            $"{MonthName(_startDate)} {_startDate.Year}"
+    };
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        var forms = await FiscalCatalogService.GetPaymentFormsAsync();
+        _paymentForms = forms.ToList();
+        if (_paymentForms.All(f => f.Code != _paymentForm) && _paymentForms.Count > 0)
+            _paymentForm = _paymentForms[0].Code;
+
+        RecalculateDates();
+    }
+    #endregion
+
+    #region Period logic
+    private void SetPeriodicity(GlobalInvoicePeriodicity p)
+    {
+        _periodicity = p;
+        _referenceDate = DateTime.Today;
+        RecalculateDates();
+        _preview = null;
+    }
+
+    private void PrevPeriod()
+    {
+        _referenceDate = _periodicity switch
+        {
+            GlobalInvoicePeriodicity.Daily => _referenceDate.AddDays(-1),
+            GlobalInvoicePeriodicity.Weekly => _referenceDate.AddDays(-7),
+            GlobalInvoicePeriodicity.Biweekly => PrevBiweekly(_referenceDate),
+            _ => _referenceDate.AddMonths(-1)
+        };
+        RecalculateDates();
+        _preview = null;
+    }
+
+    private void NextPeriod()
+    {
+        _referenceDate = _periodicity switch
+        {
+            GlobalInvoicePeriodicity.Daily => _referenceDate.AddDays(1),
+            GlobalInvoicePeriodicity.Weekly => _referenceDate.AddDays(7),
+            GlobalInvoicePeriodicity.Biweekly => NextBiweekly(_referenceDate),
+            _ => _referenceDate.AddMonths(1)
+        };
+        RecalculateDates();
+        _preview = null;
+    }
+
+    private void RecalculateDates()
+    {
+        (_startDate, _endDate) = _periodicity switch
+        {
+            GlobalInvoicePeriodicity.Daily =>
+                (_referenceDate.Date, _referenceDate.Date),
+            GlobalInvoicePeriodicity.Weekly =>
+                WeekRange(_referenceDate),
+            GlobalInvoicePeriodicity.Biweekly =>
+                BiweeklyRange(_referenceDate),
+            _ =>
+                (new DateTime(_referenceDate.Year, _referenceDate.Month, 1),
+                 new DateTime(_referenceDate.Year, _referenceDate.Month,
+                     DateTime.DaysInMonth(_referenceDate.Year, _referenceDate.Month)))
+        };
+    }
+
+    private static (DateTime start, DateTime end) WeekRange(DateTime date)
+    {
+        int dow = (int)date.DayOfWeek;
+        int daysFromMonday = dow == 0 ? 6 : dow - 1;
+        var monday = date.AddDays(-daysFromMonday).Date;
+        return (monday, monday.AddDays(6));
+    }
+
+    private static (DateTime start, DateTime end) BiweeklyRange(DateTime date)
+    {
+        if (date.Day <= 15)
+            return (new DateTime(date.Year, date.Month, 1),
+                    new DateTime(date.Year, date.Month, 15));
+        return (new DateTime(date.Year, date.Month, 16),
+                new DateTime(date.Year, date.Month, DateTime.DaysInMonth(date.Year, date.Month)));
+    }
+
+    private static DateTime PrevBiweekly(DateTime reference)
+    {
+        if (reference.Day <= 15)
+            return new DateTime(reference.Year, reference.Month, 1).AddDays(-1);
+        return new DateTime(reference.Year, reference.Month, 1);
+    }
+
+    private static DateTime NextBiweekly(DateTime reference)
+    {
+        if (reference.Day <= 15)
+            return new DateTime(reference.Year, reference.Month, 16);
+        return new DateTime(reference.Year, reference.Month, 1).AddMonths(1);
+    }
+
+    private static string MonthName(DateTime date) =>
+        date.ToString("MMMM", System.Globalization.CultureInfo.CurrentUICulture);
+    #endregion
+
+    #region Methods
+    private async Task PreviewAsync()
+    {
+        _previewing = true;
+        _preview = null;
+
+        var result = await GlobalInvoiceService.PreviewAsync(_startDate, _endDate);
+        if (result.IsSuccess)
+            _preview = result.Value;
+        else
+            Snackbar.Add(result.Error, Severity.Error);
+
+        _previewing = false;
+    }
+
+    private async Task PreviewPdfAsync()
+    {
+        if (_preview == null) return;
+        _pdfPreviewing = true;
+
+        var dto = new CreateGlobalInvoiceDto
+        {
+            StartDate = _startDate,
+            EndDate = _endDate,
+            Periodicity = _periodicity,
+            PaymentForm = _paymentForm
+        };
+
+        var result = await GlobalInvoiceService.GetPdfPreviewAsync(dto, _preview);
+        _pdfPreviewing = false;
+
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+
+        var base64 = Convert.ToBase64String(result.Value!);
+        await JS.InvokeVoidAsync("openFileInNewTab", "application/pdf", base64);
+    }
+
+    private async Task GenerateAsync()
+    {
+        if (!CanGenerate) return;
+        _processing = true;
+
+        var dto = new CreateGlobalInvoiceDto
+        {
+            StartDate = _startDate,
+            EndDate = _endDate,
+            Periodicity = _periodicity,
+            PaymentForm = _paymentForm
+        };
+
+        var result = await GlobalInvoiceService.CreateAndStampAsync(dto);
+        _processing = false;
+
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+
+        var invoice = result.Value!;
+        if (invoice.Status == GlobalInvoiceStatus.StampError)
+            Snackbar.Add(string.Format(L["Invoice created but stamp failed: {0}"].Value, invoice.StampError), Severity.Warning);
+        else
+            Snackbar.Add(L["Global invoice generated and stamped successfully!"], Severity.Success);
+
+        Nav.NavigateTo("/admin/global-invoices");
+    }
+
+    private void Cancel() => Nav.NavigateTo("/admin/global-invoices");
+    #endregion
+}

@@ -1727,19 +1727,32 @@ else
                         cfg => cfg.VisibleStateDuration = 8000);
                 }
 
-                // 1st: direct thermal print via ePOS SDK (silent, no dialog)
+                // 1st: direct thermal print
                 var printResult = await ThermalPrinter.PrintSaleAsync(result.Value!.Id);
                 if (!printResult.IsSuccess)
                 {
+                    // Circuit disconnected mid-print — no JS calls possible until reconnect
+                    if (printResult.Error == "circuit-disconnected")
+                    {
+                        Logger.LogWarning("Circuit disconnected during print for sale {SaleId} — skipping fallbacks", result.Value!.Id);
+                        return;
+                    }
+
+                    Logger.LogInformation("Direct print skipped for sale {SaleId}: {Reason} — falling back to PDF tab", result.Value!.Id, printResult.Error);
                     // 2nd: open PDF in new browser tab
                     try
                     {
                         await JS.InvokeVoidAsync("openTicketInTab", TicketService.GetSaleTicketUrl(result.Value!.Id));
+                        Logger.LogInformation("PDF tab opened for sale {SaleId}", result.Value!.Id);
+                    }
+                    catch (JSDisconnectedException)
+                    {
+                        Logger.LogWarning("Circuit disconnected while opening PDF tab for sale {SaleId}", result.Value!.Id);
                     }
                     catch (Exception printEx)
                     {
                         // 3rd: receipt modal as last resort
-                        Logger.LogWarning(printEx, "Failed to open PDF tab, opening receipt dialog");
+                        Logger.LogWarning(printEx, "Failed to open PDF tab for sale {SaleId} — opening receipt dialog", result.Value!.Id);
                         await DialogService.ShowAsync<SaleReceiptDialog>(
                             L["Sale Receipt"],
                             new DialogParameters<SaleReceiptDialog> { { x => x.SaleId, result.Value!.Id } });

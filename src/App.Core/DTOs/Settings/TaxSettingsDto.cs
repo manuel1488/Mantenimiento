@@ -27,6 +27,8 @@ public class TaxSettingsDto
     public int? PostalCodeOffsetWinter { get; set; }
     public int? PostalCodeOffsetSummer { get; set; }
 
+    public int? MxMaxBackdateHours { get; set; }
+
     public string CreatedBy { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public string? ModifiedBy { get; set; }

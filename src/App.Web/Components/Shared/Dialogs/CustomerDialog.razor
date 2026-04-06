@@ -127,14 +127,18 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" md="6" Class="d-flex align-center">
-                            <div>
-                                <MudSwitch @bind-Value="_model.AutoInvoice"
-                                           Label="@L["Auto-Invoice"]"
-                                           Color="Color.Primary" />
-                                <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
-                                    @L["Automatically generate invoice after each sale"]
-                                </MudText>
-                            </div>
+                            <MudTooltip Text="@(IsPublicGeneral ? L["Not available for Público General — use Global Invoices"].Value : string.Empty)"
+                                        Disabled="@(!IsPublicGeneral)">
+                                <div>
+                                    <MudSwitch @bind-Value="_model.AutoInvoice"
+                                               Label="@L["Auto-Invoice"]"
+                                               Color="Color.Primary"
+                                               Disabled="@IsPublicGeneral" />
+                                    <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
+                                        @L["Automatically generate invoice after each sale"]
+                                    </MudText>
+                                </div>
+                            </MudTooltip>
                         </MudItem>
                         <MudItem xs="12" md="6">
                             <MudSelect @bind-Value="_model.DefaultCfdiUse"
@@ -149,14 +153,18 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" md="6" Class="d-flex align-center">
-                            <div>
-                                <MudSwitch @bind-Value="_model.SendInvoiceEmail"
-                                           Label="@L["Send Invoice Email"]"
-                                           Color="Color.Primary" />
-                                <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
-                                    @L["Automatically send the invoice email after generation"]
-                                </MudText>
-                            </div>
+                            <MudTooltip Text="@(IsPublicGeneral ? L["Not available for Público General — use Global Invoices"].Value : string.Empty)"
+                                        Disabled="@(!IsPublicGeneral)">
+                                <div>
+                                    <MudSwitch @bind-Value="_model.SendInvoiceEmail"
+                                               Label="@L["Send Invoice Email"]"
+                                               Color="Color.Primary"
+                                               Disabled="@IsPublicGeneral" />
+                                    <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
+                                        @L["Automatically send the invoice email after generation"]
+                                    </MudText>
+                                </div>
+                            </MudTooltip>
                         </MudItem>
                     }
 
@@ -233,6 +241,9 @@
     private CustomerDto? _customer;
     private CreateCustomerDto _model = new();
     private string _phoneInput = string.Empty;
+
+    private bool IsPublicGeneral =>
+        string.Equals(_model.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {

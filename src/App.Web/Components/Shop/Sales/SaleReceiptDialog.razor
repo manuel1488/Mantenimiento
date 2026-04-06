@@ -235,7 +235,7 @@
         {
             var result = await ThermalPrinter.PrintSaleAsync(SaleId);
             if (!result.IsSuccess)
-                Navigation.NavigateTo(_ticketUrl, forceLoad: true);
+                await JS.InvokeVoidAsync("openTicketInTab", _ticketUrl);
         }
         catch (Exception ex)
         {

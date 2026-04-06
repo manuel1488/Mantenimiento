@@ -18,7 +18,9 @@ public class TicketConfigurationDto
     public int DefaultCopies { get; set; } = 1;
 
     public bool DirectPrintEnabled { get; set; } = false;
-    public int PrintFlushDelayMs { get; set; } = 200;
+    public int PrintFlushDelayMs { get; set; } = 500;
+    public int PrintChunkSize { get; set; } = 2048;
+    public int PortSettlingDelayMs { get; set; } = 250;
 
     public bool CashDrawerEnabled { get; set; } = false;
     public string CashDrawerCommand { get; set; } = "1B 70 00 19 FA";

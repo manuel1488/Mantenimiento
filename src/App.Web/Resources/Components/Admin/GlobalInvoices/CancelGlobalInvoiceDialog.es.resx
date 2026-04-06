@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="This action will request cancellation of the CFDI from the SAT. This cannot be undone." xml:space="preserve">
+    <value>Esta acción solicitará la cancelación del CFDI ante el SAT. No se puede deshacer.</value>
+  </data>
+  <data name="Invoice:" xml:space="preserve">
+    <value>Factura:</value>
+  </data>
+  <data name="Cancellation Reason" xml:space="preserve">
+    <value>Motivo de Cancelación</value>
+  </data>
+  <data name="Comprobante emitido con errores con relación" xml:space="preserve">
+    <value>Comprobante emitido con errores con relación</value>
+  </data>
+  <data name="Comprobante emitido con errores sin relación" xml:space="preserve">
+    <value>Comprobante emitido con errores sin relación</value>
+  </data>
+  <data name="No se llevó a cabo la operación" xml:space="preserve">
+    <value>No se llevó a cabo la operación</value>
+  </data>
+  <data name="Operación nominativa relacionada en la factura global" xml:space="preserve">
+    <value>Operación nominativa relacionada en la factura global</value>
+  </data>
+  <data name="Replacement UUID" xml:space="preserve">
+    <value>UUID de Sustitución</value>
+  </data>
+  <data name="Replacement UUID is required for reason 01" xml:space="preserve">
+    <value>El UUID de sustitución es obligatorio para el motivo 01</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Request Cancellation" xml:space="preserve">
+    <value>Solicitar Cancelación</value>
+  </data>
+  <data name="Cancellation request sent successfully." xml:space="preserve">
+    <value>Solicitud de cancelación enviada correctamente.</value>
+  </data>
+</root>

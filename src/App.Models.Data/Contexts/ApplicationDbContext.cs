@@ -7,17 +7,22 @@ using App.Models.Shared;
 using App.Models.Shop;
 using PaymentMethod = App.Models.Settings.PaymentMethod;
 
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Models.Data.Contexts;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataProtectionKeyContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
+
+    #region Infrastructure
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+    #endregion
 
     #region Settings
     public DbSet<CompanySettings> CompanySettings { get; set; } = null!;
@@ -81,6 +86,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     #region Billing México
     public DbSet<MexicoInvoice> MexicoInvoices { get; set; } = null!;
     public DbSet<MexicoInvoiceFile> MexicoInvoiceFiles { get; set; } = null!;
+    public DbSet<GlobalInvoice> GlobalInvoices { get; set; } = null!;
+    public DbSet<GlobalInvoiceSale> GlobalInvoiceSales { get; set; } = null!;
     public DbSet<MexicoPacSettings> MexicoPacSettings { get; set; } = null!;
     public DbSet<MexicoFiscalRegime> MexicoFiscalRegimes { get; set; } = null!;
     public DbSet<MexicoPaymentForm> MexicoPaymentForms { get; set; } = null!;

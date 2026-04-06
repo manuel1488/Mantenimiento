@@ -1,11 +1,13 @@
 @using App.Core.DTOs.Billing
 @using App.Core.DTOs.Billing.Mexico
+@using App.Core.DTOs.Settings
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Billing
 @using MudBlazor
 
 @inject IMexicoInvoiceService InvoiceService
 @inject IMexicoFiscalCatalogService FiscalCatalogService
+@inject ITaxSettingsService TaxSettingsService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<PostSaleInvoiceDialog> L
 @inject ILogger<PostSaleInvoiceDialog> Logger
@@ -186,6 +188,33 @@
                         </MudSelect>
                     </MudItem>
 
+                    <!-- Invoice date (optional backdate) -->
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker Date="@_invoiceDate"
+                                       DateChanged="@OnInvoiceDateChanged"
+                                       Label="@L["Invoice Date (optional)"]"
+                                       MaxDate="DateTime.Today"
+                                       MinDate="@_minInvoiceDate"
+                                       Variant="Variant.Outlined"
+                                       Editable="true"
+                                       Clearable="true"
+                                       HelperText="@_invoiceDateHelper" />
+                    </MudItem>
+
+                    @if (_invoiceDate.HasValue)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudTimePicker @bind-Time="_invoiceTime"
+                                           Label="@L["Invoice Time"]"
+                                           Variant="Variant.Outlined"
+                                           Editable="true" />
+                        </MudItem>
+                    }
+                    else
+                    {
+                        <MudItem xs="12" sm="6" />
+                    }
+
                     <MudItem xs="12">
                         <MudTextField @bind-Value="_dto.SendToEmail"
                                       Label="@L["Send to Email (optional)"]"
@@ -252,6 +281,12 @@
     private List<MexicoCfdiUseDto> _allCfdiUses = [];
     private List<MexicoCfdiUseDto> _filteredCfdiUses = [];
     private List<MexicoPaymentFormDto> _paymentForms = [];
+
+    // Backdate fields
+    private DateTime? _invoiceDate;
+    private TimeSpan? _invoiceTime;
+    private DateTime? _minInvoiceDate;
+    private string _invoiceDateHelper = string.Empty;
     #endregion
 
     #region Lifecycle
@@ -266,6 +301,16 @@
     #endregion
 
     #region Methods
+    private void OnInvoiceDateChanged(DateTime? date)
+    {
+        var hadDate = _invoiceDate.HasValue;
+        _invoiceDate = date;
+        if (date.HasValue && !hadDate)
+            _invoiceTime = DateTime.Now.TimeOfDay;
+        else if (!date.HasValue)
+            _invoiceTime = null;
+    }
+
     private void Cancel() => MudDialog.Cancel();
 
     private void GoBack()
@@ -324,6 +369,19 @@
             _allCfdiUses = (await FiscalCatalogService.GetCfdiUsesAsync()).ToList();
             _paymentForms = (await FiscalCatalogService.GetPaymentFormsAsync()).ToList();
 
+            // Load backdate window setting
+            var taxSettings = await TaxSettingsService.GetSettingsAsync();
+            if (taxSettings?.MxMaxBackdateHours.HasValue == true)
+            {
+                _minInvoiceDate = DateTime.Now.AddHours(-taxSettings.MxMaxBackdateHours.Value);
+                _invoiceDateHelper = string.Format(L["InvoiceDateHelp"].Value, taxSettings.MxMaxBackdateHours.Value);
+            }
+            else
+            {
+                _minInvoiceDate = null;
+                _invoiceDateHelper = L["InvoiceDateHelpNoLimit"].Value;
+            }
+
             // Filter CFDI uses by pre-filled fiscal regime
             if (!string.IsNullOrEmpty(_dto.CustomerFiscalRegime))
             {
@@ -366,6 +424,16 @@
         _processing = true;
         try
         {
+            if (_invoiceDate.HasValue)
+            {
+                var time = _invoiceTime ?? DateTime.Now.TimeOfDay;
+                _dto.InvoiceDate = _invoiceDate.Value.Date + time;
+            }
+            else
+            {
+                _dto.InvoiceDate = null;
+            }
+
             var result = await InvoiceService.CreateAndStampAsync(_dto);
             if (result.IsSuccess)
             {

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Generate Global Invoice" xml:space="preserve">
+    <value>Generate Global Invoice</value>
+  </data>
+  <data name="Start Date" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="End Date" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="Start date is required" xml:space="preserve">
+    <value>Start date is required</value>
+  </data>
+  <data name="End date is required" xml:space="preserve">
+    <value>End date is required</value>
+  </data>
+  <data name="Periodicity" xml:space="preserve">
+    <value>Periodicity</value>
+  </data>
+  <data name="Payment Form" xml:space="preserve">
+    <value>Payment Form</value>
+  </data>
+  <data name="Calculate Preview" xml:space="preserve">
+    <value>Calculate Preview</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Sales included:" xml:space="preserve">
+    <value>Sales included:</value>
+  </data>
+  <data name="Subtotal:" xml:space="preserve">
+    <value>Subtotal:</value>
+  </data>
+  <data name="Discounts:" xml:space="preserve">
+    <value>Discounts:</value>
+  </data>
+  <data name="Tax (IVA):" xml:space="preserve">
+    <value>Tax (IVA):</value>
+  </data>
+  <data name="Total:" xml:space="preserve">
+    <value>Total:</value>
+  </data>
+  <data name="Warning: {0} sale(s) in this range already have an individual CFDI and will be excluded." xml:space="preserve">
+    <value>Warning: {0} sale(s) in this range already have an individual CFDI and will be excluded.</value>
+  </data>
+  <data name="No eligible sales found in the selected date range." xml:space="preserve">
+    <value>No eligible sales found in the selected date range.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Generate and Stamp" xml:space="preserve">
+    <value>Generate and Stamp</value>
+  </data>
+  <data name="Invoice created but stamp failed: {0}" xml:space="preserve">
+    <value>Invoice created but stamp failed: {0}</value>
+  </data>
+  <data name="Global invoice generated and stamped successfully!" xml:space="preserve">
+    <value>Global invoice generated and stamped successfully!</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>Daily</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>Weekly</value>
+  </data>
+  <data name="Biweekly" xml:space="preserve">
+    <value>Biweekly</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="View included sales" xml:space="preserve">
+    <value>View included sales</value>
+  </data>
+  <data name="#" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="IVA" xml:space="preserve">
+    <value>IVA</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+</root>

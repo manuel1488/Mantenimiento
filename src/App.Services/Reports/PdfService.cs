@@ -98,10 +98,12 @@ public class PdfService : IPdfService
             // Create a new page
             await using var page = await _browser!.NewPageAsync();
 
-            // Set content and wait for network idle to ensure all resources are loaded
+            // Thermal tickets are self-contained HTML — no external resources.
+            // DOMContentLoaded fires immediately after parsing; Networkidle0 would
+            // wait for Chromium background traffic (metrics, safe browsing) and time out.
             await page.SetContentAsync(html, new NavigationOptions
             {
-                WaitUntil = new[] { WaitUntilNavigation.Networkidle0 }
+                WaitUntil = new[] { WaitUntilNavigation.DOMContentLoaded }
             });
 
             // Configure PDF options specifically for thermal tickets
@@ -177,20 +179,34 @@ public class PdfService : IPdfService
                 _browser = null;
             }
 
-            // Download and install Chrome
-            var browserFetcherOptions = new BrowserFetcherOptions();
-            await new BrowserFetcher().DownloadAsync();
+            // In Docker, PUPPETEER_EXECUTABLE_PATH points to google-chrome-stable (pre-installed in image).
+            // Locally (Windows/Mac), the env var is not set so we fall back to BrowserFetcher which
+            // downloads a compatible Chromium on first run and caches it.
+            var executablePath = Environment.GetEnvironmentVariable("PUPPETEER_EXECUTABLE_PATH");
+            if (string.IsNullOrEmpty(executablePath) || !File.Exists(executablePath))
+            {
+                _logger.LogInformation("PUPPETEER_EXECUTABLE_PATH not found — downloading Chromium via BrowserFetcher");
+                await new BrowserFetcher().DownloadAsync();
+                executablePath = null; // Let Puppeteer use the downloaded binary
+            }
 
             // Launch browser
             _browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
+                ExecutablePath = executablePath,
                 Headless = true,
                 Args = new[]
                 {
                     "--no-sandbox",
                     "--disable-setuid-sandbox",
                     "--disable-dev-shm-usage",
-                    "--disable-gpu"
+                    "--disable-gpu",
+                    // Suppress background network traffic that causes Networkidle0 timeouts in Docker
+                    "--disable-background-networking",
+                    "--disable-sync",
+                    "--metrics-recording-only",
+                    "--no-first-run",
+                    "--safebrowsing-disable-auto-update"
                 }
             });
 

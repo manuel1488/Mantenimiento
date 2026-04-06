@@ -1,0 +1,91 @@
+@using MudBlazor
+@inject IStringLocalizer<GlobalInvoiceInfoDialog> L
+
+<MudDialog>
+    <DialogContent>
+
+        <MudText Typo="Typo.body2" Class="mb-4">
+            @L["Workflow description"]
+        </MudText>
+
+        <MudText Typo="Typo.subtitle2" Class="mb-1">@L["Rounding note title"]</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            @L["Rounding note intro"]
+        </MudText>
+
+        <MudPaper Outlined="true" Class="pa-3 mb-2">
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+                <strong>@L["Example label"]</strong>
+            </MudText>
+
+            <MudSimpleTable Dense="true" Hover="false" Style="font-size:0.8rem;">
+                <tbody>
+                    <tr>
+                        <td style="color:var(--mud-palette-text-secondary);">@L["Sale 1"]</td>
+                        <td>@L["Sale 1 detail"]</td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--mud-palette-text-secondary);">@L["Sale 2"]</td>
+                        <td>@L["Sale 2 detail"]</td>
+                    </tr>
+                    <tr style="border-top:1px solid var(--mud-palette-divider);">
+                        <td style="color:var(--mud-palette-text-secondary);">@L["Receipt sum"]</td>
+                        <td><strong>$14.00</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--mud-palette-text-secondary);">@L["CFDI base"]</td>
+                        <td>$6.03 + $6.03 = $12.06</td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--mud-palette-text-secondary);">@L["CFDI VAT"]</td>
+                        <td>$12.06 × 16% = $1.9296 → <strong>$1.93</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--mud-palette-text-secondary);">@L["CFDI total"]</td>
+                        <td>$12.06 + $1.93 = <strong>$13.99</strong></td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                @L["Rounding explanation"]
+            </MudText>
+        </MudPaper>
+
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+            @L["Rounding conclusion"]
+        </MudText>
+
+        <MudDivider Class="mb-3" />
+
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1">
+            <strong>@L["Legend"]</strong>
+        </MudText>
+        <MudStack Spacing="1">
+            @foreach (var (color, key) in _legendItems)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                    <div style="width:12px;height:12px;border-radius:50%;background:@color;flex-shrink:0;"></div>
+                    <MudText Typo="Typo.caption">@L[key]</MudText>
+                </MudStack>
+            }
+        </MudStack>
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => MudDialog.Close())">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private static readonly (string Color, string Key)[] _legendItems =
+    [
+        ("#9E9E9E", "Draft — generated, not yet stamped"),
+        ("#4CAF50", "Stamped — stamped by SAT, fiscally valid"),
+        ("#FF9800", "Stamp Error — PAC rejected; sales available to retry"),
+        ("#757575", "Cancelled — cancelled with SAT"),
+    ];
+}

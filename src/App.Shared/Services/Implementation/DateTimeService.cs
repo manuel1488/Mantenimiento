@@ -13,9 +13,9 @@ public class DateTimeService : IDateTime
         return TimeZoneInfo.ConvertTimeToUtc(sourceDate, timeZone);
     }
 
-    public string FormatToTimezone(DateTime utcDate, TimeZoneInfo timeZoneInfo)
-    {
-        var convertedTime = TimeZoneInfo.ConvertTimeFromUtc(utcDate, timeZoneInfo);
-        return convertedTime.ToString("g");
-    }
+    public DateTime ConvertToTimezone(DateTime utcDate, TimeZoneInfo timeZoneInfo) =>
+        TimeZoneInfo.ConvertTimeFromUtc(utcDate, timeZoneInfo);
+
+    public string FormatToTimezone(DateTime utcDate, TimeZoneInfo timeZoneInfo) =>
+        ConvertToTimezone(utcDate, timeZoneInfo).ToString("g");
 }

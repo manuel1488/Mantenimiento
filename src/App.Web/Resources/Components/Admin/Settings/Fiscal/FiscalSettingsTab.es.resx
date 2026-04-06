@@ -138,4 +138,10 @@
     <data name="You don't have permission to view this page" xml:space="preserve">
         <value>No tienes permiso para ver esta página</value>
     </data>
+    <data name="Max Backdate Hours" xml:space="preserve">
+        <value>Horas máx. de antedatado</value>
+    </data>
+    <data name="MaxBackdateHoursHelp" xml:space="preserve">
+        <value>Máximo de horas en el pasado para fechar una factura (ej. 72). Vacío = sin límite.</value>
+    </data>
 </root>

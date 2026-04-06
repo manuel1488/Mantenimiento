@@ -1,0 +1,309 @@
+@page "/admin/global-invoices"
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Billing
+@using App.Core.Enums.Billing
+@using App.Core.Interfaces
+@using App.Core.Interfaces.Billing
+@using App.Shared.Services
+@using MudBlazor
+
+@inject IGlobalInvoiceService GlobalInvoiceService
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IStringLocalizer<GlobalInvoicesPage> L
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewGlobalInvoices)]
+
+<PageTitle>@L["Global Invoices"]</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-2">
+    <MudText Typo="Typo.h4">@L["Global Invoices"]</MudText>
+    <MudTooltip Text="@L["View info"]">
+        <MudIconButton Icon="@Icons.Material.Outlined.Help"
+                       Size="Size.Small"
+                       Color="Color.Default"
+                       OnClick="@OpenInfoDialog" />
+    </MudTooltip>
+</MudStack>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <!-- Toolbar -->
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="2" Wrap="Wrap.Wrap">
+                <MudSpacer />
+                <AuthorizeView Policy="@ApplicationClaims.Admin.CreateGlobalInvoice">
+                    <Authorized>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Receipt"
+                                   OnClick="OpenGenerateDialog">
+                            @L["Generate Global Invoice"]
+                        </MudButton>
+                    </Authorized>
+                </AuthorizeView>
+            </MudStack>
+
+            @if (_loading)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+            }
+
+            <MudDataGrid T="GlobalInvoiceListDto"
+                         Items="@_invoices"
+                         SortMode="SortMode.Multiple"
+                         RowsPerPage="15"
+                         Dense="true"
+                         Hover="true">
+                <Columns>
+                    <TemplateColumn Title="@L["Folio"]">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">
+                                @(string.IsNullOrEmpty(context.Item.Serie) ? context.Item.Folio.ToString() : $"{context.Item.Serie}{context.Item.Folio}")
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Period"]">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">
+                                @FormatDate(context.Item.StartDate) — @FormatDate(context.Item.EndDate)
+                            </MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Periodicity"]">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Default">
+                                @L[context.Item.Periodicity.ToString()]
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.SaleCount" Title="@L["Sales"]" />
+                    <TemplateColumn Title="@L["Total"]">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">@context.Item.Total.ToString("C2")</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Status"]">
+                        <CellTemplate>
+                            @{
+                                var (color, label) = context.Item.Status switch
+                                {
+                                    GlobalInvoiceStatus.Stamped => (Color.Success, L["Stamped"].Value),
+                                    GlobalInvoiceStatus.Cancelled => (Color.Error, L["Cancelled"].Value),
+                                    GlobalInvoiceStatus.StampError => (Color.Warning, L["Stamp Error"].Value),
+                                    _ => (Color.Default, L["Draft"].Value)
+                                };
+                            }
+                            <MudChip T="string" Size="Size.Small" Color="@color">@label</MudChip>
+                            @if (context.Item.CancellationDate.HasValue)
+                            {
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
+                                    @FormatDateTime(context.Item.CancellationDate.Value)
+                                </MudText>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["UUID"]">
+                        <CellTemplate>
+                            @if (!string.IsNullOrEmpty(context.Item.Uuid))
+                            {
+                                <MudText Typo="Typo.caption" Style="font-family: monospace;">
+                                    @context.Item.Uuid[..8]…
+                                </MudText>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Stamped At"]">
+                        <CellTemplate>
+                            @if (context.Item.StampDate.HasValue)
+                            {
+                                @FormatDateTime(context.Item.StampDate.Value)
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Actions"]" CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            @if (context.Item.Status == GlobalInvoiceStatus.Stamped)
+                            {
+                                <XmlIconButton Title="@L["Download XML"]"
+                                               Color="Color.Info"
+                                               OnClick="@(() => DownloadXmlAsync(context.Item))" />
+
+                                <MudTooltip Text="@L["View PDF"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                                   Color="Color.Default"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => ViewPdfAsync(context.Item))" />
+                                </MudTooltip>
+
+                                <MudTooltip Text="@L["Download PDF"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Download"
+                                                   Color="Color.Secondary"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => DownloadPdfAsync(context.Item))" />
+                                </MudTooltip>
+
+                                <AuthorizeView Policy="@ApplicationClaims.Admin.CancelGlobalInvoice" Context="authCtx">
+                                    <Authorized>
+                                        <MudTooltip Text="@L["Cancel Invoice"]">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                           Color="Color.Error"
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => OpenCancelDialogAsync(context.Item))" />
+                                        </MudTooltip>
+                                    </Authorized>
+                                </AuthorizeView>
+                            }
+                            @if (context.Item.Status == GlobalInvoiceStatus.StampError)
+                            {
+                                <MudTooltip Text="@L["View Error"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ErrorOutline"
+                                                   Color="Color.Warning"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => ShowErrorAsync(context.Item))" />
+                                </MudTooltip>
+                            }
+                            @if (context.Item.HasCancellationAcuse)
+                            {
+                                <MudTooltip Text="@L["Download Cancellation Acuse"]">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AssignmentTurnedIn"
+                                                   Color="Color.Warning"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => DownloadAcuseAsync(context.Item))" />
+                                </MudTooltip>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="GlobalInvoiceListDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private bool _loading = false;
+    private List<GlobalInvoiceListDto> _invoices = [];
+    private TimeZoneInfo? _companyTimeZone;
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+        await LoadDataAsync();
+    }
+    #endregion
+
+    #region Formatting
+    private string FormatDate(DateTime utcDate)
+    {
+        if (_companyTimeZone is null)
+            return utcDate.ToLocalTime().ToString("dd/MM/yyyy");
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDate, _companyTimeZone).ToString("dd/MM/yyyy");
+    }
+
+    private string FormatDateTime(DateTime utcDate)
+    {
+        if (_companyTimeZone is null)
+            return utcDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+        return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+    }
+    #endregion
+
+    #region Methods
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        var result = await GlobalInvoiceService.GetAllAsync();
+        if (result.IsSuccess)
+            _invoices = result.Value!;
+        else
+            Snackbar.Add(result.Error, Severity.Error);
+        _loading = false;
+    }
+
+    private void OpenGenerateDialog() => Nav.NavigateTo("/admin/global-invoices/new");
+
+    private async Task DownloadXmlAsync(GlobalInvoiceListDto invoice)
+    {
+        var result = await GlobalInvoiceService.GetXmlAsync(invoice.Id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+        var folio = string.IsNullOrEmpty(invoice.Serie)
+            ? invoice.Folio.ToString()
+            : $"{invoice.Serie}{invoice.Folio}";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(result.Value!);
+        await JS.InvokeVoidAsync("downloadFile", $"factura-global-{folio}.xml", "application/xml", Convert.ToBase64String(bytes));
+    }
+
+    private async Task ViewPdfAsync(GlobalInvoiceListDto invoice)
+        => await JS.InvokeVoidAsync("openInNewTab", $"/api/global-invoices/{invoice.Id}/pdf");
+
+    private async Task DownloadPdfAsync(GlobalInvoiceListDto invoice)
+    {
+        var result = await GlobalInvoiceService.GetPdfAsync(invoice.Id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+        var folio = string.IsNullOrEmpty(invoice.Serie)
+            ? invoice.Folio.ToString()
+            : $"{invoice.Serie}{invoice.Folio}";
+        await JS.InvokeVoidAsync("downloadFile", $"factura-global-{folio}.pdf", "application/pdf", Convert.ToBase64String(result.Value!));
+    }
+
+    private async Task OpenCancelDialogAsync(GlobalInvoiceListDto invoice)
+    {
+        var parameters = new DialogParameters<CancelGlobalInvoiceDialog>
+        {
+            { x => x.Invoice, invoice }
+        };
+        var options = new DialogOptions { BackdropClick = false, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CancelGlobalInvoiceDialog>(L["Cancel Invoice"], parameters, options);
+        var result = await dialog.Result;
+        if (!result!.Canceled)
+            await LoadDataAsync();
+    }
+
+    private async Task ShowErrorAsync(GlobalInvoiceListDto invoice)
+    {
+        var detail = await GlobalInvoiceService.GetByIdAsync(invoice.Id);
+        var msg = detail.IsSuccess ? detail.Value!.StampError : invoice.Id.ToString();
+        await DialogService.ShowMessageBox(L["Stamp Error"], msg ?? L["Unknown error"].Value);
+    }
+
+    private async Task DownloadAcuseAsync(GlobalInvoiceListDto invoice)
+    {
+        var result = await GlobalInvoiceService.GetCancellationAcuseAsync(invoice.Id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+        var folio = string.IsNullOrEmpty(invoice.Serie)
+            ? invoice.Folio.ToString()
+            : $"{invoice.Serie}{invoice.Folio}";
+        await JS.InvokeVoidAsync("downloadFile", $"Acuse_Cancelacion_{folio}.xml", "application/xml",
+            Convert.ToBase64String(result.Value!));
+    }
+
+    private async Task OpenInfoDialog()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        await DialogService.ShowAsync<GlobalInvoiceInfoDialog>(L["Global Invoice Info"], options);
+    }
+    #endregion
+}
