@@ -21,5 +21,11 @@ namespace App.Core.Interfaces
             DateTime? startDate = null,
             DateTime? endDate = null,
             CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<TopProductDto>> GetTopProductsAsync(
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int maxItems = 10,
+            CancellationToken cancellationToken = default);
     }
 }

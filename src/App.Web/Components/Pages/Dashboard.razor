@@ -110,7 +110,15 @@
             <MudItem xs="12" md="8">
                 <MudPaper Elevation="2" Class="pa-4 rounded-lg">
                     <div class="d-flex justify-space-between mb-2">
-                        <MudText Typo="Typo.h6">@L["Sales Performance"]</MudText>
+                        <div class="d-flex align-center gap-2">
+                            <MudText Typo="Typo.h6">@L["Sales Performance"]</MudText>
+                            @if (_chartYAxisLabel.Contains("K$") || _chartYAxisLabel.Contains("M$"))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    (@_chartYAxisLabel.Split('(').Last().TrimEnd(')'))
+                                </MudText>
+                            }
+                        </div>
                         <div>
                             <span class="mr-4">@L["Total: {0}", _performance.TotalRevenue.ToString("C")]</span>
                             <MudChip T="string" Size="Size.Small" 
@@ -121,7 +129,7 @@
                     </div>
                     
                     <!-- Gráfica de ventas -->
-                    @if (_salesChartData.Length > 0 && _salesLabels.Length > 0)
+                    @if (_salesChartSeries.Any() && _salesLabels.Length > 0)
                     {
                         <MudChart ChartType="ChartType.Line" 
                                  ChartSeries="@_salesChartSeries"
@@ -141,52 +149,54 @@
 
             <!-- Alertas de inventario -->
             <MudItem xs="12" md="4">
-                <MudPaper Elevation="2" Class="pa-4 rounded-lg" Style="height: 100%;">
+                <MudPaper Elevation="2" Class="pa-4 rounded-lg">
                     <div class="d-flex justify-space-between mb-2">
                         <MudText Typo="Typo.h6">@L["Inventory Alerts"]</MudText>
-                        <MudBadge Content="@(_stockAlerts.Count())" Color="Color.Error" 
+                        <MudBadge Content="@(_stockAlerts.Count())" Color="Color.Error"
                                  Overlap="true" Bordered="true">
                             <MudIcon Icon="@Icons.Material.Filled.Inventory2" />
                         </MudBadge>
                     </div>
-                    
-                    <MudList T="object" Dense="true" Class="pb-0">
-                        @foreach (var alert in _stockAlerts)
-                        {
-                            <MudListItem T="object">
-                                <div class="d-flex align-center justify-space-between">
-                                    <div>
-                                        <div class="d-flex gap-2 align-center">
-                                            <MudChip T="string" Size="Size.Small" 
-                                                Color="@(alert.AlertType == "OUT_OF_STOCK" ? Color.Error : Color.Warning)"
-                                                Label="true">
-                                                @(alert.AlertType == "OUT_OF_STOCK" ? L["Out of Stock"] : L["Low Stock"])
-                                            </MudChip>
-                                            <MudText Typo="Typo.body2">@alert.ProductName</MudText>
+
+                    <div style="max-height: 320px; overflow-y: auto;">
+                        <MudList T="object" Dense="true" Class="pb-0">
+                            @foreach (var alert in _stockAlerts)
+                            {
+                                <MudListItem T="object">
+                                    <div class="d-flex align-center justify-space-between">
+                                        <div>
+                                            <div class="d-flex gap-2 align-center">
+                                                <MudChip T="string" Size="Size.Small"
+                                                    Color="@(alert.AlertType == "OUT_OF_STOCK" ? Color.Error : Color.Warning)"
+                                                    Label="true">
+                                                    @(alert.AlertType == "OUT_OF_STOCK" ? L["Out of Stock"] : L["Low Stock"])
+                                                </MudChip>
+                                                <MudText Typo="Typo.body2">@alert.ProductName</MudText>
+                                            </div>
+                                            <MudText Typo="Typo.caption" Class="ml-10">
+                                                @L["Current: {0}", alert.CurrentStock] / @L["Min: {0}", alert.MinStock ?? 0]
+                                            </MudText>
                                         </div>
-                                        <MudText Typo="Typo.caption" Class="ml-10">
-                                            @L["Current: {0}", alert.CurrentStock] / @L["Min: {0}", alert.MinStock ?? 0]
+                                        <MudText Typo="Typo.caption" Style="white-space: nowrap">
+                                            @alert.WarehouseName
                                         </MudText>
                                     </div>
-                                    <MudText Typo="Typo.caption" Style="white-space: nowrap">
-                                        @alert.WarehouseName
-                                    </MudText>
-                                </div>
-                            </MudListItem>
-                            <MudDivider />
-                        }
-                    </MudList>
-                    
+                                </MudListItem>
+                                <MudDivider />
+                            }
+                        </MudList>
+                    </div>
+
                     @if (!_stockAlerts.Any())
                     {
                         <MudText Class="d-flex justify-center align-center pa-8" Color="Color.Success">
                             @L["No inventory alerts"]
                         </MudText>
                     }
-                    
+
                     <div class="d-flex justify-end mt-2">
-                        <MudButton Variant="Variant.Text" 
-                                  Size="Size.Small" 
+                        <MudButton Variant="Variant.Text"
+                                  Size="Size.Small"
                                   Color="Color.Primary"
                                   Href="/shop/inventory"
                                   EndIcon="@Icons.Material.Filled.ArrowForward">
@@ -388,6 +398,57 @@
                 </MudGrid>
             </MudItem>
         </MudGrid>
+
+        <!-- Productos más vendidos -->
+        <MudGrid Class="mt-4">
+            <MudItem xs="12">
+                <MudPaper Elevation="2" Class="pa-4 rounded-lg">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Top Products"]</MudText>
+
+                    @if (!_topProducts.Any())
+                    {
+                        <MudText Class="d-flex justify-center align-center pa-6" Color="Color.Secondary">
+                            @L["No product sales data available"]
+                        </MudText>
+                    }
+                    else
+                    {
+                        var maxUnits = _topProducts.First().UnitsSold;
+                        <MudGrid>
+                            @foreach (var (product, index) in _topProducts.Select((p, i) => (p, i)))
+                            {
+                                <MudItem xs="12" md="6">
+                                    <div class="d-flex align-center gap-3 mb-1">
+                                        <MudText Typo="Typo.caption" Style="min-width:20px; text-align:right; color:var(--mud-palette-text-secondary)">
+                                            @(index + 1)
+                                        </MudText>
+                                        <div style="flex:1; min-width:0;">
+                                            <div class="d-flex justify-space-between align-center mb-1">
+                                                <MudText Typo="Typo.body2" Style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                                    @product.ProductName
+                                                </MudText>
+                                                <div class="d-flex gap-3 ml-2" style="white-space:nowrap;">
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        @product.UnitsSold.ToString("N0") @L["Units"]
+                                                    </MudText>
+                                                    <MudText Typo="Typo.caption">
+                                                        <strong>@product.Revenue.ToString("C")</strong>
+                                                    </MudText>
+                                                </div>
+                                            </div>
+                                            <MudProgressLinear Value="@((double)(product.UnitsSold / maxUnits * 100))"
+                                                               Color="@(index == 0 ? Color.Primary : Color.Default)"
+                                                               Rounded="true"
+                                                               Size="Size.Small" />
+                                        </div>
+                                    </div>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
     }
 </MudContainer>
 
@@ -400,6 +461,7 @@
     private SalesPerformanceDto _performance = new();
     private IEnumerable<StockAlertDto> _stockAlerts = Array.Empty<StockAlertDto>();
     private IEnumerable<RecentSaleDto> _recentSales = Array.Empty<RecentSaleDto>();
+    private IEnumerable<TopProductDto> _topProducts = Array.Empty<TopProductDto>();
 
     // Stamp balance
     private MexicoStampBalanceDto? _stampBalance;
@@ -407,9 +469,9 @@
     private bool _loadingStamps = true;
 
     // Datos para gráficas
-    private double[] _salesChartData = Array.Empty<double>();
     private string[] _salesLabels = Array.Empty<string>();
     private List<ChartSeries> _salesChartSeries = new();
+    private string _chartYAxisLabel = "Ingresos";
 
     // Zona horaria
     private TimeZoneInfo _timeZone = TimeZoneInfo.Utc;
@@ -419,6 +481,7 @@
         try
         {
             _timeZone = await CompanySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
+            UpdateDateRangeFromPeriod();
             await Task.WhenAll(LoadDashboardData(), LoadStampBalanceAsync());
         }
         catch (Exception ex)
@@ -474,7 +537,7 @@
         _dateRange = _selectedPeriod switch
         {
             "today" => new DateRange(today, today),
-            "week" => new DateRange(today.AddDays(-(int)today.DayOfWeek), today),
+            "week" => new DateRange(today.AddDays(-(today.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)today.DayOfWeek - 1)), today),
             "month" => new DateRange(new DateTime(today.Year, today.Month, 1), today),
             _ => _dateRange // custom - mantener el rango actual
         };
@@ -502,6 +565,12 @@
                 
             // Cargar ventas recientes
             _recentSales = await DashboardService.GetRecentSalesAsync(10);
+
+            // Cargar productos más vendidos
+            _topProducts = await DashboardService.GetTopProductsAsync(
+                _dateRange.Start,
+                _dateRange.End,
+                maxItems: 10);
                 
             // Preparar datos para gráficas
             PrepareChartData();
@@ -517,32 +586,42 @@
     {
         if (_performance.DailySales == null || !_performance.DailySales.Any())
         {
-            _salesChartData = Array.Empty<double>();
             _salesLabels = Array.Empty<string>();
             _salesChartSeries = new List<ChartSeries>();
             return;
         }
-        
+
         // Preparar etiquetas (fechas)
         _salesLabels = _performance.DailySales
             .Select(d => d.Date.ToString("dd/MM"))
             .ToArray();
-            
-        // Preparar datos para gráfica de línea
+
+        // Escalar el eje Y para evitar números largos
+        var maxAmount = _performance.DailySales.Max(d => (double)d.Amount);
+        double scale;
+        if (maxAmount >= 1_000_000)
+        {
+            scale = 1_000_000;
+            _chartYAxisLabel = L["Revenue"] + " (M$)";
+        }
+        else if (maxAmount >= 1_000)
+        {
+            scale = 1_000;
+            _chartYAxisLabel = L["Revenue"] + " (K$)";
+        }
+        else
+        {
+            scale = 1;
+            _chartYAxisLabel = L["Revenue"].Value;
+        }
+
         _salesChartSeries = new List<ChartSeries>
         {
             new ChartSeries
             {
-                Name = L["Revenue"],
+                Name = _chartYAxisLabel,
                 Data = _performance.DailySales
-                    .Select(d => (double)d.Amount)
-                    .ToArray()
-            },
-            new ChartSeries
-            {
-                Name = L["Orders"],
-                Data = _performance.DailySales
-                    .Select(d => (double)d.Count * 100) // Multiplicar por un factor para visualizar mejor
+                    .Select(d => Math.Round((double)d.Amount / scale, 2))
                     .ToArray()
             }
         };

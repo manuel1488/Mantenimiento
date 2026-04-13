@@ -163,6 +163,17 @@
     <value>View Details</value>
   </data>
 
+  <!-- Top Products Section -->
+  <data name="Top Products" xml:space="preserve">
+    <value>Top Products</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="No product sales data available" xml:space="preserve">
+    <value>No product sales data available</value>
+  </data>
+
   <!-- Error Messages -->
   <data name="Error loading dashboard data" xml:space="preserve">
     <value>Error loading dashboard data</value>

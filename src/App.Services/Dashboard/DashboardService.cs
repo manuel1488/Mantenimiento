@@ -46,7 +46,9 @@ public class DashboardService : IDashboardService
             var todayStart = _dateTime.ToUtc(currentDate.Date, timeZone);
             var todayEnd = _dateTime.ToUtc(currentDate.Date.AddDays(1).AddTicks(-1), timeZone);
 
-            var weekStart = _dateTime.ToUtc(currentDate.Date.AddDays(-(int)currentDate.DayOfWeek), timeZone);
+            // Week starts on Monday (DayOfWeek.Sunday=0 would give offset 0, making "week" = just today)
+            var daysSinceMonday = currentDate.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)currentDate.DayOfWeek - 1;
+            var weekStart = _dateTime.ToUtc(currentDate.Date.AddDays(-daysSinceMonday), timeZone);
             var monthStart = _dateTime.ToUtc(new DateTime(currentDate.Year, currentDate.Month, 1), timeZone);
 
             // Obtener ventas de hoy
@@ -180,6 +182,53 @@ public class DashboardService : IDashboardService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting recent sales");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<TopProductDto>> GetTopProductsAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int maxItems = 10,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
+            var currentDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, timeZone);
+
+            var utcStart = _dateTime.ToUtc(
+                (startDate?.Date ?? new DateTime(currentDate.Year, currentDate.Month, 1)),
+                timeZone);
+            var utcEnd = _dateTime.ToUtc(
+                (endDate?.Date ?? currentDate.Date).AddDays(1).AddTicks(-1),
+                timeZone);
+
+            var topProducts = await context.SaleDetails
+                .Where(d =>
+                    d.Sale.Status != App.Core.Enums.Shop.SaleStatus.Cancelled &&
+                    d.Sale.SaleDate >= utcStart &&
+                    d.Sale.SaleDate <= utcEnd)
+                .GroupBy(d => new { d.ProductId, d.Product.Name, d.Product.Code })
+                .Select(g => new TopProductDto
+                {
+                    ProductId = g.Key.ProductId,
+                    ProductName = g.Key.Name,
+                    ProductCode = g.Key.Code,
+                    UnitsSold = g.Sum(d => d.Quantity),
+                    Revenue = g.Sum(d => d.Total)
+                })
+                .OrderByDescending(p => p.UnitsSold)
+                .Take(maxItems)
+                .ToListAsync(cancellationToken);
+
+            return topProducts;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting top products");
             throw;
         }
     }

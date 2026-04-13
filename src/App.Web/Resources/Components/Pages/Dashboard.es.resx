@@ -163,6 +163,17 @@
     <value>Ver detalles</value>
   </data>
 
+  <!-- Top Products Section -->
+  <data name="Top Products" xml:space="preserve">
+    <value>Productos más vendidos</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>Unidades</value>
+  </data>
+  <data name="No product sales data available" xml:space="preserve">
+    <value>No hay datos de productos para el período</value>
+  </data>
+
   <!-- Error Messages -->
   <data name="Error loading dashboard data" xml:space="preserve">
     <value>Error al cargar los datos del panel</value>

@@ -1,6 +1,7 @@
 @using App.Core.DTOs.Settings
 @using App.Core.Enums.Shop
 @using MudBlazor
+@using System.Globalization
 
 @inject IStringLocalizer<PaymentEntryDialog> L
 
@@ -20,13 +21,15 @@
         @if (PaymentMethod.Type == PaymentMethodType.Cash)
         {
             <!-- Cash: primary field is what customer gives -->
-            <MudNumericField T="decimal" @bind-Value="_cashReceived"
+            <MudTextField T="string"
+                Value="@_cashText"
+                ValueChanged="@OnCashTextChanged"
                 Label="@L["Customer gives"]"
-                Format="C2" Min="0" Step="0.5M"
                 Variant="Variant.Outlined"
-                HideSpinButtons="true"
                 AutoFocus="true"
                 Immediate="true"
+                InputMode="InputMode.numeric"
+                Validation="@((Func<string, string?>)ValidateCash)"
                 Style="font-size:18px;" />
 
             <!-- Change / shortage display -->
@@ -90,18 +93,41 @@
     [Parameter] public PaymentEntryData? ExistingData { get; set; }
 
     private decimal _amount;
-    private decimal _cashReceived;
+    private string _cashText = string.Empty;
+    private decimal? _cashReceived;
     private string? _cardLastFour;
     private string? _reference;
 
+    private void OnCashTextChanged(string value)
+    {
+        _cashText = value;
+        _cashReceived = TryParseCash(value, out var parsed) ? parsed : null;
+    }
+
+    private static bool TryParseCash(string? value, out decimal result)
+    {
+        if (string.IsNullOrWhiteSpace(value)) { result = 0; return false; }
+        // Accept both culture decimal separator and period/comma interchangeably
+        return decimal.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out result)
+            || decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out result);
+    }
+
+    private string? ValidateCash(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null; // empty = not yet validated, Confirm stays disabled
+        if (!TryParseCash(value, out var parsed) || parsed <= 0)
+            return L["Enter a valid amount"];
+        return null;
+    }
+
     // For cash: change is positive (customer gets back) or negative (customer short)
-    private decimal CashChange => _cashReceived - RemainingAmount;
+    private decimal CashChange => (_cashReceived ?? 0) - RemainingAmount;
 
     // Amount actually applied to the sale for cash = min(received, remaining)
-    private decimal CashApplied => Math.Min(_cashReceived, RemainingAmount);
+    private decimal CashApplied => Math.Min(_cashReceived ?? 0, RemainingAmount);
 
     private bool IsValid => PaymentMethod.Type == PaymentMethodType.Cash
-        ? _cashReceived > 0
+        ? _cashReceived.HasValue && _cashReceived.Value > 0
         : _amount >= 0.01M;
 
     protected override void OnInitialized()
@@ -109,14 +135,19 @@
         if (ExistingData != null)
         {
             _amount = ExistingData.Amount;
-            _cashReceived = ExistingData.CashReceived > 0 ? ExistingData.CashReceived : ExistingData.Amount;
+            if (ExistingData.CashReceived > 0)
+            {
+                _cashReceived = ExistingData.CashReceived;
+                _cashText = ExistingData.CashReceived.ToString("G", CultureInfo.CurrentCulture);
+            }
             _cardLastFour = ExistingData.CardLastFour;
             _reference = ExistingData.Reference;
         }
         else
         {
             _amount = Math.Max(0.01M, RemainingAmount);
-            _cashReceived = PaymentMethod.Type == PaymentMethodType.Cash ? RemainingAmount : 0;
+            _cashText = string.Empty;
+            _cashReceived = null;
         }
     }
 
@@ -127,7 +158,7 @@
         var data = new PaymentEntryData
         {
             Amount = PaymentMethod.Type == PaymentMethodType.Cash ? CashApplied : _amount,
-            CashReceived = PaymentMethod.Type == PaymentMethodType.Cash ? _cashReceived : 0,
+            CashReceived = PaymentMethod.Type == PaymentMethodType.Cash ? (_cashReceived ?? 0) : 0,
             CardLastFour = _cardLastFour,
             Reference = _reference
         };

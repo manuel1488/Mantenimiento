@@ -4,6 +4,7 @@
 @using CardBrand = App.Core.Enums.Shop.CardBrand
 
 @inject IStringLocalizer<PaymentGroupDialog> L
+@inject IJSRuntime JS
 
 <MudDialog>
     <DialogContent>
@@ -27,7 +28,6 @@
                 Format="C2" Min="0" Step="0.5M"
                 Variant="Variant.Outlined"
                 HideSpinButtons="true"
-                AutoFocus="true"
                 Immediate="true" />
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding:14px 18px; border-radius:8px; background:@(CashChange >= 0 ? "#F1F8E9" : "#FFF3E0");">
@@ -186,6 +186,37 @@
             else
             {
                 _items.Add(new SubEntry { Amount = Math.Max(0.01M, TotalSaleRemaining) });
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(150);
+            if (IsCash)
+            {
+                await JS.InvokeVoidAsync("eval", @"
+                    var el = document.querySelector('.mud-dialog .mud-input-number-control input.mud-input-slot');
+                    if (el) {
+                        el.focus();
+                        el.value = '';
+                        el.addEventListener('focus', function() {
+                            if (!this.value || parseFloat(this.value) === 0) this.value = '';
+                        });
+                    }
+                ");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("eval", @"
+                    var inputs = document.querySelectorAll('.mud-dialog .mud-input-number-control input.mud-input-slot');
+                    inputs.forEach(function(el, i) {
+                        el.addEventListener('focus', function() { this.value = ''; });
+                        if (i === 0) { el.focus(); el.value = ''; }
+                    });
+                ");
             }
         }
     }
