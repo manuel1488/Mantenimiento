@@ -10,6 +10,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@L["Sale Ticket"]</title>
     <style>
+        @@page {
+            size: @(Model.TicketWidth)mm auto;
+            margin: 0;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -134,17 +139,6 @@
             font-weight: bold;
             vertical-align: middle;
             margin-left: 2px;
-        }
-
-        /* Per-item discount sub-row */
-        .discount-row td {
-            font-size: 9px;
-            padding: 0 1mm 1.5mm 0;
-            border-bottom: 1px dotted #000;
-        }
-
-        .discount-label {
-            padding-left: 6px;
         }
 
         .totals-section {
@@ -328,15 +322,6 @@
                         <td class="item-price-col">@displayUnitPrice.ToString("C")</td>
                         <td class="item-total-col">@detail.Total.ToString("C")</td>
                     </tr>
-                    @if (detail.DiscountPercentage > 0)
-                    {
-                        <tr class="discount-row">
-                            <td colspan="3" class="item-name-col">
-                                <span class="discount-label">  @L["Disc."] -@detail.DiscountPercentage.ToString("0.##")%</span>
-                            </td>
-                            <td class="item-total-col">-@displayDiscAmount.ToString("C")</td>
-                        </tr>
-                    }
                 }
             </tbody>
         </table>

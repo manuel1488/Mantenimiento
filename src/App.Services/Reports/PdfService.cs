@@ -106,19 +106,24 @@ public class PdfService : IPdfService
                 WaitUntil = new[] { WaitUntilNavigation.DOMContentLoaded }
             });
 
+            // Measure the actual rendered content height so the PDF is always one page
+            var bodyHandle = await page.QuerySelectorAsync("body");
+            var boundingBox = await bodyHandle!.BoundingBoxAsync();
+            var contentHeightPx = (int)Math.Ceiling(boundingBox?.Height ?? 600) + 10; // +10px safety margin
+
             // Configure PDF options specifically for thermal tickets
             var pdfOptions = new PdfOptions
             {
                 Format = null,
                 PrintBackground = true,
-                PreferCSSPageSize = true,
                 Width = $"{widthInMm}mm",
+                Height = $"{contentHeightPx}px",
                 MarginOptions = new MarginOptions
                 {
                     Top = "3mm",
                     Right = "3mm",
                     Bottom = "3mm",
-                    Left = "0mm"  // Sin margen izquierdo para maximizar el espacio
+                    Left = "0mm"
                 }
             };
 

@@ -86,6 +86,8 @@ RUN apt-get update \
         libxss1 \
         libxtst6 \
         fonts-liberation \
+        fonts-noto-core \
+        fonts-noto-extra \
         libappindicator3-1 \
         libnss3 \
         lsb-release \
