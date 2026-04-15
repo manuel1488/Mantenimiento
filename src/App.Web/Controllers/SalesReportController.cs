@@ -69,6 +69,38 @@ public class SalesReportController : ControllerBase
         }
     }
 
+    [HttpGet("salesHistory/excel")]
+    public async Task<IActionResult> ExportSalesHistoryToExcel([FromQuery] SalesReportRequestDto request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (request.PageSize <= 0)
+            {
+                return BadRequest(_localizer["PageSize must be greater than 0"]);
+            }
+
+            if (request.PageSize > _exportOptions.MaxExportRecords)
+            {
+                return BadRequest(_localizer["Export request exceeds maximum allowed records ({0})",
+                    _exportOptions.MaxExportRecords]);
+            }
+
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+            var (content, fileName) = await _reportService.ExportSalesHistoryToExcelAsync(
+                request, culture, cancellationToken);
+
+            return File(
+                content,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting sales history to Excel");
+            return StatusCode(500, _localizer["Error exporting sales history"]);
+        }
+    }
+
     [HttpGet("pdf")]
     public async Task<IActionResult> ExportToPdf([FromQuery] SalesReportRequestDto request, CancellationToken cancellationToken)
     {

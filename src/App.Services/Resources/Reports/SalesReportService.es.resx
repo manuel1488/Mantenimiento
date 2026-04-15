@@ -108,4 +108,31 @@
   <data name="Payment Method" xml:space="preserve">
     <value>Método de Pago</value>
   </data>
+  <data name="Sales History" xml:space="preserve">
+    <value>Historial de Ventas</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Tax Rate" xml:space="preserve">
+    <value>Tasa de Impuesto</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Sucursal</value>
+  </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Cotización</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Creado por</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelado</value>
+  </data>
 </root>

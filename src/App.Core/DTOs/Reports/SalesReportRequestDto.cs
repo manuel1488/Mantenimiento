@@ -12,5 +12,6 @@ public class SalesReportRequestDto
     public SaleType? SaleType { get; set; }
     public string? PaymentMethod { get; set; }
     public bool IncludeDetails { get; set; } = false;
+    public int? LocationId { get; set; }
     public int PageSize { get; set; } = 50;
 }

@@ -183,4 +183,16 @@
   <data name="View quotation" xml:space="preserve">
     <value>Ver cotización</value>
   </data>
+  <data name="Export Excel" xml:space="preserve">
+    <value>Exportar Excel</value>
+    <comment>Botón para exportar el historial de ventas a Excel</comment>
+  </data>
+  <data name="Max. {0:N0} records" xml:space="preserve">
+    <value>Máx. {0:N0} registros</value>
+    <comment>Subtítulo que muestra el máximo de registros para exportar</comment>
+  </data>
+  <data name="Error exporting sales history" xml:space="preserve">
+    <value>Error al exportar el historial de ventas</value>
+    <comment>Mensaje de error cuando falla la exportación</comment>
+  </data>
 </root>

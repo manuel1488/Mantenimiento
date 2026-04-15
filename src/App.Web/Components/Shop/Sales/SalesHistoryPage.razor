@@ -4,11 +4,13 @@
 @using App.Core.Interfaces
 @using App.Core.Interfaces.Billing
 @using App.Core.Interfaces.Shop
+@using App.Core.Options
 @using App.Shared.Services
 @using App.Web.Components.Shared.Dialogs
 @using App.Web.Components.Shop.Sales
 @using App.Web.Components.Shop.Invoices
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Options
 @using MudBlazor
 
 @inject ISaleService SaleService
@@ -23,6 +25,7 @@
 @inject ICurrentUserService CurrentUserService
 @inject ILocationService LocationService
 @inject IUserLocationService UserLocationService
+@inject IOptions<ExportOptions> ExportOptions
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewHistorySales)]
 
@@ -31,8 +34,20 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge">
     <MudGrid>
         <!-- Header Section -->
-        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4">
+        <MudItem xs="12" Class="d-flex justify-space-between align-center mb-4 flex-wrap gap-4">
             <MudText Typo="Typo.h4">@L["Sales History"]</MudText>
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.FileDownload"
+                       Disabled="@_exporting"
+                       OnClick="@ExportToExcel"
+                       Class="da-button-rounded">
+                <div class="d-flex flex-column">
+                    <MudText>@L["Export Excel"]</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @L["Max. {0:N0} records", ExportOptions.Value.MaxExportRecords]
+                    </MudText>
+                </div>
+            </MudButton>
         </MudItem>
         
         <!-- Filters Section -->
@@ -274,6 +289,7 @@
 
     private MudDataGrid<SaleDto> _dataGrid = null!;
     private bool _loading;
+    private bool _exporting;
     private string _searchString = "";
     private DateRange _dateRange = new();
     private SaleType? _selectedSaleType;
@@ -329,6 +345,46 @@
                 if (result.IsSuccess)
                     _locations = result.Value!;
             }
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        _exporting = true;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
+
+                queryParams["startDate"] = ToUtc(_dateRange.Start)?.ToString("o");
+                queryParams["endDate"] = ToUtc(_dateRange.End)?.ToString("o");
+
+                if (!string.IsNullOrWhiteSpace(_searchString))
+                    queryParams["searchString"] = _searchString;
+                if (_selectedStatus is not null)
+                    queryParams["status"] = _selectedStatus;
+                if (_selectedSaleType.HasValue)
+                    queryParams["saleType"] = _selectedSaleType.Value.ToString();
+                if (_selectedLocationId.HasValue)
+                    queryParams["locationId"] = _selectedLocationId.Value.ToString();
+
+                queryParams["pageSize"] = ExportOptions.Value.MaxExportRecords.ToString();
+
+                Navigation.NavigateTo($"/api/SalesReport/salesHistory/excel?{queryParams}", forceLoad: true);
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error exporting sales history to Excel");
+            Snackbar.Add(L["Error exporting sales history"], Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+            StateHasChanged();
         }
     }
 

@@ -474,6 +474,138 @@ public class SalesReportService : ISalesReportService
         }
     }
 
+    public async Task<(byte[] Content, string FileName)> ExportSalesHistoryToExcelAsync(
+        SalesReportRequestDto request,
+        CultureInfo culture,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.PageSize > _exportOptions.MaxExportRecords)
+            {
+                throw new InvalidOperationException(
+                    $"Export request exceeds maximum allowed records ({_exportOptions.MaxExportRecords})");
+            }
+
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+            var baseQuery = await GetBaseQueryAsync(context, request, cancellationToken);
+
+            var items = await baseQuery
+                .OrderByDescending(s => s.SaleDate)
+                .Include(s => s.Customer)
+                .Include(s => s.Location)
+                .Include(s => s.Quotation)
+                .Include(s => s.Details).ThenInclude(d => d.Product)
+                .Take(request.PageSize)
+                .Select(s => _mapper.Map<SaleDto>(s))
+                .ToListAsync(cancellationToken);
+
+            var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
+            var numberFormat = GetNumberFormat(culture);
+            var percentFormat = "0.##\\%";
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add(_localizer["Sales History"]);
+
+            // Headers
+            var headers = new[]
+            {
+                _localizer["Sale #"].Value,
+                _localizer["Date"].Value,
+                _localizer["Customer"].Value,
+                _localizer["Payment Method"].Value,
+                _localizer["Amount"].Value,
+                _localizer["Discount"].Value,
+                _localizer["Subtotal"].Value,
+                _localizer["Tax Rate"].Value,
+                _localizer["Tax"].Value,
+                _localizer["Total"].Value,
+                _localizer["Location"].Value,
+                _localizer["Quotation"].Value,
+                _localizer["Created By"].Value,
+                _localizer["Status"].Value
+            };
+
+            for (int col = 1; col <= headers.Length; col++)
+                ws.Cells[1, col].Value = headers[col - 1];
+
+            using (var headerRange = ws.Cells[1, 1, 1, headers.Length])
+            {
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 121, 107)); // teal
+                headerRange.Style.Font.Color.SetColor(Color.White);
+                headerRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            }
+
+            // Data rows
+            int row = 2;
+            foreach (var s in items)
+            {
+                var paymentMethod = s.Payments.FirstOrDefault()?.PaymentMethodName ?? string.Empty;
+                var subtotalAfterDiscount = s.Subtotal - s.DiscountAmount;
+                var dateStr = _dateTime.FormatToTimezone(s.SaleDate, timeZone);
+                var statusStr = s.Status == App.Core.Enums.Shop.SaleStatus.Created
+                    ? _localizer["Created"].Value
+                    : _localizer["Cancelled"].Value;
+
+                ws.Cells[row, 1].Value = s.Id;
+                ws.Cells[row, 2].Value = dateStr;
+                ws.Cells[row, 3].Value = s.CustomerName;
+                ws.Cells[row, 4].Value = paymentMethod;
+                ws.Cells[row, 5].Value = s.Subtotal;
+                ws.Cells[row, 5].Style.Numberformat.Format = numberFormat;
+                ws.Cells[row, 6].Value = s.DiscountAmount > 0 ? s.DiscountAmount : (object)string.Empty;
+                if (s.DiscountAmount > 0)
+                    ws.Cells[row, 6].Style.Numberformat.Format = numberFormat;
+                ws.Cells[row, 7].Value = subtotalAfterDiscount;
+                ws.Cells[row, 7].Style.Numberformat.Format = numberFormat;
+                ws.Cells[row, 8].Value = s.TaxRate * 100;
+                ws.Cells[row, 8].Style.Numberformat.Format = percentFormat;
+                ws.Cells[row, 9].Value = s.TaxAmount;
+                ws.Cells[row, 9].Style.Numberformat.Format = numberFormat;
+                ws.Cells[row, 10].Value = s.Total;
+                ws.Cells[row, 10].Style.Numberformat.Format = numberFormat;
+                ws.Cells[row, 11].Value = s.LocationName ?? string.Empty;
+                ws.Cells[row, 12].Value = s.QuotationNumber ?? string.Empty;
+                ws.Cells[row, 13].Value = s.CreatedBy ?? string.Empty;
+                ws.Cells[row, 14].Value = statusStr;
+
+                // Striped rows
+                if (row % 2 == 0)
+                {
+                    using var rowRange = ws.Cells[row, 1, row, headers.Length];
+                    rowRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    rowRange.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(245, 245, 245));
+                }
+
+                row++;
+            }
+
+            // Auto-fit and table
+            ws.Cells.AutoFitColumns();
+            if (items.Count > 0)
+            {
+                var tableRange = ws.Cells[1, 1, row - 1, headers.Length];
+                var table = ws.Tables.Add(tableRange, "SalesHistoryTable");
+                table.ShowHeader = true;
+                table.TableStyle = OfficeOpenXml.Table.TableStyles.Medium2;
+            }
+
+            var startStr = request.StartDate?.ToString("yyyyMMdd") ?? "all";
+            var endStr = request.EndDate?.ToString("yyyyMMdd") ?? "today";
+            var fileName = $"sales_history_{startStr}_to_{endStr}.xlsx";
+
+            return (await package.GetAsByteArrayAsync(cancellationToken), fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting sales history to Excel");
+            throw;
+        }
+    }
+
     #region Helper Methods
 
     private async Task<IQueryable<Sale>> GetBaseQueryAsync(
@@ -532,6 +664,12 @@ public class SalesReportService : ISalesReportService
         if (!string.IsNullOrWhiteSpace(request.PaymentMethod))
         {
             query = query.Where(s => s.Payments.Any(p => p.PaymentMethod.Name == request.PaymentMethod));
+        }
+
+        // Apply location filter
+        if (request.LocationId.HasValue)
+        {
+            query = query.Where(s => s.LocationId == request.LocationId.Value);
         }
 
         return query;

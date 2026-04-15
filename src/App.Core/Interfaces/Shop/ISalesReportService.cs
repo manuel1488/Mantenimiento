@@ -23,4 +23,9 @@ public interface ISalesReportService
     Task<byte[]> ExportSalesReportToPdfAsync(
         SalesReportRequestDto request,
         CancellationToken cancellationToken = default);
+
+    Task<(byte[] Content, string FileName)> ExportSalesHistoryToExcelAsync(
+        SalesReportRequestDto request,
+        CultureInfo culture,
+        CancellationToken cancellationToken = default);
 }
