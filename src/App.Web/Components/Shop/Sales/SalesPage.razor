@@ -1766,7 +1766,7 @@ else
 
                 if (isMexicoWithRfc && _pacSettings != null)
                 {
-                    if (_selectedCustomer.AutoInvoice)
+                    if (_selectedCustomer.FiscalProfile?.AutoInvoice == true)
                     {
                         // Silent auto-invoice: needs all CFDI fields (HasFiscalData) + PAC configured
                         if (_selectedCustomer.HasFiscalData && _pacSettings.IsConfigured)
@@ -1811,14 +1811,14 @@ else
             var dto = new CreateMexicoInvoiceDto
             {
                 SaleId = saleId,
-                CfdiUse = _selectedCustomer!.DefaultCfdiUse ?? "G03",
+                CfdiUse = _selectedCustomer!.FiscalProfile?.DefaultCfdiUse ?? "G03",
                 PaymentForm = ResolvePaymentFormCode(),
                 PaymentMethod = "PUE",
-                CustomerRfc = _selectedCustomer.TaxId ?? string.Empty,
-                CustomerLegalName = _selectedCustomer.LegalName ?? string.Empty,
-                CustomerPostalCode = _selectedCustomer.PostalCode ?? string.Empty,
-                CustomerFiscalRegime = _selectedCustomer.FiscalRegime ?? string.Empty,
-                SendToEmail = _selectedCustomer.SendInvoiceEmail ? _selectedCustomer.Email : null
+                CustomerRfc = _selectedCustomer.FiscalProfile?.TaxId ?? string.Empty,
+                CustomerLegalName = _selectedCustomer.FiscalProfile?.LegalName ?? string.Empty,
+                CustomerPostalCode = _selectedCustomer.FiscalProfile?.PostalCode ?? string.Empty,
+                CustomerFiscalRegime = _selectedCustomer.FiscalProfile?.FiscalRegime ?? string.Empty,
+                SendToEmail = (_selectedCustomer.FiscalProfile?.SendInvoiceEmail == true) ? _selectedCustomer.Email : null
             };
 
             var invoiceResult = await InvoiceService.CreateAndStampAsync(dto);
@@ -1841,13 +1841,13 @@ else
             { x => x.SaleId, saleId },
             { x => x.SaleTotal, saleTotal },
             { x => x.CustomerName, _selectedCustomer!.Name },
-            { x => x.CustomerRfc, _selectedCustomer.TaxId },
-            { x => x.CustomerLegalName, _selectedCustomer.LegalName },
-            { x => x.CustomerPostalCode, _selectedCustomer.PostalCode },
-            { x => x.CustomerFiscalRegime, _selectedCustomer.FiscalRegime },
+            { x => x.CustomerRfc, _selectedCustomer.FiscalProfile?.TaxId },
+            { x => x.CustomerLegalName, _selectedCustomer.FiscalProfile?.LegalName },
+            { x => x.CustomerPostalCode, _selectedCustomer.FiscalProfile?.PostalCode },
+            { x => x.CustomerFiscalRegime, _selectedCustomer.FiscalProfile?.FiscalRegime },
             { x => x.CustomerEmail, _selectedCustomer.Email },
-            { x => x.CustomerDefaultCfdiUse, _selectedCustomer.DefaultCfdiUse },
-            { x => x.CustomerSendEmail, _selectedCustomer.SendInvoiceEmail },
+            { x => x.CustomerDefaultCfdiUse, _selectedCustomer.FiscalProfile?.DefaultCfdiUse },
+            { x => x.CustomerSendEmail, _selectedCustomer.FiscalProfile?.SendInvoiceEmail ?? false },
             { x => x.AllowEditFiscalData, _pacSettings!.AllowEditFiscalDataInPrompt },
             { x => x.ResolvedPaymentForm, ResolvePaymentFormCode() }
         };

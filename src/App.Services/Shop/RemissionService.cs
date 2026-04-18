@@ -575,6 +575,7 @@ public class RemissionService : IRemissionService
 
         var remission = await context.Remissions
             .Include(r => r.Customer)
+                .ThenInclude(c => c.FiscalProfile)
             .Include(r => r.Location)
             .Include(r => r.Details)
             .FirstOrDefaultAsync(r => r.Id == id && r.IsDeleted == 0)
@@ -619,10 +620,10 @@ public class RemissionService : IRemissionService
         {
             RemissionNumber = remission.RemissionNumber,
             CustomerName = c.Name,
-            CustomerLegalName = c.LegalName,
+            CustomerLegalName = c.FiscalProfile?.LegalName,
             CustomerPhone = c.Phone,
             CustomerAddress = string.IsNullOrWhiteSpace(address) ? null : address,
-            CustomerTaxId = c.TaxId,
+            CustomerTaxId = c.FiscalProfile?.TaxId,
             RemissionDate = remission.RemissionDate,
             LocationName = remission.Location?.Name ?? string.Empty,
             Notes = remission.Notes,

@@ -1,0 +1,214 @@
+<div class="header">
+    <div>
+        {{ if has_logo }}
+        <img src="{{ logo_base64 }}" class="logo" alt="Logo" />
+        {{ end }}
+    </div>
+    <div class="company-info">
+        <div class="company-name">{{ company_name }}</div>
+    </div>
+</div>
+
+<div class="quotation-title">{{ label_quotation }} — {{ quotation_number }}</div>
+
+<div class="meta-grid">
+    <div class="meta-block">
+        <div class="meta-label">{{ label_date }}</div>
+        <div class="meta-value">{{ quote_date }}</div>
+    </div>
+    <div class="meta-block">
+        <div class="meta-label">{{ label_valid_until }}</div>
+        <div class="meta-value">
+            <span class="validity-badge">{{ valid_until }}</span>
+        </div>
+    </div>
+    <div class="meta-block">
+        <div class="meta-label">{{ label_quotation_number }}</div>
+        <div class="meta-value">{{ quotation_number }}</div>
+    </div>
+</div>
+
+<div class="info-row">
+    <div class="customer-section">
+        <div class="section-title">{{ label_customer }}</div>
+        <div class="customer-name">{{ customer_name }}</div>
+        {{ if has_contact_name }}
+        <div class="customer-contact">{{ customer_contact_name }}</div>
+        {{ end }}
+        {{ if has_customer_email }}
+        <div class="customer-detail">&#9993; {{ customer_email }}</div>
+        {{ end }}
+        {{ if has_customer_phone }}
+        <div class="customer-detail">&#9742; {{ customer_phone }}</div>
+        {{ end }}
+        {{ if has_customer_address }}
+        <div class="customer-detail">{{ customer_address }}</div>
+        {{ end }}
+    </div>
+
+    {{ if customer_has_fiscal_data }}
+    <div class="fiscal-section">
+        <div class="section-title">{{ label_fiscal_data }}</div>
+        {{ if customer_legal_name != "" }}
+        <div class="fiscal-legal-name">{{ customer_legal_name }}</div>
+        {{ end }}
+        <div class="fiscal-row">
+            {{ if customer_tax_id != "" }}
+            <div class="fiscal-item">
+                <div class="fiscal-item-label">{{ label_tax_id }}</div>
+                <div class="fiscal-item-value">{{ customer_tax_id }}</div>
+            </div>
+            {{ end }}
+            {{ if has_fiscal_regime }}
+            <div class="fiscal-item">
+                <div class="fiscal-item-label">{{ label_fiscal_regime }}</div>
+                <div class="fiscal-item-value">{{ customer_fiscal_regime }}</div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>{{ label_code }}</th>
+            <th>{{ label_product }}</th>
+            <th class="text-right">{{ label_qty }}</th>
+            <th class="text-right">{{ label_unit_price }}</th>
+            {{ if has_discounts }}
+            <th class="text-right">{{ label_discount }}</th>
+            {{ end }}
+            <th class="text-right">{{ label_tax }}</th>
+            <th class="text-right">{{ label_total }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ for item in details }}
+        <tr>
+            <td>{{ item.index }}</td>
+            <td>{{ item.product_code }}</td>
+            <td>{{ item.product_name }}</td>
+            <td class="text-right">{{ item.quantity }}</td>
+            <td class="text-right">{{ item.unit_price }}</td>
+            {{ if has_discounts }}
+            <td class="text-right">{{ item.discount_amount }}</td>
+            {{ end }}
+            <td class="text-right">{{ item.tax_amount }}</td>
+            <td class="text-right">{{ item.total }}</td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>
+
+<div class="totals-section">
+    <table class="totals-table">
+        <tr>
+            <td class="label">{{ label_subtotal }}</td>
+            <td class="value">{{ subtotal }}</td>
+        </tr>
+        {{ if has_discount }}
+        <tr>
+            <td class="label">{{ label_discount }}</td>
+            <td class="value">- {{ discount_amount }}</td>
+        </tr>
+        {{ end }}
+        <tr>
+            <td class="label">{{ label_tax }}</td>
+            <td class="value">{{ tax_amount }}</td>
+        </tr>
+        <tr class="total-row">
+            <td class="label">{{ label_total }}</td>
+            <td class="value">{{ total }}</td>
+        </tr>
+    </table>
+</div>
+
+{{ if has_notes }}
+<div class="notes-section">
+    <div class="notes-title">{{ label_notes_conditions }}</div>
+    <div class="notes-text">{{ notes }}</div>
+</div>
+{{ end }}
+
+{{ if has_payment_terms }}
+<div class="payment-terms-section">
+    <div class="payment-terms-title">{{ label_payment_terms }}</div>
+    <div class="payment-terms-text">{{ payment_terms_text }}</div>
+</div>
+{{ end }}
+
+{{ if show_bank_details }}
+<div class="bank-section">
+    <div class="bank-section-title">{{ label_wire_transfer_details }}</div>
+    <div class="bank-grid">
+        {{ if has_bank_beneficiary }}
+        <div class="bank-field">
+            <div class="bank-field-label">{{ label_beneficiary }}</div>
+            <div class="bank-field-value">{{ bank_beneficiary }}</div>
+        </div>
+        {{ end }}
+        {{ if has_bank_rfc }}
+        <div class="bank-field">
+            <div class="bank-field-label">{{ label_rfc }}</div>
+            <div class="bank-field-value">{{ bank_rfc }}</div>
+        </div>
+        {{ end }}
+        {{ if has_bank_name }}
+        <div class="bank-field">
+            <div class="bank-field-label">{{ label_bank }}</div>
+            <div class="bank-field-value">{{ bank_name }}</div>
+        </div>
+        {{ end }}
+        {{ if has_bank_account_number }}
+        <div class="bank-field">
+            <div class="bank-field-label">{{ label_account_number }}</div>
+            <div class="bank-field-value">{{ bank_account_number }}</div>
+        </div>
+        {{ end }}
+        {{ if has_bank_clabe }}
+        <div class="bank-field" style="flex-basis: 100%;">
+            <div class="bank-field-label">CLABE</div>
+            <div class="bank-field-value bank-clabe">{{ bank_clabe_number }}</div>
+        </div>
+        {{ end }}
+        {{ if has_bank_swift }}
+        <div class="bank-field">
+            <div class="bank-field-label">SWIFT / BIC</div>
+            <div class="bank-field-value">{{ bank_swift }}</div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}
+
+<div class="end-of-document">— {{ label_end_of_document }} —</div>
+
+{{ if show_contact_info }}
+<div class="contact-section">
+    {{ if has_contact_website }}
+    <span class="contact-item">&#127760; {{ contact_website }}</span>
+    {{ end }}
+    {{ if has_contact_phone }}
+    <span class="contact-item">&#9742; {{ contact_phone }}</span>
+    {{ end }}
+    {{ if has_contact_email }}
+    <span class="contact-item">&#9993; {{ contact_email }}</span>
+    {{ end }}
+    {{ if has_contact_whatsapp }}
+    <span class="contact-item"><strong>W</strong> {{ contact_whatsapp }}</span>
+    {{ end }}
+    {{ if has_contact_facebook }}
+    <span class="contact-item"><strong>fb</strong> {{ contact_facebook }}</span>
+    {{ end }}
+    {{ if has_contact_instagram }}
+    <span class="contact-item"><strong>ig</strong> {{ contact_instagram }}</span>
+    {{ end }}
+</div>
+{{ end }}
+
+<div class="footer">
+    {{ company_name }} — {{ label_valid_until_footer }} {{ valid_until }}
+</div>

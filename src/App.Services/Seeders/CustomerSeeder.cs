@@ -57,10 +57,10 @@ public class CustomerSeeder : ICustomerSeeder
             {
                 Id = PUBLIC_CUSTOMER_ID,
                 Name = "Público General",
-                LegalName = "Público General",
                 CountryCode = CountryCodes.Mexico, // Por defecto México
                 CreatedBy = _systemUser,
                 CreatedAt = _dateTime.Now
+                // No FiscalProfile — Público General uses Global Invoices (XAXX010101000)
             };
 
             context.Customers.Add(publicCustomer);

@@ -147,6 +147,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             await using var context = await _contextFactory.CreateDbContextAsync();
             var sale = await context.Sales
                 .Include(s => s.Customer)
+                    .ThenInclude(c => c.FiscalProfile)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                         .ThenInclude(p => p.MexicoProductService)
@@ -363,6 +364,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             // Load sale with details for PDF data
             var sale = await context.Sales
                 .Include(s => s.Customer)
+                    .ThenInclude(c => c.FiscalProfile)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                         .ThenInclude(p => p.MexicoProductService)
@@ -466,6 +468,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             // Load sale with details
             var sale = await context.Sales
                 .Include(s => s.Customer)
+                    .ThenInclude(c => c.FiscalProfile)
                 .Include(s => s.Details)
                     .ThenInclude(d => d.Product)
                         .ThenInclude(p => p.MexicoProductService)
@@ -508,12 +511,12 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     ? TimeZoneInfo.ConvertTimeFromUtc(invoice.RequestedInvoiceDate.Value, issuerTimeZone)
                     : TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
 
-                // Use fresh customer data from DB (not stale invoice data)
+                // Use fresh customer fiscal data from DB (not stale invoice data)
                 // so that corrections to customer fiscal info are picked up on retry
-                var freshRfc = sale.Customer?.TaxId ?? invoice.CustomerRfc;
-                var freshLegalName = sale.Customer?.LegalName ?? invoice.CustomerLegalName;
-                var freshPostalCode = sale.Customer?.PostalCode ?? invoice.CustomerPostalCode;
-                var freshFiscalRegime = sale.Customer?.FiscalRegime ?? invoice.CustomerFiscalRegime;
+                var freshRfc = sale.Customer?.FiscalProfile?.TaxId ?? invoice.CustomerRfc;
+                var freshLegalName = sale.Customer?.FiscalProfile?.LegalName ?? invoice.CustomerLegalName;
+                var freshPostalCode = sale.Customer?.FiscalProfile?.PostalCode ?? invoice.CustomerPostalCode;
+                var freshFiscalRegime = sale.Customer?.FiscalProfile?.FiscalRegime ?? invoice.CustomerFiscalRegime;
 
                 // Update invoice record with corrected customer data
                 invoice.CustomerRfc = freshRfc;
@@ -679,6 +682,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             .AsNoTracking()
             .Include(i => i.Sale)
                 .ThenInclude(s => s.Customer)
+                    .ThenInclude(c => c.FiscalProfile)
             .Where(i => i.SaleId == saleId)
             .OrderByDescending(i => i.Folio)
             .Select(i => new MexicoInvoiceSummaryDto
@@ -1238,6 +1242,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         var sale = await context.Sales
             .AsNoTracking()
             .Include(s => s.Customer)
+                .ThenInclude(c => c.FiscalProfile)
             .FirstOrDefaultAsync(s => s.Id == saleId);
 
         if (sale == null)
@@ -1273,6 +1278,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             var sale = await context.Sales
                 .AsNoTracking()
                 .Include(s => s.Customer)
+                    .ThenInclude(c => c.FiscalProfile)
                 .Include(s => s.Payments)
                     .ThenInclude(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(s => s.Id == saleId);
@@ -1309,11 +1315,11 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 SaleDate = sale.CreatedAt,
                 CustomerName = sale.Customer?.Name ?? string.Empty,
                 CustomerEmail = sale.Customer?.Email,
-                CustomerSendInvoiceEmail = sale.Customer?.SendInvoiceEmail ?? false,
-                CustomerRfc = sale.Customer?.TaxId,
-                CustomerLegalName = sale.Customer?.LegalName,
-                CustomerPostalCode = sale.Customer?.PostalCode,
-                CustomerFiscalRegime = sale.Customer?.FiscalRegime,
+                CustomerSendInvoiceEmail = sale.Customer?.FiscalProfile?.SendInvoiceEmail ?? false,
+                CustomerRfc = sale.Customer?.FiscalProfile?.TaxId,
+                CustomerLegalName = sale.Customer?.FiscalProfile?.LegalName,
+                CustomerPostalCode = sale.Customer?.FiscalProfile?.PostalCode,
+                CustomerFiscalRegime = sale.Customer?.FiscalProfile?.FiscalRegime,
                 ResolvedPaymentForm = ResolvePaymentFormFromSale(sale, policy)
             };
 

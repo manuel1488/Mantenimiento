@@ -13,6 +13,11 @@
   <data name="Quote Date" xml:space="preserve"><value>Quote Date</value></data>
   <data name="Valid Until" xml:space="preserve"><value>Valid Until</value></data>
   <data name="Sent" xml:space="preserve"><value>Sent</value></data>
+  <data name="Created by" xml:space="preserve"><value>Created by</value></data>
+  <data name="Authorized by" xml:space="preserve"><value>Authorized by</value></data>
+  <data name="Rejected by" xml:space="preserve"><value>Rejected by</value></data>
+  <data name="Marked expired by" xml:space="preserve"><value>Marked expired by</value></data>
+  <data name="Converted by" xml:space="preserve"><value>Converted by</value></data>
   <data name="Notes &amp; Conditions" xml:space="preserve"><value>Notes &amp; Conditions</value></data>
   <data name="Product" xml:space="preserve"><value>Product</value></data>
   <data name="Qty" xml:space="preserve"><value>Qty</value></data>

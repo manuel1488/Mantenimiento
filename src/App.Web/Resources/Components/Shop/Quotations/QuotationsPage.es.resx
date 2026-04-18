@@ -36,6 +36,7 @@
   <data name="Delete" xml:space="preserve"><value>Eliminar</value></data>
   <data name="Edit Quotation" xml:space="preserve"><value>Editar cotización</value></data>
   <data name="Send Quotation" xml:space="preserve"><value>Enviar cotización</value></data>
+  <data name="Created by" xml:space="preserve"><value>Generado por</value></data>
   <data name="Status updated" xml:space="preserve"><value>Estado actualizado</value></data>
   <data name="Quotation deleted" xml:space="preserve"><value>Cotización eliminada</value></data>
   <data name="Confirm Delete" xml:space="preserve"><value>Confirmar eliminación</value></data>

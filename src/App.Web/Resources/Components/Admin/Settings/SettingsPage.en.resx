@@ -84,4 +84,7 @@
   <data name="Invoice Template" xml:space="preserve">
     <value>Invoice Template</value>
   </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Quotation</value>
+  </data>
 </root>

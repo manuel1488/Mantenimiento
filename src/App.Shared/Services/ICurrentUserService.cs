@@ -4,7 +4,7 @@ public interface ICurrentUserService
 {
     string UserId { get; }
     string? UserName { get; }
-    string FullName { get; }
+    string? FullName { get; }
 
     // Location context
     int? ActiveLocationId { get; }

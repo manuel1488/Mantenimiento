@@ -15,6 +15,15 @@
   <data name="General Information" xml:space="preserve">
     <value>General Information</value>
   </data>
+  <data name="Commercial Data" xml:space="preserve">
+    <value>Commercial Data</value>
+  </data>
+  <data name="Fiscal Data" xml:space="preserve">
+    <value>Fiscal Data</value>
+  </data>
+  <data name="This customer has no fiscal profile. Add one to enable invoicing." xml:space="preserve">
+    <value>This customer has no fiscal profile. Add one to enable invoicing.</value>
+  </data>
   <data name="Trade Name" xml:space="preserve">
     <value>Trade Name</value>
   </data>
@@ -24,11 +33,32 @@
   <data name="Tax ID" xml:space="preserve">
     <value>Tax ID</value>
   </data>
+  <data name="Tax ID / RFC" xml:space="preserve">
+    <value>Tax ID / RFC</value>
+  </data>
+  <data name="Legal Name / Razón Social" xml:space="preserve">
+    <value>Legal Name / Razón Social</value>
+  </data>
+  <data name="Fiscal Email" xml:space="preserve">
+    <value>Fiscal Email</value>
+  </data>
   <data name="Country" xml:space="preserve">
     <value>Country</value>
   </data>
+  <data name="Commercial Address" xml:space="preserve">
+    <value>Commercial Address</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Address</value>
+  </data>
+  <data name="Fiscal Address" xml:space="preserve">
+    <value>Fiscal Address</value>
+  </data>
+  <data name="Fiscal Postal Code" xml:space="preserve">
+    <value>Fiscal Postal Code</value>
+  </data>
+  <data name="Mexican Tax Numbers" xml:space="preserve">
+    <value>Mexican Tax Numbers</value>
   </data>
   <data name="Street" xml:space="preserve">
     <value>Street</value>

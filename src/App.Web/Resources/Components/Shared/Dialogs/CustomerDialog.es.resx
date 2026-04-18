@@ -1,11 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>  
+  <!-- Pestañas -->
+  <data name="Commercial Data" xml:space="preserve">
+    <value>Datos Comerciales</value>
+  </data>
+  <data name="Fiscal Data" xml:space="preserve">
+    <value>Datos Fiscales</value>
+  </data>
+  <data name="This customer has fiscal data" xml:space="preserve">
+    <value>Este cliente tiene datos fiscales</value>
+  </data>
+
+  <!-- Secciones de dirección -->
+  <data name="Commercial Address" xml:space="preserve">
+    <value>Dirección Comercial</value>
+  </data>
+  <data name="Fiscal Address" xml:space="preserve">
+    <value>Domicilio Fiscal</value>
+  </data>
+  <data name="Fiscal Postal Code" xml:space="preserve">
+    <value>Código Postal Fiscal</value>
+  </data>
+  <data name="Required for CFDI stamping (Mexico)" xml:space="preserve">
+    <value>Requerido para timbrado CFDI (México)</value>
+  </data>
+
+  <!-- Datos fiscales -->
+  <data name="Tax ID / RFC" xml:space="preserve">
+    <value>RFC/NIT</value>
+  </data>
+  <data name="Tax ID is required" xml:space="preserve">
+    <value>El RFC/NIT es requerido</value>
+  </data>
+  <data name="Legal Name / Razón Social" xml:space="preserve">
+    <value>Razón Social</value>
+  </data>
+  <data name="RFC reserved for Público General — use Global Invoices" xml:space="preserve">
+    <value>RFC reservado para Público General — usa Facturas Globales</value>
+  </data>
+  <data name="RFC XAXX010101000 is reserved for Público General" xml:space="preserve">
+    <value>El RFC XAXX010101000 está reservado para Público General</value>
+  </data>
+
   <!-- Información General -->
   <data name="Trade Name" xml:space="preserve">
     <value>Nombre Comercial</value>
   </data>
+  <data name="Name / Trade Name" xml:space="preserve">
+    <value>Nombre / Nombre Comercial</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
   <data name="Trade name is required" xml:space="preserve">
     <value>El nombre comercial es requerido</value>
+  </data>
+  <data name="Contact Name" xml:space="preserve">
+    <value>Nombre de Contacto</value>
+  </data>
+  <data name="e.g. Juan Pérez García" xml:space="preserve">
+    <value>ej. Juan Pérez García</value>
+  </data>
+  <data name="Person to address quotations and invoices to" xml:space="preserve">
+    <value>Persona a quien dirigir cotizaciones y facturas</value>
+  </data>
+  <data name="Fiscal Email" xml:space="preserve">
+    <value>Correo Fiscal</value>
+  </data>
+  <data name="For invoice delivery. Leave blank to use the commercial email." xml:space="preserve">
+    <value>Para envío de facturas. Dejar vacío para usar el correo comercial.</value>
   </data>
   <data name="Legal Name" xml:space="preserve">
     <value>Razón Social</value>

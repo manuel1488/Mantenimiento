@@ -681,6 +681,9 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IEmailTemplateSeeder>(sp => new EmailTemplateSeeder(
         sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
         sp.GetRequiredService<ILogger<EmailTemplateSeeder>>()));
+    services.AddScoped<IQuotationSettingsSeeder>(sp => new QuotationSettingsSeeder(
+        sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
+        sp.GetRequiredService<ILogger<QuotationSettingsSeeder>>()));
 
     services.AddSingleton<IFileProvider>(new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
@@ -728,6 +731,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<IBulkLabelService, App.Services.Labels.BulkLabelService>();
     builder.Services.AddScoped<IDocumentSequenceService, DocumentSequenceService>();
     builder.Services.AddScoped<IQuotationService, QuotationService>();
+    builder.Services.AddScoped<IQuotationSettingsService, QuotationSettingsService>();
     builder.Services.AddScoped<IRemissionService, RemissionService>();
 
     // Mexico CFDI billing
@@ -795,6 +799,7 @@ async Task InitializeDatabase(WebApplication app)
     var customerSeeder = scope.ServiceProvider.GetRequiredService<ICustomerSeeder>();
     var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<IPaymentMethodSeeder>();
     var emailTemplateSeeder = scope.ServiceProvider.GetRequiredService<IEmailTemplateSeeder>();
+    var quotationSettingsSeeder = scope.ServiceProvider.GetRequiredService<IQuotationSettingsSeeder>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
@@ -805,6 +810,7 @@ async Task InitializeDatabase(WebApplication app)
     await customerSeeder.SeedAsync();
     await paymentMethodSeeder.SeedAsync();
     await emailTemplateSeeder.SeedAsync();
+    await quotationSettingsSeeder.SeedAsync();
 }
 
 #endregion

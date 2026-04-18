@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace App.Core.DTOs.Customer;
 
@@ -8,11 +8,8 @@ public class UpdateCustomerDto
     [StringLength(100)]
     public string Name { get; set; } = null!;
 
-    [StringLength(150)]
-    public string LegalName { get; set; } = null!;
-
-    [StringLength(20)]
-    public string? TaxId { get; set; }
+    [StringLength(100)]
+    public string? ContactName { get; set; }
 
     [EmailAddress]
     [StringLength(100)]
@@ -21,6 +18,7 @@ public class UpdateCustomerDto
     [StringLength(20)]
     public string? Phone { get; set; }
 
+    // Commercial address
     [StringLength(100)]
     public string? Street { get; set; }
 
@@ -42,29 +40,10 @@ public class UpdateCustomerDto
     [StringLength(10)]
     public string? PostalCode { get; set; }
 
-    [StringLength(20)]
-    public string? CaGstNumber { get; set; }
-
-    [StringLength(20)]
-    public string? CaPstNumber { get; set; }
-
-    [StringLength(20)]
-    public string? CaHstNumber { get; set; }
-
-    [StringLength(20)]
-    public string? CaQstNumber { get; set; }
-
     [Required]
     [StringLength(3)]
     public string CountryCode { get; set; } = null!;
 
-    // Mexico fiscal data
-    [StringLength(5)]
-    public string? FiscalRegime { get; set; }
-
-    [StringLength(10)]
-    public string? DefaultCfdiUse { get; set; }
-
-    public bool AutoInvoice { get; set; }
-    public bool SendInvoiceEmail { get; set; }
+    // Null = do not touch fiscal profile; provide to upsert fiscal data
+    public UpsertCustomerFiscalProfileDto? FiscalProfile { get; set; }
 }

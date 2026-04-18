@@ -86,14 +86,7 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
-    public string FullName
-    {
-        get
-        {
-            return GetCurrentUser()?.FullName ??
-                throw new InvalidOperationException("Unable to determine user's full name");
-        }
-    }
+    public string? FullName => GetCurrentUser()?.FullName ?? UserName;
 
     public int? ActiveLocationId
     {

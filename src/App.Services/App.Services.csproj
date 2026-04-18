@@ -10,6 +10,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\EmailTemplates\**\*.html" />
     <EmbeddedResource Include="Resources\EmailTemplates\**\*.css" />
+    <EmbeddedResource Include="Resources\PdfTemplates\**\*.html" />
+    <EmbeddedResource Include="Resources\PdfTemplates\**\*.css" />
   </ItemGroup>
 
   <ItemGroup>

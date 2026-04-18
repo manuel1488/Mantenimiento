@@ -82,8 +82,8 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="@L["Trade Name"]">@context.Name</MudTd>
-                    <MudTd DataLabel="@L["Legal Name"]">@context.LegalName</MudTd>
-                    <MudTd DataLabel="@L["Tax ID"]">@context.TaxId</MudTd>
+                    <MudTd DataLabel="@L["Legal Name"]">@context.FiscalProfile?.LegalName</MudTd>
+                    <MudTd DataLabel="@L["Tax ID"]">@context.FiscalProfile?.TaxId</MudTd>
                     <MudTd DataLabel="@L["Email"]">@context.Email</MudTd>
                     <MudTd DataLabel="@L["Phone"]">@context.Phone</MudTd>
                     <MudTd DataLabel="@L["Country"]">

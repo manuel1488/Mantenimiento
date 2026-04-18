@@ -214,12 +214,12 @@
                                         </MudListItem>
                                     }
 
-                                    @if (!string.IsNullOrEmpty(_customer.FiscalRegime))
+                                    @if (!string.IsNullOrEmpty(_customer.FiscalProfile?.FiscalRegime))
                                     {
                                         <MudListItem>
                                             <MudText Typo="Typo.body2">
                                                 <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="d-inline">@L["Fiscal Regime"]: </MudText>
-                                                @_customer.FiscalRegime
+                                                @_customer.FiscalProfile.FiscalRegime
                                             </MudText>
                                         </MudListItem>
                                     }

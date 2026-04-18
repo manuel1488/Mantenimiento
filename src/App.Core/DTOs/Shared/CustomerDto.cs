@@ -1,13 +1,15 @@
-﻿using App.Core.DTOs.Shared;
+using App.Core.DTOs.Customer;
+using App.Core.DTOs.Shared;
 
 namespace App.Core.DTOs.Customer;
 
 public class CustomerDto : AuditableDto
 {
     public long Id { get; set; }
+
+    // Commercial fields
     public string Name { get; set; } = null!;
-    public string LegalName { get; set; } = null!;
-    public string? TaxId { get; set; }
+    public string? ContactName { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Street { get; set; }
@@ -17,17 +19,14 @@ public class CustomerDto : AuditableDto
     public string? City { get; set; }
     public string? State { get; set; }
     public string? PostalCode { get; set; }
-    public string? CaGstNumber { get; set; }
-    public string? CaPstNumber { get; set; }
-    public string? CaHstNumber { get; set; }
-    public string? CaQstNumber { get; set; }
     public string CountryCode { get; set; } = null!;
     public bool IsActive { get; set; }
 
-    // Mexico fiscal data
-    public string? FiscalRegime { get; set; }
-    public bool HasFiscalData { get; set; }
-    public string? DefaultCfdiUse { get; set; }
-    public bool AutoInvoice { get; set; }
-    public bool SendInvoiceEmail { get; set; }
+    // Optional fiscal profile
+    public CustomerFiscalProfileDto? FiscalProfile { get; set; }
+
+    // Convenience accessors — derived from FiscalProfile
+    public bool HasFiscalData => FiscalProfile != null;
+    public string? TaxId => FiscalProfile?.TaxId;
+    public string? LegalName => FiscalProfile?.LegalName;
 }

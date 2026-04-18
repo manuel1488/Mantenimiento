@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 
 using App.Core.DTOs.Customer;
 using App.Core.Interfaces;
@@ -47,18 +47,19 @@ public class CustomerService : ICustomerService
     {
         try
         {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-            IQueryable<Customer> query = _context.Customers
-                .AsNoTracking();
+            IQueryable<Customer> query = context.Customers
+                .AsNoTracking()
+                .Include(c => c.FiscalProfile);
 
-            // Apply filters
             if (!string.IsNullOrWhiteSpace(searchString))
             {
                 query = query.Where(x =>
                     x.Name.Contains(searchString) ||
-                    (x.TaxId != null && x.TaxId.Contains(searchString)) ||
-                    (x.Email != null && x.Email.Contains(searchString)));
+                    (x.Email != null && x.Email.Contains(searchString)) ||
+                    (x.FiscalProfile != null && x.FiscalProfile.TaxId.Contains(searchString)) ||
+                    (x.FiscalProfile != null && x.FiscalProfile.LegalName.Contains(searchString)));
             }
 
             if (!string.IsNullOrWhiteSpace(countryCode))
@@ -66,10 +67,8 @@ public class CustomerService : ICustomerService
                 query = query.Where(x => x.CountryCode == countryCode);
             }
 
-            // Get total count
             var totalCount = await query.CountAsync();
 
-            // Apply pagination and mapping
             var items = await query
                 .OrderBy(x => x.Name)
                 .Skip((page - 1) * pageSize)
@@ -90,10 +89,11 @@ public class CustomerService : ICustomerService
     {
         try
         {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var customer = await _context.Customers
+            var customer = await context.Customers
                 .AsNoTracking()
+                .Include(c => c.FiscalProfile)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             return customer != null ? _mapper.Map<CustomerDto>(customer) : null;
@@ -109,13 +109,15 @@ public class CustomerService : ICustomerService
     {
         try
         {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var customer = await _context.Customers
+            var customer = await context.Customers
                 .AsNoTracking()
+                .Include(c => c.FiscalProfile)
                 .FirstOrDefaultAsync(x =>
-                    x.TaxId == taxId &&
-                    x.CountryCode == countryCode);
+                    x.CountryCode == countryCode &&
+                    x.FiscalProfile != null &&
+                    x.FiscalProfile.TaxId == taxId);
 
             return customer != null ? _mapper.Map<CustomerDto>(customer) : null;
         }
@@ -144,44 +146,33 @@ public class CustomerService : ICustomerService
     {
         try
         {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-            // Check if customer with same tax ID already exists
-            if (!string.IsNullOrEmpty(createDto.TaxId))
+            // Validate fiscal profile if provided
+            if (createDto.FiscalProfile != null)
             {
-                var exists = await _context.Customers
-                    .AnyAsync(x =>
-                        x.TaxId == createDto.TaxId &&
-                        x.CountryCode == createDto.CountryCode);
-
-                if (exists)
-                {
-                    throw new InvalidOperationException(
-                        _localizer["Customer with tax ID {0} already exists", createDto.TaxId]);
-                }
+                await ValidateFiscalProfileTaxIdAsync(context, createDto.FiscalProfile.TaxId,
+                    createDto.CountryCode, excludeCustomerId: null);
             }
 
             var customer = _mapper.Map<Customer>(createDto);
 
-            // Público General (XAXX010101000) is covered by global invoices — never auto-invoice
-            if (string.Equals(customer.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
+            var currentUser = _currentUserService.FullName ?? "Unknown";
+            var now = _dateTime.Now;
+            customer.CreatedBy = currentUser;
+            customer.CreatedAt = now;
+
+            if (createDto.FiscalProfile != null)
             {
-                customer.AutoInvoice = false;
-                customer.SendInvoiceEmail = false;
+                var profile = _mapper.Map<CustomerFiscalProfile>(createDto.FiscalProfile);
+                ApplyPublicGeneralRules(profile);
+                profile.CreatedBy = currentUser;
+                profile.CreatedAt = now;
+                customer.FiscalProfile = profile;
             }
 
-            // Compute fiscal readiness flag
-            customer.HasFiscalData = customer.CountryCode == "MX"
-                && !string.IsNullOrEmpty(customer.TaxId)
-                && !string.IsNullOrEmpty(customer.PostalCode)
-                && !string.IsNullOrEmpty(customer.FiscalRegime);
-
-            // Set audit fields
-            customer.CreatedBy = _currentUserService.FullName ?? "Unknow";
-            customer.CreatedAt = _dateTime.Now;
-
-            _context.Customers.Add(customer);
-            await _context.SaveChangesAsync();
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
 
             return _mapper.Map<CustomerDto>(customer);
         }
@@ -196,55 +187,56 @@ public class CustomerService : ICustomerService
     {
         try
         {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var customer = await _context.Customers
+            var customer = await context.Customers
+                .Include(c => c.FiscalProfile)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (customer == null)
-            {
-                throw new InvalidOperationException(
-                    _localizer["Customer not found with ID {0}", id]);
-            }
+                throw new InvalidOperationException(_localizer["Customer not found with ID {0}", id]);
 
-            // Check if tax ID is being changed and if new one already exists
-            if (!string.IsNullOrEmpty(updateDto.TaxId) &&
-                updateDto.TaxId != customer.TaxId)
+            // Validate fiscal TaxId uniqueness if being changed
+            if (updateDto.FiscalProfile != null)
             {
-                var exists = await _context.Customers
-                    .AnyAsync(x =>
-                        x.Id != id &&
-                        x.TaxId == updateDto.TaxId &&
-                        x.CountryCode == updateDto.CountryCode);
-
-                if (exists)
+                var currentTaxId = customer.FiscalProfile?.TaxId;
+                if (updateDto.FiscalProfile.TaxId != currentTaxId)
                 {
-                    throw new InvalidOperationException(
-                        _localizer["Customer with tax ID {0} already exists", updateDto.TaxId]);
+                    await ValidateFiscalProfileTaxIdAsync(context, updateDto.FiscalProfile.TaxId,
+                        updateDto.CountryCode, excludeCustomerId: id);
                 }
             }
 
-            // Update properties
+            // Update commercial fields
             _mapper.Map(updateDto, customer);
 
-            // Público General (XAXX010101000) is covered by global invoices — never auto-invoice
-            if (string.Equals(customer.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
+            var currentUser = _currentUserService.UserId ?? "Unknown";
+            var now = _dateTime.Now;
+            customer.ModifiedBy = currentUser;
+            customer.ModifiedAt = now;
+
+            // Handle fiscal profile upsert
+            if (updateDto.FiscalProfile != null)
             {
-                customer.AutoInvoice = false;
-                customer.SendInvoiceEmail = false;
+                if (customer.FiscalProfile == null)
+                {
+                    var profile = _mapper.Map<CustomerFiscalProfile>(updateDto.FiscalProfile);
+                    profile.CustomerId = customer.Id;
+                    ApplyPublicGeneralRules(profile);
+                    profile.CreatedBy = currentUser;
+                    profile.CreatedAt = now;
+                    customer.FiscalProfile = profile;
+                }
+                else
+                {
+                    _mapper.Map(updateDto.FiscalProfile, customer.FiscalProfile);
+                    ApplyPublicGeneralRules(customer.FiscalProfile);
+                    customer.FiscalProfile.ModifiedBy = currentUser;
+                    customer.FiscalProfile.ModifiedAt = now;
+                }
             }
 
-            // Recompute fiscal readiness flag after update
-            customer.HasFiscalData = customer.CountryCode == "MX"
-                && !string.IsNullOrEmpty(customer.TaxId)
-                && !string.IsNullOrEmpty(customer.PostalCode)
-                && !string.IsNullOrEmpty(customer.FiscalRegime);
-
-            // Update audit fields
-            customer.ModifiedBy = _currentUserService.UserId;
-            customer.ModifiedAt = _dateTime.Now;
-
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return _mapper.Map<CustomerDto>(customer);
         }
@@ -255,40 +247,98 @@ public class CustomerService : ICustomerService
         }
     }
 
+    public async Task<CustomerDto> UpsertFiscalProfileAsync(long customerId, UpsertCustomerFiscalProfileDto? fiscalProfileDto)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var customer = await context.Customers
+                .Include(c => c.FiscalProfile)
+                .FirstOrDefaultAsync(x => x.Id == customerId);
+
+            if (customer == null)
+                throw new InvalidOperationException(_localizer["Customer not found with ID {0}", customerId]);
+
+            var currentUser = _currentUserService.UserId ?? "Unknown";
+            var now = _dateTime.Now;
+
+            if (fiscalProfileDto == null)
+            {
+                if (customer.FiscalProfile != null)
+                {
+                    context.CustomerFiscalProfiles.Remove(customer.FiscalProfile);
+                    customer.FiscalProfile = null;
+                }
+            }
+            else
+            {
+                var currentTaxId = customer.FiscalProfile?.TaxId;
+                if (fiscalProfileDto.TaxId != currentTaxId)
+                {
+                    await ValidateFiscalProfileTaxIdAsync(context, fiscalProfileDto.TaxId,
+                        customer.CountryCode, excludeCustomerId: customerId);
+                }
+
+                if (customer.FiscalProfile == null)
+                {
+                    var profile = _mapper.Map<CustomerFiscalProfile>(fiscalProfileDto);
+                    profile.CustomerId = customerId;
+                    ApplyPublicGeneralRules(profile);
+                    profile.CreatedBy = currentUser;
+                    profile.CreatedAt = now;
+                    customer.FiscalProfile = profile;
+                }
+                else
+                {
+                    _mapper.Map(fiscalProfileDto, customer.FiscalProfile);
+                    ApplyPublicGeneralRules(customer.FiscalProfile);
+                    customer.FiscalProfile.ModifiedBy = currentUser;
+                    customer.FiscalProfile.ModifiedAt = now;
+                }
+            }
+
+            customer.ModifiedBy = currentUser;
+            customer.ModifiedAt = now;
+
+            await context.SaveChangesAsync();
+
+            return _mapper.Map<CustomerDto>(customer);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error upserting fiscal profile for customer {CustomerId}", customerId);
+            throw;
+        }
+    }
+
+    public async Task<CustomerDto> RemoveFiscalProfileAsync(long customerId)
+    {
+        return await UpsertFiscalProfileAsync(customerId, null);
+    }
+
     public async Task<bool> DeleteCustomerAsync(long id)
     {
         try
         {
-            await using var _context = await _contextFactory.CreateDbContextAsync();
-            
-            var customer = await _context.Customers
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var customer = await context.Customers
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (customer == null)
-            {
                 return false;
-            }
 
-            // No permitir eliminar al cliente de público general
             if (id == CustomerSeeder.PUBLIC_CUSTOMER_ID)
-            {
-                throw new InvalidOperationException(
-                    _localizer["Cannot delete the public general customer"]);
-            }
+                throw new InvalidOperationException(_localizer["Cannot delete the public general customer"]);
 
-            // Check if customer has related records
-            var hasRelatedRecords = await _context.Sales
-                .AnyAsync(x => x.CustomerId == id);
-
+            var hasRelatedRecords = await context.Sales.AnyAsync(x => x.CustomerId == id);
             if (hasRelatedRecords)
-            {
-                throw new InvalidOperationException(
-                    _localizer["Cannot delete customer because it has related records"]);
-            }
+                throw new InvalidOperationException(_localizer["Cannot delete customer because it has related records"]);
 
             customer.DeletedBy = _currentUserService.FullName ?? "Unknown";
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
+            context.Customers.Remove(customer);
+            await context.SaveChangesAsync();
 
             return true;
         }
@@ -296,6 +346,41 @@ public class CustomerService : ICustomerService
         {
             _logger.LogError(ex, "Error deleting customer {Id}", id);
             throw;
+        }
+    }
+
+    // --- Private helpers ---
+
+    /// <summary>Validates that TaxId is not already used by another customer in the same country.</summary>
+    private static async Task ValidateFiscalProfileTaxIdAsync(
+        ApplicationDbContext context,
+        string taxId,
+        string countryCode,
+        long? excludeCustomerId)
+    {
+        // Block XAXX010101000 — reserved for Público General global invoices
+        if (string.Equals(taxId.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                "RFC XAXX010101000 is reserved for Público General and cannot be assigned to a customer fiscal profile.");
+
+        var query = context.CustomerFiscalProfiles
+            .Where(fp => fp.TaxId == taxId && fp.Customer.CountryCode == countryCode);
+
+        if (excludeCustomerId.HasValue)
+            query = query.Where(fp => fp.CustomerId != excludeCustomerId.Value);
+
+        var exists = await query.AnyAsync();
+        if (exists)
+            throw new InvalidOperationException($"A customer with tax ID {taxId} already exists for country {countryCode}.");
+    }
+
+    /// <summary>Enforces that Público General (Id=1) can never have AutoInvoice or SendInvoiceEmail enabled.</summary>
+    private static void ApplyPublicGeneralRules(CustomerFiscalProfile profile)
+    {
+        if (string.Equals(profile.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
+        {
+            profile.AutoInvoice = false;
+            profile.SendInvoiceEmail = false;
         }
     }
 }

@@ -13,6 +13,11 @@
   <data name="Quote Date" xml:space="preserve"><value>Fecha de cotización</value></data>
   <data name="Valid Until" xml:space="preserve"><value>Válida hasta</value></data>
   <data name="Sent" xml:space="preserve"><value>Enviada</value></data>
+  <data name="Created by" xml:space="preserve"><value>Generado por</value></data>
+  <data name="Authorized by" xml:space="preserve"><value>Autorizado por</value></data>
+  <data name="Rejected by" xml:space="preserve"><value>Rechazado por</value></data>
+  <data name="Marked expired by" xml:space="preserve"><value>Venció por</value></data>
+  <data name="Converted by" xml:space="preserve"><value>Convertido por</value></data>
   <data name="Notes &amp; Conditions" xml:space="preserve"><value>Notas y condiciones</value></data>
   <data name="Product" xml:space="preserve"><value>Producto</value></data>
   <data name="Qty" xml:space="preserve"><value>Cant.</value></data>

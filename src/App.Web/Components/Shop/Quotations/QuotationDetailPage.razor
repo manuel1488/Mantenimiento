@@ -80,6 +80,28 @@ else
                     }
                 </MudItem>
             }
+            <MudItem xs="6" sm="3" md="2">
+                <MudText Typo="Typo.caption" Style="color:#888;">@L["Created by"]</MudText>
+                <MudText Typo="Typo.body2">@_quotation.CreatedBy</MudText>
+            </MudItem>
+            @{
+                var terminalLabel = _quotation.Status switch
+                {
+                    QuotationStatus.Accepted             => L["Authorized by"].Value,
+                    QuotationStatus.Rejected             => L["Rejected by"].Value,
+                    QuotationStatus.Expired              => L["Marked expired by"].Value,
+                    QuotationStatus.ConvertedToSale      => L["Converted by"].Value,
+                    QuotationStatus.ConvertedToRemission => L["Converted by"].Value,
+                    _                                    => null
+                };
+            }
+            @if (terminalLabel is not null && !string.IsNullOrWhiteSpace(_quotation.ModifiedBy))
+            {
+                <MudItem xs="6" sm="3" md="2">
+                    <MudText Typo="Typo.caption" Style="color:#888;">@terminalLabel</MudText>
+                    <MudText Typo="Typo.body2">@_quotation.ModifiedBy</MudText>
+                </MudItem>
+            }
             @if (!string.IsNullOrWhiteSpace(_quotation.Notes))
             {
                 <MudItem xs="12">

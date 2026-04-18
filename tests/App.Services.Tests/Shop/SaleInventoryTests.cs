@@ -151,7 +151,8 @@ public class SaleInventoryTests
             new Mock<IEmailTemplateService>().Object,
             new Mock<IPdfService>().Object,
             pricingService,
-            new Mock<IDocumentSequenceService>().Object);
+            new Mock<IDocumentSequenceService>().Object,
+            new Mock<IQuotationSettingsService>().Object);
 
         _saleService = new SaleService(
             contextFactory,

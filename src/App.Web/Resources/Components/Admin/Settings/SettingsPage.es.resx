@@ -84,4 +84,7 @@
   <data name="Invoice Template" xml:space="preserve">
     <value>Plantilla de Factura</value>
   </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Cotización</value>
+  </data>
 </root>

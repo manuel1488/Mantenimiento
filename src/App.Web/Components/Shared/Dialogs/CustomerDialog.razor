@@ -1,4 +1,4 @@
-﻿@using App.Core.DTOs.Customer
+@using App.Core.DTOs.Customer
 @using App.Core.DTOs.Billing.Mexico
 @using App.Core.Interfaces
 @using App.Core.DTOs.Settings
@@ -14,189 +14,280 @@
 
 <MudDialog>
     <DialogContent>
-        <MudContainer Style="max-width: 800px;" Class="pa-4">
-            <MudForm Model="@_model" @ref="@_form">
-                <MudGrid>
-                    <!-- Información General -->
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.Name"
-                                    Label="@L["Trade Name"]"
-                                    Required="true"
-                                    RequiredError="@L["Trade name is required"]" />
-                    </MudItem>
+        <MudContainer Style="max-width: 860px;" Class="pa-4">
+            <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" PanelClass="pt-4">
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.LegalName"
-                                    Label="@L["Legal Name"]"
-                                    RequiredError="@L["Legal name is required"]" />
-                    </MudItem>
+                <!-- ═══════════════════ PESTAÑA COMERCIAL ═══════════════════ -->
+                <MudTabPanel Text="@L["Commercial Data"]" Icon="@Icons.Material.Filled.Store">
+                    <MudForm Model="@_commercial" @ref="@_commercialForm">
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.Name"
+                                            Label="@L["Name / Trade Name"]"
+                                            Required="true"
+                                            RequiredError="@L["Name is required"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.TaxId"
-                                    Label="@L["Tax ID"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.ContactName"
+                                            Label="@L["Contact Name"]"
+                                            Placeholder="@L["e.g. Juan Pérez García"]" />
+                            </MudItem>
 
-                    <!-- Información de Contacto -->
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.Email"
-                                    Label="@L["Email"]"
-                                    InputType="InputType.Email"
-                                    Validation="@((string email) => ValidateEmail(email))"
-                                    Placeholder="@L["example@domain.com"]"
-                                    Immediate="true" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudSelect @bind-Value="_commercial.CountryCode"
+                                        Label="@L["Country"]"
+                                        Required="true"
+                                        RequiredError="@L["Country is required"]">
+                                    @foreach (var country in _countries)
+                                    {
+                                        <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_phoneInput"
-                                    @bind-Value:after="OnPhoneChanged"
-                                    Required="true"
-                                    MaxLength="14"
-                                    InputType="InputType.Telephone"
-                                    RequiredError="@L["Phone is required"]"
-                                    Label="@L["Phone"]"
-                                    Placeholder="@GetPhonePlaceholder()"
-                                    Validation="@((string phone) => ValidatePhone(phone))" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.Email"
+                                            Label="@L["Email"]"
+                                            InputType="InputType.Email"
+                                            Validation="@((string email) => ValidateEmail(email))"
+                                            Placeholder="@L["example@domain.com"]"
+                                            Immediate="true" />
+                            </MudItem>
 
-                    <!-- Dirección -->
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.Street"
-                                    Label="@L["Street"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_phoneInput"
+                                            @bind-Value:after="OnPhoneChanged"
+                                            MaxLength="14"
+                                            InputType="InputType.Telephone"
+                                            Label="@L["Phone"]"
+                                            Placeholder="@GetPhonePlaceholder()"
+                                            Validation="@((string phone) => ValidatePhone(phone))" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="3">
-                        <MudTextField @bind-Value="_model.ExteriorNumber"
-                                    Label="@L["Exterior Number"]" />
-                    </MudItem>
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">@L["Commercial Address"]</MudText>
+                                <MudDivider Class="mb-3" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="3">
-                        <MudTextField @bind-Value="_model.InteriorNumber"
-                                    Label="@L["Interior Number"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.Street"
+                                            Label="@L["Street"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.Neighborhood"
-                                    Label="@L["Neighborhood"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudTextField @bind-Value="_commercial.ExteriorNumber"
+                                            Label="@L["Exterior Number"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.City"
-                                    Label="@L["City"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudTextField @bind-Value="_commercial.InteriorNumber"
+                                            Label="@L["Interior Number"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.State"
-                                    Label="@L["State"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.Neighborhood"
+                                            Label="@L["Neighborhood"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="_model.PostalCode"
-                                    Label="@L["Postal Code"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.City"
+                                            Label="@L["City"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudSelect @bind-Value="_model.CountryCode"
-                                Label="@L["Country"]"
-                                Required="true"
-                                RequiredError="@L["Country is required"]">
-                            @foreach (var country in _countries)
-                            {
-                                <MudSelectItem Value="@country.Code">@country.Name</MudSelectItem>
-                            }
-                        </MudSelect>
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.State"
+                                            Label="@L["State"]" />
+                            </MudItem>
 
-                    <!-- Preferencias de facturación México -->
-                    @if (_model.CountryCode == "MX")
-                    {
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="_commercial.PostalCode"
+                                            Label="@L["Postal Code"]" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudForm>
+                </MudTabPanel>
+
+                <!-- ═══════════════════ PESTAÑA FISCAL ═══════════════════ -->
+                <MudTabPanel Text="@L["Fiscal Data"]" Icon="@Icons.Material.Filled.Receipt">
+                    <MudGrid>
                         <MudItem xs="12">
-                            <MudDivider Class="my-1" />
-                            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">@L["Mexico Billing Preferences"]</MudText>
+                            <MudSwitch @bind-Value="_hasFiscalProfile"
+                                       @bind-Value:after="OnFiscalToggleChanged"
+                                       Label="@L["This customer has fiscal data"]"
+                                       Color="Color.Primary" />
                         </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect @bind-Value="_model.FiscalRegime"
-                                       @bind-Value:after="OnFiscalRegimeChanged"
-                                       Label="@L["Fiscal Regime"]"
-                                       Variant="Variant.Outlined"
-                                       Clearable="true"
-                                       AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var regime in _fiscalRegimes)
-                                {
-                                    <MudSelectItem Value="@regime.Code">@regime.Code — @regime.Description</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6" Class="d-flex align-center">
-                            <MudTooltip Text="@(IsPublicGeneral ? L["Not available for Público General — use Global Invoices"].Value : string.Empty)"
-                                        Disabled="@(!IsPublicGeneral)">
-                                <div>
-                                    <MudSwitch @bind-Value="_model.AutoInvoice"
-                                               Label="@L["Auto-Invoice"]"
-                                               Color="Color.Primary"
-                                               Disabled="@IsPublicGeneral" />
-                                    <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
-                                        @L["Automatically generate invoice after each sale"]
-                                    </MudText>
-                                </div>
-                            </MudTooltip>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect @bind-Value="_model.DefaultCfdiUse"
-                                       Label="@L["Default CFDI Use"]"
-                                       Variant="Variant.Outlined"
-                                       Clearable="true"
-                                       AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var use in FilteredCfdiUses)
-                                {
-                                    <MudSelectItem Value="@use.Code">@use.Code — @use.Description</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6" Class="d-flex align-center">
-                            <MudTooltip Text="@(IsPublicGeneral ? L["Not available for Público General — use Global Invoices"].Value : string.Empty)"
-                                        Disabled="@(!IsPublicGeneral)">
-                                <div>
-                                    <MudSwitch @bind-Value="_model.SendInvoiceEmail"
-                                               Label="@L["Send Invoice Email"]"
-                                               Color="Color.Primary"
-                                               Disabled="@IsPublicGeneral" />
-                                    <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
-                                        @L["Automatically send the invoice email after generation"]
-                                    </MudText>
-                                </div>
-                            </MudTooltip>
-                        </MudItem>
-                    }
 
-                    <!-- Campos específicos para Canadá (mostrar solo si el país es CA) -->
-                    @if (_model.CountryCode == "CA")
-                    {
-                        <MudItem xs="12">
-                            <MudText Typo="Typo.subtitle1">@L["Canadian Tax Numbers"]</MudText>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudTextField @bind-Value="_model.CaGstNumber"
-                                        Label="@L["GST Number"]" />
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudTextField @bind-Value="_model.CaPstNumber"
-                                        Label="@L["PST Number"]" />
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudTextField @bind-Value="_model.CaHstNumber"
-                                        Label="@L["HST Number"]" />
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudTextField @bind-Value="_model.CaQstNumber"
-                                        Label="@L["QST Number"]" />
-                        </MudItem>
-                    }
-                </MudGrid>
-            </MudForm>
+                        @if (_hasFiscalProfile)
+                        {
+                            <MudItem xs="12">
+                                <MudForm Model="@_fiscal" @ref="@_fiscalForm">
+                                    <MudGrid>
+                                        <!-- Identificación fiscal -->
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.TaxId"
+                                                        Label="@L["Tax ID / RFC"]"
+                                                        Required="true"
+                                                        RequiredError="@L["Tax ID is required"]"
+                                                        HelperText="@(IsPublicGeneralRfc ? L["RFC reserved for Público General — use Global Invoices"].Value : null)"
+                                                        Error="@IsPublicGeneralRfc" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.LegalName"
+                                                        Label="@L["Legal Name / Razón Social"]"
+                                                        Required="true"
+                                                        RequiredError="@L["Legal name is required"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.FiscalEmail"
+                                                        Label="@L["Fiscal Email"]"
+                                                        InputType="InputType.Email"
+                                                        Validation="@((string email) => ValidateEmail(email))"
+                                                        Placeholder="@L["example@domain.com"]"
+                                                        HelperText="@L["For invoice delivery. Leave blank to use the commercial email."]"
+                                                        Immediate="true" />
+                                        </MudItem>
+
+                                        <!-- Domicilio fiscal -->
+                                        <MudItem xs="12">
+                                            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">@L["Fiscal Address"]</MudText>
+                                            <MudDivider Class="mb-3" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.Street"
+                                                        Label="@L["Street"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="3">
+                                            <MudTextField @bind-Value="_fiscal.ExteriorNumber"
+                                                        Label="@L["Exterior Number"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="3">
+                                            <MudTextField @bind-Value="_fiscal.InteriorNumber"
+                                                        Label="@L["Interior Number"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.Neighborhood"
+                                                        Label="@L["Neighborhood"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.City"
+                                                        Label="@L["City"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.State"
+                                                        Label="@L["State"]" />
+                                        </MudItem>
+
+                                        <MudItem xs="12" md="6">
+                                            <MudTextField @bind-Value="_fiscal.PostalCode"
+                                                        Label="@L["Fiscal Postal Code"]"
+                                                        HelperText="@L["Required for CFDI stamping (Mexico)"]" />
+                                        </MudItem>
+
+                                        <!-- Preferencias fiscales según país -->
+                                        @if (_commercial.CountryCode == "MX")
+                                        {
+                                            <MudItem xs="12">
+                                                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">@L["Mexico Billing Preferences"]</MudText>
+                                                <MudDivider Class="mb-3" />
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6">
+                                                <MudSelect @bind-Value="_fiscal.FiscalRegime"
+                                                           @bind-Value:after="OnFiscalRegimeChanged"
+                                                           Label="@L["Fiscal Regime"]"
+                                                           Variant="Variant.Outlined"
+                                                           Clearable="true"
+                                                           AnchorOrigin="Origin.BottomCenter">
+                                                    @foreach (var regime in _fiscalRegimes)
+                                                    {
+                                                        <MudSelectItem Value="@regime.Code">@regime.Code — @regime.Description</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6">
+                                                <MudSelect @bind-Value="_fiscal.DefaultCfdiUse"
+                                                           Label="@L["Default CFDI Use"]"
+                                                           Variant="Variant.Outlined"
+                                                           Clearable="true"
+                                                           AnchorOrigin="Origin.BottomCenter">
+                                                    @foreach (var use in FilteredCfdiUses)
+                                                    {
+                                                        <MudSelectItem Value="@use.Code">@use.Code — @use.Description</MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6" Class="d-flex align-center">
+                                                <div>
+                                                    <MudSwitch @bind-Value="_fiscal.AutoInvoice"
+                                                               Label="@L["Auto-Invoice"]"
+                                                               Color="Color.Primary" />
+                                                    <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
+                                                        @L["Automatically generate invoice after each sale"]
+                                                    </MudText>
+                                                </div>
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6" Class="d-flex align-center">
+                                                <div>
+                                                    <MudSwitch @bind-Value="_fiscal.SendInvoiceEmail"
+                                                               Label="@L["Send Invoice Email"]"
+                                                               Color="Color.Primary" />
+                                                    <MudText Typo="Typo.caption" Class="ml-14 mt-n2" Style="color: var(--mud-palette-text-secondary);">
+                                                        @L["Automatically send the invoice email after generation"]
+                                                    </MudText>
+                                                </div>
+                                            </MudItem>
+                                        }
+
+                                        @if (_commercial.CountryCode == "CA")
+                                        {
+                                            <MudItem xs="12">
+                                                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">@L["Canadian Tax Numbers"]</MudText>
+                                                <MudDivider Class="mb-3" />
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6">
+                                                <MudTextField @bind-Value="_fiscal.CaGstNumber"
+                                                            Label="@L["GST Number"]" />
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6">
+                                                <MudTextField @bind-Value="_fiscal.CaPstNumber"
+                                                            Label="@L["PST Number"]" />
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6">
+                                                <MudTextField @bind-Value="_fiscal.CaHstNumber"
+                                                            Label="@L["HST Number"]" />
+                                            </MudItem>
+
+                                            <MudItem xs="12" md="6">
+                                                <MudTextField @bind-Value="_fiscal.CaQstNumber"
+                                                            Label="@L["QST Number"]" />
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+                                </MudForm>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudTabPanel>
+            </MudTabs>
         </MudContainer>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" 
+        <MudButton OnClick="Cancel"
             Class="da-button-rounded"
             title="@L["Cancel editing"]">
             @L["Cancel"]
@@ -207,17 +298,15 @@
                   Disabled="@_processing"
                   title="@L["Save customer data"]"
                   Class="da-button-rounded">
-                    @if(_processing)            
-                    {
-                        <MudProgressCircular Class ="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                        <MudText Class="ms-2">
-                            @L["Saving"]
-                        </MudText>   
-                    }
-                    else
-                    {
-                        @L["Save"]
-                    }
+            @if (_processing)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">@L["Saving"]</MudText>
+            }
+            else
+            {
+                @L["Save"]
+            }
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -225,25 +314,31 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public long? CustomerId { get; set; }
-    private List<CountryDto> _countries = new();
+
+    private List<CountryDto> _countries = [];
     private List<MexicoFiscalRegimeDto> _fiscalRegimes = [];
     private List<MexicoCfdiUseDto> _cfdiUses = [];
 
+    private MudForm _commercialForm = null!;
+    private MudForm? _fiscalForm;
+    private bool _processing;
+    private bool _hasFiscalProfile;
+
+    // Separate models for each tab
+    private CreateCustomerDto _commercial = new();
+    private UpsertCustomerFiscalProfileDto _fiscal = new();
+
+    private string _phoneInput = string.Empty;
+
+    private bool IsPublicGeneralRfc =>
+        string.Equals(_fiscal.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase);
+
     private IEnumerable<MexicoCfdiUseDto> FilteredCfdiUses =>
-        string.IsNullOrEmpty(_model.FiscalRegime)
+        string.IsNullOrEmpty(_fiscal.FiscalRegime)
             ? _cfdiUses
             : _cfdiUses.Where(u =>
                 string.IsNullOrEmpty(u.FiscalRegimeCodes) ||
-                u.FiscalRegimeCodes.Split(',').Any(c => c.Trim() == _model.FiscalRegime));
-
-    private MudForm _form = null!;
-    private bool _processing;
-    private CustomerDto? _customer;
-    private CreateCustomerDto _model = new();
-    private string _phoneInput = string.Empty;
-
-    private bool IsPublicGeneral =>
-        string.Equals(_model.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase);
+                u.FiscalRegimeCodes.Split(',').Any(c => c.Trim() == _fiscal.FiscalRegime));
 
     protected override async Task OnInitializedAsync()
     {
@@ -257,43 +352,60 @@
         _cfdiUses = (await cfdiUsesTask).ToList();
 
         if (CustomerId.HasValue)
-        {
             await LoadCustomer();
-        }
     }
 
     private async Task LoadCustomer()
     {
         try
         {
-            _customer = await CustomerService.GetCustomerByIdAsync(CustomerId!.Value);
-            if (_customer != null)
+            var customer = await CustomerService.GetCustomerByIdAsync(CustomerId!.Value);
+            if (customer == null) return;
+
+            // Populate commercial form
+            _commercial = new CreateCustomerDto
             {
-                _model = new CreateCustomerDto
+                Name = customer.Name,
+                ContactName = customer.ContactName,
+                Email = customer.Email,
+                Phone = customer.Phone,
+                Street = customer.Street,
+                ExteriorNumber = customer.ExteriorNumber,
+                InteriorNumber = customer.InteriorNumber,
+                Neighborhood = customer.Neighborhood,
+                City = customer.City,
+                State = customer.State,
+                PostalCode = customer.PostalCode,
+                CountryCode = customer.CountryCode
+            };
+            _phoneInput = FormatPhoneNumber(customer.Phone ?? string.Empty);
+
+            // Populate fiscal form if profile exists
+            _hasFiscalProfile = customer.FiscalProfile != null;
+            if (customer.FiscalProfile != null)
+            {
+                var fp = customer.FiscalProfile;
+                _fiscal = new UpsertCustomerFiscalProfileDto
                 {
-                    Name = _customer.Name,
-                    LegalName = _customer.LegalName,
-                    TaxId = _customer.TaxId,
-                    Email = _customer.Email,
-                    Phone = _customer.Phone,
-                    Street = _customer.Street,
-                    ExteriorNumber = _customer.ExteriorNumber,
-                    InteriorNumber = _customer.InteriorNumber,
-                    Neighborhood = _customer.Neighborhood,
-                    City = _customer.City,
-                    State = _customer.State,
-                    PostalCode = _customer.PostalCode,
-                    CaGstNumber = _customer.CaGstNumber,
-                    CaPstNumber = _customer.CaPstNumber,
-                    CaHstNumber = _customer.CaHstNumber,
-                    CaQstNumber = _customer.CaQstNumber,
-                    CountryCode = _customer.CountryCode,
-                    FiscalRegime = _customer.FiscalRegime,
-                    DefaultCfdiUse = _customer.DefaultCfdiUse,
-                    AutoInvoice = _customer.AutoInvoice,
-                    SendInvoiceEmail = _customer.SendInvoiceEmail
+                    TaxId = fp.TaxId,
+                    LegalName = fp.LegalName,
+                    FiscalEmail = fp.FiscalEmail,
+                    Street = fp.Street,
+                    ExteriorNumber = fp.ExteriorNumber,
+                    InteriorNumber = fp.InteriorNumber,
+                    Neighborhood = fp.Neighborhood,
+                    City = fp.City,
+                    State = fp.State,
+                    PostalCode = fp.PostalCode,
+                    FiscalRegime = fp.FiscalRegime,
+                    DefaultCfdiUse = fp.DefaultCfdiUse,
+                    AutoInvoice = fp.AutoInvoice,
+                    SendInvoiceEmail = fp.SendInvoiceEmail,
+                    CaGstNumber = fp.CaGstNumber,
+                    CaPstNumber = fp.CaPstNumber,
+                    CaHstNumber = fp.CaHstNumber,
+                    CaQstNumber = fp.CaQstNumber
                 };
-                _phoneInput = FormatPhoneNumber(_customer.Phone ?? string.Empty);
             }
         }
         catch (Exception ex)
@@ -304,149 +416,120 @@
         }
     }
 
+    private void OnFiscalToggleChanged()
+    {
+        if (!_hasFiscalProfile)
+            _fiscal = new UpsertCustomerFiscalProfileDto();
+    }
+
     private void OnFiscalRegimeChanged()
     {
-        // Clear DefaultCfdiUse if it's no longer valid for the selected regime
-        if (!string.IsNullOrEmpty(_model.DefaultCfdiUse) &&
-            !FilteredCfdiUses.Any(u => u.Code == _model.DefaultCfdiUse))
+        if (!string.IsNullOrEmpty(_fiscal.DefaultCfdiUse) &&
+            !FilteredCfdiUses.Any(u => u.Code == _fiscal.DefaultCfdiUse))
         {
-            _model.DefaultCfdiUse = null;
+            _fiscal.DefaultCfdiUse = null;
         }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Cancel();
-    }
+    private void Cancel() => MudDialog.Cancel();
 
     private async Task Submit()
     {
-        await _form.Validate();
-        if (_form.IsValid)
+        await _commercialForm.Validate();
+        if (!_commercialForm.IsValid) return;
+
+        if (_hasFiscalProfile && _fiscalForm != null)
         {
-            _processing = true;
+            await _fiscalForm.Validate();
+            if (!_fiscalForm.IsValid) return;
+
+            if (IsPublicGeneralRfc)
+            {
+                Snackbar.Add(L["RFC XAXX010101000 is reserved for Público General"], Severity.Warning);
+                return;
+            }
+        }
+
+        _processing = true;
+        StateHasChanged();
+
+        try
+        {
+            _commercial.FiscalProfile = _hasFiscalProfile ? _fiscal : null;
+
+            if (CustomerId.HasValue)
+            {
+                var updateDto = new UpdateCustomerDto
+                {
+                    Name = _commercial.Name,
+                    ContactName = _commercial.ContactName,
+                    Email = _commercial.Email,
+                    Phone = _commercial.Phone,
+                    Street = _commercial.Street,
+                    ExteriorNumber = _commercial.ExteriorNumber,
+                    InteriorNumber = _commercial.InteriorNumber,
+                    Neighborhood = _commercial.Neighborhood,
+                    City = _commercial.City,
+                    State = _commercial.State,
+                    PostalCode = _commercial.PostalCode,
+                    CountryCode = _commercial.CountryCode,
+                    FiscalProfile = _hasFiscalProfile ? _fiscal : null
+                };
+                await CustomerService.UpdateCustomerAsync(CustomerId.Value, updateDto);
+                Snackbar.Add(L["Customer updated successfully"], Severity.Success);
+            }
+            else
+            {
+                await CustomerService.CreateCustomerAsync(_commercial);
+                Snackbar.Add(L["Customer created successfully"], Severity.Success);
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving customer");
+            Snackbar.Add(L["Error saving customer"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
             StateHasChanged();
-
-            try
-            {
-                if (CustomerId.HasValue)
-                {
-                    var updateDto = new UpdateCustomerDto
-                    {
-                        Name = _model.Name,
-                        LegalName = _model.LegalName,
-                        TaxId = _model.TaxId,
-                        Email = _model.Email,
-                        Phone = _model.Phone,
-                        Street = _model.Street,
-                        ExteriorNumber = _model.ExteriorNumber,
-                        InteriorNumber = _model.InteriorNumber,
-                        Neighborhood = _model.Neighborhood,
-                        City = _model.City,
-                        State = _model.State,
-                        PostalCode = _model.PostalCode,
-                        CaGstNumber = _model.CaGstNumber,
-                        CaPstNumber = _model.CaPstNumber,
-                        CaHstNumber = _model.CaHstNumber,
-                        CaQstNumber = _model.CaQstNumber,
-                        CountryCode = _model.CountryCode,
-                        FiscalRegime = _model.FiscalRegime,
-                        DefaultCfdiUse = _model.DefaultCfdiUse,
-                        AutoInvoice = _model.AutoInvoice,
-                        SendInvoiceEmail = _model.SendInvoiceEmail
-                    };
-
-                    await CustomerService.UpdateCustomerAsync(CustomerId.Value, updateDto);
-                    Snackbar.Add(L["Customer updated successfully"], Severity.Success);
-                }
-                else
-                {
-                    await CustomerService.CreateCustomerAsync(_model);
-                    Snackbar.Add(L["Customer created successfully"], Severity.Success);
-                }
-
-                MudDialog.Close(DialogResult.Ok(true));
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error saving customer");
-                Snackbar.Add(L["Error saving customer"], Severity.Error);
-            }
-            finally
-            {
-                _processing = false;
-                StateHasChanged();
-            }
         }
     }
 
-
-    /// <summary>
-    /// Validates phone number format - ensures it contains only numeric characters,
-    /// spaces, hyphens, parentheses, and plus signs
-    /// </summary>
-    /// <param name="phone">Phone number to validate</param>
-    /// <returns>Error message if validation fails, null if valid</returns>
     private string? ValidatePhone(string phone)
     {
-        // Phone is required, so if it's empty, let the Required validation handle it
         if (string.IsNullOrWhiteSpace(phone))
             return null;
 
-        // Remove common phone number formatting characters for validation
-        var cleanPhone = phone.Replace(" ", "")
-                            .Replace("-", "")
-                            .Replace("(", "")
-                            .Replace(")", "")
-                            .Replace("+", "");
+        var cleanPhone = phone.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "").Replace("+", "");
 
-        // Check if the remaining characters are all numeric
         if (!Regex.IsMatch(cleanPhone, @"^\d+$"))
-        {
             return L["Phone number must contain only numbers, spaces, hyphens, parentheses, and plus signs"];
-        }
 
-        // Check minimum length (at least 10 digits for a valid phone number)
         if (cleanPhone.Length != 10)
-        {
             return L["Phone number must have exactly 10 digits"];
-        }
 
         return null;
     }
 
-    /// <summary>
-    /// Validates email format using EmailAddressAttribute when email is provided
-    /// Email is optional, so empty values are considered valid
-    /// </summary>
-    /// <param name="email">Email address to validate</param>
-    /// <returns>Error message if validation fails, null if valid</returns>
     private string? ValidateEmail(string email)
     {
-        // Email is optional, so empty is valid
         if (string.IsNullOrWhiteSpace(email))
             return null;
 
-        // Use EmailAddressAttribute for validation
         var emailValidator = new EmailAddressAttribute();
-        
         if (!emailValidator.IsValid(email))
-        {
             return L["Please enter a valid email address"];
-        }
 
         return null;
     }
 
     private void OnPhoneChanged()
     {
-        // Remove all non-numeric characters
         var digitsOnly = new string(_phoneInput.Where(char.IsDigit).ToArray());
-
-        // Store only digits in model
-        _model.Phone = digitsOnly;
-
-        // Format for display
+        _commercial.Phone = digitsOnly;
         _phoneInput = FormatPhoneNumber(digitsOnly);
     }
 
@@ -455,22 +538,17 @@
         if (string.IsNullOrEmpty(phone))
             return string.Empty;
 
-        // Remove all non-numeric characters
         var digitsOnly = new string(phone.Where(char.IsDigit).ToArray());
 
-        // Apply formatting based on length
         if (digitsOnly.Length <= 3)
             return $"({digitsOnly}";
         else if (digitsOnly.Length <= 6)
-            return $"({digitsOnly.Substring(0, 3)})-{digitsOnly.Substring(3)}";
+            return $"({digitsOnly[..3]})-{digitsOnly[3..]}";
         else if (digitsOnly.Length <= 10)
-            return $"({digitsOnly.Substring(0, 3)})-{digitsOnly.Substring(3, 3)}-{digitsOnly.Substring(6)}";
+            return $"({digitsOnly[..3]})-{digitsOnly[3..6]}-{digitsOnly[6..]}";
         else
-            return $"({digitsOnly.Substring(0, 3)})-{digitsOnly.Substring(3, 3)}-{digitsOnly.Substring(6, 4)}";
+            return $"({digitsOnly[..3]})-{digitsOnly[3..6]}-{digitsOnly[6..10]}";
     }
 
-    private string GetPhonePlaceholder()
-    {
-        return "(461)-123-4567";
-    }
+    private string GetPhonePlaceholder() => "(461)-123-4567";
 }

@@ -18,7 +18,7 @@
         {
             <div class="preview-layout">
                 <MudAlert Severity="Severity.Info" Dense="true" Class="preview-alert">
-                    <MudText Typo="Typo.body2">@L["This preview uses sample data. The actual email will use real invoice data."]</MudText>
+                    <MudText Typo="Typo.body2">@(AlertMessage ?? L["This preview uses sample data. The actual email will use real invoice data."].Value)</MudText>
                 </MudAlert>
                 <div class="preview-container">
                     @if (!string.IsNullOrEmpty(HtmlContent))
@@ -96,6 +96,9 @@
 
     /// <summary>Template name (unused in rendering, informational only)</summary>
     [Parameter] public string? TemplateName { get; set; }
+
+    /// <summary>Custom alert message. Defaults to the email-specific message when null.</summary>
+    [Parameter] public string? AlertMessage { get; set; }
 
     [Inject] IStringLocalizer<EmailTemplatePreviewDialog> L { get; set; } = null!;
 

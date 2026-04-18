@@ -36,6 +36,7 @@
   <data name="Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="Edit Quotation" xml:space="preserve"><value>Edit Quotation</value></data>
   <data name="Send Quotation" xml:space="preserve"><value>Send Quotation</value></data>
+  <data name="Created by" xml:space="preserve"><value>Created by</value></data>
   <data name="Status updated" xml:space="preserve"><value>Status updated</value></data>
   <data name="Quotation deleted" xml:space="preserve"><value>Quotation deleted</value></data>
   <data name="Confirm Delete" xml:space="preserve"><value>Confirm Delete</value></data>

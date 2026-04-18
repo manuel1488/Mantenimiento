@@ -12,11 +12,9 @@ public class Customer : BaseEntity<long>
     [StringLength(100)]
     public string Name { get; set; } = null!;
 
-    [StringLength(150)]
-    public string? LegalName { get; set; } = null;
-
-    [StringLength(20)]
-    public string? TaxId { get; set; }
+    /// <summary>Optional contact person name (e.g. person to address quotations/invoices to).</summary>
+    [StringLength(100)]
+    public string? ContactName { get; set; }
 
     [StringLength(100)]
     [EmailAddress]
@@ -25,6 +23,7 @@ public class Customer : BaseEntity<long>
     [StringLength(20)]
     public string? Phone { get; set; }
 
+    // Commercial address (delivery / contact address)
     [StringLength(100)]
     public string? Street { get; set; }
 
@@ -46,35 +45,10 @@ public class Customer : BaseEntity<long>
     [StringLength(10)]
     public string? PostalCode { get; set; }
 
-    [StringLength(20)]
-    public string? CaGstNumber { get; set; }
-
-    [StringLength(20)]
-    public string? CaPstNumber { get; set; }
-
-    [StringLength(20)]
-    public string? CaHstNumber { get; set; }
-
-    [StringLength(20)]
-    public string? CaQstNumber { get; set; } 
-
     [Required]
     [StringLength(3)]
     public string CountryCode { get; set; } = null!;
 
-    // Mexico fiscal data
-    [StringLength(5)]
-    public string? FiscalRegime { get; set; }
-
-    public bool HasFiscalData { get; set; }
-
-    /// <summary>Default c_UsoCFDI code (e.g. G03) pre-filled when generating invoices for this customer.</summary>
-    [StringLength(10)]
-    public string? DefaultCfdiUse { get; set; }
-
-    /// <summary>When true and HasFiscalData is set, an invoice is automatically generated after each sale.</summary>
-    public bool AutoInvoice { get; set; }
-
-    /// <summary>When true, the stamped invoice XML/PDF is automatically emailed to the customer.</summary>
-    public bool SendInvoiceEmail { get; set; }
+    // Optional fiscal profile — null means customer has no fiscal data
+    public virtual CustomerFiscalProfile? FiscalProfile { get; set; }
 }
