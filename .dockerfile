@@ -117,7 +117,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
 # Create directory and set permissions (ANTES de crear el usuario)
 # Create directories and set permissions
-RUN mkdir -p /app/wwwroot/uploads /app/Temp \
+RUN mkdir -p /app/wwwroot/uploads /app/Temp /app/logs \
     && useradd -m appuser \
     && chown -R appuser:appuser /app \
     && chmod -R 755 /app

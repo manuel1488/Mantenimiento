@@ -15,6 +15,7 @@ using App.Services.Billing;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -37,6 +38,9 @@ public class GlobalInvoiceTimezoneTests
     private static readonly TimeZoneInfo MexicoCityTz =
         TimeZoneInfo.FindSystemTimeZoneById("America/Mexico_City");
 
+    private static readonly IServiceProvider _efServiceProvider =
+        new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
     private Mock<ICompanySettingsService> _companySvcMock = null!;
     private GlobalInvoiceService _service = null!;
@@ -46,6 +50,7 @@ public class GlobalInvoiceTimezoneTests
     {
         _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInternalServiceProvider(_efServiceProvider)
             .Options;
 
         _companySvcMock = new Mock<ICompanySettingsService>();

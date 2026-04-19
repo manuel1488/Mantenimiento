@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace App.Services.Inventory;
 
-public class InventoryService : IInventoryService
+public class InventoryService : IContextualInventoryService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILogger<InventoryService> _logger;
@@ -73,186 +73,16 @@ public class InventoryService : IInventoryService
         CreateInventoryMovementDto createDto,
         CancellationToken cancellationToken = default)
     {
-        await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
-        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            // Obtener inventario con sus relaciones
-            var inventory = await _context.Inventory
-                .Include(x => x.Product)
-                .Include(x => x.Location)
-                .Where(x => x.ProductId == createDto.ProductId &&
-                        x.LocationId == createDto.LocationId &&
-                        x.Product.IsActive &&
-                        x.Location.IsActive)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            // Determinar si es adición o sustracción de inventario
-            var isAddition = createDto.MovementType is
-                InventoryMovementType.StockIn or
-                InventoryMovementType.Purchase or
-                InventoryMovementType.Return;
-
-            if (inventory == null)
-            {
-                // For addition movements on a new product, auto-create the inventory record at zero
-                if (!isAddition)
-                    return MovementOperationResult.Failure(L["Invalid product or location"]);
-
-                var product = await _context.Products
-                    .FirstOrDefaultAsync(p => p.Id == createDto.ProductId && p.IsActive, cancellationToken);
-                var location = await _context.Locations
-                    .FirstOrDefaultAsync(l => l.Id == createDto.LocationId && l.IsActive, cancellationToken);
-
-                if (product == null || location == null)
-                    return MovementOperationResult.Failure(L["Invalid product or location"]);
-
-                inventory = new App.Models.Shop.Inventory
-                {
-                    ProductId = createDto.ProductId,
-                    LocationId = createDto.LocationId,
-                    Quantity = 0,
-                    IndividualUnits = 0,
-                    Product = product,
-                    Location = location,
-                    CreatedBy = _currentUserService.FullName ?? "Unknown",
-                    CreatedAt = _dateTime.Now
-                };
-                _context.Inventory.Add(inventory);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-
-            // Calculate units for both individual and container quantities
-            decimal quantityToMove = createDto.Quantity;
-            decimal individualUnitsToMove = createDto.Quantity;
-
-            if (createDto.MovementType == InventoryMovementType.Sale && inventory.Product.IsPartialSaleAllowed)
-            {
-                // For partial sales, quantity comes as individual units, convert to containers
-                quantityToMove = ConvertToContainerUnits(inventory.Product, createDto.Quantity);
-            }
-            else if (createDto.MovementType != InventoryMovementType.Sale && inventory.Product.IsPartialSaleAllowed)
-            {
-                // For non-sales (inputs), quantity might come as containers, convert to individual
-                individualUnitsToMove = createDto.Quantity * inventory.Product.Content;
-            }
-
-            // Get current balances
-            decimal currentQuantity = inventory.Quantity;
-            decimal currentIndividualUnits = inventory.IndividualUnits > 0
-                ? inventory.IndividualUnits
-                : GetAvailableIndividualUnits(inventory);
-
-            // Verificar si hay suficiente stock para salidas
-            if (!isAddition && currentQuantity < quantityToMove)
-            {
-                return MovementOperationResult.Failure(L["Insufficient stock"]);
-            }
-
-            // Calcular nuevos balances
-            decimal newQuantityBalance, newIndividualBalance;
-
-            if (createDto.MovementType == InventoryMovementType.Adjustment)
-            {
-                // For adjustments, set absolute values
-                newQuantityBalance = quantityToMove;
-                newIndividualBalance = individualUnitsToMove;
-            }
-            else if (isAddition)
-            {
-                newQuantityBalance = currentQuantity + quantityToMove;
-                newIndividualBalance = currentIndividualUnits + individualUnitsToMove;
-            }
+            var result = await CreateMovementCoreAsync(createDto, context, cancellationToken);
+            if (result.Success)
+                await transaction.CommitAsync(cancellationToken);
             else
-            {
-                newQuantityBalance = currentQuantity - quantityToMove;
-                newIndividualBalance = currentIndividualUnits - individualUnitsToMove;
-            }
-
-            // Verificar que no sean negativos
-            if (newQuantityBalance < 0 || newIndividualBalance < 0)
-            {
-                return MovementOperationResult.Failure(L["Movement would result in negative stock"]);
-            }
-
-            // Crear el movimiento con todos los campos
-            var movement = new InventoryMovement
-            {
-                ProductId = createDto.ProductId,
-                LocationId = createDto.LocationId,
-                MovementType = createDto.MovementType,
-                MovementSubType = createDto.MovementSubType,
-
-                // Movement quantities
-                Quantity = quantityToMove,
-                IndividualUnits = individualUnitsToMove,
-
-                // Balance tracking
-                PreviousBalance = currentQuantity,
-                NewBalance = newQuantityBalance,
-                PreviousIndividualBalance = currentIndividualUnits,
-                NewIndividualBalance = newIndividualBalance,
-
-                Reference = createDto.Reference,
-                Document = createDto.Document,
-                Reason = createDto.Reason,
-                UnitCost = createDto.UnitCost,
-                MovementDate = createDto.MovementDate ?? _dateTime.Now,
-                RelatedParty = createDto.RelatedParty,
-                CreatedBy = _currentUserService.FullName ?? "Unknown",
-                CreatedAt = _dateTime.Now
-            };
-
-            _context.InventoryMovements.Add(movement);
-
-            // Update inventory with new balances
-            inventory.Quantity = newQuantityBalance;
-            inventory.IndividualUnits = newIndividualBalance;
-            inventory.ModifiedBy = _currentUserService.FullName;
-            
-            await _context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            // Verificar si se generaron alertas después de la operación
-            InventoryAlertInfo? alertInfo = null;
-
-            if (inventory.MinStock.HasValue && newQuantityBalance < inventory.MinStock.Value)
-            {
-                alertInfo = InventoryAlertInfo.LowStock(
-                    inventory.Product.Name,
-                    inventory.Location.Name,
-                    newQuantityBalance,
-                    inventory.MinStock.Value);
-            }
-            else if (inventory.MaxStock.HasValue && newQuantityBalance > inventory.MaxStock.Value)
-            {
-                alertInfo = InventoryAlertInfo.OverStock(
-                    inventory.Product.Name,
-                    inventory.Location.Name,
-                    newQuantityBalance,
-                    inventory.MaxStock.Value);
-            }
-
-            // Send email alert if alert was generated
-            if (alertInfo != null)
-            {
-                // Fire and forget email sending to avoid blocking the main operation
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await _inventoryAlertEmailService.SendInventoryAlertAsync(alertInfo, cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in location {LocationName}",
-                            alertInfo.ProductName, alertInfo.LocationName);
-                    }
-                }, cancellationToken);
-            }
-
-            return MovementOperationResult.Successful(_mapper.Map<InventoryMovementDto>(movement), alertInfo);
+                await transaction.RollbackAsync(cancellationToken);
+            return result;
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -266,6 +96,160 @@ public class InventoryService : IInventoryService
             _logger.LogError(ex, "Error creating movement");
             return MovementOperationResult.Failure(ex.Message);
         }
+    }
+
+    public async Task<MovementOperationResult> CreateMovementAsync(
+        CreateInventoryMovementDto createDto,
+        ApplicationDbContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return await CreateMovementCoreAsync(createDto, context, cancellationToken);
+    }
+
+    private async Task<MovementOperationResult> CreateMovementCoreAsync(
+        CreateInventoryMovementDto createDto,
+        ApplicationDbContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var inventory = await context.Inventory
+            .Include(x => x.Product)
+            .Include(x => x.Location)
+            .Where(x => x.ProductId == createDto.ProductId &&
+                    x.LocationId == createDto.LocationId &&
+                    x.Product.IsActive &&
+                    x.Location.IsActive)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var isAddition = createDto.MovementType is
+            InventoryMovementType.StockIn or
+            InventoryMovementType.Purchase or
+            InventoryMovementType.Return;
+
+        if (inventory == null)
+        {
+            if (!isAddition)
+                return MovementOperationResult.Failure(L["Invalid product or location"]);
+
+            var product = await context.Products
+                .FirstOrDefaultAsync(p => p.Id == createDto.ProductId && p.IsActive, cancellationToken);
+            var location = await context.Locations
+                .FirstOrDefaultAsync(l => l.Id == createDto.LocationId && l.IsActive, cancellationToken);
+
+            if (product == null || location == null)
+                return MovementOperationResult.Failure(L["Invalid product or location"]);
+
+            inventory = new App.Models.Shop.Inventory
+            {
+                ProductId = createDto.ProductId,
+                LocationId = createDto.LocationId,
+                Quantity = 0,
+                IndividualUnits = 0,
+                Product = product,
+                Location = location,
+                CreatedBy = _currentUserService.FullName ?? "Unknown",
+                CreatedAt = _dateTime.Now
+            };
+            context.Inventory.Add(inventory);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        decimal quantityToMove = createDto.Quantity;
+        decimal individualUnitsToMove = createDto.Quantity;
+
+        if (createDto.MovementType == InventoryMovementType.Sale && inventory.Product.IsPartialSaleAllowed)
+            quantityToMove = ConvertToContainerUnits(inventory.Product, createDto.Quantity);
+        else if (createDto.MovementType != InventoryMovementType.Sale && inventory.Product.IsPartialSaleAllowed)
+            individualUnitsToMove = createDto.Quantity * inventory.Product.Content;
+
+        decimal currentQuantity = inventory.Quantity;
+        decimal currentIndividualUnits = inventory.IndividualUnits > 0
+            ? inventory.IndividualUnits
+            : GetAvailableIndividualUnits(inventory);
+
+        if (!isAddition && currentQuantity < quantityToMove)
+            return MovementOperationResult.Failure(L["Insufficient stock"]);
+
+        decimal newQuantityBalance, newIndividualBalance;
+
+        if (createDto.MovementType == InventoryMovementType.Adjustment)
+        {
+            newQuantityBalance = quantityToMove;
+            newIndividualBalance = individualUnitsToMove;
+        }
+        else if (isAddition)
+        {
+            newQuantityBalance = currentQuantity + quantityToMove;
+            newIndividualBalance = currentIndividualUnits + individualUnitsToMove;
+        }
+        else
+        {
+            newQuantityBalance = currentQuantity - quantityToMove;
+            newIndividualBalance = currentIndividualUnits - individualUnitsToMove;
+        }
+
+        if (newQuantityBalance < 0 || newIndividualBalance < 0)
+            return MovementOperationResult.Failure(L["Movement would result in negative stock"]);
+
+        var movement = new InventoryMovement
+        {
+            ProductId = createDto.ProductId,
+            LocationId = createDto.LocationId,
+            MovementType = createDto.MovementType,
+            MovementSubType = createDto.MovementSubType,
+            Quantity = quantityToMove,
+            IndividualUnits = individualUnitsToMove,
+            PreviousBalance = currentQuantity,
+            NewBalance = newQuantityBalance,
+            PreviousIndividualBalance = currentIndividualUnits,
+            NewIndividualBalance = newIndividualBalance,
+            Reference = createDto.Reference,
+            Document = createDto.Document,
+            Reason = createDto.Reason,
+            UnitCost = createDto.UnitCost,
+            MovementDate = createDto.MovementDate ?? _dateTime.Now,
+            RelatedParty = createDto.RelatedParty,
+            CreatedBy = _currentUserService.FullName ?? "Unknown",
+            CreatedAt = _dateTime.Now
+        };
+
+        context.InventoryMovements.Add(movement);
+        inventory.Quantity = newQuantityBalance;
+        inventory.IndividualUnits = newIndividualBalance;
+        inventory.ModifiedBy = _currentUserService.FullName;
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        InventoryAlertInfo? alertInfo = null;
+        if (inventory.MinStock.HasValue && newQuantityBalance < inventory.MinStock.Value)
+        {
+            alertInfo = InventoryAlertInfo.LowStock(
+                inventory.Product.Name, inventory.Location.Name,
+                newQuantityBalance, inventory.MinStock.Value);
+        }
+        else if (inventory.MaxStock.HasValue && newQuantityBalance > inventory.MaxStock.Value)
+        {
+            alertInfo = InventoryAlertInfo.OverStock(
+                inventory.Product.Name, inventory.Location.Name,
+                newQuantityBalance, inventory.MaxStock.Value);
+        }
+
+        if (alertInfo != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _inventoryAlertEmailService.SendInventoryAlertAsync(alertInfo, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending inventory alert email for product {ProductName} in location {LocationName}",
+                        alertInfo.ProductName, alertInfo.LocationName);
+                }
+            }, cancellationToken);
+        }
+
+        return MovementOperationResult.Successful(_mapper.Map<InventoryMovementDto>(movement), alertInfo);
     }
 
 

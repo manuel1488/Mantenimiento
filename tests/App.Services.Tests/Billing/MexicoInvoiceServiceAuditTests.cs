@@ -17,6 +17,7 @@ using App.Services.Billing;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -30,6 +31,9 @@ namespace App.Services.Tests.Billing;
 [TestFixture]
 public class MexicoInvoiceServiceAuditTests
 {
+    private static readonly IServiceProvider _efServiceProvider =
+        new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
     private MexicoInvoiceService _service = null!;
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
 
@@ -53,7 +57,8 @@ public class MexicoInvoiceServiceAuditTests
     public void Setup()
     {
         _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInternalServiceProvider(_efServiceProvider)
             .Options;
 
         // Current user — the value we expect in all audit fields

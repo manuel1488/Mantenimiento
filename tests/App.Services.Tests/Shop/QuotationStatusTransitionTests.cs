@@ -15,6 +15,7 @@ using App.Services.Shop;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -30,6 +31,9 @@ namespace App.Services.Tests.Shop;
 [TestFixture]
 public class QuotationStatusTransitionTests
 {
+    private static readonly IServiceProvider _efServiceProvider =
+        new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
     private QuotationService _service = null!;
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
 
@@ -38,6 +42,7 @@ public class QuotationStatusTransitionTests
     {
         _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInternalServiceProvider(_efServiceProvider)
             .ConfigureWarnings(w => w.Ignore(
                 Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;

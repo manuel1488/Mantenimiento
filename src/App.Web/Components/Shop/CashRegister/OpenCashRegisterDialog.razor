@@ -1,7 +1,5 @@
-@using App.Core.DTOs.Location
 @using App.Core.DTOs.Shop
 @using App.Core.DTOs.Shop.CashStation
-@using App.Core.Interfaces
 @using App.Core.Interfaces.Identity
 @using App.Core.Interfaces.Shop
 @using App.Shared.Services
@@ -9,7 +7,6 @@
 @inject ICashRegisterService CashRegisterService
 @inject ICashStationService CashStationService
 @inject ICashierProfileService CashierProfileService
-@inject ILocationService LocationService
 @inject ICurrentUserService CurrentUserService
 @inject IStringLocalizer<OpenCashRegisterDialog> L
 @inject ISnackbar Snackbar
@@ -45,23 +42,6 @@
         {
             <MudForm @ref="_form" @bind-IsValid="_isValid">
                 <MudGrid>
-                    @if (_locations.Count > 1)
-                    {
-                        <MudItem xs="12">
-                            <MudSelect T="int?"
-                                       Value="_locationId"
-                                       ValueChanged="OnLocationChangedAsync"
-                                       Label="@L["Location"]"
-                                       Variant="Variant.Outlined"
-                                       Required="true"
-                                       RequiredError="@L["Location is required"]">
-                                @foreach (var loc in _locations)
-                                {
-                                    <MudSelectItem T="int?" Value="@((int?)loc.Id)">@loc.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                    }
                     <MudItem xs="12">
                         <MudSelect T="int?"
                                    @bind-Value="_stationId"
@@ -122,7 +102,6 @@
     private bool _loading = true;
     private bool _processing;
     private bool _noLocation;
-    private List<LocationDto> _locations = [];
     private List<CashStationDto> _stations = [];
     private int? _locationId;
     private int? _stationId;
@@ -133,43 +112,23 @@
     {
         await CurrentUserService.EnsureInitializedAsync();
 
-        if (CurrentUserService.IsGlobalAccess)
+        var userId = CurrentUserService.UserId;
+        if (!string.IsNullOrEmpty(userId))
         {
-            // Global admin: can choose any location and its stations
-            var allLocations = await LocationService.GetActiveLocationsAsync();
-            _locations = allLocations.ToList();
-
-            if (_locations.Count == 0)
+            var profileLocationId = await GetCashierProfileLocationAsync(userId);
+            if (profileLocationId.HasValue)
             {
-                _noLocation = true;
-            }
-            else if (_locations.Count == 1)
-            {
-                _locationId = _locations[0].Id;
+                _locationId = profileLocationId.Value;
                 await LoadStationsAsync(_locationId.Value);
-            }
-        }
-        else
-        {
-            // Non-global: location comes from their CashierProfile
-            var userId = CurrentUserService.UserId;
-            if (!string.IsNullOrEmpty(userId))
-            {
-                var profileLocationId = await GetCashierProfileLocationAsync(userId);
-                if (profileLocationId.HasValue)
-                {
-                    _locationId = profileLocationId.Value;
-                    await LoadStationsAsync(_locationId.Value);
-                }
-                else
-                {
-                    _noLocation = true;
-                }
             }
             else
             {
                 _noLocation = true;
             }
+        }
+        else
+        {
+            _noLocation = true;
         }
 
         _loading = false;
@@ -188,16 +147,6 @@
             _stationId = _stations[0].Id;
         else
             _stationId = null;
-    }
-
-    private async Task OnLocationChangedAsync(int? locationId)
-    {
-        _locationId = locationId;
-        _stationId = null;
-        _stations = [];
-
-        if (locationId.HasValue)
-            await LoadStationsAsync(locationId.Value);
     }
 
     private void Cancel() => MudDialog.Cancel();

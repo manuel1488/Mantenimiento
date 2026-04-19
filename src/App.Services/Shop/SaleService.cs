@@ -11,6 +11,7 @@ using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
+using App.Services.Inventory;
 using App.Services.Settings;
 using App.Shared.Services;
 
@@ -20,7 +21,7 @@ using Microsoft.Extensions.Logging;
 
 namespace App.Services.Shop;
 
-public class SaleService : ISaleService
+public class SaleService : IContextualSaleService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly IMapper _mapper;
@@ -30,7 +31,7 @@ public class SaleService : ISaleService
     private readonly IDateTime _dateTime;
     private readonly IDiscountSettingsService _discountSettingsService;
     private readonly IDiscountAuthorizerService _discountAuthorizerService;
-    private readonly IInventoryService _inventoryService;
+    private readonly IContextualInventoryService _inventoryService;
     private readonly ITaxRateService _taxRateService;
     private readonly ICompanySettingsService _companySettingsService;
     private readonly ITaxSettingsService _taxSettingsService;
@@ -48,7 +49,7 @@ public class SaleService : ISaleService
         IDateTime dateTime,
         IDiscountSettingsService discountSettingsService,
         IDiscountAuthorizerService discountAuthorizerService,
-        IInventoryService inventoryService,
+        IContextualInventoryService inventoryService,
         ITaxRateService taxRateService,
         ICompanySettingsService companySettingsService,
         ITaxSettingsService taxSettingsService,
@@ -196,7 +197,34 @@ public class SaleService : ISaleService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         await using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            var result = await CreateSaleInternalAsync(createDto, context);
+            if (result.IsSuccess)
+                await transaction.CommitAsync();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error creating sale");
+            return Result<SaleDto>.Failure(L["An error occurred while creating the sale: {0}", ex.Message]);
+        }
+    }
 
+    public async Task<Result<SaleDto>> CreateSaleAsync(
+        CreateSaleDto createDto,
+        ApplicationDbContext context,
+        CancellationToken cancellationToken = default)
+    {
+        return await CreateSaleInternalAsync(createDto, context, cancellationToken);
+    }
+
+    private async Task<Result<SaleDto>> CreateSaleInternalAsync(
+        CreateSaleDto createDto,
+        ApplicationDbContext context,
+        CancellationToken cancellationToken = default)
+    {
         try
         {
             // Validate system configurations first
@@ -367,7 +395,7 @@ public class SaleService : ISaleService
                         MovementSubType = InventoryMovementSubType.DirectSale,
                         Reference = $"Sale-{sale.Id}",
                         Reason = $"Sale of {detail.Quantity} units"
-                    });
+                    }, context);
 
                     if (!movementResult.Success)
                     {
@@ -377,13 +405,10 @@ public class SaleService : ISaleService
                 }
             }
 
-            await transaction.CommitAsync();
-
             return Result<SaleDto>.Success(_mapper.Map<SaleDto>(sale));
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             _logger.LogError(ex, "Error creating sale");
             return Result<SaleDto>.Failure(L["An error occurred while creating the sale: {0}", ex.Message]);
         }
@@ -529,7 +554,7 @@ public class SaleService : ISaleService
                         MovementSubType = InventoryMovementSubType.DirectSale,
                         Reference = $"Cancel-Sale-{sale.Id}",
                         Reason = reason
-                    });
+                    }, context);
 
                     if (!movementResult.Success)
                     {

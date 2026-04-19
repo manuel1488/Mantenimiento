@@ -15,11 +15,13 @@ using App.Models.Data.Contexts;
 using App.Models.Settings;
 using App.Models.Shared;
 using App.Models.Shop;
+using App.Services.Inventory;
 using App.Services.Settings;
 using App.Services.Shop;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,6 +36,9 @@ namespace App.Services.Tests.Shop;
 public class SaleServiceRoundingTests
 {
     private SaleService _saleService = null!;
+    private static readonly IServiceProvider _efServiceProvider =
+        new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
     private Mock<IMapper> _mapperMock = null!;
     private Mock<ITaxRateService> _taxRateServiceMock = null!;
@@ -44,7 +49,7 @@ public class SaleServiceRoundingTests
     private Mock<IDateTime> _dateTimeMock = null!;
     private Mock<IDiscountSettingsService> _discountSettingsServiceMock = null!;
     private Mock<IDiscountAuthorizerService> _discountAuthorizerServiceMock = null!;
-    private Mock<IInventoryService> _inventoryServiceMock = null!;
+    private Mock<IContextualInventoryService> _inventoryServiceMock = null!;
     private Mock<IProductPartialSurchargeService> _partialSurchargeServiceMock = null!;
     private Mock<ICashRegisterService> _cashRegisterServiceMock = null!;
 
@@ -56,9 +61,9 @@ public class SaleServiceRoundingTests
     [SetUp]
     public void Setup()
     {
-        // InMemory database — unique per test
         _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInternalServiceProvider(_efServiceProvider)
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
@@ -138,7 +143,7 @@ public class SaleServiceRoundingTests
         _discountAuthorizerServiceMock = new Mock<IDiscountAuthorizerService>();
 
         // Inventory: always available
-        _inventoryServiceMock = new Mock<IInventoryService>();
+        _inventoryServiceMock = new Mock<IContextualInventoryService>();
         _inventoryServiceMock
             .Setup(i => i.ValidateStockAvailabilityAsync(
                 It.IsAny<long>(), It.IsAny<int>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()))

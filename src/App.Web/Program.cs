@@ -638,7 +638,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<ILocationTicketSettingsService, LocationTicketSettingsService>();
     services.AddScoped<IInventoryQueryService, InventoryQueryService>();
     services.AddScoped<ITemplateService, TemplateService>();
-    services.AddScoped<IInventoryService, InventoryService>();
+    services.AddScoped<IContextualInventoryService, InventoryService>();
+    services.AddScoped<IInventoryService>(sp => sp.GetRequiredService<IContextualInventoryService>());
     services.AddScoped<IBulkLoadResultsExporter, BulkLoadResultsExporter>();
     services.AddScoped<ICompanySettingsService, CompanySettingsService>();
     services.AddScoped<ILookupService, LookupService>();
@@ -705,7 +706,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<ILabelSettingsService, LabelSettingsService>();
     services.AddScoped<IPaymentMethodService, PaymentMethodService>();
     services.AddScoped<IPricingCalculationService, PricingCalculationService>();
-    services.AddScoped<ISaleService, SaleService>();
+    services.AddScoped<IContextualSaleService, SaleService>();
+    services.AddScoped<ISaleService>(sp => sp.GetRequiredService<IContextualSaleService>());
     services.AddScoped<IPartialSaleFractionService, PartialSaleFractionService>();
     services.AddScoped<IProductPartialSurchargeService, ProductPartialSurchargeService>();
     services.AddScoped<IWholesaleTierService, WholesaleTierService>();

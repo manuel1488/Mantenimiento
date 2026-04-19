@@ -56,6 +56,24 @@ Elimina **todos los productos** y todos los registros relacionados:
 
 ---
 
+### `inventory-reconciliation.sql`
+
+Script de **solo lectura** que verifica la integridad entre `sh_inventory` y `sh_inventory_movements`. Útil después de incidentes transaccionales o antes/después de migraciones.
+
+Ejecuta 3 verificaciones en secuencia:
+
+| Parte | Qué verifica | Resultado esperado |
+|-------|-------------|-------------------|
+| 1 | Saldo actual vs `NewBalance` del último movimiento | 0 filas |
+| 2 | Cadena de movimientos: `PreviousBalance[n]` = `NewBalance[n-1]` | 0 filas |
+| 3 | Recálculo completo desde historial (desde último `ADJUSTMENT`) | 0 filas |
+
+La Parte 2 es la más útil para detectar **movimientos huérfanos** (comprometidos fuera de la transacción exterior). Este fue el patrón del bug `REM-2026-0001` del 18/04/2026.
+
+> No modifica datos. Se puede ejecutar en producción sin riesgo.
+
+---
+
 ## Uso paso a paso
 
 ### 1. Modo seguro (solo revisar)

@@ -20,6 +20,7 @@ using App.Services.Settings;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -40,6 +41,9 @@ namespace App.Services.Tests.Billing;
 [TestFixture]
 public class GlobalInvoiceTaxGroupingTests
 {
+    private static readonly IServiceProvider _efServiceProvider =
+        new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
     private Mock<IMexicoCfdiXmlService> _xmlServiceMock = null!;
     private Mock<IMexicoCsdSigningService> _signingMock = null!;
@@ -59,6 +63,7 @@ public class GlobalInvoiceTaxGroupingTests
     {
         _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInternalServiceProvider(_efServiceProvider)
             .Options;
 
         _capturedComprobante = null;

@@ -15,11 +15,13 @@ using App.Models.Data.Contexts;
 using App.Models.Settings;
 using App.Models.Shared;
 using App.Models.Shop;
+using App.Services.Inventory;
 using App.Services.Settings;
 using App.Services.Shop;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -37,9 +39,11 @@ namespace App.Services.Tests.Shop;
 [TestFixture]
 public class SaleInventoryTests
 {
+    private static readonly IServiceProvider _efServiceProvider =
+        new ServiceCollection().AddEntityFrameworkInMemoryDatabase().BuildServiceProvider();
+
     private DbContextOptions<ApplicationDbContext> _dbOptions = null!;
-    private Microsoft.EntityFrameworkCore.Storage.InMemoryDatabaseRoot _dbRoot = null!;
-    private Mock<IInventoryService> _inventoryMock = null!;
+    private Mock<IContextualInventoryService> _inventoryMock = null!;
     private QuotationService _quotationService = null!;
     private SaleService _saleService = null!;
     private RemissionService _remissionService = null!;
@@ -50,14 +54,14 @@ public class SaleInventoryTests
     [SetUp]
     public void Setup()
     {
-        _dbRoot = new Microsoft.EntityFrameworkCore.Storage.InMemoryDatabaseRoot();
         _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString(), _dbRoot)
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInternalServiceProvider(_efServiceProvider)
             .ConfigureWarnings(w => w.Ignore(
                 Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _inventoryMock = new Mock<IInventoryService>();
+        _inventoryMock = new Mock<IContextualInventoryService>();
 
         // Moq requires explicit matchers for optional CancellationToken params (CS0854)
         _inventoryMock
@@ -67,6 +71,14 @@ public class SaleInventoryTests
         _inventoryMock
             .Setup(i => i.CreateMovementAsync(
                 It.IsAny<CreateInventoryMovementDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(MovementOperationResult.Successful(new InventoryMovementDto()));
+
+        // Contextual overload — the one SaleService and RemissionService actually call inside transactions
+        _inventoryMock
+            .Setup(i => i.CreateMovementAsync(
+                It.IsAny<CreateInventoryMovementDto>(),
+                It.IsAny<ApplicationDbContext>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(MovementOperationResult.Successful(new InventoryMovementDto()));
 
         var contextFactory = new TestDbContextFactory(_dbOptions);
@@ -450,6 +462,7 @@ public class SaleInventoryTests
                     d.MovementType == InventoryMovementType.Sale &&
                     d.ProductId == productId &&
                     d.Quantity == 1),
+                It.IsAny<ApplicationDbContext>(),
                 It.IsAny<CancellationToken>()),
             Times.Once,
             "Converting a quotation to a sale must deduct inventory with MovementType=Sale.");
@@ -494,6 +507,7 @@ public class SaleInventoryTests
                     d.MovementType == InventoryMovementType.Return &&
                     d.ProductId == productId &&
                     d.Quantity == 1),
+                It.IsAny<ApplicationDbContext>(),
                 It.IsAny<CancellationToken>()),
             Times.Once,
             "Cancelling a sale from a quotation must return inventory with MovementType=Return.");
@@ -591,6 +605,7 @@ public class SaleInventoryTests
                     d.MovementType == InventoryMovementType.Sale &&
                     d.ProductId == productId &&
                     d.Quantity == 1),
+                It.IsAny<ApplicationDbContext>(),
                 It.IsAny<CancellationToken>()),
             Times.Once,
             "Converting a quotation to a remission must deduct inventory with MovementType=Sale.");
@@ -629,6 +644,7 @@ public class SaleInventoryTests
                     d.MovementType == InventoryMovementType.Sale &&
                     d.MovementSubType == InventoryMovementSubType.Remission &&
                     d.ProductId == productId),
+                It.IsAny<ApplicationDbContext>(),
                 It.IsAny<CancellationToken>()),
             Times.Once,
             "Remission inventory movement must use MovementSubType=Remission, not DirectSale.");
@@ -663,6 +679,133 @@ public class SaleInventoryTests
         var quotation = await ctx.Quotations.FindAsync(quotationId);
         Assert.That(quotation!.Status, Is.EqualTo(QuotationStatus.ConvertedToRemission),
             "After conversion the quotation status must be ConvertedToRemission.");
+    }
+
+    // =========================================================================
+    // Rule 5: Cross-conversion prevention — a quotation converted to sale cannot
+    // become a remission and vice versa. Non-Accepted quotations are also blocked.
+    //
+    // These tests cover the guard logic in SaleService.CreateSaleInternalAsync and
+    // RemissionService.CreateAsync. They use EF In-Memory because the validation
+    // returns early before any writes — no rollback behavior to prove here.
+    // =========================================================================
+
+    [Test]
+    public async Task CreateSale_WhenQuotationAlreadyConvertedToRemission_ReturnsFailure()
+    {
+        await SeedLocationAndPaymentMethodAsync();
+        var customerId = await SeedCustomerAsync();
+        var productId = await SeedProductAsync(price: 10.00m);
+        var quotationId = await SeedQuotationWithStatusAsync(customerId, productId, QuotationStatus.ConvertedToRemission);
+
+        var result = await _saleService.CreateSaleAsync(
+            BuildSaleDto(customerId, productId, quotationId, total: 10.00m));
+
+        Assert.That(result.IsSuccess, Is.False,
+            "A quotation already converted to a remission must not be convertible to a sale.");
+    }
+
+    [Test]
+    public async Task CreateRemission_WhenQuotationAlreadyConvertedToSale_ReturnsFailure()
+    {
+        await SeedLocationAndPaymentMethodAsync();
+        var customerId = await SeedCustomerAsync();
+        var productId = await SeedProductAsync(price: 10.00m);
+        var quotationId = await SeedQuotationWithStatusAsync(customerId, productId, QuotationStatus.ConvertedToSale);
+
+        var result = await _remissionService.CreateAsync(
+            BuildRemissionDto(customerId, productId, quotationId));
+
+        Assert.That(result.IsSuccess, Is.False,
+            "A quotation already converted to a sale must not be convertible to a remission.");
+    }
+
+    [TestCase(QuotationStatus.Draft,    TestName = "CreateSale_WhenQuotation_IsDraft_ReturnsFailure")]
+    [TestCase(QuotationStatus.Pending,  TestName = "CreateSale_WhenQuotation_IsPending_ReturnsFailure")]
+    [TestCase(QuotationStatus.Rejected, TestName = "CreateSale_WhenQuotation_IsRejected_ReturnsFailure")]
+    [TestCase(QuotationStatus.Expired,  TestName = "CreateSale_WhenQuotation_IsExpired_ReturnsFailure")]
+    public async Task CreateSale_WhenQuotationNotAccepted_ReturnsFailure(QuotationStatus status)
+    {
+        await SeedLocationAndPaymentMethodAsync();
+        var customerId = await SeedCustomerAsync();
+        var productId = await SeedProductAsync(price: 10.00m);
+        var quotationId = await SeedQuotationWithStatusAsync(customerId, productId, status);
+
+        var result = await _saleService.CreateSaleAsync(
+            BuildSaleDto(customerId, productId, quotationId, total: 10.00m));
+
+        Assert.That(result.IsSuccess, Is.False,
+            $"Only Accepted quotations can be converted to a sale. Status was {status}.");
+    }
+
+    [TestCase(QuotationStatus.Draft,    TestName = "CreateRemission_WhenQuotation_IsDraft_ReturnsFailure")]
+    [TestCase(QuotationStatus.Pending,  TestName = "CreateRemission_WhenQuotation_IsPending_ReturnsFailure")]
+    [TestCase(QuotationStatus.Rejected, TestName = "CreateRemission_WhenQuotation_IsRejected_ReturnsFailure")]
+    [TestCase(QuotationStatus.Expired,  TestName = "CreateRemission_WhenQuotation_IsExpired_ReturnsFailure")]
+    public async Task CreateRemission_WhenQuotationNotAccepted_ReturnsFailure(QuotationStatus status)
+    {
+        await SeedLocationAndPaymentMethodAsync();
+        var customerId = await SeedCustomerAsync();
+        var productId = await SeedProductAsync(price: 10.00m);
+        var quotationId = await SeedQuotationWithStatusAsync(customerId, productId, status);
+
+        var result = await _remissionService.CreateAsync(
+            BuildRemissionDto(customerId, productId, quotationId));
+
+        Assert.That(result.IsSuccess, Is.False,
+            $"Only Accepted quotations can be converted to a remission. Status was {status}.");
+    }
+
+    private async Task<long> SeedQuotationWithStatusAsync(long customerId, long productId, QuotationStatus status)
+    {
+        await using var ctx = new ApplicationDbContext(_dbOptions);
+        var quotation = new Quotation
+        {
+            QuotationNumber = $"COT-TEST-{Guid.NewGuid():N}"[..14],
+            CustomerId = customerId,
+            QuoteDate = DateTime.UtcNow,
+            ValidUntil = DateTime.UtcNow.AddDays(30),
+            Status = status,
+            IsDeleted = 0,
+            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow,
+            Details =
+            [
+                new QuotationDetail
+                {
+                    ProductId = productId,
+                    ProductName = "Test Product",
+                    ProductCode = "TST-001",
+                    Quantity = 1,
+                    UnitPrice = 10m,
+                    TaxRate = 0,
+                    CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
+                    ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+                }
+            ]
+        };
+        ctx.Quotations.Add(quotation);
+        await ctx.SaveChangesAsync();
+        return quotation.Id;
+    }
+
+    private CreateRemissionDto BuildRemissionDto(long customerId, long productId, long? quotationId)
+    {
+        return new CreateRemissionDto
+        {
+            CustomerId = customerId,
+            LocationId = LocationId,
+            QuotationId = quotationId,
+            Details =
+            [
+                new CreateRemissionDetailDto
+                {
+                    ProductId = productId,
+                    Quantity = 1,
+                    UnitPrice = 10m
+                }
+            ]
+        };
     }
 
     // =========================================================================

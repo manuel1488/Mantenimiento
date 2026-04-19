@@ -46,7 +46,12 @@
       "WebFetch(domain:www.ebay.com)",
       "WebFetch(domain:product.okfn.org)",
       "Bash(find /c/repos/Cleeny -name \"*epos*\" -o -name \"*thermal*print*\" 2>/dev/null | head -20)",
-      "Bash(find /c/repos/Cleeny -path */Models/* -name Customer.cs)"
+      "Bash(find /c/repos/Cleeny -path */Models/* -name Customer.cs)",
+      "Bash(awk 'NR==372,NR==455 {print NR\": \"$0}' /c/repos/Cleeny/src/App.Services/Shop/RemissionService.cs)",
+      "Bash(awk 'NR==39,NR==82 {print NR\": \"$0}' /c/repos/Cleeny/src/App.Services/Inventory/StockEntryService.cs)",
+      "Bash(awk *)",
+      "Bash(cat)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []

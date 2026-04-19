@@ -12,6 +12,7 @@ using App.Core.Interfaces;
 using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
+using App.Services.Inventory;
 using App.Services.Settings;
 using App.Shared.Services;
 
@@ -27,11 +28,11 @@ public class RemissionService : IRemissionService
     private readonly IDateTime _dateTime;
     private readonly ITaxRateService _taxRateService;
     private readonly ICompanySettingsService _companySettingsService;
-    private readonly IInventoryService _inventoryService;
+    private readonly IContextualInventoryService _inventoryService;
     private readonly IPricingCalculationService _pricingService;
     private readonly IPdfService _pdfService;
     private readonly IEmailTemplateService _emailTemplateService;
-    private readonly ISaleService _saleService;
+    private readonly IContextualSaleService _saleService;
     private readonly IDocumentSequenceService _documentSequenceService;
 
     public RemissionService(
@@ -43,11 +44,11 @@ public class RemissionService : IRemissionService
         IDateTime dateTime,
         ITaxRateService taxRateService,
         ICompanySettingsService companySettingsService,
-        IInventoryService inventoryService,
+        IContextualInventoryService inventoryService,
         IPricingCalculationService pricingService,
         IPdfService pdfService,
         IEmailTemplateService emailTemplateService,
-        ISaleService saleService,
+        IContextualSaleService saleService,
         IDocumentSequenceService documentSequenceService)
     {
         _contextFactory = contextFactory;
@@ -334,7 +335,7 @@ public class RemissionService : IRemissionService
                         MovementSubType = InventoryMovementSubType.Remission,
                         Reference = $"Remission-{remission.Id}",
                         Reason = $"Remission {remission.RemissionNumber} - {detail.Quantity} units"
-                    });
+                    }, context);
 
                     if (!movementResult.Success)
                     {
@@ -415,7 +416,7 @@ public class RemissionService : IRemissionService
                         MovementSubType = InventoryMovementSubType.CustomerOrder,
                         Reference = $"Remission-Cancel-{remission.Id}",
                         Reason = $"Cancelled remission {remission.RemissionNumber}"
-                    });
+                    }, context);
 
                     if (!movementResult.Success)
                     {
@@ -485,6 +486,7 @@ public class RemissionService : IRemissionService
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
+            await using var transaction = await context.Database.BeginTransactionAsync();
 
             // Load all specified remissions
             var remissions = await context.Remissions
@@ -539,7 +541,8 @@ public class RemissionService : IRemissionService
                 Details = saleDetails
             };
 
-            var saleResult = await _saleService.CreateSaleAsync(createSaleDto);
+            // Create sale and mark remissions as consolidated in one atomic transaction
+            var saleResult = await _saleService.CreateSaleAsync(createSaleDto, context);
             if (!saleResult.IsSuccess)
                 return Result<long>.Failure(saleResult.Error!);
 
@@ -547,7 +550,6 @@ public class RemissionService : IRemissionService
             var now = _dateTime.Now;
             var currentUser = _currentUserService.UserId ?? "System";
 
-            // Mark all remissions as consolidated
             foreach (var remission in remissions)
             {
                 remission.Status = RemissionStatus.Consolidated;
@@ -559,6 +561,7 @@ public class RemissionService : IRemissionService
             }
 
             await context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Result<long>.Success(saleId);
         }
