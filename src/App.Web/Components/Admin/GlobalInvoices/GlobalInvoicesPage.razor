@@ -118,6 +118,11 @@
                             }
                         </CellTemplate>
                     </TemplateColumn>
+                    <TemplateColumn Title="@L["Generated At"]">
+                        <CellTemplate>
+                            @FormatDateTime(context.Item.CreatedAt)
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Title="@L["Stamped At"]">
                         <CellTemplate>
                             @if (context.Item.StampDate.HasValue)
@@ -128,9 +133,9 @@
                     </TemplateColumn>
                     <TemplateColumn Title="@L["Actions"]" CellClass="d-flex justify-end">
                         <CellTemplate>
-                            @if (context.Item.Status == GlobalInvoiceStatus.Stamped)
+                            @if (context.Item.Status == GlobalInvoiceStatus.Stamped || context.Item.Status == GlobalInvoiceStatus.Cancelled)
                             {
-                                <XmlIconButton Title="@L["Download XML"]"
+                                <XmlIconButton title="@L["Download XML"]"
                                                Color="Color.Info"
                                                OnClick="@(() => DownloadXmlAsync(context.Item))" />
 
@@ -148,16 +153,19 @@
                                                    OnClick="@(() => DownloadPdfAsync(context.Item))" />
                                 </MudTooltip>
 
-                                <AuthorizeView Policy="@ApplicationClaims.Admin.CancelGlobalInvoice" Context="authCtx">
-                                    <Authorized>
-                                        <MudTooltip Text="@L["Cancel Invoice"]">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
-                                                           Color="Color.Error"
-                                                           Size="Size.Small"
-                                                           OnClick="@(() => OpenCancelDialogAsync(context.Item))" />
-                                        </MudTooltip>
-                                    </Authorized>
-                                </AuthorizeView>
+                                @if (context.Item.Status == GlobalInvoiceStatus.Stamped)
+                                {
+                                    <AuthorizeView Policy="@ApplicationClaims.Admin.CancelGlobalInvoice" Context="authCtx">
+                                        <Authorized>
+                                            <MudTooltip Text="@L["Cancel Invoice"]">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                               Color="Color.Error"
+                                                               Size="Size.Small"
+                                                               OnClick="@(() => OpenCancelDialogAsync(context.Item))" />
+                                            </MudTooltip>
+                                        </Authorized>
+                                    </AuthorizeView>
+                                }
                             }
                             @if (context.Item.Status == GlobalInvoiceStatus.StampError)
                             {

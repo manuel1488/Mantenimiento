@@ -176,6 +176,13 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             await using var context = await _contextFactory.CreateDbContextAsync();
             var (eligibleSales, _) = await QueryEligibleSalesAsync(context, dto.StartDate, dto.EndDate, tz);
 
+            // If the user selected a specific subset, restrict to those IDs (still validating eligibility)
+            if (dto.SelectedSaleIds != null && dto.SelectedSaleIds.Count > 0)
+            {
+                var selectedSet = dto.SelectedSaleIds.ToHashSet();
+                eligibleSales = eligibleSales.Where(s => selectedSet.Contains(s.Id)).ToList();
+            }
+
             if (eligibleSales.Count == 0)
                 return Result<GlobalInvoiceDto>.Failure("No hay ventas elegibles en el rango de fechas seleccionado.");
 
@@ -225,8 +232,8 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 Serie = serie,
                 Folio = folio,
                 Periodicity = dto.Periodicity,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
+                StartDate = _dateTime.ToUtc(dto.StartDate.Date, tz),
+                EndDate = _dateTime.ToUtc(dto.EndDate.Date, tz),
                 PeriodMonth = periodMonth,
                 PeriodYear = periodYear,
                 PaymentForm = dto.PaymentForm,
@@ -513,6 +520,16 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 isPreview: false);
 
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", data);
+
+            if (invoice.Status == GlobalInvoiceStatus.Cancelled)
+            {
+                var cancelDate = invoice.CancellationDate.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(invoice.CancellationDate.Value, tz)
+                        .ToString("dd/MM/yyyy HH:mm:ss")
+                    : string.Empty;
+                html = CfdiPdfHelper.InjectCancellationWatermark(html, cancelDate);
+            }
+
             var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
             return Result<byte[]>.Success(pdf);
         }
@@ -567,8 +584,8 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             {
                 Serie = "—",
                 Folio = 0,
-                StartDate = DateTime.SpecifyKind(dto.StartDate, DateTimeKind.Utc),
-                EndDate = DateTime.SpecifyKind(dto.EndDate, DateTimeKind.Utc),
+                StartDate = _dateTime.ToUtc(dto.StartDate.Date, tz),
+                EndDate = _dateTime.ToUtc(dto.EndDate.Date, tz),
                 PeriodMonth = dto.StartDate.Month.ToString("D2"),
                 PeriodYear = dto.StartDate.Year,
                 Periodicity = dto.Periodicity,

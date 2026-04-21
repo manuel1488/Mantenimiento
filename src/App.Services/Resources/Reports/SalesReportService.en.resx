@@ -135,4 +135,61 @@
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelled</value>
   </data>
+  <data name="Has Invoice" xml:space="preserve">
+    <value>Has Invoice</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="CFDI Serie" xml:space="preserve">
+    <value>CFDI Serie</value>
+  </data>
+  <data name="CFDI Folio" xml:space="preserve">
+    <value>CFDI Folio</value>
+  </data>
+  <data name="UUID / Folio Fiscal" xml:space="preserve">
+    <value>UUID / Folio Fiscal</value>
+  </data>
+  <data name="Customer RFC" xml:space="preserve">
+    <value>Customer RFC</value>
+  </data>
+  <data name="Customer Legal Name" xml:space="preserve">
+    <value>Customer Legal Name</value>
+  </data>
+  <data name="CFDI Status" xml:space="preserve">
+    <value>CFDI Status</value>
+  </data>
+  <data name="Stamp Date" xml:space="preserve">
+    <value>Stamp Date</value>
+  </data>
+  <data name="Cancellation Reason" xml:space="preserve">
+    <value>Cancellation Reason</value>
+  </data>
+  <data name="Replacement UUID" xml:space="preserve">
+    <value>Replacement UUID</value>
+  </data>
+  <data name="Stamped" xml:space="preserve">
+    <value>Stamped</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="Stamp Error" xml:space="preserve">
+    <value>Stamp Error</value>
+  </data>
+  <data name="Remissions" xml:space="preserve">
+    <value>Remissions</value>
+  </data>
+  <data name="Has Global Invoice" xml:space="preserve">
+    <value>Has Global Invoice</value>
+  </data>
+  <data name="Global Invoice Folio" xml:space="preserve">
+    <value>Global Invoice Folio</value>
+  </data>
+  <data name="Global Invoice UUID" xml:space="preserve">
+    <value>Global Invoice UUID</value>
+  </data>
 </root>

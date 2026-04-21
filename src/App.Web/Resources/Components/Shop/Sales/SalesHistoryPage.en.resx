@@ -103,6 +103,15 @@
   <data name="Quotation" xml:space="preserve">
     <value>Quotation</value>
   </data>
+  <data name="Origin" xml:space="preserve">
+    <value>Origin</value>
+  </data>
+  <data name="Remission" xml:space="preserve">
+    <value>Remission</value>
+  </data>
+  <data name="View remission" xml:space="preserve">
+    <value>View remission</value>
+  </data>
   <data name="No location" xml:space="preserve">
     <value>No location</value>
     <comment>Displayed when sale has no location assigned</comment>

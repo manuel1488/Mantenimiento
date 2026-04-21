@@ -17,6 +17,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 
 ### ADRs
 - [ADR-007: Factura Global](docs/01-Architecture/adr/0007-factura-global-publica-en-general.md) — Períodos fijos SAT, selección individual rechazada, regla 2.7.1.24 RMF
+- [ADR-008: AutoMapper](docs/01-Architecture/adr/0008-dependencia-automapper.md) — Downgrade a v12.0.1 MIT, vulnerabilidad GHSA-rvv3-g6hj-g44x (riesgo bajo), migración pendiente a Mapperly
 
 ### CFDI References (docs/03-Modules/)
 - [Guía de llenado CFDI global v4.0](docs/03-Modules/Guia_llenado_CFDI_global.md) — Nodo InformacionGlobal, concepto único, RFC genérico

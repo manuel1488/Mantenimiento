@@ -249,6 +249,7 @@ public class RemissionService : IRemissionService
                         Quantity = detailDto.Quantity,
                         UnitPrice = detailDto.UnitPrice,
                         DiscountPercentage = detailDto.DiscountPercentage,
+                        DiscountAmount = detailDto.DiscountAmount,
                         TaxRate = taxRate
                     });
 
@@ -526,7 +527,9 @@ public class RemissionService : IRemissionService
                     {
                         ProductId = detail.ProductId,
                         Quantity = detail.Quantity,
-                        DiscountPercentage = detail.DiscountPercentage
+                        UnitPrice = detail.UnitPrice,
+                        DiscountPercentage = detail.DiscountPercentage,
+                        DiscountAmount = detail.DiscountAmount > 0 ? detail.DiscountAmount : null
                     });
                 }
             }

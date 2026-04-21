@@ -1,5 +1,6 @@
 @page "/shop/remissions/new"
 @using App.Core.Constants
+@using App.Core.Utils
 @using App.Core.DTOs.Shop
 @using App.Core.DTOs.Customer
 @using App.Core.DTOs.Product
@@ -132,7 +133,9 @@
                             {
                                 <tr>
                                     <td>
-                                        <div id="@($"line-{line.LineId}")" style="display:flex;align-items:center;gap:4px;">
+                                        <div id="@($"line-{line.LineId}")" data-line-id="@line.LineId"
+                                             class="line-product-autocomplete"
+                                             style="display:flex;align-items:center;gap:4px;">
                                             <MudAutocomplete T="ProductDto"
                                                              Value="line.SelectedProduct"
                                                              ValueChanged="@((p) => OnProductSelected(line, p))"
@@ -279,14 +282,16 @@
                 Quantity = detail.Quantity,
                 UnitPrice = detail.UnitPrice,
                 OriginalPrice = detail.UnitPrice,
-                DiscountPercentage = detail.DiscountPercentage
+                DiscountPercentage = detail.DiscountPercentage,
+                FixedDiscountAmount = detail.DiscountAmount > 0 ? detail.DiscountAmount : null
             };
 
+            // When converting from a quotation, always preserve the agreed prices — never recalculate.
+            // Wholesale tiers are loaded so that subsequent manual quantity changes can apply them.
             if (_applyWholesale)
             {
                 var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(detail.ProductId);
                 line.WholesalePrices = wpResult.IsSuccess ? wpResult.Value.ToList() : [];
-                ApplyWholesaleDiscount(line);
             }
 
             _lines.Add(line);
@@ -339,6 +344,7 @@
 
     private decimal _taxRate = 0;
     private bool _applyWholesale;
+    private decimal? _pendingBulkQty;
     #endregion
 
     private void OnLocationChanged(int? value) => _selectedLocationId = value;
@@ -355,11 +361,22 @@
 
     private async Task<IEnumerable<ProductDto>> SearchProductsAsync(string? value, CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            _pendingBulkQty = null;
+            return [];
+        }
+
+        if (BarcodeParser.TryParseBulkBarcode(value, out var bulkProductId, out var bulkQty, out _))
+        {
+            _pendingBulkQty = bulkQty;
+            var product = await ProductService.GetProductByIdAsync(bulkProductId);
+            return product is null ? [] : [product];
+        }
+
+        _pendingBulkQty = null;
         var (_, items) = await ProductService.GetProductsAsync(
-            page: 1,
-            pageSize: 30,
-            searchString: string.IsNullOrWhiteSpace(value) ? null : value,
-            isActive: true);
+            page: 1, pageSize: 30, searchString: value, isActive: true);
         return items;
     }
     #endregion
@@ -392,6 +409,12 @@
         line.UnitPrice = product.Price;
         line.OriginalPrice = product.Price;
 
+        if (_pendingBulkQty.HasValue)
+        {
+            line.Quantity = _pendingBulkQty.Value;
+            _pendingBulkQty = null;
+        }
+
         if (_applyWholesale)
         {
             var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(product.Id);
@@ -404,7 +427,11 @@
 
     private async Task OnLineChanged(RemissionLine line, decimal? quantity = null)
     {
-        if (quantity.HasValue) line.Quantity = quantity.Value;
+        if (quantity.HasValue)
+        {
+            line.Quantity = quantity.Value;
+            line.FixedDiscountAmount = null; // quantity changed — fall back to percentage-based discount
+        }
         if (_applyWholesale) ApplyWholesaleDiscount(line);
         await RecalculateTotalsAsync();
     }
@@ -438,6 +465,7 @@
                 Quantity = line.Quantity,
                 UnitPrice = line.UnitPrice,
                 DiscountPercentage = line.DiscountPercentage,
+                DiscountAmount = line.FixedDiscountAmount,
                 TaxRate = _taxRate
             });
 
@@ -493,7 +521,8 @@
                     ProductId = l.ProductId,
                     Quantity = l.Quantity,
                     UnitPrice = l.UnitPrice,
-                    DiscountPercentage = l.DiscountPercentage
+                    DiscountPercentage = l.DiscountPercentage,
+                    DiscountAmount = l.FixedDiscountAmount
                 }).ToList()
             };
 
@@ -527,6 +556,8 @@
         public decimal UnitPrice { get; set; }
         public decimal OriginalPrice { get; set; }
         public decimal DiscountPercentage { get; set; }
+        /// <summary>Exact discount amount carried from the source quotation. Cleared when user changes quantity.</summary>
+        public decimal? FixedDiscountAmount { get; set; }
         public decimal LineTotal { get; set; }
         public decimal LineTax { get; set; }
         public decimal LineDiscount { get; set; }

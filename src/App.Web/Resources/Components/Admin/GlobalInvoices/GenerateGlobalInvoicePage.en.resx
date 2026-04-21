@@ -87,4 +87,13 @@
   <data name="Preview PDF" xml:space="preserve">
     <value>Preview PDF</value>
   </data>
+  <data name="Select all" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="Deselect all" xml:space="preserve">
+    <value>Deselect all</value>
+  </data>
+  <data name="Select at least one sale to generate the invoice." xml:space="preserve">
+    <value>Select at least one sale to generate the invoice.</value>
+  </data>
 </root>

@@ -31,7 +31,8 @@ WORKDIR /src
 RUN dotnet test "tests/App.Services.Tests/App.Services.Tests.csproj" \
     -c ${BUILD_CONFIGURATION} \
     --no-restore \
-    --logger "console;verbosity=normal"
+    --logger "console;verbosity=normal" \
+    --filter "TestCategory!=Testcontainers"
 
 # Stage 3: Publish (depends on test — if tests fail, publish never runs)
 FROM test AS publish

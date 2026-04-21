@@ -27,6 +27,9 @@
   <data name="UUID" xml:space="preserve">
     <value>UUID</value>
   </data>
+  <data name="Generated At" xml:space="preserve">
+    <value>Generado</value>
+  </data>
   <data name="Stamped At" xml:space="preserve">
     <value>Timbrado</value>
   </data>

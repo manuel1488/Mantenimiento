@@ -1,5 +1,6 @@
 ﻿@page "/shop/sales"
 @using App.Core.Constants
+@using App.Core.Utils
 @using App.Core.DTOs.Shop
 @using App.Core.DTOs.Customer
 @using App.Core.DTOs.Product
@@ -1926,33 +1927,15 @@ else
         }
     }
 
-    private bool IsLikelyBarcode(string text)
-    {
-        return !string.IsNullOrWhiteSpace(text) &&
-            text.Length >= 8 &&
-            text.All(char.IsDigit);
-    }
+    private static bool IsLikelyBarcode(string text) =>
+        BarcodeParser.IsLikelyStandardBarcode(text);
 
-    private static bool IsBulkProductBarcode(string text)
-    {
-        // Format: {ProductId}-{QuantityMillis:D6}-{PriceCents}  e.g. 156-020000-72414
-        if (string.IsNullOrWhiteSpace(text)) return false;
-        var lastDash = text.LastIndexOf('-');
-        if (lastDash < 1) return false;
-        var secondDash = text.LastIndexOf('-', lastDash - 1);
-        if (secondDash < 0) return false;
-        return long.TryParse(text.Substring(0, secondDash), out _)
-            && long.TryParse(text.Substring(secondDash + 1, lastDash - secondDash - 1), out _)
-            && long.TryParse(text.Substring(lastDash + 1), out _);
-    }
+    private static bool IsBulkProductBarcode(string text) =>
+        BarcodeParser.TryParseBulkBarcode(text, out _, out _, out _);
 
     private static (long ProductId, decimal Quantity, decimal Price) ParseBulkBarcode(string text)
     {
-        var lastDash = text.LastIndexOf('-');
-        var secondDash = text.LastIndexOf('-', lastDash - 1);
-        var productId = long.Parse(text.Substring(0, secondDash));
-        var qty = long.Parse(text.Substring(secondDash + 1, lastDash - secondDash - 1)) / 1000m;
-        var price = long.Parse(text.Substring(lastDash + 1)) / 100m;
+        BarcodeParser.TryParseBulkBarcode(text, out var productId, out var qty, out var price);
         return (productId, qty, price);
     }
 

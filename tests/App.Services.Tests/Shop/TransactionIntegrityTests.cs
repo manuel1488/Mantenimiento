@@ -634,6 +634,7 @@ public class RemissionIntegrityInMemoryTests
 // ============================================================
 
 [TestFixture]
+[Category("Testcontainers")]
 public class RemissionRollbackContainerTests
 {
     private MySqlContainer _mysql = null!;

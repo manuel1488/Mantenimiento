@@ -158,6 +158,27 @@ public class SaleService : IContextualSaleService
             // Map to DTOs
             var salesDtos = items.Select(s => _mapper.Map<SaleDto>(s)).ToList();
 
+            // Populate RemissionNumbers for consolidated sales (secondary query — no reverse nav)
+            var consolidatedSaleIds = salesDtos
+                .Where(s => s.SaleType == SaleType.Remission)
+                .Select(s => s.Id)
+                .ToList();
+
+            if (consolidatedSaleIds.Count > 0)
+            {
+                var remissionsBySaleId = await context.Set<Remission>()
+                    .AsNoTracking()
+                    .Where(r => r.ConsolidatedSaleId != null && consolidatedSaleIds.Contains(r.ConsolidatedSaleId!.Value))
+                    .GroupBy(r => r.ConsolidatedSaleId!.Value)
+                    .ToDictionaryAsync(g => g.Key, g => string.Join(", ", g.OrderBy(r => r.Id).Select(r => r.RemissionNumber)));
+
+                foreach (var dto in salesDtos)
+                {
+                    if (remissionsBySaleId.TryGetValue(dto.Id, out var numbers))
+                        dto.RemissionNumbers = numbers;
+                }
+            }
+
             return (totalCount, salesDtos);
         }
         catch (Exception ex)

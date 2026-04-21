@@ -124,7 +124,7 @@
                 <MudButton Variant="Variant.Text"
                            Color="Color.Default"
                            StartIcon="@Icons.Material.Filled.Refresh"
-                           OnClick="@ResetForm">
+                           OnClick="@ResetFormAsync">
                     @L["Reset"]
                 </MudButton>
             </div>
@@ -301,8 +301,7 @@
             }
 
             await JS.InvokeVoidAsync("printTicket", $"/api/labels/bulk/{result.Value.Id}/pdf");
-            ResetForm();
-            await _autocomplete.FocusAsync();
+            await ResetFormAsync();
         }
         catch (Exception ex)
         {
@@ -315,7 +314,7 @@
         }
     }
 
-    private void ResetForm()
+    private async Task ResetFormAsync()
     {
         _selectedProduct = null;
         _quantity = 0;
@@ -327,6 +326,8 @@
         _wholesalePrices = [];
         _discountPercentage = 0;
         _applicableFixedPrice = null;
+        await _autocomplete.ResetAsync();
+        await _autocomplete.FocusAsync();
     }
     #endregion
 }

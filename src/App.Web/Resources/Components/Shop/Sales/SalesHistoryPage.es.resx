@@ -103,6 +103,15 @@
   <data name="Quotation" xml:space="preserve">
     <value>Cotización</value>
   </data>
+  <data name="Origin" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="Remission" xml:space="preserve">
+    <value>Remisión</value>
+  </data>
+  <data name="View remission" xml:space="preserve">
+    <value>Ver remisión</value>
+  </data>
   <data name="No location" xml:space="preserve">
     <value>Sin sucursal</value>
     <comment>Se muestra cuando la venta no tiene sucursal asignada</comment>

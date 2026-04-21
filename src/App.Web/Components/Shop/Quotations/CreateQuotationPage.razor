@@ -1,6 +1,7 @@
 @page "/shop/quotations/new"
 @using App.Core.Common
 @using App.Core.Constants
+@using App.Core.Utils
 @using App.Core.DTOs.Shop
 @using App.Core.DTOs.Customer
 @using App.Core.DTOs.Product
@@ -114,14 +115,15 @@
                             {
                                 <tr>
                                     <td>
-                                        <div id="@($"line-{line.LineId}")">
-                                        <MudAutocomplete T="ProductDto"
-                                                         Value="line.SelectedProduct"
-                                                         ValueChanged="@((p) => OnProductSelected(line, p))"
-                                                         SearchFunc="@SearchProductsAsync"
-                                                         ToStringFunc="@(p => p is null ? string.Empty : $"{p.Code} - {p.Name}")"
-                                                         Variant="Variant.Text"
-                                                         Dense="true" />
+                                        <div id="@($"line-{line.LineId}")" data-line-id="@line.LineId"
+                                             class="line-product-autocomplete">
+                                            <MudAutocomplete T="ProductDto"
+                                                             Value="line.SelectedProduct"
+                                                             ValueChanged="@((p) => OnProductSelected(line, p))"
+                                                             SearchFunc="@SearchProductsAsync"
+                                                             ToStringFunc="@(p => p is null ? string.Empty : $"{p.Code} - {p.Name}")"
+                                                             Variant="Variant.Text"
+                                                             Dense="true" />
                                         </div>
                                     </td>
                                     <td>
@@ -251,6 +253,7 @@
     private decimal _grandTotal;
 
     private decimal _taxRate = 0;
+    private decimal? _pendingBulkQty;
     #endregion
 
     #region Search
@@ -265,11 +268,22 @@
 
     private async Task<IEnumerable<ProductDto>> SearchProductsAsync(string? value, CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            _pendingBulkQty = null;
+            return [];
+        }
+
+        if (BarcodeParser.TryParseBulkBarcode(value, out var bulkProductId, out var bulkQty, out _))
+        {
+            _pendingBulkQty = bulkQty;
+            var product = await ProductService.GetProductByIdAsync(bulkProductId);
+            return product is null ? [] : [product];
+        }
+
+        _pendingBulkQty = null;
         var (_, items) = await ProductService.GetProductsAsync(
-            page: 1,
-            pageSize: 30,
-            searchString: string.IsNullOrWhiteSpace(value) ? null : value,
-            isActive: true);
+            page: 1, pageSize: 30, searchString: value, isActive: true);
         return items;
     }
     #endregion
@@ -301,6 +315,12 @@
         line.ProductCode = product.Code ?? string.Empty;
         line.UnitPrice = product.Price;
         line.OriginalPrice = product.Price;
+
+        if (_pendingBulkQty.HasValue)
+        {
+            line.Quantity = _pendingBulkQty.Value;
+            _pendingBulkQty = null;
+        }
 
         var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(product.Id);
         line.WholesalePrices = wpResult.IsSuccess ? wpResult.Value.ToList() : [];

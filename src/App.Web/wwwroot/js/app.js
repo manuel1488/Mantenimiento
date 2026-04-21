@@ -56,6 +56,53 @@ window.posKeyboard = {
     }
 };
 
+// Scanner for multi-line document pages (remissions, quotations).
+// Detects fast Enter on inputs inside .line-product-autocomplete divs and calls
+// HandleLineScannerEnter(lineId, text) on the registered dotNetRef.
+window.lineScanner = {
+    _dotNetRef: null,
+    _handler: null,
+    _lastKeyTime: 0,
+    register: function (dotNetRef) {
+        this._dotNetRef = dotNetRef;
+        const self = this;
+        this._handler = (e) => {
+            const input = document.activeElement;
+            if (!input || input.tagName !== 'INPUT') return;
+            if (!input.closest('.line-product-autocomplete')) return;
+
+            if (e.key !== 'Enter') {
+                self._lastKeyTime = Date.now();
+                return;
+            }
+
+            const elapsed = Date.now() - self._lastKeyTime;
+            const text = input.value;
+            if (elapsed < 150 && text) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                // id="line-{lineId}" is reliably rendered by Blazor
+                const lineDiv = input.closest('[id^="line-"]');
+                const lineId = lineDiv ? parseInt(lineDiv.id.replace('line-', '')) : -1;
+                if (self._dotNetRef) {
+                    self._dotNetRef.invokeMethodAsync('HandleLineScannerEnter', lineId, text);
+                }
+            }
+        };
+        document.addEventListener('keydown', this._handler, true);
+    },
+    unregister: function () {
+        if (this._handler) {
+            document.removeEventListener('keydown', this._handler, true);
+            this._handler = null;
+        }
+        if (this._dotNetRef) {
+            this._dotNetRef.dispose();
+            this._dotNetRef = null;
+        }
+    }
+};
+
 // Open a URL in a new browser tab — called from Blazor via JS interop
 window.openInNewTab = (url) => {
     window.open(url, '_blank', 'noopener,noreferrer');

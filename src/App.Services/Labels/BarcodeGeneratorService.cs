@@ -1,3 +1,5 @@
+using App.Core.Utils;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -52,35 +54,14 @@ public class BarcodeGeneratorService
     }
 
     /// <summary>
-    /// Parses a bulk product barcode content string.
-    /// Returns true if the format is valid; false otherwise.
+    /// Parses a bulk product barcode content string. Delegates to BarcodeParser (single source of truth).
     /// </summary>
     public static bool TryParseBarcodeContent(
         string content,
         out long productId,
         out decimal quantity,
-        out decimal totalPrice)
-    {
-        productId = 0;
-        quantity = 0;
-        totalPrice = 0;
-
-        if (string.IsNullOrWhiteSpace(content)) return false;
-
-        // Parse from right to handle potential future product id changes
-        var lastDash = content.LastIndexOf('-');
-        if (lastDash < 1) return false;
-        var secondDash = content.LastIndexOf('-', lastDash - 1);
-        if (secondDash < 0) return false;
-
-        if (!long.TryParse(content.Substring(0, secondDash), out productId)) return false;
-        if (!long.TryParse(content.Substring(secondDash + 1, lastDash - secondDash - 1), out var qtyMillis)) return false;
-        if (!long.TryParse(content.Substring(lastDash + 1), out var priceCents)) return false;
-
-        quantity = qtyMillis / 1000m;
-        totalPrice = priceCents / 100m;
-        return true;
-    }
+        out decimal totalPrice) =>
+        BarcodeParser.TryParseBulkBarcode(content, out productId, out quantity, out totalPrice);
 
     private static string ConvertPixelDataToPngBase64(byte[] pixels, int width, int height)
     {

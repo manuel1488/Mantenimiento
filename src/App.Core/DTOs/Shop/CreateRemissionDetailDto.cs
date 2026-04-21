@@ -17,4 +17,7 @@ public class CreateRemissionDetailDto
 
     [Range(0, 100)]
     public decimal DiscountPercentage { get; set; } = 0;
+
+    /// <summary>Fixed discount amount override. When set, used directly instead of recomputing from DiscountPercentage.</summary>
+    public decimal? DiscountAmount { get; set; }
 }

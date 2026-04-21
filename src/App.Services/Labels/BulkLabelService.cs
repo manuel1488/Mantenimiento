@@ -291,6 +291,8 @@ public class BulkLabelService : IBulkLabelService
 
     private static string BuildHumanReadableText(CreateBulkLabelJobDto dto, string productCode)
     {
-        return $"{productCode} | {dto.Quantity:0.###} {dto.UnitMeasureCode} | {dto.TotalPrice:C2}";
+        var qtyMillis = ((long)Math.Round(dto.Quantity * 1000)).ToString("D6");
+        var priceCents = ((long)Math.Round(dto.TotalPrice * 100)).ToString();
+        return $"{productCode}|{qtyMillis}|{priceCents}";
     }
 }

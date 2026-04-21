@@ -229,6 +229,13 @@ else
                         </tr>
                     }
                 </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td><strong>@L["Total"]</strong></td>
+                        <td class="text-right"><strong>@_report.PaymentSummary.Sum(ps => ps.TransactionCount)</strong></td>
+                        <td class="text-right"><strong>@_report.PaymentSummary.Sum(ps => ps.TotalAmount).ToString("C2")</strong></td>
+                    </tr>
+                </tfoot>
             </table>
         }
 
@@ -371,6 +378,7 @@ else
     .report-table .summary-row { font-weight: bold; background-color: #f0f4f8; }
     .report-table .surplus-row { font-weight: bold; color: #2e7d32; }
     .report-table .shortage-row { font-weight: bold; color: #c62828; }
+    .report-table tfoot .total-row td { font-weight: bold; background-color: #e8edf2; border-top: 2px solid #999; }
 
     .notes-box {
         margin: 16px 0;

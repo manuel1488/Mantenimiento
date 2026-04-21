@@ -184,12 +184,20 @@
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" HeaderStyle="width: 90px;" />
-                    <TemplateColumn Title="@L["Quotation"]" HeaderStyle="width: 100px;">
+                    <TemplateColumn Title="@L["Origin"]" HeaderStyle="width: 120px;">
                         <CellTemplate>
                             @if (context.Item.QuotationNumber is not null)
                             {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text">
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text"
+                                         title="@L["Quotation"]">
                                     @context.Item.QuotationNumber
+                                </MudChip>
+                            }
+                            else if (context.Item.RemissionNumbers is not null)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Tertiary" Variant="Variant.Text"
+                                         title="@L["Remission"]">
+                                    @context.Item.RemissionNumbers
                                 </MudChip>
                             }
                             else
@@ -223,6 +231,14 @@
                                                    Color="Color.Info"
                                                    OnClick="@(() => Navigation.NavigateTo($"/shop/quotations?search={sale.QuotationNumber}"))"
                                                    title="@L["View quotation"]" />
+                                }
+                                else if (sale.RemissionNumbers is not null)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.LocalShipping"
+                                                   Size="Size.Small"
+                                                   Color="Color.Tertiary"
+                                                   OnClick="@(() => Navigation.NavigateTo($"/shop/remissions?search={sale.RemissionNumbers.Split(',')[0].Trim()}"))"
+                                                   title="@L["View remission"]" />
                                 }
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                                Size="Size.Small"

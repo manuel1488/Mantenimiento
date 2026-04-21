@@ -87,4 +87,13 @@
   <data name="Preview PDF" xml:space="preserve">
     <value>Vista Previa PDF</value>
   </data>
+  <data name="Select all" xml:space="preserve">
+    <value>Seleccionar todo</value>
+  </data>
+  <data name="Deselect all" xml:space="preserve">
+    <value>Deseleccionar todo</value>
+  </data>
+  <data name="Select at least one sale to generate the invoice." xml:space="preserve">
+    <value>Selecciona al menos una venta para generar la factura.</value>
+  </data>
 </root>

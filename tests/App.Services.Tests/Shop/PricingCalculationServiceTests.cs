@@ -398,4 +398,107 @@ public class PricingCalculationServiceTests
     }
 
     #endregion
+
+    #region Quotation-to-remission discount amount preservation
+
+    [Test]
+    public void CalculateLine_DiscountAmountOverride_UsesExactValueNotRecomputedFromPercentage()
+    {
+        // When DiscountAmount is provided, CalculateLine must use it directly
+        // instead of recomputing from DiscountPercentage. This is critical when
+        // converting a quotation to a remission: the agreed discount amount must
+        // be preserved exactly, even if the stored percentage has limited precision.
+        decimal qty = 3m;
+        decimal unitPrice = 33.34m; // gross = 100.02
+        decimal exactDiscountAmount = 5.00m;
+        decimal slightlyDriftedPct = 5.01m; // recompute gives 100.02 × 5.01% = 5.011002 ≠ 5.00
+
+        var withOverride = _service.CalculateLine(new LineCalculationInput
+        {
+            Quantity = qty,
+            UnitPrice = unitPrice,
+            DiscountPercentage = slightlyDriftedPct,
+            DiscountAmount = exactDiscountAmount,
+            TaxRate = 0.16m
+        });
+
+        var withoutOverride = _service.CalculateLine(new LineCalculationInput
+        {
+            Quantity = qty,
+            UnitPrice = unitPrice,
+            DiscountPercentage = slightlyDriftedPct,
+            TaxRate = 0.16m
+        });
+
+        Assert.That(withOverride.DiscountAmount, Is.EqualTo(exactDiscountAmount),
+            "DiscountAmount override must use the exact provided value");
+        Assert.That(withoutOverride.DiscountAmount, Is.Not.EqualTo(exactDiscountAmount),
+            "Without override, percentage recompute drifts from the exact stored amount");
+    }
+
+    [Test]
+    public async Task QuotationToRemission_ExactDiscountAmount_PreventsCentDrift()
+    {
+        // Regression test: quotation showed $110.22, remission showed $110.21 ($0.01 less).
+        // Root cause: RemissionService recalculated DiscountAmount from DiscountPercentage
+        // which, at limited precision, drifts from the originally stored discount amount.
+        // Fix: pass the quotation's stored DiscountAmount through CreateRemissionDetailDto
+        // so CalculateLine uses it directly.
+        //
+        // Concrete case: Qty=3, UnitPrice=$33.34, storedDiscount=$5.00, roundedPct=5.01%
+        //   With exact $5.00 discount → itemDiscounts=$5.00 → total=$110.22
+        //   With 5.01% recompute   → itemDiscounts=$5.01 → total=$110.21  (bug)
+        decimal qty = 3m;
+        decimal unitPrice = 33.34m;
+        decimal storedDiscountAmount = 5.00m;
+        decimal roundedDiscountPct = 5.01m;
+
+        DocumentLineInput MakeDocumentLine(LineCalculationResult l) => new()
+        {
+            Subtotal = l.Subtotal,
+            DiscountAmount = l.DiscountAmount,
+            IsTaxable = true,
+            TaxAmount = l.TaxAmount,
+            TaxBase = l.TaxBase
+        };
+
+        var docInput = new DocumentCalculationInput
+        {
+            GlobalDiscountPercentage = 0,
+            TaxRate = 0.16m,
+            ApplyRounding = false
+        };
+
+        // Remission WITH the fix: DiscountAmount override preserves stored value
+        var lineWithFix = _service.CalculateLine(new LineCalculationInput
+        {
+            Quantity = qty, UnitPrice = unitPrice,
+            DiscountPercentage = roundedDiscountPct,
+            DiscountAmount = storedDiscountAmount,
+            TaxRate = 0.16m
+        });
+        docInput.Lines = [MakeDocumentLine(lineWithFix)];
+        var docWithFix = await _service.CalculateDocumentAsync(docInput);
+
+        // Remission WITHOUT the fix: percentage recompute drifts
+        var lineWithoutFix = _service.CalculateLine(new LineCalculationInput
+        {
+            Quantity = qty, UnitPrice = unitPrice,
+            DiscountPercentage = roundedDiscountPct,
+            TaxRate = 0.16m
+        });
+        docInput.Lines = [MakeDocumentLine(lineWithoutFix)];
+        var docWithoutFix = await _service.CalculateDocumentAsync(docInput);
+
+        Assert.That(lineWithFix.DiscountAmount, Is.EqualTo(storedDiscountAmount),
+            "Fix must preserve the exact stored discount amount");
+        Assert.That(docWithFix.Total, Is.EqualTo(110.22m),
+            "Total with fix must match the original quotation total");
+        Assert.That(docWithoutFix.Total, Is.EqualTo(110.21m),
+            "Total without fix drifts by one cent (the bug)");
+        Assert.That(Math.Abs(docWithFix.Total - docWithoutFix.Total), Is.EqualTo(0.01m),
+            "The drift is exactly $0.01");
+    }
+
+    #endregion
 }

@@ -105,24 +105,35 @@
                         <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Summary"]</MudText>
                         <MudGrid Spacing="1">
                             <MudItem xs="7"><MudText Typo="Typo.body2">@L["Sales included:"]</MudText></MudItem>
-                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@_preview.SaleCount</MudText></MudItem>
+                            <MudItem xs="5">
+                                <MudText Typo="Typo.body2" Align="Align.Right">
+                                    @if (_selectedSales.Count < _preview.SaleCount)
+                                    {
+                                        <span>@_selectedSales.Count <MudText Typo="Typo.caption" Color="Color.Secondary">/ @_preview.SaleCount</MudText></span>
+                                    }
+                                    else
+                                    {
+                                        @_selectedSales.Count
+                                    }
+                                </MudText>
+                            </MudItem>
 
                             <MudItem xs="7"><MudText Typo="Typo.body2">@L["Subtotal:"]</MudText></MudItem>
-                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@_preview.Subtotal.ToString("C2")</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@SelectedSubtotal.ToString("C2")</MudText></MudItem>
 
-                            @if (_preview.DiscountAmount > 0)
+                            @if (SelectedDiscountAmount > 0)
                             {
                                 <MudItem xs="7"><MudText Typo="Typo.body2">@L["Discounts:"]</MudText></MudItem>
-                                <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right" Color="Color.Error">-@_preview.DiscountAmount.ToString("C2")</MudText></MudItem>
+                                <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right" Color="Color.Error">-@SelectedDiscountAmount.ToString("C2")</MudText></MudItem>
                             }
 
                             <MudItem xs="7"><MudText Typo="Typo.body2">@L["Tax (IVA):"]</MudText></MudItem>
-                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@_preview.TaxAmount.ToString("C2")</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.body2" Align="Align.Right">@SelectedTaxAmount.ToString("C2")</MudText></MudItem>
 
                             <MudItem xs="12"><MudDivider /></MudItem>
 
                             <MudItem xs="7"><MudText Typo="Typo.subtitle2">@L["Total:"]</MudText></MudItem>
-                            <MudItem xs="5"><MudText Typo="Typo.subtitle2" Align="Align.Right">@_preview.Total.ToString("C2")</MudText></MudItem>
+                            <MudItem xs="5"><MudText Typo="Typo.subtitle2" Align="Align.Right">@SelectedTotal.ToString("C2")</MudText></MudItem>
                         </MudGrid>
 
                         @if (_preview.AlreadyInvoicedCount > 0)
@@ -184,14 +195,29 @@
             }
             else
             {
-                <MudText Typo="Typo.subtitle2" Class="mb-3">@L["Included Sales"]</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                    <MudText Typo="Typo.subtitle2">@L["Included Sales"]</MudText>
+                    <MudStack Row="true" Spacing="1">
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   OnClick="SelectAll">@L["Select all"]</MudButton>
+                        <MudButton Size="Size.Small"
+                                   Variant="Variant.Text"
+                                   Color="Color.Secondary"
+                                   OnClick="DeselectAll">@L["Deselect all"]</MudButton>
+                    </MudStack>
+                </MudStack>
                 <MudDataGrid T="GlobalInvoicePreviewSaleDto"
                              Items="@_preview.Sales"
                              Dense="true"
                              Hover="true"
                              SortMode="SortMode.Single"
-                             RowsPerPage="10">
+                             RowsPerPage="15"
+                             MultiSelection="true"
+                             SelectedItems="@_selectedSales"
+                             SelectedItemsChanged="@OnSelectionChanged">
                     <Columns>
+                        <SelectColumn T="GlobalInvoicePreviewSaleDto" ShowInFooter="false" />
                         <PropertyColumn Property="x => x.SaleId" Title="@L["#"]" />
                         <PropertyColumn Property="x => x.SaleDateLocal" Title="@L["Date"]" />
                         <PropertyColumn Property="x => x.PaymentMethods" Title="@L["Payment"]" />
@@ -203,6 +229,12 @@
                         <MudDataGridPager T="GlobalInvoicePreviewSaleDto" />
                     </PagerContent>
                 </MudDataGrid>
+                @if (_selectedSales.Count == 0)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">
+                        @L["Select at least one sale to generate the invoice."]
+                    </MudAlert>
+                }
             }
         </MudPaper>
     </MudItem>
@@ -216,6 +248,7 @@
     private DateTime _endDate;
     private string _paymentForm = "99";
     private GlobalInvoicePreviewDto? _preview;
+    private HashSet<GlobalInvoicePreviewSaleDto> _selectedSales = [];
     private bool _previewing = false;
     private bool _pdfPreviewing = false;
     private bool _processing = false;
@@ -231,7 +264,11 @@
     #endregion
 
     #region Computed
-    private bool CanGenerate => _preview != null && _preview.SaleCount > 0 && !_previewing;
+    private bool CanGenerate => _preview != null && _selectedSales.Count > 0 && !_previewing;
+    private decimal SelectedSubtotal => Math.Round(_selectedSales.Sum(s => s.Subtotal), 2);
+    private decimal SelectedTaxAmount => Math.Round(_selectedSales.Sum(s => s.TaxAmount), 2);
+    private decimal SelectedTotal => Math.Round(_selectedSales.Sum(s => s.Total), 2);
+    private decimal SelectedDiscountAmount => Math.Max(0, Math.Round(SelectedSubtotal + SelectedTaxAmount - SelectedTotal, 2));
 
     private string PeriodLabel => _periodicity switch
     {
@@ -267,6 +304,7 @@
         _referenceDate = DateTime.Today;
         RecalculateDates();
         _preview = null;
+        _selectedSales = [];
     }
 
     private void PrevPeriod()
@@ -280,6 +318,7 @@
         };
         RecalculateDates();
         _preview = null;
+        _selectedSales = [];
     }
 
     private void NextPeriod()
@@ -293,6 +332,7 @@
         };
         RecalculateDates();
         _preview = null;
+        _selectedSales = [];
     }
 
     private void RecalculateDates()
@@ -352,19 +392,38 @@
     {
         _previewing = true;
         _preview = null;
+        _selectedSales = [];
 
         var result = await GlobalInvoiceService.PreviewAsync(_startDate, _endDate);
         if (result.IsSuccess)
+        {
             _preview = result.Value;
+            _selectedSales = [.._preview.Sales]; // select all by default
+        }
         else
+        {
             Snackbar.Add(result.Error, Severity.Error);
+        }
 
         _previewing = false;
     }
 
+    private void OnSelectionChanged(HashSet<GlobalInvoicePreviewSaleDto> selected)
+    {
+        _selectedSales = selected;
+    }
+
+    private void SelectAll()
+    {
+        if (_preview != null)
+            _selectedSales = [.._preview.Sales];
+    }
+
+    private void DeselectAll() => _selectedSales = [];
+
     private async Task PreviewPdfAsync()
     {
-        if (_preview == null) return;
+        if (_preview == null || _selectedSales.Count == 0) return;
         _pdfPreviewing = true;
 
         var dto = new CreateGlobalInvoiceDto
@@ -372,10 +431,21 @@
             StartDate = _startDate,
             EndDate = _endDate,
             Periodicity = _periodicity,
-            PaymentForm = _paymentForm
+            PaymentForm = _paymentForm,
+            SelectedSaleIds = _selectedSales.Select(s => s.SaleId).ToList()
         };
 
-        var result = await GlobalInvoiceService.GetPdfPreviewAsync(dto, _preview);
+        var filteredPreview = new GlobalInvoicePreviewDto
+        {
+            SaleCount = _selectedSales.Count,
+            Subtotal = SelectedSubtotal,
+            DiscountAmount = SelectedDiscountAmount,
+            TaxAmount = SelectedTaxAmount,
+            Total = SelectedTotal,
+            Sales = [.._selectedSales]
+        };
+
+        var result = await GlobalInvoiceService.GetPdfPreviewAsync(dto, filteredPreview);
         _pdfPreviewing = false;
 
         if (!result.IsSuccess)
@@ -398,7 +468,8 @@
             StartDate = _startDate,
             EndDate = _endDate,
             Periodicity = _periodicity,
-            PaymentForm = _paymentForm
+            PaymentForm = _paymentForm,
+            SelectedSaleIds = _selectedSales.Select(s => s.SaleId).ToList()
         };
 
         var result = await GlobalInvoiceService.CreateAndStampAsync(dto);

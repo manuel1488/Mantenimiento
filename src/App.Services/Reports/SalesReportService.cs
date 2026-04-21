@@ -7,6 +7,7 @@ using App.Core.DTOs.Reports;
 using App.Core.DTOs.Shop;
 using App.Core.Interfaces;
 using App.Core.Options;
+using App.Models.Billing;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Shared.Services;
@@ -490,15 +491,32 @@ public class SalesReportService : ISalesReportService
             await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
             var baseQuery = await GetBaseQueryAsync(context, request, cancellationToken);
 
-            var items = await baseQuery
+            var salesQuery = baseQuery
                 .OrderByDescending(s => s.SaleDate)
                 .Include(s => s.Customer)
                 .Include(s => s.Location)
                 .Include(s => s.Quotation)
                 .Include(s => s.Details).ThenInclude(d => d.Product)
-                .Take(request.PageSize)
-                .Select(s => _mapper.Map<SaleDto>(s))
-                .ToListAsync(cancellationToken);
+                .Take(request.PageSize);
+
+            var saleEntities = await salesQuery.ToListAsync(cancellationToken);
+            var items = saleEntities.Select(s => _mapper.Map<SaleDto>(s)).ToList();
+
+            var saleIds = saleEntities.Select(s => s.Id).ToList();
+            var invoicesBySaleId = await context.Set<MexicoInvoice>()
+                .Where(i => saleIds.Contains(i.SaleId))
+                .ToDictionaryAsync(i => i.SaleId, cancellationToken);
+
+            var remissionsBySaleId = await context.Set<Remission>()
+                .Where(r => r.ConsolidatedSaleId != null && saleIds.Contains(r.ConsolidatedSaleId!.Value))
+                .GroupBy(r => r.ConsolidatedSaleId!.Value)
+                .ToDictionaryAsync(g => g.Key, g => string.Join(", ", g.Select(r => r.RemissionNumber)), cancellationToken);
+
+            var globalInvoicesBySaleId = await context.GlobalInvoiceSales
+                .AsNoTracking()
+                .Where(gs => saleIds.Contains(gs.SaleId) && gs.GlobalInvoice!.Status == App.Core.Enums.Billing.GlobalInvoiceStatus.Stamped)
+                .Select(gs => new { gs.SaleId, gs.GlobalInvoice!.Serie, gs.GlobalInvoice!.Folio, gs.GlobalInvoice!.Uuid })
+                .ToDictionaryAsync(gs => gs.SaleId, cancellationToken);
 
             var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
             var numberFormat = GetNumberFormat(culture);
@@ -524,7 +542,21 @@ public class SalesReportService : ISalesReportService
                 _localizer["Location"].Value,
                 _localizer["Quotation"].Value,
                 _localizer["Created By"].Value,
-                _localizer["Status"].Value
+                _localizer["Status"].Value,
+                _localizer["Has Invoice"].Value,
+                _localizer["CFDI Serie"].Value,
+                _localizer["CFDI Folio"].Value,
+                _localizer["UUID / Folio Fiscal"].Value,
+                _localizer["Customer RFC"].Value,
+                _localizer["Customer Legal Name"].Value,
+                _localizer["CFDI Status"].Value,
+                _localizer["Stamp Date"].Value,
+                _localizer["Cancellation Reason"].Value,
+                _localizer["Replacement UUID"].Value,
+                _localizer["Remissions"].Value,
+                _localizer["Has Global Invoice"].Value,
+                _localizer["Global Invoice Folio"].Value,
+                _localizer["Global Invoice UUID"].Value
             };
 
             for (int col = 1; col <= headers.Length; col++)
@@ -550,6 +582,10 @@ public class SalesReportService : ISalesReportService
                     ? _localizer["Created"].Value
                     : _localizer["Cancelled"].Value;
 
+                invoicesBySaleId.TryGetValue(s.Id, out var invoice);
+                remissionsBySaleId.TryGetValue(s.Id, out var remissionNumbers);
+                globalInvoicesBySaleId.TryGetValue(s.Id, out var globalInvoice);
+
                 ws.Cells[row, 1].Value = s.Id;
                 ws.Cells[row, 2].Value = dateStr;
                 ws.Cells[row, 3].Value = s.CustomerName;
@@ -571,6 +607,28 @@ public class SalesReportService : ISalesReportService
                 ws.Cells[row, 12].Value = s.QuotationNumber ?? string.Empty;
                 ws.Cells[row, 13].Value = s.CreatedBy ?? string.Empty;
                 ws.Cells[row, 14].Value = statusStr;
+
+                // Invoice columns (15-24)
+                ws.Cells[row, 15].Value = invoice != null ? _localizer["Yes"].Value : _localizer["No"].Value;
+                ws.Cells[row, 16].Value = invoice?.Serie ?? string.Empty;
+                ws.Cells[row, 17].Value = invoice != null ? invoice.Folio : (object)string.Empty;
+                ws.Cells[row, 18].Value = invoice?.Uuid ?? string.Empty;
+                ws.Cells[row, 19].Value = invoice?.CustomerRfc ?? string.Empty;
+                ws.Cells[row, 20].Value = invoice?.CustomerLegalName ?? string.Empty;
+                ws.Cells[row, 21].Value = invoice != null ? TranslateCfdiStatus(invoice.Status) : string.Empty;
+                ws.Cells[row, 22].Value = invoice?.StampDate.HasValue == true
+                    ? _dateTime.FormatToTimezone(invoice.StampDate.Value, timeZone)
+                    : string.Empty;
+                ws.Cells[row, 23].Value = invoice?.CancellationReason != null
+                    ? FormatCancellationReason(invoice.CancellationReason)
+                    : string.Empty;
+                ws.Cells[row, 24].Value = invoice?.ReplacementUuid ?? string.Empty;
+                ws.Cells[row, 25].Value = remissionNumbers ?? string.Empty;
+
+                // Global invoice columns (26-28)
+                ws.Cells[row, 26].Value = globalInvoice != null ? _localizer["Yes"].Value : _localizer["No"].Value;
+                ws.Cells[row, 27].Value = globalInvoice != null ? $"{globalInvoice.Serie}-{globalInvoice.Folio}" : string.Empty;
+                ws.Cells[row, 28].Value = globalInvoice?.Uuid ?? string.Empty;
 
                 // Striped rows
                 if (row % 2 == 0)
@@ -607,6 +665,24 @@ public class SalesReportService : ISalesReportService
     }
 
     #region Helper Methods
+
+    private string TranslateCfdiStatus(string status) => status switch
+    {
+        "Stamped" => _localizer["Stamped"].Value,
+        "Cancelled" => _localizer["Cancelled"].Value,
+        "Draft" => _localizer["Draft"].Value,
+        "StampError" => _localizer["Stamp Error"].Value,
+        _ => status
+    };
+
+    private static string FormatCancellationReason(string reason) => reason switch
+    {
+        "01" => "01 - Comprobante emitido con errores con relación",
+        "02" => "02 - Comprobante emitido con errores sin relación",
+        "03" => "03 - No se llevó a cabo la operación",
+        "04" => "04 - Operación nominativa relacionada en factura global",
+        _ => reason
+    };
 
     private async Task<IQueryable<Sale>> GetBaseQueryAsync(
         ApplicationDbContext context,

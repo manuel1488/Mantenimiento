@@ -47,6 +47,11 @@ public class CreateGlobalInvoiceDto
     public GlobalInvoicePeriodicity Periodicity { get; set; } = GlobalInvoicePeriodicity.Monthly;
     /// <summary>SAT PaymentForm code e.g. "01", "28", "99".</summary>
     public string PaymentForm { get; set; } = "99";
+    /// <summary>
+    /// When non-empty, only the specified eligible sale IDs will be included.
+    /// When null or empty, all eligible sales in the date range are included.
+    /// </summary>
+    public List<long>? SelectedSaleIds { get; set; }
 }
 
 public class GlobalInvoicePdfDto
