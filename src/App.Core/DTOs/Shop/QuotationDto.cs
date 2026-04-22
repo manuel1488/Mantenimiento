@@ -23,5 +23,6 @@ public class QuotationDto : AuditableDto
     public string? SentToEmail { get; set; }
     public long? ConvertedSaleId { get; set; }
     public long? ConvertedRemissionId { get; set; }
+    public string? RejectionReason { get; set; }
     public List<QuotationDetailDto> Details { get; set; } = [];
 }

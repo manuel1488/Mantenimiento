@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Invoice Detail" xml:space="preserve"><value>Invoice Detail</value></data>
+  <data name="Invoice not found" xml:space="preserve"><value>Invoice not found</value></data>
+  <data name="Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Download XML" xml:space="preserve"><value>Download XML</value></data>
+  <data name="View PDF" xml:space="preserve"><value>View PDF</value></data>
+  <data name="Invoice Information" xml:space="preserve"><value>Invoice Information</value></data>
+  <data name="Folio" xml:space="preserve"><value>Folio</value></data>
+  <data name="Stamp Date" xml:space="preserve"><value>Stamp Date</value></data>
+  <data name="Payment Form" xml:space="preserve"><value>Payment Form</value></data>
+  <data name="CFDI Use" xml:space="preserve"><value>CFDI Use</value></data>
+  <data name="Related Sale" xml:space="preserve"><value>Related Sale</value></data>
+  <data name="Cancellation" xml:space="preserve"><value>Cancellation</value></data>
+  <data name="Cancellation Date" xml:space="preserve"><value>Cancellation Date</value></data>
+  <data name="SAT Reason" xml:space="preserve"><value>SAT Reason</value></data>
+  <data name="Observations" xml:space="preserve"><value>Observations</value></data>
+  <data name="Customer" xml:space="preserve"><value>Customer</value></data>
+  <data name="Legal Name" xml:space="preserve"><value>Legal Name</value></data>
+  <data name="Fiscal Regime" xml:space="preserve"><value>Fiscal Regime</value></data>
+  <data name="Postal Code" xml:space="preserve"><value>Postal Code</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Issuer</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Subtotal</value></data>
+  <data name="Tax" xml:space="preserve"><value>Tax</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Stamped" xml:space="preserve"><value>Stamped</value></data>
+  <data name="Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Stamp Error" xml:space="preserve"><value>Stamp Error</value></data>
+  <data name="Cancellation Pending" xml:space="preserve"><value>Cancellation Pending</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Con errores con relación" xml:space="preserve"><value>With related errors</value></data>
+  <data name="Con errores sin relación" xml:space="preserve"><value>With unrelated errors</value></data>
+  <data name="No se llevó a cabo la operación" xml:space="preserve"><value>Transaction did not take place</value></data>
+  <data name="Operación nominativa en factura global" xml:space="preserve"><value>Named transaction in global invoice</value></data>
+</root>

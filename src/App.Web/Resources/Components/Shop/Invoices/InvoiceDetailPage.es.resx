@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Invoice Detail" xml:space="preserve"><value>Detalle de Factura</value></data>
+  <data name="Invoice not found" xml:space="preserve"><value>Factura no encontrada</value></data>
+  <data name="Back" xml:space="preserve"><value>Regresar</value></data>
+  <data name="Download XML" xml:space="preserve"><value>Descargar XML</value></data>
+  <data name="View PDF" xml:space="preserve"><value>Ver PDF</value></data>
+  <data name="Invoice Information" xml:space="preserve"><value>Información de la Factura</value></data>
+  <data name="Folio" xml:space="preserve"><value>Folio</value></data>
+  <data name="Stamp Date" xml:space="preserve"><value>Fecha de Timbre</value></data>
+  <data name="Payment Form" xml:space="preserve"><value>Forma de Pago</value></data>
+  <data name="CFDI Use" xml:space="preserve"><value>Uso CFDI</value></data>
+  <data name="Related Sale" xml:space="preserve"><value>Venta Relacionada</value></data>
+  <data name="Cancellation" xml:space="preserve"><value>Cancelación</value></data>
+  <data name="Cancellation Date" xml:space="preserve"><value>Fecha de Cancelación</value></data>
+  <data name="SAT Reason" xml:space="preserve"><value>Motivo SAT</value></data>
+  <data name="Observations" xml:space="preserve"><value>Observaciones</value></data>
+  <data name="Customer" xml:space="preserve"><value>Cliente</value></data>
+  <data name="Legal Name" xml:space="preserve"><value>Razón Social</value></data>
+  <data name="Fiscal Regime" xml:space="preserve"><value>Régimen Fiscal</value></data>
+  <data name="Postal Code" xml:space="preserve"><value>Código Postal</value></data>
+  <data name="Issuer" xml:space="preserve"><value>Emisor</value></data>
+  <data name="Subtotal" xml:space="preserve"><value>Subtotal</value></data>
+  <data name="Tax" xml:space="preserve"><value>IVA</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="Stamped" xml:space="preserve"><value>Timbrada</value></data>
+  <data name="Draft" xml:space="preserve"><value>Borrador</value></data>
+  <data name="Stamp Error" xml:space="preserve"><value>Error de Timbre</value></data>
+  <data name="Cancellation Pending" xml:space="preserve"><value>Cancelación Pendiente</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Cancelada</value></data>
+  <data name="Con errores con relación" xml:space="preserve"><value>Con errores con relación</value></data>
+  <data name="Con errores sin relación" xml:space="preserve"><value>Con errores sin relación</value></data>
+  <data name="No se llevó a cabo la operación" xml:space="preserve"><value>No se llevó a cabo la operación</value></data>
+  <data name="Operación nominativa en factura global" xml:space="preserve"><value>Operación nominativa en factura global</value></data>
+</root>

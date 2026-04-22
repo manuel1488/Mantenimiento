@@ -416,7 +416,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         }
     }
 
-    public async Task<Result> CancelAsync(long id, string reason, string? replacementUuid = null)
+    public async Task<Result> CancelAsync(long id, string reason, string? replacementUuid = null, string? notes = null)
     {
         try
         {
@@ -439,6 +439,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             // Mark pending before calling PAC
             invoice.Status = GlobalInvoiceStatus.Cancelled; // optimistic — revert on failure
             invoice.CancellationReason = reason;
+            invoice.CancellationNotes = notes;
             invoice.ReplacementUuid = replacementUuid;
             invoice.CancellationDate = _dateTime.Now;
             invoice.CancellationStatus = "Pending";
@@ -982,6 +983,8 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         Status = e.Status,
         StampDate = e.StampDate,
         CancellationDate = e.CancellationDate,
+        CancellationReason = e.CancellationReason,
+        CancellationNotes = e.CancellationNotes,
         CancellationStatus = e.CancellationStatus,
         HasCancellationAcuse = e.CancellationAcuse != null,
         CreatedAt = e.CreatedAt,
@@ -1016,6 +1019,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         StampError = e.StampError,
         CancellationDate = e.CancellationDate,
         CancellationReason = e.CancellationReason,
+        CancellationNotes = e.CancellationNotes,
         CancellationStatus = e.CancellationStatus
     };
 }

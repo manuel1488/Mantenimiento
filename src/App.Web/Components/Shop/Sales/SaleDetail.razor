@@ -78,6 +78,15 @@
                                         </MudChip>
                                     </MudText>
                                 </MudListItem>
+                                @if (_sale.Status == App.Core.Enums.Shop.SaleStatus.Cancelled && !string.IsNullOrWhiteSpace(_sale.CancellationReason))
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body2">
+                                            <MudText Typo="Typo.subtitle2" Color="Color.Error" Class="d-inline">@L["Cancellation reason"]: </MudText>
+                                            @_sale.CancellationReason
+                                        </MudText>
+                                    </MudListItem>
+                                }
                                 
                                 <MudListItem>
                                     <MudText Typo="Typo.body2">

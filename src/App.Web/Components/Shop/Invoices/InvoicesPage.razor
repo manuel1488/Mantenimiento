@@ -195,6 +195,14 @@
                     </MudTd>
                     <MudTd Style="text-align: center;">
                         <div class="d-flex justify-center align-center gap-2">
+                            <!-- View detail -->
+                            <MudTooltip Text="@L["View Detail"]">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Size="Size.Small"
+                                               Color="Color.Default"
+                                               OnClick="@(() => Navigation.NavigateTo($"/shop/invoices/{context.Id}"))" />
+                            </MudTooltip>
+
                             <!-- View sale -->
                             <MudTooltip Text="@L["View Sale"]">
                                 <MudIconButton Icon="@Icons.Material.Filled.ShoppingCart"
@@ -350,6 +358,13 @@
                               FullWidth />
             }
         }
+
+        <MudTextField @bind-Value="_cancelNotes"
+                      Label="@L["Observations"]"
+                      Variant="Variant.Outlined"
+                      Lines="2"
+                      FullWidth
+                      Class="mt-3" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="@(() => _cancelDialogOpen = false)" Disabled="_cancelProcessing">@L["Keep"]</MudButton>
@@ -565,6 +580,7 @@
 
     private string _cancelReason = "02";
     private string? _cancelReplacementUuid;
+    private string? _cancelNotes;
     private MexicoInvoiceSummaryDto? _invoiceToCancel;
     private IList<MexicoInvoiceSummaryDto> _siblingStampedInvoices = [];
     private bool _cancelDialogOpen;
@@ -575,6 +591,7 @@
         _invoiceToCancel = invoice;
         _cancelReason = "02";
         _cancelReplacementUuid = null;
+        _cancelNotes = null;
         _siblingStampedInvoices = [];
 
         // Load sibling stamped invoices for the same sale (for reason 01 auto-fill)
@@ -598,7 +615,7 @@
     {
         if (_invoiceToCancel == null) return;
         _cancelProcessing = true;
-        var result = await InvoiceService.CancelAsync(_invoiceToCancel.Id, _cancelReason, _cancelReplacementUuid);
+        var result = await InvoiceService.CancelAsync(_invoiceToCancel.Id, _cancelReason, _cancelReplacementUuid, _cancelNotes);
         _cancelProcessing = false;
         _cancelDialogOpen = false;
         if (result.IsSuccess)
@@ -668,6 +685,15 @@
         "CancellationPending" => L["Cancelling"],
         "Cancelled" => L["Cancelled"],
         _ => status
+    };
+
+    private string GetSatCancellationReasonText(string? code) => code switch
+    {
+        "01" => L["Con errores con relación"],
+        "02" => L["Con errores sin relación"],
+        "03" => L["No se llevó a cabo la operación"],
+        "04" => L["Operación nominativa en factura global"],
+        _ => code ?? ""
     };
 
     private DateTime? ToUtc(DateTime? localDate)

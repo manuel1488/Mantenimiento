@@ -42,7 +42,7 @@ public interface IMexicoInvoiceService
     /// <param name="invoiceId">Invoice to cancel.</param>
     /// <param name="cancellationReason">SAT reason code: 01 (con relación), 02 (sin relación), 03 (no se llevó a cabo), 04 (nominativa global).</param>
     /// <param name="replacementUuid">Replacement invoice UUID — required when reason is "01".</param>
-    Task<Result> CancelAsync(long invoiceId, string cancellationReason, string? replacementUuid = null);
+    Task<Result> CancelAsync(long invoiceId, string cancellationReason, string? replacementUuid = null, string? notes = null);
 
     /// <summary>Returns the SAT cancellation acknowledgment XML bytes for download.</summary>
     Task<Result<byte[]>> GetCancellationAcuseAsync(long invoiceId);

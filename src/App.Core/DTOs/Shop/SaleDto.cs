@@ -36,6 +36,7 @@ public class SaleDto : AuditableDto
     
     public long? QuotationId { get; set; }
     public string? QuotationNumber { get; set; }
+    public string? CancellationReason { get; set; }
 
     /// <summary>Comma-separated remission numbers when this sale is a consolidation of remissions.</summary>
     public string? RemissionNumbers { get; set; }

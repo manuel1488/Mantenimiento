@@ -195,4 +195,5 @@
   <data name="Re-Invoice" xml:space="preserve">
     <value>Re-Invoice</value>
   </data>
+  <data name="View Detail" xml:space="preserve"><value>View Detail</value></data>
 </root>

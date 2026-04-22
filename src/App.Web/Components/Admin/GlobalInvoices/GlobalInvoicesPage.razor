@@ -106,6 +106,18 @@
                                     @FormatDateTime(context.Item.CancellationDate.Value)
                                 </MudText>
                             }
+                            @if (!string.IsNullOrEmpty(context.Item.CancellationReason))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Error" Class="d-block">
+                                    @context.Item.CancellationReason — @GetSatCancellationReasonText(context.Item.CancellationReason)
+                                </MudText>
+                            }
+                            @if (!string.IsNullOrEmpty(context.Item.CancellationNotes))
+                            {
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
+                                    @context.Item.CancellationNotes
+                                </MudText>
+                            }
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Title="@L["UUID"]">
@@ -225,6 +237,15 @@
             return utcDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
         return DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
     }
+
+    private string GetSatCancellationReasonText(string? code) => code switch
+    {
+        "01" => L["Con errores con relación"],
+        "02" => L["Con errores sin relación"],
+        "03" => L["No se llevó a cabo la operación"],
+        "04" => L["Operación nominativa en factura global"],
+        _ => code ?? ""
+    };
     #endregion
 
     #region Methods

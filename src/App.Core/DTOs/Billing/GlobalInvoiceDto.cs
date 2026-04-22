@@ -17,6 +17,8 @@ public class GlobalInvoiceListDto
     public GlobalInvoiceStatus Status { get; set; }
     public DateTime? StampDate { get; set; }
     public DateTime? CancellationDate { get; set; }
+    public string? CancellationReason { get; set; }
+    public string? CancellationNotes { get; set; }
     public string? CancellationStatus { get; set; }
     public bool HasCancellationAcuse { get; set; }
     public DateTime CreatedAt { get; set; }

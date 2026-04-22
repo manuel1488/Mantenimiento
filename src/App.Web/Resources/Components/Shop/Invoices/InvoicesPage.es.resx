@@ -195,4 +195,11 @@
   <data name="Re-Invoice" xml:space="preserve">
     <value>Re-Facturar</value>
   </data>
+  <data name="Observations" xml:space="preserve"><value>Observaciones</value></data>
+  <data name="View Detail" xml:space="preserve"><value>Ver detalle</value></data>
+  <data name="Reason" xml:space="preserve"><value>Motivo</value></data>
+  <data name="Con errores con relación" xml:space="preserve"><value>Con errores con relación</value></data>
+  <data name="Con errores sin relación" xml:space="preserve"><value>Con errores sin relación</value></data>
+  <data name="No se llevó a cabo la operación" xml:space="preserve"><value>No se llevó a cabo la operación</value></data>
+  <data name="Operación nominativa en factura global" xml:space="preserve"><value>Operación nominativa en factura global</value></data>
 </root>

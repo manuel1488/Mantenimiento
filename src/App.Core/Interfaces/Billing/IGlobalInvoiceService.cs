@@ -34,7 +34,7 @@ public interface IGlobalInvoiceService
     Task<Result<byte[]>> GetPdfPreviewAsync(CreateGlobalInvoiceDto dto, GlobalInvoicePreviewDto preview);
 
     /// <summary>Requests cancellation of the CFDI via PAC.</summary>
-    Task<Result> CancelAsync(long id, string reason, string? replacementUuid = null);
+    Task<Result> CancelAsync(long id, string reason, string? replacementUuid = null, string? notes = null);
 
     /// <summary>Returns the cancellation acuse XML bytes.</summary>
     Task<Result<byte[]>> GetCancellationAcuseAsync(long id);

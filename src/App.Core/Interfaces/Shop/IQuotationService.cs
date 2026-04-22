@@ -21,7 +21,7 @@ public interface IQuotationService
 
     Task<Result> DeleteAsync(long id);
 
-    Task<Result> UpdateStatusAsync(long id, QuotationStatus status);
+    Task<Result> UpdateStatusAsync(long id, QuotationStatus status, string? reason = null);
 
     Task<Result> SendByEmailAsync(long id, string? emailOverride = null);
 

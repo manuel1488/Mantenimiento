@@ -72,6 +72,9 @@ public class GlobalInvoice : BaseEntity<long>
     [StringLength(36)]
     public string? ReplacementUuid { get; set; }
 
+    [StringLength(500)]
+    public string? CancellationNotes { get; set; }
+
     [StringLength(20)]
     public string? CancellationStatus { get; set; }
 

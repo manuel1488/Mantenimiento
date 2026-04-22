@@ -212,4 +212,5 @@
     <value>Cancelada</value>
     <comment>Estado de la venta - Cancelada</comment>
   </data>
+  <data name="Cancellation reason" xml:space="preserve"><value>Motivo de cancelación</value></data>
 </root>

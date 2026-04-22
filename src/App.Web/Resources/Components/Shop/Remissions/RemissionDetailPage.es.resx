@@ -26,4 +26,5 @@
   <data name="Active" xml:space="preserve"><value>Activa</value></data>
   <data name="Consolidated" xml:space="preserve"><value>Consolidada</value></data>
   <data name="Cancelled" xml:space="preserve"><value>Cancelada</value></data>
+  <data name="Cancellation reason" xml:space="preserve"><value>Motivo de cancelación</value></data>
 </root>

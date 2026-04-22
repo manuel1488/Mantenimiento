@@ -438,7 +438,7 @@ public class QuotationService : IQuotationService
         }
     }
 
-    public async Task<Result> UpdateStatusAsync(long id, QuotationStatus status)
+    public async Task<Result> UpdateStatusAsync(long id, QuotationStatus status, string? reason = null)
     {
         try
         {
@@ -460,6 +460,8 @@ public class QuotationService : IQuotationService
                 return Result.Failure(_localizer["This quotation is already closed and cannot be changed"]);
 
             quotation.Status = status;
+            if (status == QuotationStatus.Rejected && !string.IsNullOrWhiteSpace(reason))
+                quotation.RejectionReason = reason;
             quotation.ModifiedBy = _currentUserService.UserId ?? "System";
             quotation.ModifiedAt = _dateTime.Now;
 

@@ -587,6 +587,7 @@ public class SaleService : IContextualSaleService
 
             // Update sale status
             sale.Status = App.Core.Enums.Shop.SaleStatus.Cancelled;
+            sale.CancellationReason = reason;
             sale.ModifiedBy = _currentUserService.FullName;
             sale.ModifiedAt = _dateTime.Now;
 

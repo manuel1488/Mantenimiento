@@ -37,4 +37,5 @@
   <data name="Expired" xml:space="preserve"><value>Expired</value></data>
   <data name="ConvertedToSale" xml:space="preserve"><value>Converted to Sale</value></data>
   <data name="ConvertedToRemission" xml:space="preserve"><value>Converted to Remission</value></data>
+  <data name="Rejection reason" xml:space="preserve"><value>Rejection reason</value></data>
 </root>

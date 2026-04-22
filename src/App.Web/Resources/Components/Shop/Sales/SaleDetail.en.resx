@@ -212,4 +212,5 @@
     <value>Cancelled</value>
     <comment>Sale status - Cancelled</comment>
   </data>
+  <data name="Cancellation reason" xml:space="preserve"><value>Cancellation reason</value></data>
 </root>

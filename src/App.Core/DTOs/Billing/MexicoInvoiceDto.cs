@@ -21,6 +21,8 @@ public class MexicoInvoiceSummaryDto : AuditableDto
     public string CfdiUse { get; set; } = string.Empty;
     public string? CancellationStatus { get; set; }
     public DateTime? CancellationDate { get; set; }
+    public string? CancellationReason { get; set; }
+    public string? CancellationNotes { get; set; }
     public bool HasCancellationAcuse { get; set; }
     public bool HasXml { get; set; }
     public bool HasPdf { get; set; }

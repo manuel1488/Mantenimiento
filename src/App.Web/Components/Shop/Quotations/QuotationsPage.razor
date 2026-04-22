@@ -3,6 +3,7 @@
 @using App.Core.DTOs.Shop
 @using App.Core.Enums.Shop
 @using App.Core.Interfaces.Shop
+@using App.Web.Components.Shared.Dialogs
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 @inject IQuotationService QuotationService
@@ -237,6 +238,7 @@
     private MudDataGrid<QuotationDto>? _grid;
     private string? _search;
     private string? _statusFilter;
+    private string _rejectionReason = "";
     #endregion
 
     #region Lifecycle
@@ -328,7 +330,29 @@
 
     private async Task ChangeStatusAsync(QuotationDto quotation, QuotationStatus newStatus)
     {
-        var result = await QuotationService.UpdateStatusAsync(quotation.Id, newStatus);
+        string? reason = null;
+
+        if (newStatus == QuotationStatus.Rejected)
+        {
+            _rejectionReason = "";
+            var parameters = new DialogParameters
+            {
+                { nameof(ConfirmDialog.Title), L["Reject Quotation"].ToString() },
+                { nameof(ConfirmDialog.ContentText), L["Are you sure you want to reject this quotation:"].ToString() },
+                { nameof(ConfirmDialog.HighlightedText), quotation.QuotationNumber },
+                { nameof(ConfirmDialog.ConfirmText), L["Reject"].ToString() },
+                { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+                { nameof(ConfirmDialog.Color), Color.Error },
+                { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Warning },
+                { nameof(ConfirmDialog.AdditionalContent), (RenderFragment)(@<MudTextField @bind-Value="@_rejectionReason" Label="@L["Reason for rejection"]" />) }
+            };
+            var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Reject Quotation"], parameters);
+            var dialogResult = await dialog.Result;
+            if (dialogResult is null || dialogResult.Canceled) return;
+            reason = _rejectionReason;
+        }
+
+        var result = await QuotationService.UpdateStatusAsync(quotation.Id, newStatus, reason);
         if (result.IsSuccess)
         {
             Snackbar.Add(L["Status updated"], Severity.Success);

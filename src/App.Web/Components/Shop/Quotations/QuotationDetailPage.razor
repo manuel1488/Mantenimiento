@@ -112,6 +112,14 @@ else
                     <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@_quotation.Notes</MudText>
                 </MudItem>
             }
+            @if (_quotation.Status == QuotationStatus.Rejected && !string.IsNullOrWhiteSpace(_quotation.RejectionReason))
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Error" Dense="true" Class="mt-1">
+                        <MudText Typo="Typo.caption"><strong>@L["Rejection reason"]:</strong> @_quotation.RejectionReason</MudText>
+                    </MudAlert>
+                </MudItem>
+            }
         </MudGrid>
 
         <MudDivider Class="mb-3" />

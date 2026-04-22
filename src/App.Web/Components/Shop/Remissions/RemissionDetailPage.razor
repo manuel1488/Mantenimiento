@@ -72,6 +72,14 @@ else
                     <MudText Typo="Typo.body2" Style="white-space:pre-wrap;">@_remission.Notes</MudText>
                 </MudItem>
             }
+            @if (_remission.Status == RemissionStatus.Cancelled && !string.IsNullOrWhiteSpace(_remission.CancellationReason))
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Error" Dense="true" Class="mt-1">
+                        <MudText Typo="Typo.caption"><strong>@L["Cancellation reason"]:</strong> @_remission.CancellationReason</MudText>
+                    </MudAlert>
+                </MudItem>
+            }
         </MudGrid>
 
         <MudDivider Class="mb-3" />

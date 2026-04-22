@@ -49,4 +49,8 @@
   <data name="View detail" xml:space="preserve"><value>Ver detalle</value></data>
   <data name="View workflow" xml:space="preserve"><value>Ver flujo de trabajo</value></data>
   <data name="Quotation Workflow" xml:space="preserve"><value>Flujo de cotización</value></data>
+  <data name="Reject Quotation" xml:space="preserve"><value>Rechazar cotización</value></data>
+  <data name="Are you sure you want to reject this quotation:" xml:space="preserve"><value>¿Está seguro de rechazar esta cotización:</value></data>
+  <data name="Reason for rejection" xml:space="preserve"><value>Motivo de rechazo</value></data>
+  <data name="Reject" xml:space="preserve"><value>Rechazar</value></data>
 </root>

@@ -50,6 +50,9 @@ public class Quotation : BaseEntity<long>
 
     public DateTime? PdfGeneratedAt { get; set; }
 
+    [StringLength(500)]
+    public string? RejectionReason { get; set; }
+
     // Navigation properties
     [ForeignKey(nameof(CustomerId))]
     public virtual Customer Customer { get; set; } = null!;

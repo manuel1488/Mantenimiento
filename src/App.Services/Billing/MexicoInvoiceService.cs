@@ -702,6 +702,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 CfdiUse = i.CfdiUse,
                 CancellationStatus = i.CancellationStatus,
                 CancellationDate = i.CancellationDate,
+                CancellationReason = i.CancellationReason,
+                CancellationNotes = i.CancellationNotes,
                 HasCancellationAcuse = i.CancellationAcuse != null,
                 StampError = i.StampError,
                 CreatedAt = i.CreatedAt,
@@ -818,6 +820,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 CfdiUse = i.CfdiUse,
                 CancellationStatus = i.CancellationStatus,
                 CancellationDate = i.CancellationDate,
+                CancellationReason = i.CancellationReason,
+                CancellationNotes = i.CancellationNotes,
                 HasCancellationAcuse = i.CancellationAcuse != null,
                 StampError = i.StampError,
                 CreatedAt = i.CreatedAt,
@@ -1011,7 +1015,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
         }
     }
 
-    public async Task<Result> CancelAsync(long invoiceId, string cancellationReason, string? replacementUuid = null)
+    public async Task<Result> CancelAsync(long invoiceId, string cancellationReason, string? replacementUuid = null, string? notes = null)
     {
         try
         {
@@ -1036,6 +1040,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             // Mark as pending before calling PAC
             invoice.CancellationStatus = "Pending";
             invoice.CancellationReason = cancellationReason;
+            invoice.CancellationNotes = notes;
             invoice.ReplacementUuid = replacementUuid;
             invoice.CancellationDate = _dateTime.Now;
             invoice.Status = "CancellationPending";
@@ -1645,6 +1650,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             NoCertificadoCfdi = i.NoCertificadoCfdi,
             CancellationStatus = i.CancellationStatus,
             CancellationReason = i.CancellationReason,
+            CancellationNotes = i.CancellationNotes,
             CancellationDate = i.CancellationDate,
             StampError = i.StampError,
             CreatedAt = i.CreatedAt,

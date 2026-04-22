@@ -106,6 +106,9 @@ public class MexicoInvoice : BaseEntity<long>
     [StringLength(36)]
     public string? ReplacementUuid { get; set; }
 
+    [StringLength(500)]
+    public string? CancellationNotes { get; set; }
+
     /// <summary>Pending / Accepted / Rejected / null.</summary>
     [StringLength(20)]
     public string? CancellationStatus { get; set; }

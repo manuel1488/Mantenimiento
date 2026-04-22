@@ -90,4 +90,8 @@
   <data name="Download Cancellation Acuse" xml:space="preserve">
     <value>Descargar Acuse de Cancelación</value>
   </data>
+  <data name="Con errores con relación" xml:space="preserve"><value>Con errores con relación</value></data>
+  <data name="Con errores sin relación" xml:space="preserve"><value>Con errores sin relación</value></data>
+  <data name="No se llevó a cabo la operación" xml:space="preserve"><value>No se llevó a cabo la operación</value></data>
+  <data name="Operación nominativa en factura global" xml:space="preserve"><value>Operación nominativa en factura global</value></data>
 </root>
