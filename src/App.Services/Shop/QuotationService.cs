@@ -99,14 +99,23 @@ public class QuotationService : IQuotationService
 
         var totalCount = await query.CountAsync();
 
-        var items = await query
+        var rawItems = await query
             .OrderByDescending(q => q.QuoteDate)
             .ThenByDescending(q => q.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .GroupJoin(
+                context.Users.IgnoreQueryFilters(),
+                q => q.CreatedBy,
+                u => u.Id,
+                (q, users) => new { Quotation = q, CreatedByName = users.Select(u => u.FullName).FirstOrDefault() })
             .ToListAsync();
 
+        var items = rawItems.Select(x => x.Quotation).ToList();
         var dtos = _mapper.Map<IList<QuotationDto>>(items);
+
+        foreach (var (raw, dto) in rawItems.Zip(dtos))
+            dto.CreatedBy = raw.CreatedByName ?? dto.CreatedBy;
 
         // Populate converted sale/remission IDs without requiring an inverse FK
         var convertedIds = items
@@ -165,7 +174,7 @@ public class QuotationService : IQuotationService
                 return Result<QuotationDto>.Failure(_localizer["Customer not found"]);
 
             var now = _dateTime.Now;
-            var currentUser = _currentUserService.FullName ?? "System";
+            var currentUser = _currentUserService.UserId ?? "System";
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
             var countryCode = companySettings?.CountryCode ?? "MX";
@@ -298,7 +307,7 @@ public class QuotationService : IQuotationService
                 return Result<QuotationDto>.Failure(_localizer["Customer not found"]);
 
             var now = _dateTime.Now;
-            var currentUser = _currentUserService.FullName ?? "System";
+            var currentUser = _currentUserService.UserId ?? "System";
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
             var countryCode = companySettings?.CountryCode ?? "MX";
@@ -416,7 +425,7 @@ public class QuotationService : IQuotationService
                 return Result.Failure(_localizer["Quotation not found"]);
 
             quotation.IsDeleted = 1;
-            quotation.DeletedBy = _currentUserService.FullName ?? "System";
+            quotation.DeletedBy = _currentUserService.UserId ?? "System";
             quotation.DeletedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -451,7 +460,7 @@ public class QuotationService : IQuotationService
                 return Result.Failure(_localizer["This quotation is already closed and cannot be changed"]);
 
             quotation.Status = status;
-            quotation.ModifiedBy = _currentUserService.FullName ?? "System";
+            quotation.ModifiedBy = _currentUserService.UserId ?? "System";
             quotation.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -547,7 +556,7 @@ public class QuotationService : IQuotationService
                 quotation.Status = QuotationStatus.Pending;
             quotation.SentAt = _dateTime.Now;
             quotation.SentToEmail = toEmail;
-            quotation.ModifiedBy = _currentUserService.FullName ?? "System";
+            quotation.ModifiedBy = _currentUserService.UserId ?? "System";
             quotation.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();

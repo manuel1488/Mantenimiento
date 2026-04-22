@@ -3,7 +3,9 @@
 @using App.Core.DTOs.Shop
 @using App.Core.Enums.Shop
 @using App.Core.Interfaces.Shop
+@using App.Models.Identity
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 @using MudBlazor
 
 @inject IQuotationService QuotationService
@@ -11,6 +13,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject IStringLocalizer<QuotationDetailPage> L
+@inject UserManager<ApplicationUser> UserManager
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ViewQuotations)]
 
@@ -82,7 +85,7 @@ else
             }
             <MudItem xs="6" sm="3" md="2">
                 <MudText Typo="Typo.caption" Style="color:#888;">@L["Created by"]</MudText>
-                <MudText Typo="Typo.body2">@_quotation.CreatedBy</MudText>
+                <MudText Typo="Typo.body2">@_createdByName</MudText>
             </MudItem>
             @{
                 var terminalLabel = _quotation.Status switch
@@ -95,11 +98,11 @@ else
                     _                                    => null
                 };
             }
-            @if (terminalLabel is not null && !string.IsNullOrWhiteSpace(_quotation.ModifiedBy))
+            @if (terminalLabel is not null && !string.IsNullOrWhiteSpace(_modifiedByName))
             {
                 <MudItem xs="6" sm="3" md="2">
                     <MudText Typo="Typo.caption" Style="color:#888;">@terminalLabel</MudText>
-                    <MudText Typo="Typo.body2">@_quotation.ModifiedBy</MudText>
+                    <MudText Typo="Typo.body2">@_modifiedByName</MudText>
                 </MudItem>
             }
             @if (!string.IsNullOrWhiteSpace(_quotation.Notes))
@@ -204,11 +207,25 @@ else
 
     private QuotationDto? _quotation;
     private bool _loading = true;
+    private string? _createdByName;
+    private string? _modifiedByName;
 
     protected override async Task OnInitializedAsync()
     {
         _quotation = await QuotationService.GetByIdAsync(Id);
+        if (_quotation is not null)
+        {
+            _createdByName = await ResolveUserNameAsync(_quotation.CreatedBy);
+            if (_quotation.ModifiedBy is { } modifiedBy)
+                _modifiedByName = await ResolveUserNameAsync(modifiedBy);
+        }
         _loading = false;
+    }
+
+    private async Task<string> ResolveUserNameAsync(string value)
+    {
+        var user = await UserManager.FindByIdAsync(value);
+        return user?.FullName ?? value;
     }
 
     private async Task PreviewPdfAsync()
