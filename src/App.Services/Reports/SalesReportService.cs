@@ -503,8 +503,14 @@ public class SalesReportService : ISalesReportService
             var items = saleEntities.Select(s => _mapper.Map<SaleDto>(s)).ToList();
 
             var saleIds = saleEntities.Select(s => s.Id).ToList();
-            var invoicesBySaleId = await context.Set<MexicoInvoice>()
+            var latestInvoiceIds = await context.Set<MexicoInvoice>()
                 .Where(i => saleIds.Contains(i.SaleId))
+                .GroupBy(i => i.SaleId)
+                .Select(g => g.Max(i => i.Id))
+                .ToListAsync(cancellationToken);
+
+            var invoicesBySaleId = await context.Set<MexicoInvoice>()
+                .Where(i => latestInvoiceIds.Contains(i.Id))
                 .ToDictionaryAsync(i => i.SaleId, cancellationToken);
 
             var remissionsBySaleId = await context.Set<Remission>()
