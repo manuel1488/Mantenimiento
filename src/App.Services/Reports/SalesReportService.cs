@@ -513,10 +513,12 @@ public class SalesReportService : ISalesReportService
                 .Where(i => latestInvoiceIds.Contains(i.Id))
                 .ToDictionaryAsync(i => i.SaleId, cancellationToken);
 
-            var remissionsBySaleId = await context.Set<Remission>()
+            var remissionsBySaleId = (await context.Set<Remission>()
                 .Where(r => r.ConsolidatedSaleId != null && saleIds.Contains(r.ConsolidatedSaleId!.Value))
+                .Select(r => new { r.ConsolidatedSaleId, r.RemissionNumber })
+                .ToListAsync(cancellationToken))
                 .GroupBy(r => r.ConsolidatedSaleId!.Value)
-                .ToDictionaryAsync(g => g.Key, g => string.Join(", ", g.Select(r => r.RemissionNumber)), cancellationToken);
+                .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(r => r.RemissionNumber)));
 
             var globalInvoicesBySaleId = await context.GlobalInvoiceSales
                 .AsNoTracking()
