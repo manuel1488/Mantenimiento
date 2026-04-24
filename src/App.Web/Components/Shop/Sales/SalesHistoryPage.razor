@@ -130,28 +130,42 @@
                          Loading="@_loading"
                          Striped="true"
                          RowsPerPage="10"
-                         Filterable="false"
-                         SortMode="SortMode.None"
+                         Filterable="true"
+                         FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                         SortMode="SortMode.Single"
                          ColumnResizeMode="ResizeMode.Container">
                 <Columns>
-                    <PropertyColumn Property="x => x.Id" Title="@L["Sale #"]" HeaderStyle="width: 50px;" />
-                    <TemplateColumn Title="@L["Date"]" HeaderStyle="width: 95px;">
+                    <PropertyColumn Property="x => x.Id" Title="@L["Sale #"]" HeaderStyle="width: 50px;"
+                                    Sortable="true" Filterable="true" />
+                    <PropertyColumn Property="x => x.SaleDate" Title="@L["Date"]" HeaderStyle="width: 95px;"
+                                    Sortable="true" Filterable="true">
                         <CellTemplate>
                             @FormatToCompanyTimezone(context.Item.SaleDate)
                         </CellTemplate>
-                    </TemplateColumn>
-                    <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]" />
-                    <TemplateColumn Title="@L["Payment Method"]">
+                        <FilterTemplate>
+                            <MudDateRangePicker DateRange="@_dateRange"
+                                               DateRangeChanged="@(async r => { _dateRange = r; context.FilterDefinition.Value = r; await _dataGrid.ReloadServerData(); })"
+                                               AutoClose="true"
+                                               AdornmentIcon="@Icons.Material.Filled.DateRange"
+                                               Class="mt-n2" />
+                        </FilterTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]"
+                                    Sortable="true" Filterable="true" />
+                    <PropertyColumn Property="x => x.PaymentMethodName" Title="@L["Payment Method"]"
+                                    Sortable="false" Filterable="true">
                         <CellTemplate>
-                            @(context.Item.Payments.FirstOrDefault()?.PaymentMethodName ?? "—")
+                            @(context.Item.PaymentMethodName ?? "—")
                         </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@L["Amount"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;">
+                    </PropertyColumn>
+                    <TemplateColumn Title="@L["Amount"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;"
+                                    Sortable="false" Filterable="false">
                         <CellTemplate>
                             @context.Item.Subtotal.ToString("C")
                         </CellTemplate>
                     </TemplateColumn>
-                    <TemplateColumn Title="@L["Discount"]" HeaderStyle="text-align: right; width: 80px;" CellStyle="text-align: right; white-space: nowrap;">
+                    <TemplateColumn Title="@L["Discount"]" HeaderStyle="text-align: right; width: 80px;" CellStyle="text-align: right; white-space: nowrap;"
+                                    Sortable="false" Filterable="false">
                         <CellTemplate>
                             @if (context.Item.DiscountAmount > 0)
                             {
@@ -163,28 +177,34 @@
                             }
                         </CellTemplate>
                     </TemplateColumn>
-                    <TemplateColumn Title="@L["Subtotal"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;">
+                    <TemplateColumn Title="@L["Subtotal"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;"
+                                    Sortable="false" Filterable="false">
                         <CellTemplate>
                             @((context.Item.Subtotal - context.Item.DiscountAmount).ToString("C"))
                         </CellTemplate>
                     </TemplateColumn>
-                    <TemplateColumn Title="@L["Tax Rate"]" HeaderStyle="text-align: center; width: 45px;" CellStyle="text-align: center; white-space: nowrap;">
+                    <TemplateColumn Title="@L["Tax Rate"]" HeaderStyle="text-align: center; width: 45px;" CellStyle="text-align: center; white-space: nowrap;"
+                                    Sortable="false" Filterable="false">
                         <CellTemplate>
                             @((context.Item.TaxRate * 100).ToString("0.##"))%
                         </CellTemplate>
                     </TemplateColumn>
-                    <TemplateColumn Title="@L["Tax"]" HeaderStyle="text-align: right; width: 80px;" CellStyle="text-align: right; white-space: nowrap;">
+                    <TemplateColumn Title="@L["Tax"]" HeaderStyle="text-align: right; width: 80px;" CellStyle="text-align: right; white-space: nowrap;"
+                                    Sortable="false" Filterable="false">
                         <CellTemplate>
                             @context.Item.TaxAmount.ToString("C")
                         </CellTemplate>
                     </TemplateColumn>
-                    <TemplateColumn Title="@L["Total"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;">
+                    <PropertyColumn Property="x => x.Total" Title="@L["Total"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;"
+                                    Sortable="true" Filterable="true">
                         <CellTemplate>
                             @context.Item.Total.ToString("C")
                         </CellTemplate>
-                    </TemplateColumn>
-                    <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" HeaderStyle="width: 90px;" />
-                    <TemplateColumn Title="@L["Origin"]" HeaderStyle="width: 120px;">
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" HeaderStyle="width: 90px;"
+                                    Sortable="false" Filterable="false" />
+                    <TemplateColumn Title="@L["Origin"]" HeaderStyle="width: 120px;"
+                                    Sortable="false" Filterable="false">
                         <CellTemplate>
                             @if (context.Item.QuotationNumber is not null)
                             {
@@ -206,18 +226,32 @@
                             }
                         </CellTemplate>
                     </TemplateColumn>
-                    <TemplateColumn Title="@L["Created By"]" HeaderStyle="width: 100px;">
+                    <PropertyColumn Property="x => x.CreatedBy" Title="@L["Created By"]" HeaderStyle="width: 100px;"
+                                    Sortable="true" Filterable="true">
                         <CellTemplate>
                             @(context.Item.CreatedBy ?? "—")
                         </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@L["Status"]" Sortable="false" Filterable="false" HeaderStyle="width: 75px;">
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.Status" Title="@L["Status"]" Sortable="true" Filterable="true" HeaderStyle="width: 75px;">
                         <CellTemplate>
                             <MudChip Size="Size.Small" T="string" Color="@GetStatusColor(context.Item.Status)">
                                 @GetStatusDisplayText(context.Item.Status)
                             </MudChip>
                         </CellTemplate>
-                    </TemplateColumn>
+                        <FilterTemplate>
+                            <MudSelect T="string?"
+                                       Value="@_columnStatusFilter"
+                                       ValueChanged="@(async v => { _columnStatusFilter = v; context.FilterDefinition.Value = v; await _dataGrid.ReloadServerData(); })"
+                                       AnchorOrigin="Origin.BottomCenter"
+                                       Clearable="true"
+                                       Placeholder="@L["All"]"
+                                       Class="mt-n2">
+                                <MudSelectItem T="string?" Value="@null">@L["All"]</MudSelectItem>
+                                <MudSelectItem T="string?" Value="@nameof(App.Core.Enums.Shop.SaleStatus.Created)">@L["Created"]</MudSelectItem>
+                                <MudSelectItem T="string?" Value="@nameof(App.Core.Enums.Shop.SaleStatus.Cancelled)">@L["Cancelled"]</MudSelectItem>
+                            </MudSelect>
+                        </FilterTemplate>
+                    </PropertyColumn>
                     <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false" CellClass="d-flex justify-end">
                         <CellTemplate>
                             @{
@@ -310,6 +344,7 @@
     private DateRange _dateRange = new();
     private SaleType? _selectedSaleType;
     private string? _selectedStatus;
+    private string? _columnStatusFilter;
     private int? _selectedLocationId;
     private string _cancellationReason = "";
     private TimeZoneInfo? _companyTimeZone;
@@ -409,16 +444,38 @@
         try
         {
             _loading = true;
+
+            // Extract column filters from grid state (PropertyColumns)
+            var customerColFilter  = GetStringFilter(state, "CustomerName");
+            var createdByFilter    = GetStringFilter(state, "CreatedBy");
+            var paymentFilter      = GetStringFilter(state, "PaymentMethodName");
+            var saleIdFilter       = GetLongFilter(state, "Id");
+            var minTotal           = GetDecimalFilter(state, "Total", FilterOperator.Number.GreaterThanOrEqual);
+            var maxTotal           = GetDecimalFilter(state, "Total", FilterOperator.Number.LessThanOrEqual);
+
+            // Merge column status filter with external panel filter (column takes precedence)
+            var effectiveStatus = _columnStatusFilter ?? _selectedStatus;
+
+            // Extract sort (single-column mode)
+            var sort = state.SortDefinitions.FirstOrDefault();
+
             var (totalItems, items) = await SaleService.GetSalesAsync(
                 page: state.Page + 1,
                 pageSize: state.PageSize,
                 searchString: _searchString,
                 startDate: ToUtc(_dateRange.Start),
                 endDate: ToUtc(_dateRange.End),
-                status: _selectedStatus,
+                status: effectiveStatus,
                 saleType: _selectedSaleType,
                 locationId: _selectedLocationId,
-                saleId: FilterSaleId);
+                saleId: saleIdFilter.HasValue ? (long?)saleIdFilter.Value : FilterSaleId,
+                paymentMethodName: paymentFilter,
+                minTotal: minTotal,
+                maxTotal: maxTotal,
+                customerNameFilter: customerColFilter,
+                createdByFilter: createdByFilter,
+                sortColumn: sort?.SortBy,
+                sortDescending: sort?.Descending ?? true);
 
             // Check which sales have invoices
             await LoadInvoiceStatusAsync(items);
@@ -435,6 +492,40 @@
         {
             _loading = false;
         }
+    }
+
+    // --- Column filter extraction helpers ---
+
+    private static string? GetStringFilter(GridState<SaleDto> state, string propertyName)
+    {
+        var fd = state.FilterDefinitions.FirstOrDefault(f => f.Column?.PropertyName == propertyName);
+        return fd?.Value as string is { Length: > 0 } s ? s : null;
+    }
+
+    private static long? GetLongFilter(GridState<SaleDto> state, string propertyName)
+    {
+        var fd = state.FilterDefinitions.FirstOrDefault(f => f.Column?.PropertyName == propertyName);
+        return fd?.Value switch
+        {
+            long l   => l,
+            int i    => (long)i,
+            double d => (long)d,
+            string s when long.TryParse(s, out var parsed) => parsed,
+            _        => null
+        };
+    }
+
+    private static decimal? GetDecimalFilter(GridState<SaleDto> state, string propertyName, string @operator)
+    {
+        var fd = state.FilterDefinitions
+            .FirstOrDefault(f => f.Column?.PropertyName == propertyName && f.Operator == @operator);
+        return fd?.Value switch
+        {
+            decimal d => d,
+            double d  => (decimal)d,
+            string s when decimal.TryParse(s, out var parsed) => parsed,
+            _         => null
+        };
     }
 
     private async Task OnSearch(string value)

@@ -86,7 +86,14 @@ public class SaleService : IContextualSaleService
         string? status = null,
         SaleType? saleType = null,
         int? locationId = null,
-        long? saleId = null)
+        long? saleId = null,
+        string? paymentMethodName = null,
+        decimal? minTotal = null,
+        decimal? maxTotal = null,
+        string? customerNameFilter = null,
+        string? createdByFilter = null,
+        string? sortColumn = null,
+        bool sortDescending = true)
     {
         try
         {
@@ -145,12 +152,48 @@ public class SaleService : IContextualSaleService
                 query = query.Where(s => s.Id == saleId.Value);
             }
 
+            if (!string.IsNullOrWhiteSpace(customerNameFilter))
+            {
+                query = query.Where(s => s.Customer.Name.Contains(customerNameFilter));
+            }
+
+            if (!string.IsNullOrWhiteSpace(createdByFilter))
+            {
+                query = query.Where(s => s.CreatedBy != null && s.CreatedBy.Contains(createdByFilter));
+            }
+
+            if (!string.IsNullOrWhiteSpace(paymentMethodName))
+            {
+                query = query.Where(s => s.Payments.Any(p => p.PaymentMethod.Name.Contains(paymentMethodName)));
+            }
+
+            if (minTotal.HasValue)
+            {
+                query = query.Where(s => s.Total >= minTotal.Value);
+            }
+
+            if (maxTotal.HasValue)
+            {
+                query = query.Where(s => s.Total <= maxTotal.Value);
+            }
+
             // Get total count
             var totalCount = await query.CountAsync();
 
+            // Apply sorting — dynamic column sort with fallback to SaleDate desc
+            var orderedQuery = sortColumn switch
+            {
+                "Id"          => sortDescending ? query.OrderByDescending(s => s.Id)            : query.OrderBy(s => s.Id),
+                "SaleDate"    => sortDescending ? query.OrderByDescending(s => s.SaleDate)       : query.OrderBy(s => s.SaleDate),
+                "CustomerName"=> sortDescending ? query.OrderByDescending(s => s.Customer.Name)  : query.OrderBy(s => s.Customer.Name),
+                "Total"       => sortDescending ? query.OrderByDescending(s => s.Total)          : query.OrderBy(s => s.Total),
+                "Status"      => sortDescending ? query.OrderByDescending(s => s.Status)         : query.OrderBy(s => s.Status),
+                "CreatedBy"   => sortDescending ? query.OrderByDescending(s => s.CreatedBy)      : query.OrderBy(s => s.CreatedBy),
+                _             => query.OrderByDescending(s => s.SaleDate)
+            };
+
             // Apply pagination
-            var items = await query
-                .OrderByDescending(s => s.SaleDate)
+            var items = await orderedQuery
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

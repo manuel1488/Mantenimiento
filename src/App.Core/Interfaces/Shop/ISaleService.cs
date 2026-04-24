@@ -19,7 +19,14 @@ public interface ISaleService
         string? status = null,
         SaleType? saleType = null,
         int? locationId = null,
-        long? saleId = null);
+        long? saleId = null,
+        string? paymentMethodName = null,
+        decimal? minTotal = null,
+        decimal? maxTotal = null,
+        string? customerNameFilter = null,
+        string? createdByFilter = null,
+        string? sortColumn = null,
+        bool sortDescending = true);
 
     /// <summary>
     /// Gets a sale by ID with all details

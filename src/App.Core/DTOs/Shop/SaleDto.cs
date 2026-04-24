@@ -43,4 +43,6 @@ public class SaleDto : AuditableDto
 
     public List<SaleDetailDto> Details { get; set; } = new();
     public List<SalePaymentDto> Payments { get; set; } = new();
+
+    public string? PaymentMethodName => Payments.FirstOrDefault()?.PaymentMethodName;
 }
