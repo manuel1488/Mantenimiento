@@ -74,9 +74,10 @@
                          SortMode="SortMode.None"
                          RowsPerPage="15"
                          Dense="true"
-                         Hover="true">
+                         Hover="true"
+                         HorizontalScrollbar="true">
                 <Columns>
-                    <PropertyColumn Property="x => x.QuotationNumber" Title="@L["#"]" />
+                    <PropertyColumn Property="x => x.QuotationNumber" Title="@L["#"]" CellStyle="white-space:nowrap" HeaderStyle="white-space:nowrap" />
                     <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]" />
                     <TemplateColumn Title="@L["Date"]">
                         <CellTemplate>
@@ -114,6 +115,15 @@
                                                            title="@L["Edit"]"
                                                            OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/{context.Item.Id}/edit"))" />
                                         }
+                                    </Authorized>
+                                </AuthorizeView>
+                                <AuthorizeView Policy="@ApplicationClaims.Shop.CreateQuotation">
+                                    <Authorized Context="cloneAuth">
+                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                                       Size="Size.Small"
+                                                       Color="Color.Default"
+                                                       title="@L["Clone quotation"]"
+                                                       OnClick="@(() => Navigation.NavigateTo($"/shop/quotations/new?cloneFrom={context.Item.Id}"))" />
                                     </Authorized>
                                 </AuthorizeView>
                                 <MudIconButton Icon="@Icons.Material.Filled.Article"

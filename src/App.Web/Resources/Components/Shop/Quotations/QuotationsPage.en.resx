@@ -53,4 +53,5 @@
   <data name="Are you sure you want to reject this quotation:" xml:space="preserve"><value>Are you sure you want to reject this quotation:</value></data>
   <data name="Reason for rejection" xml:space="preserve"><value>Reason for rejection</value></data>
   <data name="Reject" xml:space="preserve"><value>Reject</value></data>
+  <data name="Clone quotation" xml:space="preserve"><value>Clone quotation</value></data>
 </root>

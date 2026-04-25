@@ -13,6 +13,9 @@
   <data name="Module.Labels" xml:space="preserve">
     <value>Labels</value>
   </data>
+  <data name="Module.Billing" xml:space="preserve">
+    <value>Billing</value>
+  </data>
   
   <!-- Permission Types -->
   <data name="Permission.Access" xml:space="preserve">
@@ -108,6 +111,21 @@
   <data name="Permission.ResetPassword" xml:space="preserve">
     <value>Reset Password</value>
   </data>
+  <data name="Permission.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Permission.Send" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="Permission.ConvertToRemission" xml:space="preserve">
+    <value>Convert to Remission</value>
+  </data>
+  <data name="Permission.ConvertToSale" xml:space="preserve">
+    <value>Convert to Sale</value>
+  </data>
+  <data name="Permission.Consolidate" xml:space="preserve">
+    <value>Consolidate</value>
+  </data>
   <data name="Feature.Prices" xml:space="preserve">
     <value>Prices</value>
   </data>
@@ -189,6 +207,12 @@
   <data name="Feature.Reports" xml:space="preserve">
     <value>Reports</value>
   </data>
+  <data name="Feature.Quotations" xml:space="preserve">
+    <value>Quotations</value>
+  </data>
+  <data name="Feature.Remissions" xml:space="preserve">
+    <value>Remissions</value>
+  </data>
   
   <!-- Existing UI translations -->
   <data name="Select User" xml:space="preserve">
@@ -223,5 +247,11 @@
   </data>
   <data name="Module.Shared.Description" xml:space="preserve">
     <value>Permissions shared across different modules</value>
+  </data>
+  <data name="Module.Billing.Description" xml:space="preserve">
+    <value>Permissions for electronic invoicing and CFDI issuance</value>
+  </data>
+  <data name="Module.Labels.Description" xml:space="preserve">
+    <value>Permissions for label generation and printing</value>
   </data>
 </root>

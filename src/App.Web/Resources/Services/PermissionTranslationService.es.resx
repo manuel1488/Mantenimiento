@@ -8,10 +8,13 @@
     <value>Administración</value>
   </data>
   <data name="Module.Shared" xml:space="preserve">
-    <value>Compartido</value>
+    <value>Gestión</value>
   </data>
   <data name="Module.Labels" xml:space="preserve">
     <value>Etiquetas</value>
+  </data>
+  <data name="Module.Billing" xml:space="preserve">
+    <value>Facturación</value>
   </data>
   
   <!-- Permission Types -->
@@ -108,6 +111,21 @@
   <data name="Permission.ResetPassword" xml:space="preserve">
     <value>Restablecer Contraseña</value>
   </data>
+  <data name="Permission.Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Permission.Send" xml:space="preserve">
+    <value>Enviar</value>
+  </data>
+  <data name="Permission.ConvertToRemission" xml:space="preserve">
+    <value>Convertir a Remisión</value>
+  </data>
+  <data name="Permission.ConvertToSale" xml:space="preserve">
+    <value>Convertir a Venta</value>
+  </data>
+  <data name="Permission.Consolidate" xml:space="preserve">
+    <value>Consolidar</value>
+  </data>
   <data name="Feature.Prices" xml:space="preserve">
     <value>Precios</value>
   </data>
@@ -189,6 +207,12 @@
   <data name="Feature.Reports" xml:space="preserve">
     <value>Reportes</value>
   </data>
+  <data name="Feature.Quotations" xml:space="preserve">
+    <value>Cotizaciones</value>
+  </data>
+  <data name="Feature.Remissions" xml:space="preserve">
+    <value>Remisiones</value>
+  </data>
   
   <!-- Existing UI translations -->
   <data name="Select User" xml:space="preserve">
@@ -222,6 +246,12 @@
     <value>Permisos para administración y configuración del sistema</value>
   </data>
   <data name="Module.Shared.Description" xml:space="preserve">
-    <value>Permisos compartidos entre diferentes módulos</value>
+    <value>Permisos para gestión de clientes, proveedores y reportes</value>
+  </data>
+  <data name="Module.Billing.Description" xml:space="preserve">
+    <value>Permisos para facturación electrónica y emisión de CFDI</value>
+  </data>
+  <data name="Module.Labels.Description" xml:space="preserve">
+    <value>Permisos para generación e impresión de etiquetas</value>
   </data>
 </root>

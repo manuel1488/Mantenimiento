@@ -11,12 +11,23 @@ public class PermissionTranslationService
         L = localizer;
     }
 
+    public string GetModuleDescription(string moduleName) => moduleName switch
+    {
+        "Shop" => L["Module.Shop.Description"],
+        "Admin" => L["Module.Admin.Description"],
+        "Shared" => L["Module.Shared.Description"],
+        "Labels" => L["Module.Labels.Description"],
+        "Billing" => L["Module.Billing.Description"],
+        _ => string.Empty
+    };
+
     public string GetModuleDisplayName(string moduleName) => moduleName switch
     {
         "Shop" => L["Module.Shop"],
         "Admin" => L["Module.Admin"],
         "Shared" => L["Module.Shared"],
         "Labels" => L["Module.Labels"],
+        "Billing" => L["Module.Billing"],
         _ => moduleName
     };
 
@@ -62,6 +73,11 @@ public class PermissionTranslationService
             "ViewReport" => L["Permission.ViewReport"],
             "BulkImport" => L["Permission.BulkImport"],
             "ResetPassword" => L["Permission.ResetPassword"],
+            "Edit" => L["Permission.Edit"],
+            "Send" => L["Permission.Send"],
+            "ConvertToRemission" => L["Permission.ConvertToRemission"],
+            "ConvertToSale" => L["Permission.ConvertToSale"],
+            "Consolidate" => L["Permission.Consolidate"],
             _ => L[$"Permission.{action}"]
         };
     }
@@ -112,6 +128,8 @@ public class PermissionTranslationService
             "Customers" => L["Feature.Customers"],
             "Suppliers" => L["Feature.Suppliers"],
             "Reports" => L["Feature.Reports"],
+            "Quotations" => L["Feature.Quotations"],
+            "Remissions" => L["Feature.Remissions"],
             _ => L[$"Feature.{feature}"]
         };
     }

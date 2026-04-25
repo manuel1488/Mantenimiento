@@ -36,19 +36,39 @@
                             {
                                 <MudTabPanel Text="@PermissionService.GetModuleDisplayName(group.Key)">
                                     <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-4">
-                                        @L[$"Module.{group.Key}.Description"]
+                                        @PermissionService.GetModuleDescription(group.Key)
                                     </MudText>
-                                    <MudGrid>
-                                        @foreach (var permission in group.Value)
-                                        {
-                                            <MudItem xs="12" sm="6" md="4">
-                                                <MudCheckBox Label="@PermissionService.GetFullPermissionDisplayName(permission)"
-                                                             Color="Color.Primary"
-                                                             Value="@_selectedPermissions.Contains(permission)"
-                                                             ValueChanged="@((bool value) => OnPermissionToggle(permission, value))" />
-                                            </MudItem>
-                                        }
-                                    </MudGrid>
+                                    @{
+                                        var featureGroups = group.Value
+                                            .GroupBy(p => p.Split('.').Length > 2 ? p.Split('.')[1] : "_access")
+                                            .OrderBy(fg => fg.Key == "_access" ? "" : fg.Key);
+                                    }
+                                    @foreach (var featureGroup in featureGroups)
+                                    {
+                                        var featureSample = featureGroup.First();
+                                        var featureLabel = featureGroup.Key == "_access"
+                                            ? PermissionService.GetModuleDisplayName(group.Key)
+                                            : PermissionService.GetFeatureDisplayName(featureSample);
+
+                                        <MudText Typo="Typo.subtitle2"
+                                                 Color="Color.Primary"
+                                                 Class="mt-4 mb-1 text-uppercase"
+                                                 Style="letter-spacing:.05em">
+                                            @featureLabel
+                                        </MudText>
+                                        <MudDivider Class="mb-3" />
+                                        <MudGrid>
+                                            @foreach (var permission in featureGroup)
+                                            {
+                                                <MudItem xs="12" sm="6" md="4">
+                                                    <MudCheckBox Label="@PermissionService.GetPermissionDisplayName(permission)"
+                                                                 Color="Color.Primary"
+                                                                 Value="@_selectedPermissions.Contains(permission)"
+                                                                 ValueChanged="@((bool value) => OnPermissionToggle(permission, value))" />
+                                                </MudItem>
+                                            }
+                                        </MudGrid>
+                                    }
                                 </MudTabPanel>
                             }
                         </MudTabs>

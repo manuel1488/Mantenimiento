@@ -325,6 +325,11 @@ public class QuotationService : IQuotationService
             quotation.PdfData = null;
             quotation.PdfGeneratedAt = null;
 
+            foreach (var detail in quotation.Details)
+            {
+                detail.DeletedBy = currentUser;
+                detail.DeletedAt = now;
+            }
             context.QuotationDetails.RemoveRange(quotation.Details);
             quotation.Details.Clear();
 

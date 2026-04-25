@@ -106,6 +106,21 @@ Use `HeaderStyle` on columns to set widths. Columns without `HeaderStyle` expand
 </TemplateColumn>
 ```
 
+## Horizontal Scrollbar
+
+Use `HorizontalScrollbar="true"` to enable native horizontal scroll when columns overflow the container. No wrapper div needed — it's a built-in MudDataGrid property.
+
+```razor
+<MudDataGrid T="ItemDto"
+             HorizontalScrollbar="true"
+             Dense="true"
+             Hover="true">
+```
+
+- Works **without** setting `Height` — grid expands vertically and scrolls horizontally when needed
+- Setting `Height` adds vertical scroll too (both axes); only use if you need a fixed-height table
+- Combine with `CellStyle="white-space:nowrap"` on columns that must not wrap (e.g. quotation numbers, dates)
+
 ## Tables with Many Columns (10+)
 
 When a table has many columns, the key strategy is:

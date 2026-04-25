@@ -35,7 +35,20 @@
                        OnClick="@(() => Navigation.NavigateTo("/shop/quotations"))"
                        title="@L["Back"]" />
         <MudText Typo="Typo.h4">@L["New Quotation"]</MudText>
+        @if (_clonedFromNumber is not null)
+        {
+            <MudChip T="string" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.ContentCopy">
+                @string.Format(L["Cloned from {0}"], _clonedFromNumber)
+            </MudChip>
+        }
     </MudStack>
+    @if (_skippedProducts.Count > 0)
+    {
+        <MudAlert Severity="Severity.Warning" Dense="true">
+            @string.Format(L["{0} product(s) skipped (no longer active): {1}"],
+                _skippedProducts.Count, string.Join(", ", _skippedProducts))
+        </MudAlert>
+    }
 
     @* Main card: grows to fill remaining space, clips overflow *@
     <MudPaper Elevation="2" Class="pa-4" Style="display:flex;flex-direction:column;gap:12px;">
@@ -187,7 +200,7 @@
             <MudButton Color="Color.Primary"
                        Variant="Variant.Filled"
                        OnClick="Save"
-                       Disabled="@(_processing || !_isValid || _lines.Count == 0)">
+                       Disabled="@(_processing || _lines.Count == 0 || _selectedCustomer is null || (!_isValid && CloneFrom is null))">
                 @if (_processing)
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
@@ -200,6 +213,11 @@
 </div>
 
 @code {
+    #region Parameters
+    [SupplyParameterFromQuery(Name = "cloneFrom")]
+    public long? CloneFrom { get; set; }
+    #endregion
+
     #region Lifecycle (overflow lock)
     private bool _jsReady;
 
@@ -208,6 +226,9 @@
         var taxResult = await PricingService.GetEffectiveTaxRateAsync();
         if (taxResult.IsSuccess)
             _taxRate = taxResult.Value;
+
+        if (CloneFrom.HasValue)
+            await LoadCloneDataAsync(CloneFrom.Value);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -217,6 +238,7 @@
             _jsReady = true;
             await JS.InvokeVoidAsync("eval",
                 "var el=document.querySelector('.mud-main-content');if(el)el.style.overflow='hidden';");
+
         }
     }
 
@@ -254,6 +276,9 @@
 
     private decimal _taxRate = 0;
     private decimal? _pendingBulkQty;
+
+    private string? _clonedFromNumber;
+    private List<string> _skippedProducts = [];
     #endregion
 
     #region Search
@@ -396,6 +421,57 @@
         _grandTotal = docCalc.Total;
 
         StateHasChanged();
+    }
+    #endregion
+
+    #region Clone pre-population
+    private async Task LoadCloneDataAsync(long sourceId)
+    {
+        var original = await QuotationService.GetByIdAsync(sourceId);
+        if (original is null) return;
+
+        _clonedFromNumber = original.QuotationNumber;
+        _selectedCustomer = await CustomerService.GetCustomerByIdAsync(original.CustomerId);
+        _quoteDate = DateTime.Today;
+        var validityDays = (int)(original.ValidUntil - original.QuoteDate).TotalDays;
+        _validUntil = DateTime.Today.AddDays(validityDays > 0 ? validityDays : 15);
+        _globalDiscount = original.DiscountPercentage;
+        _notes = original.Notes;
+
+        _skippedProducts.Clear();
+        foreach (var detail in original.Details)
+        {
+            var product = await ProductService.GetProductByIdAsync(detail.ProductId);
+            if (product is null)
+            {
+                _skippedProducts.Add(detail.ProductName);
+                continue;
+            }
+
+            var line = new QuotationLine
+            {
+                LineId = _lineCounter++,
+                ProductId = product.Id,
+                ProductName = product.Name,
+                ProductCode = product.Code ?? string.Empty,
+                SelectedProduct = product,
+                Quantity = detail.Quantity,
+                UnitPrice = product.Price,
+                OriginalPrice = product.Price
+            };
+
+            var wpResult = await WholesalePriceService.GetWholesalePricesForProductAsync(product.Id);
+            line.WholesalePrices = wpResult.IsSuccess ? wpResult.Value.ToList() : [];
+            ApplyWholesaleDiscount(line);
+
+            // If no wholesale tier applies, carry the original line discount
+            if (line.DiscountPercentage == 0 && detail.DiscountPercentage > 0)
+                line.DiscountPercentage = detail.DiscountPercentage;
+
+            _lines.Add(line);
+        }
+
+        await RecalculateTotalsAsync();
     }
     #endregion
 

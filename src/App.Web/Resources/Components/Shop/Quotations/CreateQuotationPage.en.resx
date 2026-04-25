@@ -27,4 +27,6 @@
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Save" xml:space="preserve"><value>Save</value></data>
   <data name="Quotation saved successfully" xml:space="preserve"><value>Quotation saved successfully</value></data>
+  <data name="Cloned from {0}" xml:space="preserve"><value>Cloned from {0}</value></data>
+  <data name="{0} product(s) skipped (no longer active): {1}" xml:space="preserve"><value>{0} product(s) skipped (no longer active): {1}</value></data>
 </root>
