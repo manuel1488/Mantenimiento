@@ -430,19 +430,26 @@ public class IdentityService : IIdentityService
         var matchingRole = allRolesWithPermissions
             .FirstOrDefault(rp => new HashSet<string>(rp.Value).SetEquals(new HashSet<string>(permissions)));
 
-        // Si hay un rol que coincide exactamente y no es el actual, actualizar el rol
-        if (!string.IsNullOrEmpty(matchingRole.Key) &&
-            (currentRoles.Count != 1 || currentRoles.First() != matchingRole.Key))
+        if (!string.IsNullOrEmpty(matchingRole.Key))
         {
-            // Eliminar roles actuales
-            if (currentRoles.Any())
+            // Permissions match a role — assign it if different from current
+            if (currentRoles.Count != 1 || currentRoles.First() != matchingRole.Key)
             {
-                await _userManager.RemoveFromRolesAsync(user, currentRoles);
-            }
+                if (currentRoles.Any())
+                    await _userManager.RemoveFromRolesAsync(user, currentRoles);
 
-            // Asignar el nuevo rol
-            await _userManager.AddToRoleAsync(user, matchingRole.Key);
+                await _userManager.AddToRoleAsync(user, matchingRole.Key);
+            }
         }
+        else
+        {
+            // Custom permissions — remove all roles so role claims don't bleed into the session
+            if (currentRoles.Any())
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        }
+
+        // Invalidate active sessions so the user re-authenticates with the new claims
+        await _userManager.UpdateSecurityStampAsync(user);
     }
 
     public async Task<(bool Succeeded, string? Error)> ForgotPasswordAsync(string email)
