@@ -8,6 +8,7 @@ public class ProductWarehouseStockDto
     public string LocationName { get; set; } = null!;
     public LocationType LocationType { get; set; }
     public decimal Quantity { get; set; }
+    public decimal IndividualUnits { get; set; }
     public decimal? MinStock { get; set; }
     public decimal? MaxStock { get; set; }
 }

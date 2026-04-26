@@ -173,7 +173,8 @@ public class InventoryQueryService : IInventoryQueryService
                     LocationId = x.LocationId,
                     LocationName = x.Location.Name,
                     LocationType = x.Location.Type,
-                    Quantity = GetAvailableIndividualUnits(x),
+                    Quantity = x.Quantity,
+                    IndividualUnits = GetAvailableIndividualUnits(x),
                     MinStock = x.MinStock.HasValue ? GetIndividualUnitsFromContainer(x.Product, x.MinStock.Value) : null,
                     MaxStock = x.MaxStock.HasValue ? GetIndividualUnitsFromContainer(x.Product, x.MaxStock.Value) : null
                 }).ToList()

@@ -20,4 +20,5 @@ public class InventoryDto : AuditableDto
     public decimal? MaxStock { get; set; }
     public string UnitMeasureName { get; set; } = null!;
     public decimal ProductContent { get; set; }
+    public decimal TotalContent => Quantity * ProductContent;
 }

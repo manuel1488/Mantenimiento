@@ -1068,6 +1068,10 @@ public class InventoryService : IContextualInventoryService
 
             // Calcular el ajuste (positivo o negativo)
             var adjustment = adjustmentDto.NewQuantity - inventory.Quantity;
+
+            if (adjustment == 0)
+                return MovementOperationResult.Failure(L["New quantity is the same as current stock"]);
+
             var previousBalance = inventory.Quantity;
 
             // Crear el registro de movimiento

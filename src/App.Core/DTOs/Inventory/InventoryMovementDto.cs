@@ -26,5 +26,6 @@ public class InventoryMovementDto : AuditableDto
     public decimal NewIndividualBalance { get; set; }
     public string UnitMeasureName { get; set; } = null!;
     public decimal ProductContent { get; set; }
+    public decimal TotalContent => Quantity * ProductContent;
     public DateTime MovementDate { get; set; }
 }

@@ -167,9 +167,9 @@
                                 }
                             </MudTd>
                             <MudTd DataLabel="@L["Total Content"]" Style="text-align: right">
-                                @if (contextHistory.IndividualUnits > 0)
+                                @if (contextHistory.ProductContent > 0)
                                 {
-                                    @contextHistory.IndividualUnits.ToString("N2")
+                                    @contextHistory.TotalContent.ToString("N2")
                                 }
                                 else
                                 {
