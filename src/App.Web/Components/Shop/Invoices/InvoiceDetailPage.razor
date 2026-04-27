@@ -240,7 +240,16 @@ else
     }
 
     private async Task ViewPdfAsync()
-        => await JS.InvokeVoidAsync("openInNewTab", $"/api/invoices/{Id}/pdf");
+    {
+        var result = await InvoiceService.GetPdfAsync(Id);
+        if (!result.IsSuccess)
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+            return;
+        }
+        await JS.InvokeVoidAsync("openFileInNewTab", "application/pdf",
+            Convert.ToBase64String(result.Value!));
+    }
 
     private static Color GetStatusColor(string status) => status switch
     {
