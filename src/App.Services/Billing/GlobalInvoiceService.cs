@@ -377,17 +377,49 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             await using var context = await _contextFactory.CreateDbContextAsync();
             var invoice = await context.GlobalInvoices
                 .AsNoTracking()
+                .Include(i => i.GlobalInvoiceSales)
+                    .ThenInclude(gs => gs.Sale)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (invoice == null)
                 return Result<GlobalInvoiceDto>.Failure(_localizer["Invoice not found"]);
 
-            return Result<GlobalInvoiceDto>.Success(MapToDto(invoice));
+            var dto = MapToDto(invoice);
+            dto.Sales = invoice.GlobalInvoiceSales
+                .OrderBy(gs => gs.Sale.SaleDate)
+                .Select(gs => new GlobalInvoiceSaleDto
+                {
+                    SaleId = gs.SaleId,
+                    SaleDate = gs.Sale.SaleDate,
+                    Subtotal = gs.Sale.Subtotal,
+                    TaxAmount = gs.Sale.TaxAmount,
+                    Total = gs.Sale.Total
+                }).ToList();
+            return Result<GlobalInvoiceDto>.Success(dto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving global invoice {Id}", id);
             return Result<GlobalInvoiceDto>.Failure(_localizer["Error retrieving invoice"]);
+        }
+    }
+
+    public async Task<Result<Dictionary<long, long>>> GetActiveSaleToInvoiceMapAsync()
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var map = await context.GlobalInvoiceSales
+                .AsNoTracking()
+                .Where(gs => gs.GlobalInvoice!.Status == GlobalInvoiceStatus.Stamped)
+                .Select(gs => new { gs.SaleId, gs.GlobalInvoiceId })
+                .ToDictionaryAsync(x => x.SaleId, x => x.GlobalInvoiceId);
+            return Result<Dictionary<long, long>>.Success(map);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading global invoice sale map");
+            return Result<Dictionary<long, long>>.Failure(_localizer["Error loading global invoice data"]);
         }
     }
 
@@ -1017,6 +1049,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         IssuerFiscalRegime = e.IssuerFiscalRegime,
         IssuerPostalCode = e.IssuerPostalCode,
         StampError = e.StampError,
+        HasCancellationAcuse = e.CancellationAcuse != null,
         CancellationDate = e.CancellationDate,
         CancellationReason = e.CancellationReason,
         CancellationNotes = e.CancellationNotes,

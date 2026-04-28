@@ -51,7 +51,8 @@
       "Bash(awk 'NR==39,NR==82 {print NR\": \"$0}' /c/repos/Cleeny/src/App.Services/Inventory/StockEntryService.cs)",
       "Bash(awk *)",
       "Bash(cat)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(grep -E \"\\\\.\\(razor|cs\\)$\")"
     ],
     "deny": [],
     "ask": []

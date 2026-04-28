@@ -38,4 +38,10 @@ public interface IGlobalInvoiceService
 
     /// <summary>Returns the cancellation acuse XML bytes.</summary>
     Task<Result<byte[]>> GetCancellationAcuseAsync(long id);
+
+    /// <summary>
+    /// Returns a map of SaleId → GlobalInvoiceId for sales included in Stamped (active) global invoices.
+    /// Used to show invoice status indicators in the sales history.
+    /// </summary>
+    Task<Result<Dictionary<long, long>>> GetActiveSaleToInvoiceMapAsync();
 }

@@ -90,4 +90,7 @@
   <data name="Download Cancellation Acuse" xml:space="preserve">
     <value>Download Cancellation Acuse</value>
   </data>
+  <data name="View Detail" xml:space="preserve">
+    <value>View Detail</value>
+  </data>
 </root>

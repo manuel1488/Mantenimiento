@@ -9,6 +9,7 @@ using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
+using App.Core.Enums.Billing;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Inventory;
@@ -991,5 +992,49 @@ public class SaleService : IContextualSaleService
         }
 
         return Result.Success();
+    }
+
+    public async Task<Result<Dictionary<long, SaleCancellationStatusDto>>> GetCancellationStatusAsync(IEnumerable<long> saleIds)
+    {
+        try
+        {
+            var ids = saleIds.ToList();
+            if (ids.Count == 0)
+                return Result<Dictionary<long, SaleCancellationStatusDto>>.Success([]);
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var invoicedIds = await context.MexicoInvoices
+                .AsNoTracking()
+                .Where(i => ids.Contains(i.SaleId) && i.Status != "Cancelled" && i.Status != "StampError")
+                .Select(i => i.SaleId)
+                .ToHashSetAsync();
+
+            var globalMap = await context.GlobalInvoiceSales
+                .AsNoTracking()
+                .Where(gs => ids.Contains(gs.SaleId) && gs.GlobalInvoice!.Status == GlobalInvoiceStatus.Stamped)
+                .Select(gs => new { gs.SaleId, gs.GlobalInvoiceId })
+                .ToDictionaryAsync(x => x.SaleId, x => x.GlobalInvoiceId);
+
+            var result = ids.ToDictionary(id => id, id =>
+            {
+                var blockedByInvoice = invoicedIds.Contains(id);
+                var blockedByGlobal = globalMap.TryGetValue(id, out var globalId);
+                return new SaleCancellationStatusDto
+                {
+                    CanCancel = !blockedByInvoice && !blockedByGlobal,
+                    BlockedByInvoice = blockedByInvoice,
+                    BlockedByGlobalInvoice = blockedByGlobal,
+                    GlobalInvoiceId = blockedByGlobal ? globalId : null
+                };
+            });
+
+            return Result<Dictionary<long, SaleCancellationStatusDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading cancellation status for sales");
+            return Result<Dictionary<long, SaleCancellationStatusDto>>.Failure(L["Error loading cancellation status"]);
+        }
     }
 }

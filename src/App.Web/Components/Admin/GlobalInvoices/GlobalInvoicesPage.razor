@@ -100,24 +100,6 @@
                                 };
                             }
                             <MudChip T="string" Size="Size.Small" Color="@color">@label</MudChip>
-                            @if (context.Item.CancellationDate.HasValue)
-                            {
-                                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
-                                    @FormatDateTime(context.Item.CancellationDate.Value)
-                                </MudText>
-                            }
-                            @if (!string.IsNullOrEmpty(context.Item.CancellationReason))
-                            {
-                                <MudText Typo="Typo.caption" Color="Color.Error" Class="d-block">
-                                    @context.Item.CancellationReason — @GetSatCancellationReasonText(context.Item.CancellationReason)
-                                </MudText>
-                            }
-                            @if (!string.IsNullOrEmpty(context.Item.CancellationNotes))
-                            {
-                                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
-                                    @context.Item.CancellationNotes
-                                </MudText>
-                            }
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Title="@L["UUID"]">
@@ -145,6 +127,12 @@
                     </TemplateColumn>
                     <TemplateColumn Title="@L["Actions"]" CellClass="d-flex justify-end">
                         <CellTemplate>
+                            <MudTooltip Text="@L["View Detail"]">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Color="Color.Default"
+                                               Size="Size.Small"
+                                               OnClick="@(() => Nav.NavigateTo($"/admin/global-invoices/{context.Item.Id}"))" />
+                            </MudTooltip>
                             @if (context.Item.Status == GlobalInvoiceStatus.Stamped || context.Item.Status == GlobalInvoiceStatus.Cancelled)
                             {
                                 <XmlIconButton title="@L["Download XML"]"

@@ -78,11 +78,11 @@ Todas las fechas UTC almacenadas en base de datos se convierten a la zona horari
 ```plaintext
 App.Core/
 ├── Constants/ApplicationClaims.cs          — Admin.GlobalInvoices.*, Billing.BillingAccess
-├── DTOs/Billing/GlobalInvoiceDto.cs        — ListDto, Dto, PdfDto, CreateDto, PreviewDto
+├── DTOs/Billing/GlobalInvoiceDto.cs        — ListDto, Dto (+ Sales[]), PdfDto, CreateDto, PreviewDto, GlobalInvoiceSaleDto
 ├── Enums/Billing/
 │   ├── GlobalInvoicePeriodicity.cs         — Daily, Weekly, Biweekly, Monthly
 │   └── GlobalInvoiceStatus.cs             — Draft, Stamped, Cancelled, StampError
-├── Interfaces/Billing/IGlobalInvoiceService.cs
+├── Interfaces/Billing/IGlobalInvoiceService.cs  — + GetActiveSaleToInvoiceMapAsync()
 
 App.Models/Billing/
 ├── GlobalInvoice.cs                        — Entidad principal
@@ -92,32 +92,64 @@ App.Models.Data/Migrations/
 └── AddGlobalInvoices.cs                    — Tablas mx_global_invoices, mx_global_invoice_sales
 
 App.Services/
-├── Billing/GlobalInvoiceService.cs         — Preview, CreateAndStamp, GetAll, GetById, GetXml, GetPdf, Cancel
+├── Billing/GlobalInvoiceService.cs         — Preview, CreateAndStamp, GetAll, GetById (con Sales), GetXml, GetPdf, Cancel, GetActiveSaleToInvoiceMapAsync
 └── Resources/Billing/
     ├── GlobalInvoiceService.en.resx
     └── GlobalInvoiceService.es.resx
 
 App.Web/
 ├── Components/Admin/GlobalInvoices/
-│   ├── GlobalInvoicesPage.razor            — Listado con descarga XML/PDF y cancelación
+│   ├── GlobalInvoicesPage.razor            — Listado con icono Visibility → detalle
+│   ├── GlobalInvoiceDetailPage.razor       — Vista detalle: info, emisor, ventas incluidas, totales
 │   ├── GenerateGlobalInvoiceDialog.razor   — Navegador de períodos + preview + generar
 │   └── CancelGlobalInvoiceDialog.razor     — Motivos SAT 01-04
+├── Components/Shop/Sales/
+│   └── SalesHistoryPage.razor              — Indicador de facturación global (ReceiptLong verde)
 ├── Views/GlobalInvoices/
 │   └── GlobalInvoiceDocument.cshtml        — Plantilla PDF (Rotativa)
 └── Resources/Components/Admin/GlobalInvoices/
     ├── GlobalInvoicesPage.{en,es}.resx
+    ├── GlobalInvoiceDetailPage.{en,es}.resx
     ├── GenerateGlobalInvoiceDialog.{en,es}.resx
     └── CancelGlobalInvoiceDialog.{en,es}.resx
+
+tests/App.Services.Tests/Billing/
+└── GlobalInvoiceDetailTests.cs             — Integration tests: GetActiveSaleToInvoiceMapAsync + GetByIdAsync (Sales)
 ```
 
 ---
+
+## Vista detalle y trazabilidad en historial de ventas
+
+### Vista detalle (`/admin/global-invoices/{id}`)
+
+`GlobalInvoiceDetailPage` muestra:
+- Datos del CFDI: folio, UUID, fecha de timbrado, período, periodicidad, forma de pago
+- Datos del emisor (snapshot al momento del timbrado)
+- Sección de cancelación cuando aplica (motivo SAT, fecha, observaciones)
+- **Tabla de ventas incluidas** con enlace a cada venta individual (`/shop/sales/{id}`)
+- Panel de totales: subtotal / descuento / IVA / total
+
+`GetByIdAsync` carga las ventas via `Include(GlobalInvoiceSales).ThenInclude(Sale)` y las expone en `GlobalInvoiceDto.Sales` ordenadas por fecha ascendente.
+
+### Indicador en historial de ventas (`/shop/sales-history`)
+
+Una venta puede tener tres estados de facturación, representados como iconos en la columna de acciones:
+
+| Icono | Color | Condición | Acción |
+|-------|-------|-----------|--------|
+| `Receipt` relleno | Verde | CFDI individual activo | Navega a `/shop/invoices?saleId=...` |
+| `ReceiptLong` relleno | Verde | Incluida en factura global timbrada | Navega a `/admin/global-invoices/{id}` |
+| `Receipt` outlined | Gris | Sin factura | Abre diálogo de crear CFDI individual |
+
+El mapa `saleId → globalInvoiceId` se construye en `GetActiveSaleToInvoiceMapAsync()`, que consulta `mx_global_invoice_sales` filtrando únicamente facturas con estado `Stamped`. Las ventas en facturas `Cancelled`, `Draft` o `StampError` quedan disponibles para ser incluidas en una nueva factura.
 
 ## Consecuencias
 
 **Positivas:**
 - Cumplimiento SAT: períodos fijos eliminan el riesgo de emitir CFDIs con `InformacionGlobal` inválido
 - Simplicidad de UX: el operador no necesita recordar ni calcular fechas
-- Trazabilidad: cada venta queda ligada a exactamente una factura global (o ninguna)
+- Trazabilidad: cada venta queda ligada a exactamente una factura global (o ninguna), visible desde el historial y desde el detalle de la factura
 
 **Negativas:**
 - No soporta retroactivos parciales: si se olvidó emitir una quincena pasada, hay que generarla como un período completo

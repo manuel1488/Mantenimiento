@@ -40,6 +40,16 @@ public class GlobalInvoiceDto : GlobalInvoiceListDto
     public DateTime? CancellationDate { get; set; }
     public string? CancellationReason { get; set; }
     public string? CancellationStatus { get; set; }
+    public List<GlobalInvoiceSaleDto> Sales { get; set; } = [];
+}
+
+public class GlobalInvoiceSaleDto
+{
+    public long SaleId { get; set; }
+    public DateTime SaleDate { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal Total { get; set; }
 }
 
 public class CreateGlobalInvoiceDto

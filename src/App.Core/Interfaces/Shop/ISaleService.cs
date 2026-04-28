@@ -54,4 +54,10 @@ public interface ISaleService
     Task<Result<bool>> ValidateDiscountAsync(
         decimal discountPercentage,
         string? authorizedBy = null);
+
+    /// <summary>
+    /// Returns cancellation eligibility for a batch of sales.
+    /// A sale is blocked when it has an active individual CFDI or belongs to a Stamped global invoice.
+    /// </summary>
+    Task<Result<Dictionary<long, SaleCancellationStatusDto>>> GetCancellationStatusAsync(IEnumerable<long> saleIds);
 }

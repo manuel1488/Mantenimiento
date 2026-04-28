@@ -2,7 +2,6 @@
 @using App.Core.Constants
 @using App.Core.DTOs.Shop
 @using App.Core.Interfaces
-@using App.Core.Interfaces.Billing
 @using App.Core.Interfaces.Shop
 @using App.Core.Options
 @using App.Shared.Services
@@ -14,7 +13,6 @@
 @using MudBlazor
 
 @inject ISaleService SaleService
-@inject IMexicoInvoiceService InvoiceService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -288,13 +286,22 @@
                                 {
                                     <AuthorizeView Policy="@ApplicationClaims.Shop.CreateInvoice" Context="invoiceAuth">
                                         <Authorized Context="invoiceCtx">
-                                            @if (_invoicedSaleIds.Contains(sale.Id))
+                                            @{ var cs = _cancellationStatus.GetValueOrDefault(sale.Id); }
+                                            @if (cs?.BlockedByInvoice == true)
                                             {
                                                 <MudIconButton Icon="@Icons.Material.Filled.Receipt"
                                                                Size="Size.Small"
                                                                Color="Color.Success"
                                                                OnClick="@(() => Navigation.NavigateTo($"/shop/invoices?saleId={sale.Id}"))"
                                                                title="@L["View Invoice"]" />
+                                            }
+                                            else if (cs?.BlockedByGlobalInvoice == true)
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.ReceiptLong"
+                                                               Size="Size.Small"
+                                                               Color="Color.Success"
+                                                               OnClick="@(() => Navigation.NavigateTo($"/admin/global-invoices/{cs.GlobalInvoiceId}"))"
+                                                               title="@L["View Global Invoice"]" />
                                             }
                                             else
                                             {
@@ -309,13 +316,35 @@
                                 }
                                 @if (sale.Status == App.Core.Enums.Shop.SaleStatus.Created)
                                 {
-                                    <AuthorizeView Context="contextCancel" Policy="@ApplicationClaims.Shop.CancelSale">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Cancel"
-                                                       Size="Size.Small"
-                                                       Color="Color.Error"
-                                                       OnClick="@(() => OpenCancelDialog(sale))"
-                                                       title="@L["Cancel Sale"]" />
-                                    </AuthorizeView>
+                                    var cancelStatus = _cancellationStatus.GetValueOrDefault(sale.Id);
+                                    if (cancelStatus?.BlockedByInvoice == true)
+                                    {
+                                        <MudTooltip Text="@L["Cannot cancel — sale has an active invoice. Cancel the invoice first."]">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                           Size="Size.Small"
+                                                           Color="Color.Default"
+                                                           Disabled="true" />
+                                        </MudTooltip>
+                                    }
+                                    else if (cancelStatus?.BlockedByGlobalInvoice == true)
+                                    {
+                                        <MudTooltip Text="@L["Cannot cancel — sale belongs to an active global invoice. Cancel the global invoice first."]">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                           Size="Size.Small"
+                                                           Color="Color.Default"
+                                                           Disabled="true" />
+                                        </MudTooltip>
+                                    }
+                                    else
+                                    {
+                                        <AuthorizeView Context="contextCancel" Policy="@ApplicationClaims.Shop.CancelSale">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           OnClick="@(() => OpenCancelDialog(sale))"
+                                                           title="@L["Cancel Sale"]" />
+                                        </AuthorizeView>
+                                    }
                                 }
                             </MudButtonGroup>
                         </CellTemplate>
@@ -349,7 +378,7 @@
     private string _cancellationReason = "";
     private TimeZoneInfo? _companyTimeZone;
     private IList<App.Core.DTOs.Location.LocationDto> _locations = new List<App.Core.DTOs.Location.LocationDto>();
-    private HashSet<long> _invoicedSaleIds = [];
+    private Dictionary<long, SaleCancellationStatusDto> _cancellationStatus = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -477,8 +506,8 @@
                 sortColumn: sort?.SortBy,
                 sortDescending: sort?.Descending ?? true);
 
-            // Check which sales have invoices
-            await LoadInvoiceStatusAsync(items);
+            // Load cancellation eligibility for the current page
+            await LoadCancellationStatusAsync(items);
 
             return new GridData<SaleDto> { TotalItems = totalItems, Items = items };
         }
@@ -579,20 +608,18 @@
         }
     }
 
-    private async Task LoadInvoiceStatusAsync(IEnumerable<SaleDto> sales)
+    private async Task LoadCancellationStatusAsync(IEnumerable<SaleDto> sales)
     {
         try
         {
-            var saleIds = sales.Select(s => s.Id).ToList();
-            var (_, invoices) = await InvoiceService.GetHistoryAsync(pageSize: saleIds.Count + 10);
-            _invoicedSaleIds = invoices
-                .Where(i => i.Status != "Cancelled" && i.Status != "StampError")
-                .Select(i => i.SaleId)
-                .ToHashSet();
+            var ids = sales.Select(s => s.Id);
+            var result = await SaleService.GetCancellationStatusAsync(ids);
+            if (result.IsSuccess)
+                _cancellationStatus = result.Value!;
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading invoice status");
+            Logger.LogError(ex, "Error loading cancellation status");
         }
     }
 
@@ -612,7 +639,11 @@
         var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {
-            _invoicedSaleIds.Add(sale.Id);
+            _cancellationStatus[sale.Id] = new SaleCancellationStatusDto
+            {
+                CanCancel = false,
+                BlockedByInvoice = true
+            };
             StateHasChanged();
         }
     }

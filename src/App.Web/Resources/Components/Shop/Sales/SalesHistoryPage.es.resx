@@ -186,6 +186,15 @@
   <data name="View Invoice" xml:space="preserve">
     <value>Ver Factura</value>
   </data>
+  <data name="View Global Invoice" xml:space="preserve">
+    <value>Ver Factura Global</value>
+  </data>
+  <data name="Cannot cancel — sale belongs to an active global invoice" xml:space="preserve">
+    <value>No se puede cancelar — la venta pertenece a una factura global activa</value>
+  </data>
+  <data name="Cannot cancel — sale has an active invoice. Cancel the invoice first." xml:space="preserve">
+    <value>No se puede cancelar — la venta tiene una factura activa. Cancela la factura primero.</value>
+  </data>
   <data name="Invoice" xml:space="preserve">
     <value>Factura</value>
   </data>
