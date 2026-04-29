@@ -15,6 +15,10 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
 
+### Strategy
+- [Roadmap SaaS POS](docs/01-Architecture/roadmap-saas-pos.md) — Evolución multi-tenant: agente hardware, terminal PWA tablet, offline, báscula
+- [Análisis de Mercado POS México 2026](docs/01-Architecture/market-analysis-pos-mexico-2026.md) — Competidores, brechas, oportunidades de diferenciación
+
 ### ADRs
 - [ADR-007: Factura Global](docs/01-Architecture/adr/0007-factura-global-publica-en-general.md) — Períodos fijos SAT, selección individual rechazada, regla 2.7.1.24 RMF
 - [ADR-008: AutoMapper](docs/01-Architecture/adr/0008-dependencia-automapper.md) — Downgrade a v12.0.1 MIT, vulnerabilidad GHSA-rvv3-g6hj-g44x (riesgo bajo), migración pendiente a Mapperly
