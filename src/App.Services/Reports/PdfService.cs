@@ -23,11 +23,7 @@ public class PdfService : IPdfService
     {
         try
         {
-            // Ensure browser is installed and launched
-            await EnsureBrowserIsReadyAsync(cancellationToken);
-
-            // Create a new page
-            await using var page = await _browser!.NewPageAsync();
+            await using var page = await CreatePageAsync(cancellationToken);
 
             // Set content and wait for network idle to ensure all resources are loaded
             await page.SetContentAsync(html, new NavigationOptions
@@ -92,11 +88,7 @@ public class PdfService : IPdfService
     {
         try
         {
-            // Ensure browser is installed and launched
-            await EnsureBrowserIsReadyAsync(cancellationToken);
-
-            // Create a new page
-            await using var page = await _browser!.NewPageAsync();
+            await using var page = await CreatePageAsync(cancellationToken);
 
             // Thermal tickets are self-contained HTML — no external resources.
             // DOMContentLoaded fires immediately after parsing; Networkidle0 would
@@ -155,6 +147,38 @@ public class PdfService : IPdfService
         {
             _logger.LogError(ex, "Error generating thermal ticket PDF from view {ViewPath}", viewPath);
             throw;
+        }
+    }
+
+    private async Task<IPage> CreatePageAsync(CancellationToken cancellationToken)
+    {
+        await EnsureBrowserIsReadyAsync(cancellationToken);
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(30));
+            return await _browser!.NewPageAsync().WaitAsync(cts.Token);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or TimeoutException or PuppeteerException)
+        {
+            // Browser process died but IsConnected still returned true — force recreation
+            _logger.LogWarning(ex, "NewPageAsync failed — browser in bad state, recreating");
+            await _semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                if (_browser != null)
+                {
+                    try { await _browser.DisposeAsync(); } catch { }
+                    _browser = null;
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+
+            await EnsureBrowserIsReadyAsync(cancellationToken);
+            return await _browser!.NewPageAsync();
         }
     }
 

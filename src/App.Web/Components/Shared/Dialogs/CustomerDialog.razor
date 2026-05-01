@@ -7,6 +7,7 @@
 
 @inject ICustomerService CustomerService
 @inject IMexicoFiscalCatalogService FiscalCatalogService
+@inject ICompanySettingsService CompanySettingsService
 @inject IStringLocalizer<CustomerDialog> L
 @inject ISnackbar Snackbar
 @inject ILookupService LookupService
@@ -353,6 +354,14 @@
 
         if (CustomerId.HasValue)
             await LoadCustomer();
+        else
+        {
+            var settings = await CompanySettingsService.GetSettingsAsync();
+            var defaultCode = settings?.CountryCode;
+            _commercial.CountryCode = _countries.Any(c => c.Code == defaultCode)
+                ? defaultCode!
+                : _countries.FirstOrDefault()?.Code ?? string.Empty;
+        }
     }
 
     private async Task LoadCustomer()
@@ -437,6 +446,12 @@
     {
         await _commercialForm.Validate();
         if (!_commercialForm.IsValid) return;
+
+        if (string.IsNullOrEmpty(_commercial.CountryCode))
+        {
+            Snackbar.Add(L["Country is required"], Severity.Warning);
+            return;
+        }
 
         if (_hasFiscalProfile && _fiscalForm != null)
         {
