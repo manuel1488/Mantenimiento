@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using App.Core.Constants
 @using MudBlazor
 @inject IStringLocalizer<NavMenu> L
@@ -53,12 +53,6 @@
                     </Authorized>
                 </AuthorizeView>
 
-                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewSalesReport">
-                    <Authorized Context="reportsAuth">
-                        <MudNavLink Href="/shop/reports/sales">@L["Sales Reports"]</MudNavLink>
-                    </Authorized>
-                </AuthorizeView>
-
                 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewProducts">
                     <Authorized Context="productsAuth">
                         <MudNavLink Href="/shop/products">@L["Products"]</MudNavLink>
@@ -101,6 +95,31 @@
                 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewStampBalance">
                     <Authorized>
                         <MudNavLink Href="/shop/stamp-balance">@L["Stamp Balance"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
+    <!-- Sección Reportes -->
+    <AuthorizeView Policy="@ApplicationClaims.Shared.ReportsAccess">
+        <Authorized Context="reportsAuth">
+            <MudNavGroup Title="@L["Reports"]"
+                        Icon="@Icons.Material.Filled.Assessment"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Shop.ViewSalesReport">
+                    <Authorized>
+                        <MudNavLink Href="/shop/reports/sales">@L["Sales Reports"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBillingReports">
+                    <Authorized>
+                        <MudNavLink Href="/admin/reports/sales-book">@L["Sales Book"]</MudNavLink>
+                        <MudNavLink Href="/admin/reports/individual-invoices">@L["Individual Invoices"]</MudNavLink>
+                        <MudNavLink Href="/admin/reports/global-invoices">@L["Global Invoices Report"]</MudNavLink>
+                        <MudNavLink Href="/admin/reports/conciliation">@L["Conciliation"]</MudNavLink>
+                        <MudNavLink Href="/admin/reports/vat">@L["VAT Report"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
             </MudNavGroup>

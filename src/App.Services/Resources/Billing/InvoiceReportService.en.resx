@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Individual Invoices" xml:space="preserve">
+    <value>Individual Invoices</value>
+  </data>
+  <data name="Global Invoices" xml:space="preserve">
+    <value>Global Invoices</value>
+  </data>
+  <data name="Included Sales" xml:space="preserve">
+    <value>Included Sales</value>
+  </data>
+  <data name="Conciliation" xml:space="preserve">
+    <value>Conciliation</value>
+  </data>
+  <data name="Conciliation Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="VAT Report" xml:space="preserve">
+    <value>VAT Report</value>
+  </data>
+  <data name="UUID (Folio Fiscal)" xml:space="preserve">
+    <value>UUID (Folio Fiscal)</value>
+  </data>
+  <data name="Serie" xml:space="preserve">
+    <value>Serie</value>
+  </data>
+  <data name="Folio" xml:space="preserve">
+    <value>Folio</value>
+  </data>
+  <data name="Stamp Date" xml:space="preserve">
+    <value>Stamp Date</value>
+  </data>
+  <data name="Sale Date" xml:space="preserve">
+    <value>Sale Date</value>
+  </data>
+  <data name="Sale #" xml:space="preserve">
+    <value>Sale #</value>
+  </data>
+  <data name="Customer RFC" xml:space="preserve">
+    <value>Customer RFC</value>
+  </data>
+  <data name="Customer Legal Name" xml:space="preserve">
+    <value>Customer Legal Name</value>
+  </data>
+  <data name="Customer Postal Code" xml:space="preserve">
+    <value>Customer Postal Code</value>
+  </data>
+  <data name="Customer Fiscal Regime" xml:space="preserve">
+    <value>Customer Fiscal Regime</value>
+  </data>
+  <data name="CFDI Use" xml:space="preserve">
+    <value>CFDI Use</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Tax Amount" xml:space="preserve">
+    <value>Tax Amount</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Payment Method" xml:space="preserve">
+    <value>Payment Method</value>
+  </data>
+  <data name="Payment Form" xml:space="preserve">
+    <value>Payment Form</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Cancellation Date" xml:space="preserve">
+    <value>Cancellation Date</value>
+  </data>
+  <data name="Cancellation Reason" xml:space="preserve">
+    <value>Cancellation Reason</value>
+  </data>
+  <data name="Periodicity" xml:space="preserve">
+    <value>Periodicity</value>
+  </data>
+  <data name="Period Month" xml:space="preserve">
+    <value>Period Month</value>
+  </data>
+  <data name="Period Year" xml:space="preserve">
+    <value>Period Year</value>
+  </data>
+  <data name="Issuer RFC" xml:space="preserve">
+    <value>Issuer RFC</value>
+  </data>
+  <data name="Issuer Legal Name" xml:space="preserve">
+    <value>Issuer Legal Name</value>
+  </data>
+  <data name="Sale Count" xml:space="preserve">
+    <value>Sale Count</value>
+  </data>
+  <data name="Global Invoice Folio" xml:space="preserve">
+    <value>Global Invoice Folio</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Sale Type" xml:space="preserve">
+    <value>Sale Type</value>
+  </data>
+  <data name="Has Individual Invoice" xml:space="preserve">
+    <value>Has Individual Invoice</value>
+  </data>
+  <data name="UUID Individual CFDI" xml:space="preserve">
+    <value>UUID Individual CFDI</value>
+  </data>
+  <data name="CFDI Status" xml:space="preserve">
+    <value>CFDI Status</value>
+  </data>
+  <data name="In Global Invoice" xml:space="preserve">
+    <value>In Global Invoice</value>
+  </data>
+  <data name="UUID Global Invoice" xml:space="preserve">
+    <value>UUID Global Invoice</value>
+  </data>
+  <data name="Global Invoice Status" xml:space="preserve">
+    <value>Global Invoice Status</value>
+  </data>
+  <data name="Coverage" xml:space="preserve">
+    <value>Coverage</value>
+  </data>
+  <data name="Individual" xml:space="preserve">
+    <value>Individual</value>
+  </data>
+  <data name="Global" xml:space="preserve">
+    <value>Global</value>
+  </data>
+  <data name="No Coverage" xml:space="preserve">
+    <value>No Coverage</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Period</value>
+  </data>
+  <data name="Total Sales" xml:space="preserve">
+    <value>Total Sales</value>
+  </data>
+  <data name="Total Revenue" xml:space="preserve">
+    <value>Total Revenue</value>
+  </data>
+  <data name="Covered by Individual CFDI" xml:space="preserve">
+    <value>Covered by Individual CFDI</value>
+  </data>
+  <data name="Covered by Global Invoice" xml:space="preserve">
+    <value>Covered by Global Invoice</value>
+  </data>
+  <data name="Without Tax Coverage" xml:space="preserve">
+    <value>Without Tax Coverage</value>
+  </data>
+  <data name="Fiscal Coverage" xml:space="preserve">
+    <value>Fiscal Coverage %</value>
+  </data>
+  <data name="Individual CFDIs Issued" xml:space="preserve">
+    <value>Individual CFDIs</value>
+  </data>
+  <data name="Global CFDIs Issued" xml:space="preserve">
+    <value>Global CFDIs</value>
+  </data>
+  <data name="VAT 16%" xml:space="preserve">
+    <value>VAT 16%</value>
+  </data>
+  <data name="VAT 8% (Border)" xml:space="preserve">
+    <value>VAT 8% (Border)</value>
+  </data>
+  <data name="Total VAT" xml:space="preserve">
+    <value>Total VAT</value>
+  </data>
+  <data name="Total Invoiced" xml:space="preserve">
+    <value>Total Invoiced</value>
+  </data>
+  <data name="Cancelled CFDIs" xml:space="preserve">
+    <value>Cancelled CFDIs</value>
+  </data>
+  <data name="VAT Cancelled (Negative)" xml:space="preserve">
+    <value>VAT Cancelled (–)</value>
+  </data>
+  <data name="Stamped" xml:space="preserve">
+    <value>Stamped</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="Stamp Error" xml:space="preserve">
+    <value>Stamp Error</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>Daily</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>Weekly</value>
+  </data>
+  <data name="Biweekly" xml:space="preserve">
+    <value>Biweekly</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>Monthly</value>
+  </data>
+  <data name="Sales Book" xml:space="preserve">
+    <value>Billing History</value>
+  </data>
+  <data name="Invoice Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Total (Stamped)" xml:space="preserve">
+    <value>TOTAL (Stamped)</value>
+  </data>
+</root>

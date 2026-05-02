@@ -81,4 +81,22 @@
   <data name="Bulk Products" xml:space="preserve">
     <value>Productos a Granel</value>
   </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Reportes</value>
+  </data>
+  <data name="Individual Invoices" xml:space="preserve">
+    <value>Facturas Individuales</value>
+  </data>
+  <data name="Global Invoices Report" xml:space="preserve">
+    <value>Facturas Globales</value>
+  </data>
+  <data name="Conciliation" xml:space="preserve">
+    <value>Conciliación</value>
+  </data>
+  <data name="VAT Report" xml:space="preserve">
+    <value>Reporte de IVA</value>
+  </data>
+  <data name="Sales Book" xml:space="preserve">
+    <value>Historial de Facturación</value>
+  </data>
 </root>

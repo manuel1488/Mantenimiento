@@ -1,0 +1,82 @@
+@page "/admin/reports/individual-invoices"
+@using App.Core.Constants
+@using App.Web.Components.Billing.Reports
+@using Microsoft.AspNetCore.Authorization
+@using System.Web
+
+@inject IStringLocalizer<InvoiceReportsPage> L
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewBillingReports)]
+
+<PageTitle>@L["Individual Invoices"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Individual Invoices"]</MudText>
+<MudText Typo="Typo.body1" Class="mb-5">@L["Individual invoices description"]</MudText>
+
+<MudPaper Elevation="2" Class="pa-4">
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6">
+            <MudDateRangePicker @bind-DateRange="_dateRange"
+                                Label="@L["Date Range"]"
+                                Variant="Variant.Outlined"
+                                DateFormat="yyyy-MM-dd" />
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudTextField @bind-Value="_rfc"
+                          Label="@L["Filter by RFC (optional)"]"
+                          Variant="Variant.Outlined"
+                          Clearable="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" />
+        </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudSelect @bind-Value="_status" Label="@L["Status"]" Variant="Variant.Outlined">
+                <MudSelectItem Value="@("all")">@L["All"]</MudSelectItem>
+                <MudSelectItem Value="@("Stamped")">@L["Stamped"]</MudSelectItem>
+                <MudSelectItem Value="@("Cancelled")">@L["Cancelled"]</MudSelectItem>
+                <MudSelectItem Value="@("Draft")">@L["Draft"]</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       Disabled="@_exporting"
+                       OnClick="@Export">
+                @if (_exporting)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                @L["Export Excel"]
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    private DateRange? _dateRange = new DateRange(DateTime.Today.AddMonths(-1), DateTime.Today);
+    private string _rfc = string.Empty;
+    private string _status = "all";
+    private bool _exporting;
+
+    private async Task Export()
+    {
+        _exporting = true;
+        StateHasChanged();
+        try
+        {
+            var q = System.Web.HttpUtility.ParseQueryString(string.Empty);
+            if (_dateRange?.Start.HasValue == true) q["startDate"] = _dateRange.Start.Value.ToString("o");
+            if (_dateRange?.End.HasValue == true) q["endDate"] = _dateRange.End.Value.ToString("o");
+            if (!string.IsNullOrWhiteSpace(_rfc)) q["customerRfc"] = _rfc.Trim();
+            q["status"] = _status;
+            NavigationManager.NavigateTo($"/api/InvoiceReport/individual?{q}", true);
+        }
+        finally
+        {
+            await Task.Delay(2000);
+            _exporting = false;
+        }
+    }
+}

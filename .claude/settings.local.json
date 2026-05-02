@@ -55,7 +55,8 @@
       "Bash(grep -E \"\\\\.\\(razor|cs\\)$\")",
       "PowerShell(cmd /c \"dir /s /b `\"C:\\\\Program Files\\\\EPSON`\" 2>nul\" | Select-Object -First 40)",
       "PowerShell(cmd /c \"dir /s /b `\"C:\\\\Program Files \\(x86\\)\\\\Microsoft Point Of Service`\" 2>nul\")",
-      "PowerShell(cmd /c \"dir C:\\\\repos\\\\CleenyAgent\\\\lib\\\\\")"
+      "PowerShell(cmd /c \"dir C:\\\\repos\\\\CleenyAgent\\\\lib\\\\\")",
+      "PowerShell(head *)"
     ],
     "deny": [],
     "ask": []

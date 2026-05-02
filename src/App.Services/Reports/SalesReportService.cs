@@ -382,8 +382,10 @@ public class SalesReportService : ISalesReportService
                         productDetailsSheet.Cells[row, 1].Value = sale.Id;
                         productDetailsSheet.Cells[row, 2].Value = _dateTime.FormatToTimezone(sale.SaleDate, timeZone);
                         productDetailsSheet.Cells[row, 3].Value = sale.CustomerName;
-                        productDetailsSheet.Cells[row, 4].Value = GetPaymentMethodDisplay(
-                            sale.Payments.FirstOrDefault()?.PaymentMethodName);
+                        productDetailsSheet.Cells[row, 4].Value = string.Join(", ",
+                            sale.Payments
+                                .Where(p => !string.IsNullOrEmpty(p.PaymentMethodName))
+                                .Select(p => GetPaymentMethodDisplay(p.PaymentMethodName)));
                         productDetailsSheet.Cells[row, 5].Value = detail.ProductCode;
                         productDetailsSheet.Cells[row, 6].Value = detail.ProductName;
                         productDetailsSheet.Cells[row, 7].Value = detail.Quantity;
@@ -583,7 +585,10 @@ public class SalesReportService : ISalesReportService
             int row = 2;
             foreach (var s in items)
             {
-                var paymentMethod = s.Payments.FirstOrDefault()?.PaymentMethodName ?? string.Empty;
+                var paymentMethod = string.Join(", ",
+                    s.Payments
+                        .Where(p => !string.IsNullOrEmpty(p.PaymentMethodName))
+                        .Select(p => GetPaymentMethodDisplay(p.PaymentMethodName)));
                 var subtotalAfterDiscount = s.Subtotal - s.DiscountAmount;
                 var dateStr = _dateTime.FormatToTimezone(s.SaleDate, timeZone);
                 var statusStr = s.Status == App.Core.Enums.Shop.SaleStatus.Created

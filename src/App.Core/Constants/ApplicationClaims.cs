@@ -165,6 +165,10 @@ public static class ApplicationClaims
         // Cash Stations
         public const string ViewCashStations = "Admin.CashStations.View";
         public const string ManageCashStations = "Admin.CashStations.Manage";
+
+        // Billing Reports
+        public const string ViewBillingReports = "Admin.BillingReports.View";
+        public const string ExportBillingReports = "Admin.BillingReports.Export";
     }
 
     public static class Shared
@@ -186,6 +190,7 @@ public static class ApplicationClaims
         // Reportes Generales
         public const string ViewReports = "Shared.Reports.View";
         public const string GenerateReports = "Shared.Reports.Generate";
+        public const string ReportsAccess = "Reports.Access";
     }
 
     public static class Billing

@@ -1,0 +1,64 @@
+@page "/admin/reports/conciliation"
+@using App.Core.Constants
+@using App.Web.Components.Billing.Reports
+@using Microsoft.AspNetCore.Authorization
+@using System.Web
+
+@inject IStringLocalizer<InvoiceReportsPage> L
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewBillingReports)]
+
+<PageTitle>@L["Sales vs CFDI Conciliation"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Sales vs CFDI Conciliation"]</MudText>
+<MudText Typo="Typo.body1" Class="mb-5">@L["Conciliation description"]</MudText>
+
+<MudAlert Severity="Severity.Info" Class="mb-4">@L["Conciliation alert"]</MudAlert>
+
+<MudPaper Elevation="2" Class="pa-4">
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6">
+            <MudDateRangePicker @bind-DateRange="_dateRange"
+                                Label="@L["Date Range"]"
+                                Variant="Variant.Outlined"
+                                DateFormat="yyyy-MM-dd" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Success"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       Disabled="@_exporting"
+                       OnClick="@Export">
+                @if (_exporting)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                }
+                @L["Export Excel"]
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    private DateRange? _dateRange = new DateRange(DateTime.Today.AddMonths(-1), DateTime.Today);
+    private bool _exporting;
+
+    private async Task Export()
+    {
+        _exporting = true;
+        StateHasChanged();
+        try
+        {
+            var q = System.Web.HttpUtility.ParseQueryString(string.Empty);
+            if (_dateRange?.Start.HasValue == true) q["startDate"] = _dateRange.Start.Value.ToString("o");
+            if (_dateRange?.End.HasValue == true) q["endDate"] = _dateRange.End.Value.ToString("o");
+            NavigationManager.NavigateTo($"/api/InvoiceReport/conciliation?{q}", true);
+        }
+        finally
+        {
+            await Task.Delay(2000);
+            _exporting = false;
+        }
+    }
+}

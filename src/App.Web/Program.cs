@@ -378,6 +378,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
                     c.Type == ApplicationClaims.Shop.ViewStampBalance ||
                     c.Type == ApplicationClaims.Admin.ViewGlobalInvoices)));
 
+        options.AddPolicy(ApplicationClaims.Admin.ViewBillingReports, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewBillingReports));
+        options.AddPolicy(ApplicationClaims.Admin.ExportBillingReports, policy => policy.RequireClaim(ApplicationClaims.Admin.ExportBillingReports));
+
+        // Reports section access — any report claim
+        options.AddPolicy(ApplicationClaims.Shared.ReportsAccess, policy =>
+            policy.RequireAssertion(context =>
+                context.User.HasClaim(c =>
+                    c.Type == ApplicationClaims.Shop.ViewSalesReport ||
+                    c.Type == ApplicationClaims.Admin.ViewBillingReports)));
+
         // Labels policies
         options.AddPolicy(ApplicationClaims.Labels.ViewLabels, policy => policy.RequireClaim(ApplicationClaims.Labels.ViewLabels));
         options.AddPolicy(ApplicationClaims.Labels.PrintLabels, policy => policy.RequireClaim(ApplicationClaims.Labels.PrintLabels));
@@ -744,6 +754,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<ISwSapienService, SwSapienService>();
     services.AddScoped<IMexicoInvoiceService, MexicoInvoiceService>();
     services.AddScoped<IGlobalInvoiceService, GlobalInvoiceService>();
+    services.AddScoped<IInvoiceReportService, InvoiceReportService>();
     services.AddScoped<IMexicoStampAlertService, MexicoStampAlertService>();
 
     // Cancellation monitor — singleton so UI can inject and call TriggerAsync
