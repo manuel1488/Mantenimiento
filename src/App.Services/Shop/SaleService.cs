@@ -113,8 +113,10 @@ public class SaleService : IContextualSaleService
             // Apply filters
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(s =>
-                    s.Customer.Name.Contains(searchString));
+                if (long.TryParse(searchString.Trim(), out var searchId))
+                    query = query.Where(s => s.Id == searchId);
+                else
+                    query = query.Where(s => s.Customer.Name.Contains(searchString));
             }
 
             if (customerId.HasValue)
