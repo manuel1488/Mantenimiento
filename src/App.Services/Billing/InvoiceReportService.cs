@@ -29,6 +29,9 @@ public class InvoiceReportService : IInvoiceReportService
     private static readonly Color NoCoverageColor = Color.FromArgb(255, 235, 238);
     private static readonly Color CoverageColor = Color.FromArgb(232, 245, 233);
     private static readonly Color TotalColor = Color.FromArgb(0, 96, 100);
+    private static readonly Color StampErrorColor = Color.FromArgb(255, 243, 224);
+    private static readonly Color CancelledTotalColor = Color.FromArgb(183, 28, 28);
+    private static readonly Color StampErrorTotalColor = Color.FromArgb(230, 81, 0);
 
     public InvoiceReportService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -698,6 +701,7 @@ public class InvoiceReportService : IInvoiceReportService
             _localizer["UUID (Folio Fiscal)"].Value,
             _localizer["Serie"].Value,
             _localizer["Folio"].Value,
+            _localizer["Sale #"].Value,
             _localizer["Customer RFC"].Value,
             _localizer["Customer Legal Name"].Value,
             _localizer["Subtotal"].Value,
@@ -728,21 +732,22 @@ public class InvoiceReportService : IInvoiceReportService
                 ws.Cells[rowNum, 3].Value = inv.Uuid ?? string.Empty;
                 ws.Cells[rowNum, 4].Value = inv.Serie ?? string.Empty;
                 ws.Cells[rowNum, 5].Value = inv.Folio;
-                ws.Cells[rowNum, 6].Value = inv.CustomerRfc;
-                ws.Cells[rowNum, 7].Value = inv.CustomerLegalName;
-                ws.Cells[rowNum, 8].Value = inv.Subtotal;
-                ws.Cells[rowNum, 8].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 9].Value = 0m; // individual invoices don't store discount separately
+                ws.Cells[rowNum, 6].Value = inv.SaleId;
+                ws.Cells[rowNum, 7].Value = inv.CustomerRfc;
+                ws.Cells[rowNum, 8].Value = inv.CustomerLegalName;
+                ws.Cells[rowNum, 9].Value = inv.Subtotal;
                 ws.Cells[rowNum, 9].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 10].Value = inv.TaxAmount;
+                ws.Cells[rowNum, 10].Value = 0m;
                 ws.Cells[rowNum, 10].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 11].Value = inv.Total;
+                ws.Cells[rowNum, 11].Value = inv.TaxAmount;
                 ws.Cells[rowNum, 11].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 12].Value = inv.PaymentMethod;
-                ws.Cells[rowNum, 13].Value = inv.PaymentForm;
-                ws.Cells[rowNum, 14].Value = inv.Currency;
-                ws.Cells[rowNum, 15].Value = TranslateInvoiceStatus(inv.Status);
-                ws.Cells[rowNum, 16].Value = inv.CancellationDate.HasValue ? inv.CancellationDate.Value.ToString("yyyy-MM-dd") : string.Empty;
+                ws.Cells[rowNum, 12].Value = inv.Total;
+                ws.Cells[rowNum, 12].Style.Numberformat.Format = fmt;
+                ws.Cells[rowNum, 13].Value = inv.PaymentMethod;
+                ws.Cells[rowNum, 14].Value = inv.PaymentForm;
+                ws.Cells[rowNum, 15].Value = inv.Currency;
+                ws.Cells[rowNum, 16].Value = TranslateInvoiceStatus(inv.Status);
+                ws.Cells[rowNum, 17].Value = inv.CancellationDate.HasValue ? inv.CancellationDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             }));
         }
 
@@ -756,21 +761,22 @@ public class InvoiceReportService : IInvoiceReportService
                 ws.Cells[rowNum, 3].Value = g.Uuid ?? string.Empty;
                 ws.Cells[rowNum, 4].Value = g.Serie ?? string.Empty;
                 ws.Cells[rowNum, 5].Value = g.Folio;
-                ws.Cells[rowNum, 6].Value = "XAXX010101000";
-                ws.Cells[rowNum, 7].Value = "PUBLICO EN GENERAL";
-                ws.Cells[rowNum, 8].Value = g.Subtotal;
-                ws.Cells[rowNum, 8].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 9].Value = g.DiscountAmount;
+                ws.Cells[rowNum, 6].Value = string.Empty;
+                ws.Cells[rowNum, 7].Value = "XAXX010101000";
+                ws.Cells[rowNum, 8].Value = "PUBLICO EN GENERAL";
+                ws.Cells[rowNum, 9].Value = g.Subtotal;
                 ws.Cells[rowNum, 9].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 10].Value = g.TaxAmount;
+                ws.Cells[rowNum, 10].Value = g.DiscountAmount;
                 ws.Cells[rowNum, 10].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 11].Value = g.Total;
+                ws.Cells[rowNum, 11].Value = g.TaxAmount;
                 ws.Cells[rowNum, 11].Style.Numberformat.Format = fmt;
-                ws.Cells[rowNum, 12].Value = string.Empty;
-                ws.Cells[rowNum, 13].Value = g.PaymentForm;
-                ws.Cells[rowNum, 14].Value = "MXN";
-                ws.Cells[rowNum, 15].Value = TranslateGlobalStatus(g.Status);
-                ws.Cells[rowNum, 16].Value = g.CancellationDate.HasValue ? g.CancellationDate.Value.ToString("yyyy-MM-dd") : string.Empty;
+                ws.Cells[rowNum, 12].Value = g.Total;
+                ws.Cells[rowNum, 12].Style.Numberformat.Format = fmt;
+                ws.Cells[rowNum, 13].Value = string.Empty;
+                ws.Cells[rowNum, 14].Value = g.PaymentForm;
+                ws.Cells[rowNum, 15].Value = "MXN";
+                ws.Cells[rowNum, 16].Value = TranslateGlobalStatus(g.Status);
+                ws.Cells[rowNum, 17].Value = g.CancellationDate.HasValue ? g.CancellationDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             }));
         }
 
@@ -780,13 +786,19 @@ public class InvoiceReportService : IInvoiceReportService
         {
             write(row);
 
-            // Color cancelled rows lightly
-            var statusCell = ws.Cells[row, 15].Value?.ToString() ?? string.Empty;
+            // Color rows by status
+            var statusCell = ws.Cells[row, 16].Value?.ToString() ?? string.Empty;
             if (statusCell == _localizer["Cancelled"].Value)
             {
                 using var cancelRange = ws.Cells[row, 1, row, headers.Length];
                 cancelRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
                 cancelRange.Style.Fill.BackgroundColor.SetColor(NoCoverageColor);
+            }
+            else if (statusCell == _localizer["Stamp Error"].Value)
+            {
+                using var errorRange = ws.Cells[row, 1, row, headers.Length];
+                errorRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                errorRange.Style.Fill.BackgroundColor.SetColor(StampErrorColor);
             }
             else if (row % 2 == 0)
             {
@@ -796,30 +808,42 @@ public class InvoiceReportService : IInvoiceReportService
             row++;
         }
 
-        // Totals row (stamped only)
-        var stamped = _localizer["Stamped"].Value;
-        decimal totSubtotal = 0, totTax = 0, totTotal = 0;
-        foreach (var inv in individualInvoices.Where(i => i.Status == "Stamped"))
-        { totSubtotal += inv.Subtotal; totTax += inv.TaxAmount; totTotal += inv.Total; }
-        foreach (var g in globalInvoices.Where(g => g.Status == GlobalInvoiceStatus.Stamped))
-        { totSubtotal += g.Subtotal; totTax += g.TaxAmount; totTotal += g.Total; }
+        // ── Summary rows (3 rows: Stamped / Cancelled / Stamp Error) ──
+        decimal stSubtotal = 0, stTax = 0, stTotal = 0;
+        decimal caSubtotal = 0, caTax = 0, caTotal = 0;
+        decimal erSubtotal = 0, erTax = 0, erTotal = 0;
 
-        using (var totalRange = ws.Cells[row, 1, row, headers.Length])
+        foreach (var inv in individualInvoices)
         {
-            totalRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
-            totalRange.Style.Fill.BackgroundColor.SetColor(TotalColor);
-            totalRange.Style.Font.Color.SetColor(Color.White);
-            totalRange.Style.Font.Bold = true;
+            if (inv.Status == "Stamped")      { stSubtotal += inv.Subtotal; stTax += inv.TaxAmount; stTotal += inv.Total; }
+            else if (inv.Status == "Cancelled") { caSubtotal += inv.Subtotal; caTax += inv.TaxAmount; caTotal += inv.Total; }
+            else if (inv.Status == "StampError") { erSubtotal += inv.Subtotal; erTax += inv.TaxAmount; erTotal += inv.Total; }
         }
-        ws.Cells[row, 1].Value = _localizer["Total (Stamped)"].Value;
-        ws.Cells[row, 8].Value = totSubtotal;
-        ws.Cells[row, 8].Style.Numberformat.Format = fmt;
-        ws.Cells[row, 10].Value = totTax;
-        ws.Cells[row, 10].Style.Numberformat.Format = fmt;
-        ws.Cells[row, 11].Value = totTotal;
-        ws.Cells[row, 11].Style.Numberformat.Format = fmt;
+        foreach (var g in globalInvoices)
+        {
+            if (g.Status == GlobalInvoiceStatus.Stamped)    { stSubtotal += g.Subtotal; stTax += g.TaxAmount; stTotal += g.Total; }
+            else if (g.Status == GlobalInvoiceStatus.Cancelled)   { caSubtotal += g.Subtotal; caTax += g.TaxAmount; caTotal += g.Total; }
+            else if (g.Status == GlobalInvoiceStatus.StampError)  { erSubtotal += g.Subtotal; erTax += g.TaxAmount; erTotal += g.Total; }
+        }
 
-        FinalizeSheet(ws, headers.Length, row);
+        void WriteSummaryTotal(int r, string label, decimal subtotal, decimal tax, decimal total, Color bgColor)
+        {
+            using var range = ws.Cells[r, 1, r, headers.Length];
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(bgColor);
+            range.Style.Font.Color.SetColor(Color.White);
+            range.Style.Font.Bold = true;
+            ws.Cells[r, 1].Value = label;
+            ws.Cells[r, 9].Value = subtotal;   ws.Cells[r, 9].Style.Numberformat.Format = fmt;
+            ws.Cells[r, 11].Value = tax;       ws.Cells[r, 11].Style.Numberformat.Format = fmt;
+            ws.Cells[r, 12].Value = total;     ws.Cells[r, 12].Style.Numberformat.Format = fmt;
+        }
+
+        WriteSummaryTotal(row,     _localizer["Total (Stamped)"].Value,   stSubtotal, stTax, stTotal, TotalColor);
+        WriteSummaryTotal(row + 1, _localizer["Cancelled"].Value,         caSubtotal, caTax, caTotal, CancelledTotalColor);
+        WriteSummaryTotal(row + 2, _localizer["Stamp Error"].Value,       erSubtotal, erTax, erTotal, StampErrorTotalColor);
+
+        FinalizeSheet(ws, headers.Length, row + 2);
         return await package.GetAsByteArrayAsync(ct);
     }
 
