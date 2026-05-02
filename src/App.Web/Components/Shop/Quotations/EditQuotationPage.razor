@@ -281,7 +281,7 @@
                 <MudButton Color="Color.Primary"
                            Variant="Variant.Filled"
                            OnClick="Save"
-                           Disabled="@(_processing || !_isValid || _lines.Count == 0)">
+                           Disabled="@(_processing || _selectedCustomer == null || _lines.Count == 0 || _lines.Any(l => l.ProductId == 0))">
                     @if (_processing)
                     {
                         <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
@@ -306,6 +306,7 @@
             await JS.InvokeVoidAsync("eval",
                 "var el=document.querySelector('.mud-main-content');if(el)el.style.overflow='hidden';");
         }
+
     }
 
     public async ValueTask DisposeAsync()
