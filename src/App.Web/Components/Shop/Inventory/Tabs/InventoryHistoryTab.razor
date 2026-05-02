@@ -144,9 +144,7 @@
                             </MudTd>
                             <MudTd DataLabel="@L["Type"]">
                                 <MudChip T="string" Size="Size.Small" Color="@MovementService.GetMovementTypeColor(contextHistory.MovementType)">
-                                    @(string.IsNullOrEmpty(contextHistory.MovementSubType)
-                                        ? GetMovementTypeDisplay(contextHistory.MovementType)
-                                        : MovementService.GetMovementSubTypeDisplay(contextHistory.MovementSubType))
+                                    @GetTypeLabel(contextHistory.MovementType, contextHistory.MovementSubType)
                                 </MudChip>
                             </MudTd>
                             <MudTd DataLabel="@L["Source"]">@contextHistory.LocationName</MudTd>
@@ -258,8 +256,8 @@
 
             var (movements, totalCount) = await InventoryHistoryService.GetWarehouseMovementHistoryAsync(
                 _selectedLocation,
-                ToUtc(_dateRange.Start),
-                ToUtc(_dateRange.End),
+                _dateRange.Start,
+                _dateRange.End,
                 _searchString,
                 _selectedMovementType,
                 null,
@@ -299,8 +297,17 @@
         }
     }
 
-    private string GetMovementTypeDisplay(string movementType) => 
+    private string GetMovementTypeDisplay(string movementType) =>
         MovementService.GetMovementTypeDisplay(movementType);
+
+    private string GetTypeLabel(string movementType, string? movementSubType)
+    {
+        var typeDisplay = GetMovementTypeDisplay(movementType);
+        if (string.IsNullOrEmpty(movementSubType))
+            return typeDisplay;
+
+        return $"{typeDisplay} · {MovementService.GetMovementSubTypeDisplay(movementSubType)}";
+    }
 
     private void ExportToExcel()
     {
