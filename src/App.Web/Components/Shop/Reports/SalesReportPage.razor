@@ -227,7 +227,7 @@
                     </MudTd>
                     <MudTd DataLabel="@L["Status"]">
                         <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
-                            @context.Status.ToString()
+                            @L[context.Status.ToString()]
                         </MudChip>
                     </MudTd>
                     <MudTd DataLabel="@L["Payment"]">@(context.Payments.FirstOrDefault()?.PaymentMethodName ?? "—")</MudTd>

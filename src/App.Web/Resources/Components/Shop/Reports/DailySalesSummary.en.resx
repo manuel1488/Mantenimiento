@@ -75,6 +75,9 @@
   <data name="Public" xml:space="preserve">
     <value>Public</value>
   </data>
+  <data name="Public Sales" xml:space="preserve">
+    <value>Public Sales</value>
+  </data>
   <data name="Sales by Status" xml:space="preserve">
     <value>Sales by Status</value>
   </data>
