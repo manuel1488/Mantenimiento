@@ -15,6 +15,21 @@
     <value>Rango de Fechas</value>
     <comment>Etiqueta del filtro de rango de fechas</comment>
   </data>
+  <data name="Today" xml:space="preserve">
+    <value>Hoy</value>
+  </data>
+  <data name="This week" xml:space="preserve">
+    <value>Esta semana</value>
+  </data>
+  <data name="This month" xml:space="preserve">
+    <value>Este mes</value>
+  </data>
+  <data name="This year" xml:space="preserve">
+    <value>Este año</value>
+  </data>
+  <data name="All dates" xml:space="preserve">
+    <value>Todas las fechas</value>
+  </data>
   <data name="Sale Type" xml:space="preserve">
     <value>Tipo de Venta</value>
     <comment>Etiqueta del filtro de tipo de venta</comment>

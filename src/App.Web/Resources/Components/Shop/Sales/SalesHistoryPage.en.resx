@@ -15,6 +15,21 @@
     <value>Date Range</value>
     <comment>Date range filter label</comment>
   </data>
+  <data name="Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="This week" xml:space="preserve">
+    <value>This week</value>
+  </data>
+  <data name="This month" xml:space="preserve">
+    <value>This month</value>
+  </data>
+  <data name="This year" xml:space="preserve">
+    <value>This year</value>
+  </data>
+  <data name="All dates" xml:space="preserve">
+    <value>All dates</value>
+  </data>
   <data name="Sale Type" xml:space="preserve">
     <value>Sale Type</value>
     <comment>Sale type filter label</comment>

@@ -62,10 +62,51 @@
                                      FullWidth/>
                     </MudItem>
 
+                    <!-- Date Period Chips -->
+                    <MudItem xs="12">
+                        <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center">
+                            <MudChip T="string"
+                                     Color="@(_activePeriod == "today" ? Color.Primary : Color.Default)"
+                                     Variant="@(_activePeriod == "today" ? Variant.Filled : Variant.Outlined)"
+                                     Size="Size.Small"
+                                     OnClick="@(() => SetDatePeriod("today"))">
+                                @L["Today"]
+                            </MudChip>
+                            <MudChip T="string"
+                                     Color="@(_activePeriod == "week" ? Color.Primary : Color.Default)"
+                                     Variant="@(_activePeriod == "week" ? Variant.Filled : Variant.Outlined)"
+                                     Size="Size.Small"
+                                     OnClick="@(() => SetDatePeriod("week"))">
+                                @L["This week"]
+                            </MudChip>
+                            <MudChip T="string"
+                                     Color="@(_activePeriod == "month" ? Color.Primary : Color.Default)"
+                                     Variant="@(_activePeriod == "month" ? Variant.Filled : Variant.Outlined)"
+                                     Size="Size.Small"
+                                     OnClick="@(() => SetDatePeriod("month"))">
+                                @L["This month"]
+                            </MudChip>
+                            <MudChip T="string"
+                                     Color="@(_activePeriod == "year" ? Color.Primary : Color.Default)"
+                                     Variant="@(_activePeriod == "year" ? Variant.Filled : Variant.Outlined)"
+                                     Size="Size.Small"
+                                     OnClick="@(() => SetDatePeriod("year"))">
+                                @L["This year"]
+                            </MudChip>
+                            <MudChip T="string"
+                                     Color="@(_activePeriod == "all" ? Color.Primary : Color.Default)"
+                                     Variant="@(_activePeriod == "all" ? Variant.Filled : Variant.Outlined)"
+                                     Size="Size.Small"
+                                     OnClick="@(() => SetDatePeriod("all"))">
+                                @L["All dates"]
+                            </MudChip>
+                        </MudStack>
+                    </MudItem>
+
                     <!-- Date Range Filter -->
                     <MudItem xs="12" sm="6" md="3">
-                        <MudDateRangePicker @bind-DateRange="_dateRange" 
-                                           Label="@L["Date Range"]" 
+                        <MudDateRangePicker @bind-DateRange="_dateRange"
+                                           Label="@L["Date Range"]"
                                            AutoClose="true"
                                            AdornmentIcon="@Icons.Material.Filled.DateRange"
                                            PickerClosed="OnDateRangeChanged"/>
@@ -371,6 +412,7 @@
     private bool _exporting;
     private string _searchString = "";
     private DateRange _dateRange = new();
+    private string? _activePeriod = "month";
     private SaleType? _selectedSaleType;
     private string? _selectedStatus;
     private string? _columnStatusFilter;
@@ -565,6 +607,27 @@
 
     private async Task OnDateRangeChanged()
     {
+        _activePeriod = null;
+        await _dataGrid.ReloadServerData();
+    }
+
+    private async Task SetDatePeriod(string period)
+    {
+        var today = DateTime.Today;
+        _activePeriod = period;
+        _dateRange = period switch
+        {
+            "today" => new DateRange(today, today),
+            "week"  => new DateRange(
+                           today.AddDays(-(((int)today.DayOfWeek + 6) % 7)),
+                           today.AddDays(6 - ((int)today.DayOfWeek + 6) % 7)),
+            "month" => new DateRange(
+                           new DateTime(today.Year, today.Month, 1),
+                           new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month))),
+            "year"  => new DateRange(new DateTime(today.Year, 1, 1), new DateTime(today.Year, 12, 31)),
+            "all"   => new DateRange(null, null),
+            _       => _dateRange
+        };
         await _dataGrid.ReloadServerData();
     }
 
