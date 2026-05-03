@@ -63,7 +63,7 @@ public class InvoiceReportService : IInvoiceReportService
 
         if (request.EndDate.HasValue)
         {
-            var endInclusive = request.EndDate.Value.Date.AddDays(1);
+            var endInclusive = request.EndDate.Value.AddDays(1);
             query = query.Where(i => i.StampDate < endInclusive ||
                                      (i.StampDate == null && i.RequestedInvoiceDate < endInclusive));
         }
@@ -169,7 +169,7 @@ public class InvoiceReportService : IInvoiceReportService
             query = query.Where(g => g.EndDate >= request.StartDate.Value);
 
         if (request.EndDate.HasValue)
-            query = query.Where(g => g.StartDate <= request.EndDate.Value.Date.AddDays(1));
+            query = query.Where(g => g.StartDate <= request.EndDate.Value.AddDays(1));
 
         if (!string.IsNullOrWhiteSpace(request.Status) && request.Status != "all")
         {
@@ -289,7 +289,7 @@ public class InvoiceReportService : IInvoiceReportService
         await using var context = await _contextFactory.CreateDbContextAsync(ct);
 
         var startDate = request.StartDate ?? DateTime.UtcNow.AddMonths(-1);
-        var endDate = request.EndDate?.Date.AddDays(1) ?? DateTime.UtcNow.Date.AddDays(1);
+        var endDate = request.EndDate?.AddDays(1) ?? DateTime.UtcNow.Date.AddDays(1);
 
         var sales = await context.Sales
             .Include(s => s.Customer)
@@ -451,7 +451,7 @@ public class InvoiceReportService : IInvoiceReportService
         await using var context = await _contextFactory.CreateDbContextAsync(ct);
 
         var startDate = request.StartDate ?? DateTime.UtcNow.AddMonths(-12);
-        var endDate = request.EndDate?.Date.AddDays(1) ?? DateTime.UtcNow.Date.AddDays(1);
+        var endDate = request.EndDate?.AddDays(1) ?? DateTime.UtcNow.Date.AddDays(1);
 
         var individualInvoices = await context.MexicoInvoices
             .Include(i => i.Sale)
@@ -675,7 +675,7 @@ public class InvoiceReportService : IInvoiceReportService
         await using var context = await _contextFactory.CreateDbContextAsync(ct);
 
         var startDate = request.StartDate ?? DateTime.UtcNow.AddMonths(-1);
-        var endDate = request.EndDate?.Date.AddDays(1) ?? DateTime.UtcNow.Date.AddDays(1);
+        var endDate = request.EndDate?.AddDays(1) ?? DateTime.UtcNow.Date.AddDays(1);
 
         var individualInvoices = await context.MexicoInvoices
             .Where(i => (i.StampDate >= startDate && i.StampDate < endDate) ||

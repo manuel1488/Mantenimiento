@@ -56,14 +56,16 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             if (startDate.HasValue)
             {
-                var utcStart = _dateTime.ToUtc(startDate.Value.Date, timeZone);
+                var utcStart = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(startDate.Value.Date, DateTimeKind.Unspecified), timeZone);
                 query = query.Where(x => x.MovementDate >= utcStart);
             }
 
             if (endDate.HasValue)
             {
-                var utcEnd = _dateTime.ToUtc(endDate.Value.Date.AddDays(1).AddTicks(-1), timeZone);
-                query = query.Where(x => x.MovementDate <= utcEnd);
+                var utcEnd = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(endDate.Value.Date.AddDays(1), DateTimeKind.Unspecified), timeZone);
+                query = query.Where(x => x.MovementDate < utcEnd);
             }
 
             var movementEntities = await query
@@ -122,14 +124,16 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             if (startDate.HasValue)
             {
-                var utcStart = _dateTime.ToUtc(startDate.Value.Date, timeZone);
+                var utcStart = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(startDate.Value.Date, DateTimeKind.Unspecified), timeZone);
                 query = query.Where(x => x.MovementDate >= utcStart);
             }
 
             if (endDate.HasValue)
             {
-                var utcEnd = _dateTime.ToUtc(endDate.Value.Date.AddDays(1).AddTicks(-1), timeZone);
-                query = query.Where(x => x.MovementDate <= utcEnd);
+                var utcEnd = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(endDate.Value.Date.AddDays(1), DateTimeKind.Unspecified), timeZone);
+                query = query.Where(x => x.MovementDate < utcEnd);
             }
 
             // Filtro de búsqueda (nombre del producto, código o referencia)
@@ -244,14 +248,16 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             if (startDate.HasValue)
             {
-                var utcStart = _dateTime.ToUtc(startDate.Value.Date, timeZone);
+                var utcStart = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(startDate.Value.Date, DateTimeKind.Unspecified), timeZone);
                 query = query.Where(x => x.MovementDate >= utcStart);
             }
 
             if (endDate.HasValue)
             {
-                var utcEnd = _dateTime.ToUtc(endDate.Value.Date.AddDays(1).AddTicks(-1), timeZone);
-                query = query.Where(x => x.MovementDate <= utcEnd);
+                var utcEnd = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(endDate.Value.Date.AddDays(1), DateTimeKind.Unspecified), timeZone);
+                query = query.Where(x => x.MovementDate < utcEnd);
             }
 
             // Filtro de búsqueda (nombre del producto, código o referencia)
@@ -474,14 +480,16 @@ public class InventoryHistoryService : IInventoryHistoryService
 
             if (startDate.HasValue)
             {
-                var utcStart = _dateTime.ToUtc(startDate.Value.Date, timeZone);
+                var utcStart = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(startDate.Value.Date, DateTimeKind.Unspecified), timeZone);
                 query = query.Where(x => x.MovementDate >= utcStart);
             }
 
             if (endDate.HasValue)
             {
-                var utcEnd = _dateTime.ToUtc(endDate.Value.Date.AddDays(1).AddTicks(-1), timeZone);
-                query = query.Where(x => x.MovementDate <= utcEnd);
+                var utcEnd = TimeZoneInfo.ConvertTimeToUtc(
+                    DateTime.SpecifyKind(endDate.Value.Date.AddDays(1), DateTimeKind.Unspecified), timeZone);
+                query = query.Where(x => x.MovementDate < utcEnd);
             }
 
             // Filtro de búsqueda (nombre del producto, código o referencia)
