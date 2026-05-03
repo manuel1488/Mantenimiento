@@ -707,20 +707,18 @@ public class SalesReportService : ISalesReportService
             .Include(s => s.Payments)
                 .ThenInclude(p => p.PaymentMethod);
 
-        // Obtener la zona horaria actual
-        var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
-
-        // Aplicar filtros de fecha convirtiendo a UTC
+        // Dates arrive as UTC from the frontend (already converted via ToUtc before sending).
+        // Re-converting via ToUtc would produce wrong results (double conversion).
+        // Use the same pattern as SaleService: startDate >= and endDate+1day < (exclusive upper bound).
         if (request.StartDate.HasValue)
         {
-            var utcStart = _dateTime.ToUtc(request.StartDate.Value.Date, timeZone);
-            query = query.Where(s => s.SaleDate >= utcStart);
+            query = query.Where(s => s.SaleDate >= request.StartDate.Value);
         }
 
         if (request.EndDate.HasValue)
         {
-            var utcEnd = _dateTime.ToUtc(request.EndDate.Value.Date.AddDays(1).AddTicks(-1), timeZone);
-            query = query.Where(s => s.SaleDate <= utcEnd);
+            var nextDay = request.EndDate.Value.AddDays(1);
+            query = query.Where(s => s.SaleDate < nextDay);
         }
 
         // Apply search filter
