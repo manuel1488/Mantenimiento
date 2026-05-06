@@ -61,12 +61,7 @@ public class InventoryService : IContextualInventoryService
         if (inventory == null)
             return false;
 
-        // Use the new IndividualUnits field, fallback to legacy calculation if not set
-        decimal availableIndividualUnits = inventory.IndividualUnits > 0
-            ? inventory.IndividualUnits
-            : GetAvailableIndividualUnits(inventory);
-
-        return availableIndividualUnits >= quantity;
+        return inventory.GetAvailableIndividualUnits() >= quantity;
     }
 
     public async Task<MovementOperationResult> CreateMovementAsync(
@@ -143,7 +138,6 @@ public class InventoryService : IContextualInventoryService
                 ProductId = createDto.ProductId,
                 LocationId = createDto.LocationId,
                 Quantity = 0,
-                IndividualUnits = 0,
                 Product = product,
                 Location = location,
                 CreatedBy = _currentUserService.FullName ?? "Unknown",
@@ -162,9 +156,7 @@ public class InventoryService : IContextualInventoryService
             individualUnitsToMove = createDto.Quantity * inventory.Product.Content;
 
         decimal currentQuantity = inventory.Quantity;
-        decimal currentIndividualUnits = inventory.IndividualUnits > 0
-            ? inventory.IndividualUnits
-            : GetAvailableIndividualUnits(inventory);
+        decimal currentIndividualUnits = inventory.GetAvailableIndividualUnits();
 
         if (!isAddition && currentQuantity < quantityToMove)
             return MovementOperationResult.Failure(L["Insufficient stock"]);
@@ -214,7 +206,6 @@ public class InventoryService : IContextualInventoryService
 
         context.InventoryMovements.Add(movement);
         inventory.Quantity = newQuantityBalance;
-        inventory.IndividualUnits = newIndividualBalance;
         inventory.ModifiedBy = _currentUserService.FullName;
 
         await context.SaveChangesAsync(cancellationToken);
@@ -299,7 +290,6 @@ public class InventoryService : IContextualInventoryService
                     ProductId = transferDto.ProductId,
                     LocationId = transferDto.DestinationLocationId,
                     Quantity = 0,
-                    IndividualUnits = 0,
                     CreatedBy = _currentUserService.FullName ?? "Unknown",
                     CreatedAt = _dateTime.Now
                 };
@@ -577,7 +567,6 @@ public class InventoryService : IContextualInventoryService
                     ProductId = productId,
                     LocationId = locationId,
                     Quantity = 0,
-                    IndividualUnits = 0,
                     Product = product,
                     Location = location,
                     CreatedBy = user,
@@ -700,7 +689,6 @@ public class InventoryService : IContextualInventoryService
                     ProductId = loadDto.ProductId,
                     LocationId = loadDto.LocationId,
                     Quantity = loadDto.Quantity,
-                    IndividualUnits = individualUnits,
                     MinStock = loadDto.MinStock,
                     MaxStock = loadDto.MaxStock,
                     CreatedBy = _currentUserService.FullName ?? "Unknown",
@@ -866,7 +854,6 @@ public class InventoryService : IContextualInventoryService
                         ProductId = product.Id,
                         LocationId = request.LocationId,
                         Quantity = item.Quantity,
-                        IndividualUnits = individualUnits,
                         MinStock = item.MinStock,
                         MaxStock = item.MaxStock,
                         CreatedBy = _currentUserService.FullName ?? "Unknown",
@@ -1156,24 +1143,6 @@ public class InventoryService : IContextualInventoryService
     }
 
     #region Helper Methods for Unit Conversion
-
-    /// <summary>
-    /// Gets the available individual units (e.g., liters) from container units stored in inventory
-    /// </summary>
-    /// <param name="inventory">Inventory record with Product included</param>
-    /// <returns>Available individual units</returns>
-    private decimal GetAvailableIndividualUnits(App.Models.Shop.Inventory inventory)
-    {
-        // If product allows partial sales and has content, calculate individual units
-        if (inventory.Product.IsPartialSaleAllowed && inventory.Product.Content > 0)
-        {
-            // inventory.Quantity = containers, Product.Content = units per container
-            return inventory.Quantity * inventory.Product.Content;
-        }
-
-        // For products without partial sales, quantity is already in individual units
-        return inventory.Quantity;
-    }
 
     /// <summary>
     /// Converts individual units (e.g., liters) to container units for storage

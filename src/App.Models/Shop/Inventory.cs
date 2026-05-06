@@ -22,12 +22,6 @@ public class Inventory : BaseEntity<long>
     [Column(TypeName = "decimal(15,6)")]
     public decimal Quantity { get; set; }
 
-    /// <summary>
-    /// Individual units (e.g., 1900 liters) - calculated from Quantity × Product.Content
-    /// </summary>
-    [Column(TypeName = "decimal(15,6)")]
-    public decimal IndividualUnits { get; set; }
-
     [Column(TypeName = "decimal(15,6)")]
     public decimal? MinStock { get; set; }
 

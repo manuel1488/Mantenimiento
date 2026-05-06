@@ -108,11 +108,65 @@ Si quieres que los nuevos registros empiecen con ID=1, descomenta el bloque de `
 
 ---
 
+---
+
+## Respaldo de base de datos de producción
+
+MySQL en producción **no expone puerto al host** — solo es accesible dentro de `app-network`.
+El respaldo se hace con `mysqldump` ejecutado dentro del contenedor vía `docker exec` sobre
+el contexto SSH remoto (`cleeny`).
+
+### 1. Verificar nombre del contenedor
+
+```bash
+docker --context cleeny ps --format "table {{.Names}}\t{{.Status}}"
+```
+
+El nombre sigue el patrón `<CONTAINER_PREFIX>-mysql` (valor en `.env.production`).
+
+### 2. Generar el dump localmente
+
+```bash
+# La salida se redirige al host local — no ocupa espacio en el servidor
+docker --context cleeny exec <CONTAINER_PREFIX>-mysql \
+  mysqldump -u root -p<MYSQL_ROOT_PASSWORD> <MYSQL_DATABASE> \
+  > backup_prod_$(date +%Y%m%d).sql
+```
+
+Sustituye `<CONTAINER_PREFIX>`, `<MYSQL_ROOT_PASSWORD>` y `<MYSQL_DATABASE>`
+con los valores de tu `.env.production`.
+
+### 3. Restaurar en entorno local (para pruebas)
+
+```bash
+# Opción A — contra el contenedor de desarrollo
+docker exec -i <CONTAINER_PREFIX>-mysql \
+  mysql -u root -p<MYSQL_ROOT_PASSWORD> <MYSQL_DATABASE> \
+  < backup_prod_<fecha>.sql
+
+# Opción B — contra MySQL local expuesto en 3306
+mysql -h 127.0.0.1 -P 3306 -u root -p<password> <database> < backup_prod_<fecha>.sql
+```
+
+### 4. Respaldo automático en el servidor (cron)
+
+```bash
+# Conectarse al servidor y editar el crontab:  crontab -e
+0 3 * * * docker exec <CONTAINER_PREFIX>-mysql \
+  mysqldump -u root -p<MYSQL_ROOT_PASSWORD> <MYSQL_DATABASE> \
+  | gzip > /backups/cleeny_$(date +\%Y\%m\%d).sql.gz
+```
+
+---
+
 ## Obtener credenciales Docker
 
 Las credenciales están en el archivo de entorno del proyecto:
 
 ```bash
 # Desarrollo
-cat .env.development | grep -E "DB_USER|DB_PASSWORD|DB_NAME"
+cat .env.development | grep -E "MYSQL_USER|MYSQL_PASSWORD|MYSQL_DATABASE|CONTAINER_PREFIX"
+
+# Producción
+cat .env.production | grep -E "MYSQL_ROOT_PASSWORD|MYSQL_DATABASE|CONTAINER_PREFIX"
 ```

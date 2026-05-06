@@ -84,7 +84,7 @@ public class InventoryAdjustmentTests
     [Test]
     public async Task CreateAdjustment_WhenNewQuantityEqualsCurrentStock_ReturnsFailure()
     {
-        await SeedInventoryAsync(quantity: 4m, individualUnits: 1m);
+        await SeedInventoryAsync(quantity: 4m);
 
         var dto = new CreateInventoryAdjustmentDto
         {
@@ -104,7 +104,7 @@ public class InventoryAdjustmentTests
     [Test]
     public async Task CreateAdjustment_WhenNewQuantityDiffers_Succeeds()
     {
-        await SeedInventoryAsync(quantity: 4m, individualUnits: 1m);
+        await SeedInventoryAsync(quantity: 4m);
 
         var dto = new CreateInventoryAdjustmentDto
         {
@@ -127,7 +127,7 @@ public class InventoryAdjustmentTests
     [Test]
     public async Task CreateAdjustment_ToZero_Succeeds()
     {
-        await SeedInventoryAsync(quantity: 4m, individualUnits: 1m);
+        await SeedInventoryAsync(quantity: 4m);
 
         var dto = new CreateInventoryAdjustmentDto
         {
@@ -154,7 +154,7 @@ public class InventoryAdjustmentTests
     {
         // Reproduces the bug: IndividualUnits=1 but Quantity=4 in DB.
         // The adjustment dialog must receive Quantity=4 so the delta is computed correctly.
-        await SeedInventoryAsync(quantity: 4m, individualUnits: 1m);
+        await SeedInventoryAsync(quantity: 4m);
 
         var stock = await _queryService.GetProductStockAsync(ProductId, LocationId);
 
@@ -164,20 +164,21 @@ public class InventoryAdjustmentTests
     }
 
     [Test]
-    public async Task GetProductStock_IndividualUnits_MapsToAvailableIndividualUnits()
+    public async Task GetProductStock_IndividualUnits_ComputedFromQuantity_WhenNotPartialSale()
     {
-        await SeedInventoryAsync(quantity: 4m, individualUnits: 1m);
+        // Non-partial product: GetAvailableIndividualUnits() returns Quantity directly.
+        await SeedInventoryAsync(quantity: 4m);
 
         var stock = await _queryService.GetProductStockAsync(ProductId, LocationId);
 
         var locationStock = stock!.LocationStock.First(w => w.LocationId == LocationId);
-        Assert.That(locationStock.IndividualUnits, Is.EqualTo(1m),
-            "IndividualUnits must reflect the tracked individual units (used for sales display)");
+        Assert.That(locationStock.IndividualUnits, Is.EqualTo(4m),
+            "For non-partial products IndividualUnits == Quantity (no content factor applied)");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private async Task SeedInventoryAsync(decimal quantity, decimal individualUnits)
+    private async Task SeedInventoryAsync(decimal quantity)
     {
         await using var context = new ApplicationDbContext(_dbOptions);
 
@@ -224,7 +225,6 @@ public class InventoryAdjustmentTests
             ProductId = ProductId,
             LocationId = LocationId,
             Quantity = quantity,
-            IndividualUnits = individualUnits,
             Version = [0, 0, 0, 0, 0, 0, 0, 1],
             CreatedBy = "seed", CreatedAt = now, ModifiedBy = "seed", ModifiedAt = now
         });

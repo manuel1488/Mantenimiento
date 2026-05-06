@@ -167,14 +167,14 @@ public class InventoryQueryService : IInventoryQueryService
                 ProductCode = firstItem.Product.Code,
                 UnitMeasureName = firstItem.Product.UnitMeasure.Name,
                 RequiresInventory = true,
-                TotalStock = inventoryItems.Sum(x => GetAvailableIndividualUnits(x)),
+                TotalStock = inventoryItems.Sum(x => x.GetAvailableIndividualUnits()),
                 LocationStock = inventoryItems.Select(x => new ProductWarehouseStockDto
                 {
                     LocationId = x.LocationId,
                     LocationName = x.Location.Name,
                     LocationType = x.Location.Type,
                     Quantity = x.Quantity,
-                    IndividualUnits = GetAvailableIndividualUnits(x),
+                    IndividualUnits = x.GetAvailableIndividualUnits(),
                     MinStock = x.MinStock.HasValue ? GetIndividualUnitsFromContainer(x.Product, x.MinStock.Value) : null,
                     MaxStock = x.MaxStock.HasValue ? GetIndividualUnitsFromContainer(x.Product, x.MaxStock.Value) : null
                 }).ToList()
@@ -244,31 +244,6 @@ public class InventoryQueryService : IInventoryQueryService
     }
 
     #region Helper Methods for Unit Conversion
-
-    /// <summary>
-    /// Gets the available individual units (e.g., liters) from container units stored in inventory
-    /// </summary>
-    /// <param name="inventory">Inventory record with Product included</param>
-    /// <returns>Available individual units</returns>
-    private decimal GetAvailableIndividualUnits(App.Models.Shop.Inventory inventory)
-    {
-        // Use new field if available
-        if (inventory.IndividualUnits > 0)
-        {
-            return inventory.IndividualUnits;
-        }
-
-        // Fallback to legacy calculation
-        // If product allows partial sales and has content, calculate individual units
-        if (inventory.Product.IsPartialSaleAllowed && inventory.Product.Content > 0)
-        {
-            // inventory.Quantity = containers, Product.Content = units per container
-            return inventory.Quantity * inventory.Product.Content;
-        }
-
-        // For products without partial sales, quantity is already in individual units
-        return inventory.Quantity;
-    }
 
     /// <summary>
     /// Converts container units to individual units for display

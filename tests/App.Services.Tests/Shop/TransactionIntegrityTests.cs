@@ -898,9 +898,8 @@ public class RemissionRollbackContainerTests
     }
 
     /// <summary>
-    /// Inventory with IndividualUnits=5 (passes ValidateStockAvailabilityAsync)
-    /// but Quantity=0 (fails CreateMovementCoreAsync). Replicates the exact
-    /// divergence that caused orphaned movements in production (REM-2026-0001).
+    /// Inventory with Quantity=0 — fails ValidateStockAvailabilityAsync (0 units available,
+    /// 1 requested). Used to trigger movement failure and test transaction rollback.
     /// </summary>
     private async Task SeedDivergentInventoryAsync(long productId)
     {
@@ -909,15 +908,14 @@ public class RemissionRollbackContainerTests
         {
             ProductId = productId,
             LocationId = LocationId,
-            Quantity = 0,         // fails movement: 0 < quantityToMove (1)
-            IndividualUnits = 5,  // passes validation: 5 >= quantity requested (1)
+            Quantity = 0,
             CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
             ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
         });
         await ctx.SaveChangesAsync();
     }
 
-    private async Task SeedNormalInventoryAsync(long productId, decimal quantity = 10, decimal individualUnits = 50)
+    private async Task SeedNormalInventoryAsync(long productId, decimal quantity = 10)
     {
         await using var ctx = new ApplicationDbContext(_options);
         ctx.Inventory.Add(new InventoryRow
@@ -925,7 +923,6 @@ public class RemissionRollbackContainerTests
             ProductId = productId,
             LocationId = LocationId,
             Quantity = quantity,
-            IndividualUnits = individualUnits,
             CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
             ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
         });
@@ -1009,7 +1006,7 @@ public class RemissionRollbackContainerTests
         var customerId = await SeedCustomerAsync();
         var productId1 = await SeedProductAsync();
         var productId2 = await SeedProductAsync();
-        await SeedNormalInventoryAsync(productId1, quantity: 10, individualUnits: 50);
+        await SeedNormalInventoryAsync(productId1, quantity: 10);
         await SeedDivergentInventoryAsync(productId2);
         var quotationId = await SeedAcceptedQuotationAsync(customerId, productId1, productId2);
 
