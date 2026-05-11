@@ -19,4 +19,13 @@ public interface IPricingCalculationService
     /// Gets the effective tax rate as a fraction (e.g. 0.16 for 16%) for the configured country.
     /// </summary>
     Task<Result<decimal>> GetEffectiveTaxRateAsync();
+
+    /// <summary>
+    /// Resolves the applicable wholesale discount for a product tier.
+    /// Returns DiscountPercentage > 0 for percentage tiers, or FixedDiscountAmountPerUnit for fixed-price tiers.
+    /// </summary>
+    WholesaleDiscountResult ResolveWholesaleDiscount(
+        IEnumerable<App.Core.DTOs.Shop.ProductWholesalePriceDto> tiers,
+        decimal quantity,
+        decimal originalPrice);
 }

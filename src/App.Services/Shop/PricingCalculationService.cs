@@ -1,5 +1,6 @@
 using App.Core.Common;
 using App.Core.DTOs.Shop.Calculation;
+using App.Core.DTOs.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
@@ -174,5 +175,31 @@ public class PricingCalculationService : IPricingCalculationService
             _logger.LogError(ex, "Error getting effective tax rate");
             return Result<decimal>.Failure("Error getting tax rate");
         }
+    }
+
+    public WholesaleDiscountResult ResolveWholesaleDiscount(
+        IEnumerable<App.Core.DTOs.Shop.ProductWholesalePriceDto> tiers,
+        decimal quantity,
+        decimal originalPrice)
+    {
+        var applicable = tiers
+            .Where(w => w.IsActive && quantity >= w.MinQuantity)
+            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
+            .OrderByDescending(w => w.MinQuantity)
+            .FirstOrDefault();
+
+        if (applicable == null)
+            return new WholesaleDiscountResult();
+
+        if (applicable.FixedPrice is > 0 && originalPrice > 0)
+            return new WholesaleDiscountResult
+            {
+                FixedDiscountAmountPerUnit = originalPrice - applicable.FixedPrice.Value
+            };
+
+        return new WholesaleDiscountResult
+        {
+            DiscountPercentage = applicable.DiscountPercentage
+        };
     }
 }

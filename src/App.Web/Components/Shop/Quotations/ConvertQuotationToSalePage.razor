@@ -383,6 +383,7 @@ else
             CustomerId = _quotation.CustomerId,
             QuotationId = _quotation.Id,
             LocationId = _activeCashRegister?.LocationId,
+            DiscountPercentage = _quotation.DiscountPercentage,
             Details = _quotation.Details.Select(d => new CreateSaleDetailDto
             {
                 ProductId = d.ProductId,

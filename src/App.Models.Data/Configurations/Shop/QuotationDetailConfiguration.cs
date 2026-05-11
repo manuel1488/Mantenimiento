@@ -18,7 +18,7 @@ public class QuotationDetailConfiguration : IEntityTypeConfiguration<QuotationDe
             .HasDefaultValue(0);
 
         builder.Property(e => e.DiscountAmount)
-            .HasColumnType("decimal(10,2)")
+            .HasColumnType("decimal(18,6)")
             .HasDefaultValue(0);
 
         builder.Property(e => e.TaxRate)

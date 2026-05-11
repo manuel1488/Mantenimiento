@@ -17,4 +17,7 @@ public class CreateQuotationDetailDto
 
     [Range(0, 100)]
     public decimal DiscountPercentage { get; set; } = 0;
+
+    /// Fixed discount amount for the whole line (used when wholesale rule is FixedPrice). When set, takes priority over DiscountPercentage.
+    public decimal? DiscountAmount { get; set; }
 }

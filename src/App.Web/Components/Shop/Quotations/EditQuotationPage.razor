@@ -493,20 +493,9 @@
 
     private void ApplyWholesaleDiscount(QuotationLine line)
     {
-        if (line.WholesalePrices.Count == 0) { line.DiscountPercentage = 0; return; }
-
-        var applicable = line.WholesalePrices
-            .Where(w => w.IsActive && line.Quantity >= w.MinQuantity)
-            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
-            .OrderByDescending(w => w.MinQuantity)
-            .FirstOrDefault();
-
-        if (applicable == null) { line.DiscountPercentage = 0; return; }
-
-        if (applicable.FixedPrice is > 0 && line.OriginalPrice > 0)
-            line.DiscountPercentage = (line.OriginalPrice - applicable.FixedPrice.Value) / line.OriginalPrice * 100;
-        else
-            line.DiscountPercentage = applicable.DiscountPercentage;
+        var result = PricingService.ResolveWholesaleDiscount(line.WholesalePrices, line.Quantity, line.OriginalPrice);
+        line.DiscountPercentage = result.DiscountPercentage;
+        line.FixedDiscountAmount = result.GetFixedLineDiscount(line.Quantity);
     }
 
     private async Task RecalculateTotalsAsync()
@@ -520,6 +509,7 @@
                 Quantity = line.Quantity,
                 UnitPrice = line.UnitPrice,
                 DiscountPercentage = line.DiscountPercentage,
+                DiscountAmount = line.FixedDiscountAmount,
                 TaxRate = _taxRate
             });
 
@@ -530,7 +520,7 @@
             documentLines.Add(new DocumentLineInput
             {
                 Subtotal = lineCalc.Subtotal,
-                DiscountAmount = lineCalc.DiscountAmount,
+                DiscountAmount = line.FixedDiscountAmount ?? lineCalc.DiscountAmount,
                 IsTaxable = true,
                 TaxBase = lineCalc.TaxBase,
                 TaxAmount = lineCalc.TaxAmount
@@ -575,7 +565,8 @@
                     ProductId = l.ProductId,
                     Quantity = l.Quantity,
                     UnitPrice = l.UnitPrice,
-                    DiscountPercentage = l.DiscountPercentage
+                    DiscountPercentage = l.DiscountPercentage,
+                    DiscountAmount = l.FixedDiscountAmount
                 }).ToList()
             };
 
@@ -609,6 +600,7 @@
         public decimal UnitPrice { get; set; }
         public decimal OriginalPrice { get; set; }
         public decimal DiscountPercentage { get; set; }
+        public decimal? FixedDiscountAmount { get; set; }
         public decimal LineTotal { get; set; }
         public decimal LineTax { get; set; }
         public decimal LineDiscount { get; set; }

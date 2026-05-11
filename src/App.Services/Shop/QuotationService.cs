@@ -216,10 +216,11 @@ public class QuotationService : IQuotationService
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
                     DiscountPercentage = detailDto.DiscountPercentage,
+                    DiscountAmount = detailDto.DiscountAmount,
                     TaxRate = taxRate
                 });
 
-                var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
+                var lineDiscountAmount = detailDto.DiscountAmount ?? lineCalc.DiscountAmount;
                 var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new QuotationDetail
@@ -229,8 +230,8 @@ public class QuotationService : IQuotationService
                     ProductCode = product.Code ?? string.Empty,
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
-                    DiscountPercentage = detailDto.DiscountPercentage,
-                    DiscountAmount = lineDiscount,
+                    DiscountPercentage = detailDto.DiscountAmount.HasValue ? 0 : detailDto.DiscountPercentage,
+                    DiscountAmount = lineDiscountAmount,
                     TaxRate = taxRate,
                     TaxAmount = lineCalc.TaxAmount,
                     Subtotal = lineCalc.TaxBase,
@@ -352,10 +353,11 @@ public class QuotationService : IQuotationService
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
                     DiscountPercentage = detailDto.DiscountPercentage,
+                    DiscountAmount = detailDto.DiscountAmount,
                     TaxRate = taxRate
                 });
 
-                var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
+                var lineDiscountAmount = detailDto.DiscountAmount ?? lineCalc.DiscountAmount;
                 var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                 var detail = new QuotationDetail
@@ -365,8 +367,8 @@ public class QuotationService : IQuotationService
                     ProductCode = product.Code ?? string.Empty,
                     Quantity = detailDto.Quantity,
                     UnitPrice = detailDto.UnitPrice,
-                    DiscountPercentage = detailDto.DiscountPercentage,
-                    DiscountAmount = lineDiscount,
+                    DiscountPercentage = detailDto.DiscountAmount.HasValue ? 0 : detailDto.DiscountPercentage,
+                    DiscountAmount = lineDiscountAmount,
                     TaxRate = taxRate,
                     TaxAmount = lineCalc.TaxAmount,
                     Subtotal = lineCalc.TaxBase,

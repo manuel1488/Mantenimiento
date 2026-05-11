@@ -438,20 +438,9 @@
 
     private void ApplyWholesaleDiscount(RemissionLine line)
     {
-        if (line.WholesalePrices.Count == 0) { line.DiscountPercentage = 0; return; }
-
-        var applicable = line.WholesalePrices
-            .Where(w => w.IsActive && line.Quantity >= w.MinQuantity)
-            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
-            .OrderByDescending(w => w.MinQuantity)
-            .FirstOrDefault();
-
-        if (applicable == null) { line.DiscountPercentage = 0; return; }
-
-        if (applicable.FixedPrice is > 0 && line.OriginalPrice > 0)
-            line.DiscountPercentage = (line.OriginalPrice - applicable.FixedPrice.Value) / line.OriginalPrice * 100;
-        else
-            line.DiscountPercentage = applicable.DiscountPercentage;
+        var result = PricingService.ResolveWholesaleDiscount(line.WholesalePrices, line.Quantity, line.OriginalPrice);
+        line.DiscountPercentage = result.DiscountPercentage;
+        line.FixedDiscountAmount = result.GetFixedLineDiscount(line.Quantity);
     }
 
     private async Task RecalculateTotalsAsync()

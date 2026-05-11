@@ -209,12 +209,12 @@ else
                             <RowTemplate>
                                 <MudTd DataLabel="@L["Product"]">
                                     @context.ProductName (@context.ProductCode) - @context.Brand - @context.Description
-                                    @if (context.DiscountPercentage > 0)
+                                    @if (context.DiscountPercentage > 0 || context.FixedLineDiscountAmount.HasValue)
                                     {
                                         <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="ml-1">
-                                            @if (context.ApplicableWholesaleFixedPrice.HasValue)
+                                            @if (context.FixedLineDiscountAmount.HasValue)
                                             {
-                                                @($"{L["Wholesale"]} ${context.ApplicableWholesaleFixedPrice.Value.ToString("N2")}")
+                                                @($"{L["Wholesale"]} -${context.FixedLineDiscountAmount.Value.ToString("N2")}")
                                             }
                                             else
                                             {
@@ -247,14 +247,13 @@ else
                                         bool taxableItem = _showPricesWithTax && context.IsTaxable;
                                         decimal factor = taxableItem ? (1 + _taxRate) : 1m;
                                     }
-                                    @if (context.DiscountPercentage > 0)
+                                    @if (context.DiscountPercentage > 0 || context.FixedLineDiscountAmount.HasValue)
                                     {
                                         decimal displayOriginal = context.OriginalPrice * factor;
-                                        decimal discountedUnitPrice = (context.OriginalPrice * (1 - context.DiscountPercentage / 100)) * factor;
                                         <div style="line-height:1.2;">
                                             <span style="font-size:11px; color:#999; text-decoration:line-through;">@displayOriginal.ToString("C2")</span>
                                             <br />
-                                            <span style="color:#2e7d32; font-weight:600;">@discountedUnitPrice.ToString("C2")</span>
+                                            <span style="color:#2e7d32; font-weight:600;">@((context.UnitPrice * factor).ToString("C2"))</span>
                                         </div>
                                     }
                                     else
@@ -1223,8 +1222,7 @@ else
     private async Task UpdateCartItemAsync(CartItem item)
     {
         // Apply wholesale discount based on quantity
-        item.DiscountPercentage = GetApplicableWholesaleDiscount(item);
-        item.ApplicableWholesaleFixedPrice = GetApplicableWholesaleFixedPrice(item);
+        var wholesale = ApplyWholesaleDiscount(item);
 
         // Use centralized pricing service — no rounding at item level for display consistency
         var lineCalc = PricingService.CalculateLine(new LineCalculationInput
@@ -1232,6 +1230,7 @@ else
             Quantity = item.Quantity,
             UnitPrice = item.UnitPrice,
             DiscountPercentage = item.DiscountPercentage,
+            DiscountAmount = wholesale.GetFixedLineDiscount(item.Quantity),
             SurchargePercentage = item.SurchargePercentage,
             HasCustomTotal = item.HasCustomTotal,
             CustomTotal = item.HasCustomTotal ? item.Total : null,
@@ -1253,36 +1252,13 @@ else
         await UpdateTotalsAsync();
     }
 
-    private decimal GetApplicableWholesaleDiscount(CartItem item)
+    private WholesaleDiscountResult ApplyWholesaleDiscount(CartItem item)
     {
-        if (item.WholesalePrices.Count == 0) return 0;
-
-        // Find best qualifying tier — each tier independently uses FixedPrice or DiscountPercentage
-        var applicable = item.WholesalePrices
-            .Where(w => w.IsActive && item.Quantity >= w.MinQuantity)
-            .Where(w => w.FixedPrice is > 0 || w.DiscountPercentage > 0)
-            .OrderByDescending(w => w.MinQuantity)
-            .FirstOrDefault();
-
-        if (applicable == null) return 0;
-
-        // Fixed price tier: convert to equivalent % discount
-        if (applicable.FixedPrice is > 0 && item.OriginalPrice > 0)
-            return (item.OriginalPrice - applicable.FixedPrice.Value) / item.OriginalPrice * 100;
-
-        return applicable.DiscountPercentage;
-    }
-
-    private decimal? GetApplicableWholesaleFixedPrice(CartItem item)
-    {
-        if (item.WholesalePrices.Count == 0) return null;
-
-        var applicable = item.WholesalePrices
-            .Where(w => w.IsActive && w.FixedPrice is > 0 && item.Quantity >= w.MinQuantity)
-            .OrderByDescending(w => w.MinQuantity)
-            .FirstOrDefault();
-
-        return applicable?.FixedPrice;
+        var result = PricingService.ResolveWholesaleDiscount(item.WholesalePrices, item.Quantity, item.OriginalPrice);
+        item.DiscountPercentage = result.DiscountPercentage;
+        item.FixedDiscountAmountPerUnit = result.FixedDiscountAmountPerUnit;
+        item.FixedLineDiscountAmount = result.GetFixedLineDiscount(item.Quantity);
+        return result;
     }
 
     private async Task<List<ProductWholesalePriceDto>> LoadWholesalePricesAsync(long productId)
@@ -1699,6 +1675,7 @@ else
                 ProductId = item.ProductId,
                 Quantity = item.Quantity,
                 DiscountPercentage = item.DiscountPercentage,
+                DiscountAmount = item.FixedLineDiscountAmount,
                 IsDiscountAuthorized = false,
                 DiscountAuthorizerId = null,
                 DiscountAuthorizedBy = null,
@@ -1983,7 +1960,8 @@ else
         public List<ProductWholesalePriceDto> WholesalePrices { get; set; } = [];
         public bool IsTaxable { get; set; }
         public decimal DiscountPercentage { get; set; }
-        public decimal? ApplicableWholesaleFixedPrice { get; set; }
+        public decimal? FixedDiscountAmountPerUnit { get; set; }
+        public decimal? FixedLineDiscountAmount { get; set; }
         public decimal Subtotal { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TaxAmount { get; set; }
