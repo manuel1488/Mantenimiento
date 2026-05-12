@@ -202,4 +202,7 @@
   <data name="Discount %" xml:space="preserve">
     <value>Descuento %</value>
   </data>
+  <data name="Fixed Price" xml:space="preserve">
+    <value>Precio Fijo</value>
+  </data>
 </root>

@@ -56,7 +56,12 @@
       "PowerShell(cmd /c \"dir /s /b `\"C:\\\\Program Files\\\\EPSON`\" 2>nul\" | Select-Object -First 40)",
       "PowerShell(cmd /c \"dir /s /b `\"C:\\\\Program Files \\(x86\\)\\\\Microsoft Point Of Service`\" 2>nul\")",
       "PowerShell(cmd /c \"dir C:\\\\repos\\\\CleenyAgent\\\\lib\\\\\")",
-      "PowerShell(head *)"
+      "PowerShell(head *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\Cleeny\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell(\"=== App.Core ===\")",
+      "PowerShell(Get-ChildItem \"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\\\\\",\"\"\\) })"
     ],
     "deny": [],
     "ask": []

@@ -1034,6 +1034,7 @@ public class ProductService : IProductService
                     TierName = wp.WholesaleTier.Name,
                     MinQuantity = wp.MinQuantity,
                     DiscountPercentage = wp.DiscountPercentage,
+                    FixedPrice = wp.FixedPrice,
                     IsActive = wp.IsActive
                 })
                 .ToListAsync();

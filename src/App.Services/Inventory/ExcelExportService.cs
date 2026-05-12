@@ -423,15 +423,15 @@ public class ExcelExportService : IExcelExportService
             }
         }
 
-        // Build wholesale lookup dictionary: ProductId -> TierName -> (MinQuantity, DiscountPercentage)
-        var wholesaleDict = new Dictionary<long, Dictionary<string, (decimal MinQuantity, decimal DiscountPercentage)>>();
+        // Build wholesale lookup dictionary: ProductId -> TierName -> (MinQuantity, DiscountPercentage, FixedPrice)
+        var wholesaleDict = new Dictionary<long, Dictionary<string, (decimal MinQuantity, decimal DiscountPercentage, decimal? FixedPrice)>>();
         if (wholesalePrices != null)
         {
             foreach (var wp in wholesalePrices)
             {
                 if (!wholesaleDict.ContainsKey(wp.ProductId))
-                    wholesaleDict[wp.ProductId] = new Dictionary<string, (decimal, decimal)>();
-                wholesaleDict[wp.ProductId][wp.TierName] = (wp.MinQuantity, wp.DiscountPercentage);
+                    wholesaleDict[wp.ProductId] = new Dictionary<string, (decimal, decimal, decimal?)>();
+                wholesaleDict[wp.ProductId][wp.TierName] = (wp.MinQuantity, wp.DiscountPercentage, wp.FixedPrice);
             }
         }
 
@@ -462,14 +462,18 @@ public class ExcelExportService : IExcelExportService
             baseHeaders.Add($"{L["Surcharge"]} {fraction.Code}");
         }
 
-        // Track where wholesale columns start
+        // Wholesale columns grouped by type: all MinQty, then all Discount%, then all FixedPrice
         var wholesaleTierList = wholesaleTiers?.ToList() ?? new List<WholesaleTierColumnDto>();
-        var wholesaleColumnStartIndex = baseHeaders.Count; // 0-based index
+        var wholesaleMinQtyStartIndex = baseHeaders.Count; // 0-based
         foreach (var tier in wholesaleTierList)
-        {
             baseHeaders.Add($"{L["Min Qty"]} {tier.Name}");
+        var wholesaleDiscountStartIndex = baseHeaders.Count;
+        foreach (var tier in wholesaleTierList)
             baseHeaders.Add($"{L["Discount %"]} {tier.Name}");
-        }
+        var wholesaleFixedPriceStartIndex = baseHeaders.Count;
+        foreach (var tier in wholesaleTierList)
+            baseHeaders.Add($"{L["Fixed Price"]} {tier.Name}");
+        var wholesaleColumnStartIndex = wholesaleMinQtyStartIndex; // kept for color logic
 
         var headers = baseHeaders.ToArray();
         var surchargeColumnStartIndex = 15; // 0-based index where surcharge columns start
@@ -553,23 +557,46 @@ public class ExcelExportService : IExcelExportService
                 }
             }
 
-            // Add wholesale values for each tier (2 columns per tier: MinQty and Discount%)
+            // Wholesale columns grouped by type: MinQty group, then Discount% group, then FixedPrice group
+            wholesaleDict.TryGetValue(product.Id, out var productWholesale);
             for (int t = 0; t < wholesaleTierList.Count; t++)
             {
-                var minQtyColIndex = wholesaleColumnStartIndex + (t * 2) + 1; // 1-indexed
-                var discountColIndex = minQtyColIndex + 1;
                 var tier = wholesaleTierList[t];
+                var minQtyColIndex    = wholesaleMinQtyStartIndex    + t + 1; // 1-indexed
+                var discountColIndex  = wholesaleDiscountStartIndex  + t + 1;
+                var fixedPriceColIndex = wholesaleFixedPriceStartIndex + t + 1;
 
-                if (wholesaleDict.TryGetValue(product.Id, out var productWholesale) &&
-                    productWholesale.TryGetValue(tier.Name, out var wholesaleData))
+                if (productWholesale != null && productWholesale.TryGetValue(tier.Name, out var wholesaleData))
                 {
+                    bool usesFixedPrice = wholesaleData.FixedPrice.HasValue && wholesaleData.FixedPrice.Value > 0;
+
                     var minQtyCell = worksheet.Cells[row, minQtyColIndex];
                     minQtyCell.Value = wholesaleData.MinQuantity;
                     minQtyCell.Style.Numberformat.Format = "0.##";
 
                     var discountCell = worksheet.Cells[row, discountColIndex];
-                    discountCell.Value = wholesaleData.DiscountPercentage;
-                    discountCell.Style.Numberformat.Format = "0.00\"%\"";
+                    if (!usesFixedPrice && wholesaleData.DiscountPercentage > 0)
+                    {
+                        discountCell.Value = wholesaleData.DiscountPercentage;
+                        discountCell.Style.Numberformat.Format = "0.00\"%\"";
+                    }
+                    else
+                    {
+                        discountCell.Value = "-";
+                        discountCell.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    }
+
+                    var fixedPriceCell = worksheet.Cells[row, fixedPriceColIndex];
+                    if (usesFixedPrice)
+                    {
+                        fixedPriceCell.Value = wholesaleData.FixedPrice!.Value;
+                        fixedPriceCell.Style.Numberformat.Format = "#,##0.00";
+                    }
+                    else
+                    {
+                        fixedPriceCell.Value = "-";
+                        fixedPriceCell.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    }
                 }
                 else
                 {
@@ -577,6 +604,8 @@ public class ExcelExportService : IExcelExportService
                     worksheet.Cells[row, minQtyColIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                     worksheet.Cells[row, discountColIndex].Value = "-";
                     worksheet.Cells[row, discountColIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                    worksheet.Cells[row, fixedPriceColIndex].Value = "-";
+                    worksheet.Cells[row, fixedPriceColIndex].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                 }
             }
 

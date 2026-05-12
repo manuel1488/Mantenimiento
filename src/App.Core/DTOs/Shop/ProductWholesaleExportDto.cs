@@ -9,6 +9,7 @@ public class ProductWholesaleExportDto
     public string TierName { get; set; } = null!;
     public decimal MinQuantity { get; set; }
     public decimal DiscountPercentage { get; set; }
+    public decimal? FixedPrice { get; set; }
     public bool IsActive { get; set; }
 }
 
