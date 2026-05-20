@@ -191,12 +191,29 @@
                     </PropertyColumn>
                     <PropertyColumn Property="x => x.CustomerName" Title="@L["Customer"]"
                                     Sortable="true" Filterable="true" />
-                    <PropertyColumn Property="x => x.PaymentMethodName" Title="@L["Payment Method"]"
-                                    Sortable="false" Filterable="true">
+                    <TemplateColumn Title="@L["Payment Method"]" Sortable="false" Filterable="false">
                         <CellTemplate>
-                            @(context.Item.PaymentMethodName ?? "—")
+                            @if (context.Item.Payments.Count == 0)
+                            {
+                                <span>—</span>
+                            }
+                            else if (context.Item.Payments.Count == 1)
+                            {
+                                <span>@(context.Item.Payments[0].PaymentMethodName ?? "—")</span>
+                            }
+                            else
+                            {
+                                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
+                                    @foreach (var p in context.Item.Payments)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="ma-0">
+                                            @p.PaymentMethodName @p.Amount.ToString("C")
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            }
                         </CellTemplate>
-                    </PropertyColumn>
+                    </TemplateColumn>
                     <TemplateColumn Title="@L["Amount"]" HeaderStyle="text-align: right; width: 90px;" CellStyle="text-align: right; white-space: nowrap;"
                                     Sortable="false" Filterable="false">
                         <CellTemplate>

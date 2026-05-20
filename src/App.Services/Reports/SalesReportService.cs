@@ -585,10 +585,13 @@ public class SalesReportService : ISalesReportService
             int row = 2;
             foreach (var s in items)
             {
-                var paymentMethod = string.Join(", ",
-                    s.Payments
-                        .Where(p => !string.IsNullOrEmpty(p.PaymentMethodName))
-                        .Select(p => GetPaymentMethodDisplay(p.PaymentMethodName)));
+                var validPayments = s.Payments
+                    .Where(p => !string.IsNullOrEmpty(p.PaymentMethodName))
+                    .ToList();
+                var paymentMethod = validPayments.Count > 1
+                    ? string.Join(", ", validPayments.Select(p =>
+                        $"{GetPaymentMethodDisplay(p.PaymentMethodName)} {p.Amount.ToString("C", culture)}"))
+                    : validPayments.Select(p => GetPaymentMethodDisplay(p.PaymentMethodName)).FirstOrDefault() ?? "";
                 var subtotalAfterDiscount = s.Subtotal - s.DiscountAmount;
                 var dateStr = _dateTime.FormatToTimezone(s.SaleDate, timeZone);
                 var statusStr = s.Status == App.Core.Enums.Shop.SaleStatus.Created
