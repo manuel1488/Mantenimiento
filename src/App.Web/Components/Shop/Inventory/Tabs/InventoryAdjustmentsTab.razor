@@ -22,31 +22,42 @@
 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInventoryAdjustments">
     <Authorized>
         <MudGrid>
-            <MudItem xs="12" Class="d-flex gap-4 flex-grow-1">
+            <!-- Fila de acciones -->
+            <MudItem xs="12" Class="d-flex justify-space-between align-center">
                 <AuthorizeView Context="contextNew" Policy="@ApplicationClaims.Shop.ManageInventoryAdjustments">
-                    <!-- Botón Nuevo Ajuste -->
                     <MudButton Variant="Variant.Filled"
-                            Color="Color.Primary"
-                            StartIcon="@Icons.Material.Filled.Add"
-                            OnClick="OpenAdjustmentDialog"
-                            Class="da-button-rounded">
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="OpenAdjustmentDialog"
+                               Class="da-button-rounded">
                         @L["New Adjustment"]
                     </MudButton>
                 </AuthorizeView>
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="ExportToExcel">
+                        <div class="d-flex flex-column">
+                            <MudText>@L["Export to Excel"]</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @L["Max. {0:N0} records", ExportOptions.Value.MaxExportRecords]
+                            </MudText>
+                        </div>
+                    </MudMenuItem>
+                </MudMenu>
+            </MudItem>
 
-                <!-- Filtro de fechas -->
+            <!-- Fila de filtros -->
+            <MudItem xs="12" Class="d-flex gap-4 flex-wrap align-end">
                 <MudDateRangePicker @bind-DateRange="_dateRange"
-                                Label="@L["Date Range"]"
-                                AdornmentColor="Color.Primary"
-                                PickerVariant="PickerVariant.Dialog"
-                                Style="min-width: 300px;" />
+                                    Label="@L["Date Range"]"
+                                    AdornmentColor="Color.Primary"
+                                    PickerVariant="PickerVariant.Dialog"
+                                    Style="min-width: 280px;" />
 
-                <!-- Filtro de Ubicación -->
                 <MudSelect T="int?"
-                        Label="@L["Location"]"
-                        @bind-Value="_selectedLocation"
-                        AnchorOrigin="Origin.BottomCenter"
-                        Style="min-width: 200px;">
+                           Label="@L["Location"]"
+                           @bind-Value="_selectedLocation"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Style="min-width: 180px;">
                     <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
                     @foreach (var location in _locations)
                     {
@@ -54,12 +65,11 @@
                     }
                 </MudSelect>
 
-                <!-- Filtro de tipo de ajuste -->
                 <MudSelect T="string"
-                        Label="@L["Adjustment Type"]"
-                        @bind-Value="_selectedAdjustmentType"
-                        AnchorOrigin="Origin.BottomCenter"
-                        Style="min-width: 200px;">
+                           Label="@L["Adjustment Type"]"
+                           @bind-Value="_selectedAdjustmentType"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Style="min-width: 180px;">
                     <MudSelectItem T="string" Value="@null">@L["All Types"]</MudSelectItem>
                     <MudSelectItem T="string" Value="@InventoryMovementSubType.PhysicalCount">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.PhysicalCount)</MudSelectItem>
                     <MudSelectItem T="string" Value="@InventoryMovementSubType.Shrinkage">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.Shrinkage)</MudSelectItem>
@@ -68,17 +78,16 @@
                     <MudSelectItem T="string" Value="@InventoryMovementSubType.SystemAdjustment">@MovementService.GetMovementSubTypeDisplay(InventoryMovementSubType.SystemAdjustment)</MudSelectItem>
                 </MudSelect>
 
-                <!-- Búsqueda -->
                 <MudTextField T="string"
-                    @bind-Value="_searchString"
-                    @bind-Value:after="OnSearchChanged"
-                    Placeholder="@L["Search products"]"
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    Style="min-width: 250px;"
-                    Class="flex-grow-1"
-                    Immediate="true"
-                    DebounceInterval="500" />
+                              @bind-Value="_searchString"
+                              @bind-Value:after="OnSearchChanged"
+                              Placeholder="@L["Search products"]"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Style="min-width: 240px;"
+                              Class="flex-grow-1"
+                              Immediate="true"
+                              DebounceInterval="500" />
             </MudItem>
 
             <MudItem xs="12">
@@ -315,5 +324,31 @@
             _dateRange = new DateRange(range.Start, range.End);
             await _table.ReloadServerData();
         }
+    }
+
+    private void ExportToExcel()
+    {
+        var queryParams = new List<string>
+        {
+            $"pageSize={ExportOptions.Value.MaxExportRecords}"
+        };
+
+        if (_selectedLocation.HasValue)
+            queryParams.Add($"locationId={_selectedLocation.Value}");
+
+        if (!string.IsNullOrWhiteSpace(_selectedAdjustmentType))
+            queryParams.Add($"movementSubType={Uri.EscapeDataString(_selectedAdjustmentType)}");
+
+        if (!string.IsNullOrWhiteSpace(_searchString))
+            queryParams.Add($"searchString={Uri.EscapeDataString(_searchString)}");
+
+        if (_dateRange.Start.HasValue)
+            queryParams.Add($"startDate={Uri.EscapeDataString(_dateRange.Start.Value.ToString("O"))}");
+
+        if (_dateRange.End.HasValue)
+            queryParams.Add($"endDate={Uri.EscapeDataString(_dateRange.End.Value.ToString("O"))}");
+
+        NavigationManager.NavigateTo($"api/InventoryExport/exportAdjustments?{string.Join("&", queryParams)}", true);
+        Snackbar.Add(L["Export started"], Severity.Info);
     }
 }

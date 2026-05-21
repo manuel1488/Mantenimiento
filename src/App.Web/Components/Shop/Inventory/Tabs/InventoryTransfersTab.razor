@@ -23,78 +23,19 @@
 <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInventoryTransfers">
     <Authorized>
         <MudGrid>
-            <MudItem xs="12" Class="d-flex gap-4 flex-grow-1">
+            <!-- Fila de acciones -->
+            <MudItem xs="12" Class="d-flex justify-space-between align-center">
                 <AuthorizeView Context="contextNew" Policy="@ApplicationClaims.Shop.ManageInventoryTransfers">
-                    <!-- Botón Nueva Transferencia -->
-                    <MudButton Variant="Variant.Filled" 
-                            Color="Color.Primary" 
-                            StartIcon="@Icons.Material.Filled.Add"
-                            OnClick="OpenTransferDialog"
-                            Style="min-width: 120px; height: 56px; white-space: normal; line-height: 1.2;">
-                        <div style="text-align: center;">
-                            @L["New Transfer"]
-                        </div>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="OpenTransferDialog"
+                               Class="da-button-rounded">
+                        @L["New Transfer"]
                     </MudButton>
-                </AuthorizeView>                
-
-                <!-- Filtro de fechas -->
-                <MudDateRangePicker
-                    @bind-DateRange="_dateRange"
-                    @bind-DateRange:after="OnDateRangeChanged"
-                    Label="@L["Date Range"]"
-                    AdornmentColor="Color.Primary"
-                    PickerVariant="PickerVariant.Dialog"
-                    Style="min-width: 250px;" />
-
-                <!-- Filtro Ubicación Origen -->
-                <MudSelect T="int?"
-                        Label="@L["Source Location"]"
-                        @bind-Value="_selectedSourceLocation"
-                        @bind-Value:after="OnSourceLocationFilterChange"
-                        AnchorOrigin="Origin.BottomCenter"
-                        Style="min-width: 200px;">
-                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
-                    @foreach(var location in _locations)
-                    {
-                        <MudSelectItem T="int?" Value="@location.Id">
-                            @location.Name (@L[location.TypeName])
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-
-                <!-- Filtro Ubicación Destino -->
-                <MudSelect T="int?"
-                        Label="@L["Destination Location"]"
-                        @bind-Value="_selectedDestinationLocation"
-                        @bind-Value:after="OnDestinationLocationFilterChange"
-                        AnchorOrigin="Origin.BottomCenter"
-                        Style="min-width: 200px;">
-                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
-                    @foreach(var location in _locations)
-                    {
-                        <MudSelectItem T="int?" Value="@location.Id">
-                            @location.Name (@L[location.TypeName])
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-
-                <!-- Búsqueda -->
-                <MudTextField T="string" 
-                    @bind-Value="_searchString"
-                    @bind-Value:after="OnSearchChanged"
-                    Placeholder="@L["Search products"]"
-                    Adornment="Adornment.Start"
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    Style="min-width: 250px;"
-                    Class="flex-grow-1"
-                    Immediate="true"
-                    DebounceInterval="500"/>
-
-                <!-- Botones de Export/Print -->
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert" 
-                        Color="Color.Default">
-                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload"
-                                OnClick="ExportToExcel">
+                </AuthorizeView>
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="ExportToExcel">
                         <div class="d-flex flex-column">
                             <MudText>@L["Export to Excel"]</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -103,6 +44,53 @@
                         </div>
                     </MudMenuItem>
                 </MudMenu>
+            </MudItem>
+
+            <!-- Fila de filtros -->
+            <MudItem xs="12" Class="d-flex gap-4 flex-wrap align-end">
+                <MudDateRangePicker @bind-DateRange="_dateRange"
+                                    @bind-DateRange:after="OnDateRangeChanged"
+                                    Label="@L["Date Range"]"
+                                    AdornmentColor="Color.Primary"
+                                    PickerVariant="PickerVariant.Dialog"
+                                    Style="min-width: 280px;" />
+
+                <MudSelect T="int?"
+                           Label="@L["Source Location"]"
+                           @bind-Value="_selectedSourceLocation"
+                           @bind-Value:after="OnSourceLocationFilterChange"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Style="min-width: 180px;">
+                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
+                    @foreach (var location in _locations)
+                    {
+                        <MudSelectItem T="int?" Value="@location.Id">@location.Name (@L[location.TypeName])</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect T="int?"
+                           Label="@L["Destination Location"]"
+                           @bind-Value="_selectedDestinationLocation"
+                           @bind-Value:after="OnDestinationLocationFilterChange"
+                           AnchorOrigin="Origin.BottomCenter"
+                           Style="min-width: 180px;">
+                    <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
+                    @foreach (var location in _locations)
+                    {
+                        <MudSelectItem T="int?" Value="@location.Id">@location.Name (@L[location.TypeName])</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudTextField T="string"
+                              @bind-Value="_searchString"
+                              @bind-Value:after="OnSearchChanged"
+                              Placeholder="@L["Search products"]"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Style="min-width: 240px;"
+                              Class="flex-grow-1"
+                              Immediate="true"
+                              DebounceInterval="500" />
             </MudItem>
 
             <MudItem xs="12">

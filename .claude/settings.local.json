@@ -61,7 +61,9 @@
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(Format-Table -AutoSize)",
       "PowerShell(\"=== App.Core ===\")",
-      "PowerShell(Get-ChildItem \"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\\\\\",\"\"\\) })"
+      "PowerShell(Get-ChildItem \"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\\\\\",\"\"\\) })",
+      "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\Cleeny\\\\src\\\\App.Web\\\\Components\\\\Pages\\\\Shop\" -Recurse -Filter \"*.razor\")",
+      "Bash(Select-Object FullName)"
     ],
     "deny": [],
     "ask": []

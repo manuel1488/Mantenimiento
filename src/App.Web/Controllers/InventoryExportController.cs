@@ -230,6 +230,99 @@ public class InventoryExportController : ControllerBase
     }
 
     /// <summary>
+    /// Exports stock inputs (StockIn, Purchase, Return) to Excel
+    /// </summary>
+    [HttpGet("exportInputs")]
+    public async Task<IActionResult> ExportInputsToExcel(
+        [FromQuery] int? locationId,
+        [FromQuery] string? movementType,
+        [FromQuery] string? searchString,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        [FromQuery] int pageSize,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (pageSize <= 0)
+                return BadRequest(L["PageSize must be greater than 0"]);
+
+            if (pageSize > _exportOptions.MaxExportRecords)
+                return BadRequest(L["Export request exceeds maximum allowed records ({0})", _exportOptions.MaxExportRecords]);
+
+            string[] movementTypes = string.IsNullOrWhiteSpace(movementType)
+                ? [InventoryMovementType.StockIn, InventoryMovementType.Purchase, InventoryMovementType.Return]
+                : [movementType];
+
+            var request = new InventoryHistoryExportRequestDto
+            {
+                SearchString = searchString,
+                LocationId = locationId,
+                MovementTypes = movementTypes,
+                StartDate = startDate,
+                EndDate = endDate,
+                PageSize = pageSize
+            };
+
+            var culture = CultureInfo.CurrentCulture;
+            var (content, fileName) = await _exportService.ExportInventoryHistoryToExcelAsync(
+                request, culture, cancellationToken);
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting stock inputs to Excel");
+            return StatusCode(500, L["Error exporting stock inputs"]);
+        }
+    }
+
+    /// <summary>
+    /// Exports inventory adjustments to Excel
+    /// </summary>
+    [HttpGet("exportAdjustments")]
+    public async Task<IActionResult> ExportAdjustmentsToExcel(
+        [FromQuery] int? locationId,
+        [FromQuery] string? movementSubType,
+        [FromQuery] string? searchString,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        [FromQuery] int pageSize,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (pageSize <= 0)
+                return BadRequest(L["PageSize must be greater than 0"]);
+
+            if (pageSize > _exportOptions.MaxExportRecords)
+                return BadRequest(L["Export request exceeds maximum allowed records ({0})", _exportOptions.MaxExportRecords]);
+
+            var request = new InventoryHistoryExportRequestDto
+            {
+                SearchString = searchString,
+                LocationId = locationId,
+                MovementType = InventoryMovementType.Adjustment,
+                MovementSubType = movementSubType,
+                StartDate = startDate,
+                EndDate = endDate,
+                PageSize = pageSize
+            };
+
+            var culture = CultureInfo.CurrentCulture;
+            var (content, fileName) = await _exportService.ExportInventoryHistoryToExcelAsync(
+                request, culture, cancellationToken);
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting adjustments to Excel");
+            return StatusCode(500, L["Error exporting adjustments"]);
+        }
+    }
+
+    /// <summary>
     /// Exports inventory alerts to Excel
     /// </summary>
     [HttpGet("exportAlerts")]

@@ -90,17 +90,33 @@ public class ExportService : IExportService
                     $"Export request exceeds maximum allowed records ({_exportOptions.MaxExportRecords})");
             }
 
-            // Usar el nuevo método paginado que aplica filtros en la base de datos
-            var (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryAsync(
-                warehouseId: request.LocationId,
-                startDate: request.StartDate,
-                endDate: request.EndDate,
-                searchString: request.SearchString,
-                movementType: request.MovementType,
-                movementSubType: null,
-                page: 0,
-                pageSize: request.PageSize,
-                cancellationToken: cancellationToken);
+            IList<InventoryMovementDto> movements;
+            if (request.MovementTypes is { Length: > 0 })
+            {
+                (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryByTypesAsync(
+                    warehouseId: request.LocationId,
+                    startDate: request.StartDate,
+                    endDate: request.EndDate,
+                    searchString: request.SearchString,
+                    movementTypes: request.MovementTypes,
+                    movementSubType: request.MovementSubType,
+                    page: 0,
+                    pageSize: request.PageSize,
+                    cancellationToken: cancellationToken);
+            }
+            else
+            {
+                (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryAsync(
+                    warehouseId: request.LocationId,
+                    startDate: request.StartDate,
+                    endDate: request.EndDate,
+                    searchString: request.SearchString,
+                    movementType: request.MovementType,
+                    movementSubType: request.MovementSubType,
+                    page: 0,
+                    pageSize: request.PageSize,
+                    cancellationToken: cancellationToken);
+            }
 
             var content = await _excelExportService.ExportMovementHistoryToExcelAsync(
                 movements.ToList(),
@@ -176,17 +192,33 @@ public class ExportService : IExportService
                     $"PDF request exceeds maximum allowed records ({_exportOptions.MaxPdfRecords})");
             }
 
-            // Usar el nuevo método paginado que aplica filtros en la base de datos
-            var (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryAsync(
-                warehouseId: request.LocationId,
-                startDate: request.StartDate,
-                endDate: request.EndDate,
-                searchString: request.SearchString,
-                movementType: request.MovementType,
-                movementSubType: null,
-                page: 0, // Empezar desde la primera página
-                pageSize: request.PageSize,
-                cancellationToken: cancellationToken);
+            IList<InventoryMovementDto> movements;
+            if (request.MovementTypes is { Length: > 0 })
+            {
+                (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryByTypesAsync(
+                    warehouseId: request.LocationId,
+                    startDate: request.StartDate,
+                    endDate: request.EndDate,
+                    searchString: request.SearchString,
+                    movementTypes: request.MovementTypes,
+                    movementSubType: request.MovementSubType,
+                    page: 0,
+                    pageSize: request.PageSize,
+                    cancellationToken: cancellationToken);
+            }
+            else
+            {
+                (movements, _) = await _inventoryHistoryService.GetWarehouseMovementHistoryAsync(
+                    warehouseId: request.LocationId,
+                    startDate: request.StartDate,
+                    endDate: request.EndDate,
+                    searchString: request.SearchString,
+                    movementType: request.MovementType,
+                    movementSubType: request.MovementSubType,
+                    page: 0,
+                    pageSize: request.PageSize,
+                    cancellationToken: cancellationToken);
+            }
 
             var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
             var reportData = new BaseReportDto<InventoryMovementDto>
