@@ -279,13 +279,15 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 var issueDate = TimeZoneInfo.ConvertTimeFromUtc(_dateTime.Now, issuerTimeZone);
 
                 // 11. Build Comprobante
+                var receiver = await GetPublicGeneralReceiverAsync();
                 var comprobante = BuildComprobante(
                     globalInvoice, serie, folio, folioLength,
                     subtotal, discountAmount, taxAmount, total,
                     taxableSubtotal, taxableDiscount, taxableTaxAmount, taxRate,
                     exemptSubtotal, exemptDiscount,
                     dto.PaymentForm, periodicidadCode, periodMonth, periodYear.ToString(),
-                    issueDate);
+                    issueDate,
+                    receiver.Name, receiver.FiscalRegime, receiver.CfdiUse);
 
                 // Sync Total on the entity with the fiscal value computed inside BuildComprobante
                 // (SAT CFDI40119: Total = SubTotal - Descuento + TotalImpuestosTrasladados).
@@ -547,10 +549,12 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
                 : $"{_applicationOptions.BaseUrl.TrimEnd('/')}/images/logo.webp";
 
+            var receiver = await GetPublicGeneralReceiverAsync();
             var data = BuildGlobalInvoiceTemplateData(
                 invoice, tz, paymentFormDesc, logoBase64,
                 isCancelled: invoice.Status == GlobalInvoiceStatus.Cancelled,
-                isPreview: false);
+                isPreview: false,
+                receiver.Name, receiver.FiscalRegime, receiver.CfdiUse);
 
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", data);
 
@@ -639,10 +643,12 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 ModifiedAt = DateTime.UtcNow
             };
 
+            var receiver = await GetPublicGeneralReceiverAsync();
             var data = BuildGlobalInvoiceTemplateData(
                 dummyInvoice, tz, paymentFormDesc, logoBase64,
                 isCancelled: false,
-                isPreview: true);
+                isPreview: true,
+                receiver.Name, receiver.FiscalRegime, receiver.CfdiUse);
 
             var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", data);
             var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
@@ -717,6 +723,38 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         return max.HasValue ? max.Value + 1 : startFolio;
     }
 
+    /// <summary>
+    /// Reads receiver data for Público General from the catalog customer with Id=1.
+    /// Falls back to SAT constants if the customer has no fiscal profile.
+    /// </summary>
+    private async Task<(string Name, string FiscalRegime, string CfdiUse)> GetPublicGeneralReceiverAsync()
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var profile = await context.Customers
+                .AsNoTracking()
+                .Where(c => c.Id == WellKnownIds.PublicGeneralCustomerId)
+                .Select(c => c.FiscalProfile)
+                .FirstOrDefaultAsync();
+
+            if (profile != null)
+            {
+                return (
+                    Name: !string.IsNullOrWhiteSpace(profile.LegalName) ? profile.LegalName : PublicName,
+                    FiscalRegime: !string.IsNullOrWhiteSpace(profile.FiscalRegime) ? profile.FiscalRegime : PublicFiscalRegime,
+                    CfdiUse: !string.IsNullOrWhiteSpace(profile.DefaultCfdiUse) ? profile.DefaultCfdiUse : PublicCfdiUse
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not load Público General customer from catalog — using SAT defaults");
+        }
+
+        return (PublicName, PublicFiscalRegime, PublicCfdiUse);
+    }
+
     private static Comprobante BuildComprobante(
         GlobalInvoice invoice,
         string serie, long folio, int folioLength,
@@ -724,7 +762,8 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         decimal taxableSubtotal, decimal taxableDiscount, decimal taxableTaxAmount, decimal taxRate,
         decimal exemptSubtotal, decimal exemptDiscount,
         string paymentForm, string periodicidadCode, string periodMonth, string periodYear,
-        DateTime issueDate)
+        DateTime issueDate,
+        string receiverName, string receiverFiscalRegime, string receiverCfdiUse)
     {
         var folioStr = folioLength > 0
             ? folio.ToString().PadLeft(folioLength, '0')
@@ -863,10 +902,10 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             Receptor = new Receptor
             {
                 Rfc = PublicRfc,
-                Nombre = PublicName,
+                Nombre = receiverName,
                 DomicilioFiscalReceptor = invoice.IssuerPostalCode,
-                RegimenFiscalReceptor = PublicFiscalRegime,
-                UsoCFDI = PublicCfdiUse
+                RegimenFiscalReceptor = receiverFiscalRegime,
+                UsoCFDI = receiverCfdiUse
             },
             Conceptos = conceptos,
             Impuestos = impuestos
@@ -888,7 +927,8 @@ public class GlobalInvoiceService : IGlobalInvoiceService
 
     private Dictionary<string, object> BuildGlobalInvoiceTemplateData(
         GlobalInvoice invoice, TimeZoneInfo tz, string paymentFormDesc, string logoBase64,
-        bool isCancelled, bool isPreview)
+        bool isCancelled, bool isPreview,
+        string receiverName = PublicName, string receiverFiscalRegime = PublicFiscalRegime, string receiverCfdiUse = PublicCfdiUse)
     {
         string FormatDate(DateTime utc) =>
             TimeZoneInfo.ConvertTimeFromUtc(utc, tz).ToString("dd/MM/yyyy");
@@ -957,12 +997,12 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             { "payment_method", PublicPaymentMethod },
             { "payment_method_description", "Pago en una exhibición" },
             { "currency", "MXN" },
-            { "customer_legal_name", PublicName },
+            { "customer_legal_name", receiverName },
             { "customer_rfc", PublicRfc },
-            { "customer_fiscal_regime", PublicFiscalRegime },
+            { "customer_fiscal_regime", receiverFiscalRegime },
             { "customer_fiscal_regime_description", "Sin obligaciones fiscales" },
             { "customer_postal_code", invoice.IssuerPostalCode },
-            { "cfdi_use", PublicCfdiUse },
+            { "cfdi_use", receiverCfdiUse },
             { "cfdi_use_description", "Sin efectos fiscales" },
             { "subtotal", invoice.Subtotal.ToString("N2") },
             { "discount", invoice.DiscountAmount.ToString("N2") },

@@ -16,8 +16,7 @@ public class CustomerSeeder : ICustomerSeeder
     private readonly IDateTime _dateTime;
     private readonly string _systemUser = "System";
 
-    // ID constante para el cliente público general
-    public const long PUBLIC_CUSTOMER_ID = 1;
+    public const long PUBLIC_CUSTOMER_ID = WellKnownIds.PublicGeneralCustomerId;
 
     public CustomerSeeder(
         IDbContextFactory<ApplicationDbContext> contextFactory,

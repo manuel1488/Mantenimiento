@@ -121,6 +121,22 @@
 
                         @if (_hasFiscalProfile)
                         {
+                            @if (IsPublicGeneralRfc)
+                            {
+                                <MudItem xs="12">
+                                    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-2">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                            <MudText Typo="Typo.body2">@L["This customer is the receiver for Global Invoices"]</MudText>
+                                            <MudButton Size="Size.Small"
+                                                       Variant="Variant.Text"
+                                                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                                                       OnClick="@ResetToSatDefaults">
+                                                @L["Restore SAT defaults"]
+                                            </MudButton>
+                                        </MudStack>
+                                    </MudAlert>
+                                </MudItem>
+                            }
                             <MudItem xs="12">
                                 <MudForm Model="@_fiscal" @ref="@_fiscalForm">
                                     <MudGrid>
@@ -130,8 +146,7 @@
                                                         Label="@L["Tax ID / RFC"]"
                                                         Required="true"
                                                         RequiredError="@L["Tax ID is required"]"
-                                                        HelperText="@(IsPublicGeneralRfc ? L["RFC reserved for Público General — use Global Invoices"].Value : null)"
-                                                        Error="@IsPublicGeneralRfc" />
+                                                        HelperText="@(IsPublicGeneralRfc ? L["RFC for Público General — valid for Global Invoices"].Value : null)" />
                                         </MudItem>
 
                                         <MudItem xs="12" md="6">
@@ -334,6 +349,13 @@
     private bool IsPublicGeneralRfc =>
         string.Equals(_fiscal.TaxId?.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase);
 
+    private void ResetToSatDefaults()
+    {
+        _fiscal.LegalName = "PUBLICO EN GENERAL";
+        _fiscal.FiscalRegime = "616";
+        _fiscal.DefaultCfdiUse = "S01";
+    }
+
     private IEnumerable<MexicoCfdiUseDto> FilteredCfdiUses =>
         string.IsNullOrEmpty(_fiscal.FiscalRegime)
             ? _cfdiUses
@@ -458,11 +480,6 @@
             await _fiscalForm.Validate();
             if (!_fiscalForm.IsValid) return;
 
-            if (IsPublicGeneralRfc)
-            {
-                Snackbar.Add(L["RFC XAXX010101000 is reserved for Público General"], Severity.Warning);
-                return;
-            }
         }
 
         _processing = true;

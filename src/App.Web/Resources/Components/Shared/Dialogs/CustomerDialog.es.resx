@@ -35,11 +35,14 @@
   <data name="Legal Name / Razón Social" xml:space="preserve">
     <value>Razón Social</value>
   </data>
-  <data name="RFC reserved for Público General — use Global Invoices" xml:space="preserve">
-    <value>RFC reservado para Público General — usa Facturas Globales</value>
+  <data name="RFC for Público General — valid for Global Invoices" xml:space="preserve">
+    <value>RFC de Público General — válido para Facturas Globales</value>
   </data>
-  <data name="RFC XAXX010101000 is reserved for Público General" xml:space="preserve">
-    <value>El RFC XAXX010101000 está reservado para Público General</value>
+  <data name="This customer is the receiver for Global Invoices" xml:space="preserve">
+    <value>Este cliente es el receptor de tus Facturas Globales</value>
+  </data>
+  <data name="Restore SAT defaults" xml:space="preserve">
+    <value>Restaurar valores SAT</value>
   </data>
 
   <!-- Información General -->

@@ -1,10 +1,10 @@
 using AutoMapper;
 
+using App.Core.Constants;
 using App.Core.DTOs.Customer;
 using App.Core.Interfaces;
 using App.Models.Data.Contexts;
 using App.Models.Shared;
-using App.Services.Seeders;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -133,7 +133,7 @@ public class CustomerService : ICustomerService
     {
         try
         {
-            return await GetCustomerByIdAsync(CustomerSeeder.PUBLIC_CUSTOMER_ID);
+            return await GetCustomerByIdAsync(WellKnownIds.PublicGeneralCustomerId);
         }
         catch (Exception ex)
         {
@@ -329,7 +329,7 @@ public class CustomerService : ICustomerService
             if (customer == null)
                 return false;
 
-            if (id == CustomerSeeder.PUBLIC_CUSTOMER_ID)
+            if (id == WellKnownIds.PublicGeneralCustomerId)
                 throw new InvalidOperationException(_localizer["Cannot delete the public general customer"]);
 
             var hasRelatedRecords = await context.Sales.AnyAsync(x => x.CustomerId == id);
@@ -358,11 +358,6 @@ public class CustomerService : ICustomerService
         string countryCode,
         long? excludeCustomerId)
     {
-        // Block XAXX010101000 — reserved for Público General global invoices
-        if (string.Equals(taxId.Trim(), "XAXX010101000", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException(
-                "RFC XAXX010101000 is reserved for Público General and cannot be assigned to a customer fiscal profile.");
-
         var query = context.CustomerFiscalProfiles
             .Where(fp => fp.TaxId == taxId && fp.Customer.CountryCode == countryCode);
 
