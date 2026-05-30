@@ -81,6 +81,21 @@
   <data name="Opening Balance" xml:space="preserve">
     <value>Opening Balance</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Export to Excel" xml:space="preserve">
+    <value>Export to Excel</value>
+  </data>
+  <data name="Max. {0:N0} records" xml:space="preserve">
+    <value>Max. {0:N0} records</value>
+  </data>
+  <data name="Export started" xml:space="preserve">
+    <value>Export started</value>
+  </data>
+  <data name="Error loading locations" xml:space="preserve">
+    <value>Error loading locations</value>
+  </data>
   <data name="Error loading warehouses" xml:space="preserve">
     <value>Error loading warehouses</value>
   </data>

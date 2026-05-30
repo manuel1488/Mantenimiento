@@ -63,7 +63,9 @@
       "PowerShell(\"=== App.Core ===\")",
       "PowerShell(Get-ChildItem \"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\repos\\\\LineaFlow\\\\src\\\\App.Core\\\\Interfaces\\\\\",\"\"\\) })",
       "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\Cleeny\\\\src\\\\App.Web\\\\Components\\\\Pages\\\\Shop\" -Recurse -Filter \"*.razor\")",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\Cleeny\\\\src\\\\App.Web\" -Recurse -Filter \"*.razor\")"
     ],
     "deny": [],
     "ask": []

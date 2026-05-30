@@ -64,6 +64,21 @@
   <data name="No adjustment records found" xml:space="preserve">
     <value>No se encontraron registros de ajustes</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Export to Excel" xml:space="preserve">
+    <value>Exportar a Excel</value>
+  </data>
+  <data name="Max. {0:N0} records" xml:space="preserve">
+    <value>Máx. {0:N0} registros</value>
+  </data>
+  <data name="Export started" xml:space="preserve">
+    <value>Exportación iniciada</value>
+  </data>
+  <data name="Error loading locations" xml:space="preserve">
+    <value>Error al cargar ubicaciones</value>
+  </data>
   <data name="Error loading warehouses" xml:space="preserve">
     <value>Error al cargar almacenes</value>
   </data>

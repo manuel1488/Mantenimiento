@@ -48,6 +48,7 @@
             <!-- Fila de filtros -->
             <MudItem xs="12" Class="d-flex gap-4 flex-wrap align-end">
                 <MudDateRangePicker @bind-DateRange="_dateRange"
+                                    @bind-DateRange:after="OnDateRangeChanged"
                                     Label="@L["Date Range"]"
                                     AdornmentColor="Color.Primary"
                                     PickerVariant="PickerVariant.Dialog"
@@ -56,6 +57,7 @@
                 <MudSelect T="int?"
                            Label="@L["Location"]"
                            @bind-Value="_selectedLocation"
+                           @bind-Value:after="OnLocationFilterChange"
                            AnchorOrigin="Origin.BottomCenter"
                            Style="min-width: 180px;">
                     <MudSelectItem T="int?" Value="@null">@L["All"]</MudSelectItem>
@@ -68,6 +70,7 @@
                 <MudSelect T="string"
                            Label="@L["Adjustment Type"]"
                            @bind-Value="_selectedAdjustmentType"
+                           @bind-Value:after="OnAdjustmentTypeFilterChange"
                            AnchorOrigin="Origin.BottomCenter"
                            Style="min-width: 180px;">
                     <MudSelectItem T="string" Value="@null">@L["All Types"]</MudSelectItem>
@@ -305,25 +308,20 @@
         await _table.ReloadServerData();
     }
 
-    private async Task OnLocationFilterChange(int? location)
+    private async Task OnLocationFilterChange()
     {
-        _selectedLocation = location;
         await _table.ReloadServerData();
     }
 
-    private async Task OnAdjustmentTypeFilterChange(string? type)
+    private async Task OnAdjustmentTypeFilterChange()
     {
-        _selectedAdjustmentType = type;
         await _table.ReloadServerData();
     }
 
-    private async Task OnDateRangeChanged(DateRange? range)
+    private async Task OnDateRangeChanged()
     {
-        if (range?.Start != null && range?.End != null)
-        {
-            _dateRange = new DateRange(range.Start, range.End);
+        if (_dateRange.Start != null && _dateRange.End != null)
             await _table.ReloadServerData();
-        }
     }
 
     private void ExportToExcel()
