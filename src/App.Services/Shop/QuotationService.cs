@@ -7,6 +7,7 @@ using App.Core.DTOs.Shop;
 using App.Core.DTOs.Shop.Calculation;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
 using App.Core.Models.Email;
 using App.Models.Data.Contexts;
@@ -34,6 +35,7 @@ public class QuotationService : IQuotationService
     private readonly IPricingCalculationService _pricingService;
     private readonly IDocumentSequenceService _documentSequenceService;
     private readonly IQuotationSettingsService _quotationSettingsService;
+    private readonly IRoundingSettingsService _roundingSettingsService;
 
     public QuotationService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -49,7 +51,8 @@ public class QuotationService : IQuotationService
         IPdfService pdfService,
         IPricingCalculationService pricingService,
         IDocumentSequenceService documentSequenceService,
-        IQuotationSettingsService quotationSettingsService)
+        IQuotationSettingsService quotationSettingsService,
+        IRoundingSettingsService roundingSettingsService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -65,6 +68,7 @@ public class QuotationService : IQuotationService
         _pricingService = pricingService;
         _documentSequenceService = documentSequenceService;
         _quotationSettingsService = quotationSettingsService;
+        _roundingSettingsService = roundingSettingsService;
     }
 
     public async Task<(int TotalCount, IList<QuotationDto> Items)> GetQuotationsAsync(
@@ -479,6 +483,86 @@ public class QuotationService : IQuotationService
         {
             _logger.LogError(ex, "Error updating status for quotation {Id}", id);
             return Result.Failure(_localizer["Error updating quotation status"]);
+        }
+    }
+
+    public async Task<Result<QuotationConversionCheckDto>> CheckConversionDiscrepanciesAsync(long id)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var quotation = await context.Quotations
+                .AsNoTracking()
+                .Include(q => q.Details)
+                .FirstOrDefaultAsync(q => q.Id == id && q.IsDeleted == 0);
+
+            if (quotation is null)
+                return Result<QuotationConversionCheckDto>.Failure(_localizer["Quotation not found"]);
+
+            var check = new QuotationConversionCheckDto();
+
+            // ── Catalog price changes ──────────────────────────────────────────
+            // Compare each quoted unit price against the current catalog price. For
+            // partial-sale products the quoted price is the per-fraction base price
+            // (catalog price / content), so compare against that. A 1-cent tolerance
+            // avoids flagging 6-decimal fractional artifacts (e.g. 6.034483 vs 6.04).
+            var productIds = quotation.Details.Select(d => d.ProductId).Distinct().ToList();
+            var products = await context.Products
+                .AsNoTracking()
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p);
+
+            foreach (var detail in quotation.Details)
+            {
+                if (!products.TryGetValue(detail.ProductId, out var product))
+                    continue;
+
+                decimal currentUnitPrice = product.IsPartialSaleAllowed && product.Content > 0
+                    ? product.Price / product.Content
+                    : product.Price;
+
+                if (Math.Abs(detail.UnitPrice - currentUnitPrice) >= 0.01m)
+                {
+                    check.PriceChanges.Add(new QuotationPriceChangeDto
+                    {
+                        ProductId = product.Id,
+                        ProductCode = product.Code ?? string.Empty,
+                        ProductName = product.Name,
+                        QuotedPrice = detail.UnitPrice,
+                        CurrentPrice = currentUnitPrice
+                    });
+                }
+            }
+
+            // ── Active rounding ────────────────────────────────────────────────
+            var roundingResult = await _roundingSettingsService.GetSettingsAsync();
+            check.RoundingEnabled = roundingResult.IsSuccess && roundingResult.Value!.IsEnabled;
+
+            // ── Tax rate change ────────────────────────────────────────────────
+            var quotedTaxRate = quotation.Details
+                .Where(d => d.TaxRate > 0)
+                .Select(d => (decimal?)d.TaxRate)
+                .FirstOrDefault();
+
+            if (quotedTaxRate.HasValue)
+            {
+                var companySettings = await _companySettingsService.GetSettingsAsync();
+                var countryCode = companySettings?.CountryCode ?? "MX";
+                var currentTaxRate = await _taxRateService.GetEffectiveRateAsync(countryCode);
+
+                check.QuotedTaxRate = quotedTaxRate.Value;
+                check.CurrentTaxRate = currentTaxRate;
+                check.TaxRateChanged = Math.Abs(quotedTaxRate.Value - currentTaxRate) >= 0.0001m;
+            }
+
+            return Result<QuotationConversionCheckDto>.Success(check);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking conversion discrepancies for quotation {Id}", id);
+            return Result<QuotationConversionCheckDto>.Failure(
+                _localizer["Error checking quotation discrepancies"]);
         }
     }
 

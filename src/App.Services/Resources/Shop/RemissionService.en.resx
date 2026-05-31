@@ -37,4 +37,5 @@
   <data name="This document is not an invoice" xml:space="preserve"><value>This document is not an invoice</value></data>
   <data name="Quotation not found" xml:space="preserve"><value>Quotation not found</value></data>
   <data name="Only accepted quotations can be converted to a remission" xml:space="preserve"><value>Only accepted quotations can be converted to a remission</value></data>
+  <data name="Cannot convert: the tax rate changed since this quotation was created (quoted {0}, current {1}). Please create a new quotation." xml:space="preserve"><value>Cannot convert: the tax rate changed since this quotation was created (quoted {0}, current {1}). Please create a new quotation.</value></data>
 </root>

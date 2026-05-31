@@ -152,6 +152,7 @@ public class RemissionService : IRemissionService
                 if (dto.QuotationId.HasValue)
                 {
                     var sourceQuotation = await context.Quotations
+                        .Include(q => q.Details)
                         .FirstOrDefaultAsync(q => q.Id == dto.QuotationId.Value);
                     if (sourceQuotation is null)
                         return Result<RemissionDto>.Failure(_localizer["Quotation not found"]);
@@ -160,6 +161,24 @@ public class RemissionService : IRemissionService
                         return Result<RemissionDto>.Failure(_localizer["This quotation has already been converted"]);
                     if (sourceQuotation.Status != App.Core.Enums.Shop.QuotationStatus.Accepted)
                         return Result<RemissionDto>.Failure(_localizer["Only accepted quotations can be converted to a remission"]);
+
+                    // Block conversion if the tax rate changed since the quotation was
+                    // created. The remission recomputes tax at the current rate, so
+                    // honoring an outdated quoted total would misstate tax — a fiscal
+                    // compliance risk. A new quotation must be created at the current rate.
+                    var quotedTaxRate = sourceQuotation.Details
+                        .Where(d => d.TaxRate > 0)
+                        .Select(d => (decimal?)d.TaxRate)
+                        .FirstOrDefault();
+                    if (quotedTaxRate.HasValue)
+                    {
+                        var settings = await _companySettingsService.GetSettingsAsync();
+                        var currentRate = await _taxRateService.GetEffectiveRateAsync(settings?.CountryCode ?? "MX");
+                        if (Math.Abs(quotedTaxRate.Value - currentRate) >= 0.0001m)
+                            return Result<RemissionDto>.Failure(
+                                _localizer["Cannot convert: the tax rate changed since this quotation was created (quoted {0}, current {1}). Please create a new quotation.",
+                                    quotedTaxRate.Value.ToString("P2"), currentRate.ToString("P2")]);
+                    }
                 }
 
                 var customer = await context.Customers

@@ -305,6 +305,7 @@ public class SaleService : IContextualSaleService
             if (createDto.QuotationId.HasValue)
             {
                 var sourceQuotation = await context.Quotations
+                    .Include(q => q.Details)
                     .FirstOrDefaultAsync(q => q.Id == createDto.QuotationId.Value);
                 if (sourceQuotation is null)
                     return Result<SaleDto>.Failure(L["Quotation not found"]);
@@ -313,6 +314,23 @@ public class SaleService : IContextualSaleService
                     return Result<SaleDto>.Failure(L["This quotation has already been converted"]);
                 if (sourceQuotation.Status != App.Core.Enums.Shop.QuotationStatus.Accepted)
                     return Result<SaleDto>.Failure(L["Only accepted quotations can be converted to a sale"]);
+
+                // Block conversion if the tax rate changed since the quotation was created.
+                // The sale recomputes tax at the current rate, so honoring an outdated
+                // quoted total would misstate tax — a fiscal compliance risk. A new
+                // quotation must be created at the current rate.
+                var quotedTaxRate = sourceQuotation.Details
+                    .Where(d => d.TaxRate > 0)
+                    .Select(d => (decimal?)d.TaxRate)
+                    .FirstOrDefault();
+                if (quotedTaxRate.HasValue)
+                {
+                    var currentRate = await _taxRateService.GetEffectiveRateAsync("MX");
+                    if (Math.Abs(quotedTaxRate.Value - currentRate) >= 0.0001m)
+                        return Result<SaleDto>.Failure(
+                            L["Cannot convert: the tax rate changed since this quotation was created (quoted {0}, current {1}). Please create a new quotation.",
+                                quotedTaxRate.Value.ToString("P2"), currentRate.ToString("P2")]);
+                }
             }
 
             // Validate active cash register for current user+location
@@ -851,14 +869,20 @@ public class SaleService : IContextualSaleService
                 var product = products[detailDto.ProductId];
                 decimal taxRate = product.IsTaxable ? defaultTaxRate : 0;
 
-                // Determine effective unit price and surcharge from partial sale logic
+                // Determine effective unit price and surcharge from partial sale logic.
+                // When IsCustomPrice is set (converting from a quotation with a locked
+                // price, or a manual price override), use the provided UnitPrice directly
+                // and skip the fractional recalculation. Otherwise the sale total would
+                // diverge from the locked/quoted price — recomputing partial-sale lines
+                // from the current catalog price instead of the quoted price — and trigger
+                // "payment total is less than sale total" mismatches on conversion.
                 decimal effectiveUnitPrice;
                 decimal surchargePercentage = 0;
                 decimal surchargeAmount = 0;
                 decimal basePriceBeforeSurcharge = 0;
                 int? partialSaleFractionId = null;
 
-                if (product.IsPartialSaleAllowed && product.Content > 0)
+                if (product.IsPartialSaleAllowed && product.Content > 0 && !detailDto.IsCustomPrice)
                 {
                     var fractionalPriceResult = await _productPartialSurchargeService
                         .CalculateFractionalPriceAsync(
@@ -887,6 +911,7 @@ public class SaleService : IContextualSaleService
                 {
                     effectiveUnitPrice = detailDto.UnitPrice ?? product.Price;
                     basePriceBeforeSurcharge = effectiveUnitPrice * detailDto.Quantity;
+                    partialSaleFractionId = detailDto.PartialSaleFractionId;
                 }
 
                 // Use centralized pricing service for line calculation
@@ -938,13 +963,17 @@ public class SaleService : IContextualSaleService
                 });
             }
 
-            // Use centralized service for document-level totals
+            // Use centralized service for document-level totals.
+            // Skip rounding when converting from a quotation: the quoted total is
+            // computed without rounding (QuotationService uses ApplyRounding=false) and
+            // the customer pays exactly that quoted total. Rounding the sale up here
+            // would make the locked payment "less than sale total" and block conversion.
             var docCalc = await _pricingService.CalculateDocumentAsync(new DocumentCalculationInput
             {
                 Lines = documentLines,
                 GlobalDiscountPercentage = createDto.DiscountPercentage,
                 TaxRate = defaultTaxRate,
-                ApplyRounding = true
+                ApplyRounding = createDto.QuotationId is null
             });
 
             sale.Subtotal = docCalc.Subtotal;

@@ -92,7 +92,8 @@ public class QuotationStatusTransitionTests
                 roundingMock.Object,
                 NullLogger<PricingCalculationService>.Instance),
             new Mock<IDocumentSequenceService>().Object,
-            new Mock<IQuotationSettingsService>().Object);
+            new Mock<IQuotationSettingsService>().Object,
+            roundingMock.Object);
     }
 
     // -------------------------------------------------------------------------

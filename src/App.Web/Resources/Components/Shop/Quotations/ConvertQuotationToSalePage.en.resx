@@ -29,4 +29,11 @@
   <data name="Processing..." xml:space="preserve"><value>Processing...</value></data>
   <data name="Sale created successfully" xml:space="preserve"><value>Sale created successfully</value></data>
   <data name="This product does not affect inventory" xml:space="preserve"><value>This product does not affect inventory</value></data>
+  <data name="This quotation was created earlier — some conditions have changed:" xml:space="preserve"><value>This quotation was created earlier — some conditions have changed:</value></data>
+  <data name="Catalog price changed for {0} product(s). The sale will honor the quoted price:" xml:space="preserve"><value>Catalog price changed for {0} product(s). The sale will honor the quoted price:</value></data>
+  <data name="quoted" xml:space="preserve"><value>quoted</value></data>
+  <data name="current" xml:space="preserve"><value>current</value></data>
+  <data name="Conversion blocked: the tax rate changed" xml:space="preserve"><value>Conversion blocked: the tax rate changed</value></data>
+  <data name="Tax rate changed: quoted {0}, current {1}. Create a new quotation at the current rate." xml:space="preserve"><value>Tax rate changed: quoted {0}, current {1}. Create a new quotation at the current rate.</value></data>
+  <data name="Rounding is enabled, but this conversion keeps the exact quoted total (no rounding applied)." xml:space="preserve"><value>Rounding is enabled, but this conversion keeps the exact quoted total (no rounding applied).</value></data>
 </root>

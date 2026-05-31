@@ -470,6 +470,262 @@ public class SaleServiceRoundingTests
         Assert.That(result.Value!.Total, Is.EqualTo(104.40m));
     }
 
+    // ─── Quotation conversion + rounding interaction ───
+
+    /// <summary>
+    /// Configures the rounding mock to round UP to whole pesos (Ceiling, 0 decimals).
+    /// </summary>
+    private void EnableCeilingRounding()
+    {
+        _roundingSettingsServiceMock
+            .Setup(r => r.ApplyRoundingAsync(It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((decimal amount, CancellationToken _) =>
+            {
+                var rounded = Math.Ceiling(amount);
+                return Result<(decimal, decimal)>.Success((rounded, rounded - amount));
+            });
+    }
+
+    /// <summary>
+    /// Seeds an Accepted quotation so a sale can be converted from it.
+    /// When <paramref name="quotedTaxRate"/> is provided, a detail carrying that rate
+    /// is added so the conversion's tax-rate-change guard can be exercised.
+    /// </summary>
+    private void SeedAcceptedQuotation(long id, decimal total, decimal? quotedTaxRate = null, long detailProductId = 0)
+    {
+        using var context = new ApplicationDbContext(_dbOptions);
+        var quotation = new Quotation
+        {
+            Id = id,
+            QuotationNumber = $"COT-TEST-{id:D4}",
+            CustomerId = CustomerId,
+            QuoteDate = DateTime.UtcNow,
+            ValidUntil = DateTime.UtcNow.AddDays(30),
+            Status = QuotationStatus.Accepted,
+            Total = total,
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow
+        };
+        if (quotedTaxRate.HasValue)
+        {
+            quotation.Details.Add(new QuotationDetail
+            {
+                ProductId = detailProductId,
+                ProductName = $"Product {detailProductId}",
+                ProductCode = $"P{detailProductId:D4}",
+                Quantity = 2,
+                UnitPrice = 45.00m,
+                TaxRate = quotedTaxRate.Value,
+                CreatedBy = "seed",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        context.Quotations.Add(quotation);
+        context.SaveChanges();
+    }
+
+    [Test]
+    public async Task ConvertQuotation_TaxRateChangedSinceQuoted_ConversionBlocked()
+    {
+        // The mock current tax rate is 16%. The quotation was created at 8%.
+        // Converting would recompute tax at the current rate and misstate the document,
+        // so conversion must be blocked outright.
+        SeedProduct(400, 45.00m, isTaxable: true);
+        SeedAcceptedQuotation(1, total: 104.40m, quotedTaxRate: 0.08m, detailProductId: 400);
+
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Public,
+            QuotationId = 1,
+            Details = new List<CreateSaleDetailDto>
+            {
+                new() { ProductId = 400, Quantity = 2m, UnitPrice = 45.00m, IsCustomPrice = true }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 104.40m }
+            }
+        };
+
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        Assert.That(result.IsSuccess, Is.False,
+            "Conversion must be blocked when the tax rate changed since the quotation was created");
+        Assert.That(result.Error, Does.Contain("tax rate").IgnoreCase);
+    }
+
+    [Test]
+    public async Task ConvertQuotation_TaxRateUnchanged_ConversionAllowed()
+    {
+        // Quoted at the same 16% the mock returns — conversion proceeds normally.
+        SeedProduct(401, 45.00m, isTaxable: true);
+        SeedAcceptedQuotation(1, total: 104.40m, quotedTaxRate: 0.16m, detailProductId: 401);
+
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Public,
+            QuotationId = 1,
+            Details = new List<CreateSaleDetailDto>
+            {
+                new() { ProductId = 401, Quantity = 2m, UnitPrice = 45.00m, IsCustomPrice = true }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 104.40m }
+            }
+        };
+
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        Assert.That(result.IsSuccess, Is.True, $"Conversion should succeed: {result.Error}");
+        Assert.That(result.Value!.Total, Is.EqualTo(104.40m));
+    }
+
+    [Test]
+    public async Task ConvertQuotation_WithRoundingEnabled_ReproducesQuotedTotalWithoutRounding()
+    {
+        // Arrange: rounding enabled (round up to whole pesos).
+        EnableCeilingRounding();
+
+        // 45.00 x 2 = 90.00 + 14.40 IVA = 104.40 (clean 2-decimal quoted total).
+        SeedProduct(200, 45.00m, isTaxable: true);
+        SeedAcceptedQuotation(1, 104.40m);
+
+        // Simulate a quotation conversion: locked price (IsCustomPrice), and the
+        // customer pays exactly the quoted total — which the quotation stored WITHOUT
+        // rounding. If the sale applies rounding it bumps the total to 105.00 and the
+        // payment (104.40) becomes "less than sale total".
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Public,
+            QuotationId = 1,
+            DiscountPercentage = 0,
+            Details = new List<CreateSaleDetailDto>
+            {
+                new() { ProductId = 200, Quantity = 2m, UnitPrice = 45.00m, IsCustomPrice = true }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 104.40m }
+            }
+        };
+
+        // Act
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        // Assert: a converted sale must reproduce the quoted total exactly.
+        Assert.That(result.IsSuccess, Is.True,
+            $"Quotation conversion must not fail on payment validation: {result.Error}");
+        Assert.That(result.Value!.Total, Is.EqualTo(104.40m),
+            "Converted sale total must equal the quoted total, not a rounded-up value");
+        Assert.That(result.Value!.RoundingAmount, Is.EqualTo(0m),
+            "No rounding should be applied when converting a quotation");
+    }
+
+    [Test]
+    public async Task ConvertQuotation_PartialSaleProduct_UsesLockedPriceNotCatalogRecalculation()
+    {
+        // Regression for the reported bug: converting a quotation whose line is a
+        // partial-sale product produced a total higher than the quoted total, because
+        // CalculateSaleAsync recomputed the price from the current catalog price
+        // (product.Price / content) instead of honoring the locked quoted price.
+        //
+        // Catalog price 50.00, but the quotation locked the unit price at 45.00.
+        // Quoted: 45.00 x 2 = 90.00 + 14.40 IVA = 104.40.
+        // If the catalog price (50.00) were used: 100.00 + 16.00 = 116.00 -> the
+        // locked payment of 104.40 would be "less than sale total" and conversion fails.
+        SeedProduct(300, 50.00m, isTaxable: true, isPartialSaleAllowed: true, content: 1);
+        SeedAcceptedQuotation(1, 104.40m);
+
+        // Guard: if IsCustomPrice were ignored, the fractional calc would return the
+        // catalog-based price (100.00 for qty 2) and the assertions below would fail.
+        _partialSurchargeServiceMock
+            .Setup(p => p.CalculateFractionalPriceAsync(300, It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<int?>()))
+            .ReturnsAsync(Result<FractionalPriceCalculationDto>.Success(new FractionalPriceCalculationDto
+            {
+                ProductId = 300,
+                BaseUnitPrice = 50.00m,
+                Quantity = 2m,
+                FinalPrice = 100.00m
+            }));
+
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Public,
+            QuotationId = 1,
+            DiscountPercentage = 0,
+            Details = new List<CreateSaleDetailDto>
+            {
+                new() { ProductId = 300, Quantity = 2m, UnitPrice = 45.00m, IsCustomPrice = true }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 104.40m }
+            }
+        };
+
+        // Act
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        // Assert: locked quoted price honored, total reproduces the quoted total.
+        Assert.That(result.IsSuccess, Is.True,
+            $"Conversion of a partial-sale line must honor the quoted price: {result.Error}");
+        Assert.That(result.Value!.Total, Is.EqualTo(104.40m),
+            "Total must use the locked quoted price (45.00), not the catalog price (50.00)");
+
+        // And the fractional recalculation must be bypassed entirely for locked prices.
+        _partialSurchargeServiceMock.Verify(
+            p => p.CalculateFractionalPriceAsync(
+                It.IsAny<long>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<int?>()),
+            Times.Never,
+            "CalculateFractionalPriceAsync must not be called when IsCustomPrice is set");
+    }
+
+    [Test]
+    public async Task DirectSale_WithRoundingEnabled_StillAppliesRounding()
+    {
+        // Arrange: rounding enabled — a normal (non-quotation) sale must keep rounding.
+        EnableCeilingRounding();
+
+        SeedProduct(201, 45.00m, isTaxable: true);
+
+        // Direct sale: no QuotationId. The customer pays the rounded total (105.00).
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Public,
+            QuotationId = null,
+            DiscountPercentage = 0,
+            Details = new List<CreateSaleDetailDto>
+            {
+                new() { ProductId = 201, Quantity = 2m, DiscountPercentage = 0 }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 105.00m }
+            }
+        };
+
+        // Act
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        // Assert: rounding still applies to direct sales.
+        Assert.That(result.IsSuccess, Is.True, $"Direct sale failed: {result.Error}");
+        Assert.That(result.Value!.Total, Is.EqualTo(105.00m),
+            "Direct sale must round up to whole pesos when rounding is enabled");
+        Assert.That(result.Value!.RoundingAmount, Is.EqualTo(0.60m),
+            "Rounding amount should reflect the 104.40 -> 105.00 adjustment");
+    }
+
     /// <summary>
     /// IDbContextFactory implementation for tests using InMemory database.
     /// </summary>

@@ -164,7 +164,8 @@ public class SaleInventoryTests
             new Mock<IPdfService>().Object,
             pricingService,
             new Mock<IDocumentSequenceService>().Object,
-            new Mock<IQuotationSettingsService>().Object);
+            new Mock<IQuotationSettingsService>().Object,
+            roundingMock.Object);
 
         _saleService = new SaleService(
             contextFactory,
@@ -306,7 +307,7 @@ public class SaleInventoryTests
         await ctx.SaveChangesAsync();
     }
 
-    private async Task<long> SeedAcceptedQuotationAsync(long customerId, long productId, decimal unitPrice)
+    private async Task<long> SeedAcceptedQuotationAsync(long customerId, long productId, decimal unitPrice, decimal quotedTaxRate = 0)
     {
         await using var ctx = new ApplicationDbContext(_dbOptions);
         var quotation = new Quotation
@@ -328,7 +329,7 @@ public class SaleInventoryTests
                     ProductCode = "TST-001",
                     Quantity = 1,
                     UnitPrice = unitPrice,
-                    TaxRate = 0,
+                    TaxRate = quotedTaxRate,
                     CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
                     ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
                 }
@@ -571,6 +572,39 @@ public class SaleInventoryTests
     // =========================================================================
     // Rule 5: Converting quotation to remission deducts inventory + marks quotation
     // =========================================================================
+
+    [Test]
+    public async Task ConvertingQuotationToRemission_TaxRateChangedSinceQuoted_ConversionBlocked()
+    {
+        // Current effective rate is 16 (mock). Quotation was created at 8.
+        await SeedLocationAndPaymentMethodAsync();
+        var customerId = await SeedCustomerAsync();
+        var productId = await SeedProductAsync(requiresInventory: true, price: 10.00m);
+        var quotationId = await SeedAcceptedQuotationAsync(customerId, productId, unitPrice: 10.00m, quotedTaxRate: 8m);
+
+        var result = await _remissionService.CreateAsync(new CreateRemissionDto
+        {
+            CustomerId = customerId,
+            LocationId = LocationId,
+            QuotationId = quotationId,
+            Details =
+            [
+                new CreateRemissionDetailDto { ProductId = productId, Quantity = 1, UnitPrice = 10.00m }
+            ]
+        });
+
+        Assert.That(result.IsSuccess, Is.False,
+            "Remission conversion must be blocked when the tax rate changed since the quotation was created");
+        Assert.That(result.Error, Does.Contain("tax rate").IgnoreCase);
+
+        _inventoryMock.Verify(
+            i => i.CreateMovementAsync(
+                It.IsAny<CreateInventoryMovementDto>(),
+                It.IsAny<ApplicationDbContext>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never,
+            "No inventory should be deducted when the conversion is blocked.");
+    }
 
     [Test]
     public async Task ConvertingQuotationToRemission_CreatesInventoryDeduction()

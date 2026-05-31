@@ -23,6 +23,14 @@ public interface IQuotationService
 
     Task<Result> UpdateStatusAsync(long id, QuotationStatus status, string? reason = null);
 
+    /// <summary>
+    /// Checks for discrepancies (catalog price changes, active rounding, tax rate
+    /// changes) between the quotation and current settings, so the operator can be
+    /// warned before converting it to a sale. Purely informational — the conversion
+    /// always honors the locked quoted prices and total.
+    /// </summary>
+    Task<Result<QuotationConversionCheckDto>> CheckConversionDiscrepanciesAsync(long id);
+
     Task<Result> SendByEmailAsync(long id, string? emailOverride = null);
 
     Task<byte[]> GeneratePdfAsync(long id);

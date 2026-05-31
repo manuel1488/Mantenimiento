@@ -60,6 +60,58 @@ else
                     </MudItem>
                 </MudGrid>
 
+                @* Tax rate change — blocking: conversion is not allowed *@
+                @if (_discrepancies?.TaxRateChanged == true)
+                {
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true" Class="mb-3">
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">
+                            @L["Conversion blocked: the tax rate changed"]
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            @L["Tax rate changed: quoted {0}, current {1}. Create a new quotation at the current rate.",
+                                _discrepancies.QuotedTaxRate.ToString("P2"), _discrepancies.CurrentTaxRate.ToString("P2")]
+                        </MudText>
+                    </MudAlert>
+                }
+
+                @* Price / rounding — informational, non-blocking *@
+                @if (_discrepancies is not null && (_discrepancies.PriceChanges.Count > 0 || _discrepancies.RoundingEnabled))
+                {
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Dense="true" Class="mb-3">
+                        <MudText Typo="Typo.body2" Style="font-weight:600; margin-bottom:4px;">
+                            @L["This quotation was created earlier — some conditions have changed:"]
+                        </MudText>
+                        <ul style="margin:0; padding-left:18px;">
+                            @if (_discrepancies.PriceChanges.Count > 0)
+                            {
+                                <li>
+                                    <MudText Typo="Typo.body2">
+                                        @L["Catalog price changed for {0} product(s). The sale will honor the quoted price:", _discrepancies.PriceChanges.Count]
+                                    </MudText>
+                                    <ul style="margin:0; padding-left:18px;">
+                                        @foreach (var pc in _discrepancies.PriceChanges)
+                                        {
+                                            <li>
+                                                <MudText Typo="Typo.caption">
+                                                    @pc.ProductName (@pc.ProductCode): @L["quoted"] @pc.QuotedPrice.ToString("C2") → @L["current"] @pc.CurrentPrice.ToString("C2")
+                                                </MudText>
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                            @if (_discrepancies.RoundingEnabled)
+                            {
+                                <li>
+                                    <MudText Typo="Typo.body2">
+                                        @L["Rounding is enabled, but this conversion keeps the exact quoted total (no rounding applied)."]
+                                    </MudText>
+                                </li>
+                            }
+                        </ul>
+                    </MudAlert>
+                }
+
                 @* Products table *@
                 <MudTable T="QuotationDetailDto" Items="_quotation.Details"
                           Dense="true" Hover="true" Elevation="0"
@@ -260,6 +312,7 @@ else
     private CashRegisterDto? _activeCashRegister;
     private List<PaymentMethodDto> _paymentMethods = [];
     private List<PaymentEntry> _paymentEntries = [];
+    private QuotationConversionCheckDto? _discrepancies;
     private bool _loading = true;
     private bool _processing;
     #endregion
@@ -275,6 +328,7 @@ else
         _activeCashRegister is not null &&
         _paymentEntries.Count > 0 &&
         Remaining <= 0.01m &&
+        _discrepancies?.TaxRateChanged != true &&
         !_processing;
     #endregion
 
@@ -289,6 +343,13 @@ else
 
         _paymentMethods = (await PaymentMethodService.GetActiveAsync()).ToList();
         _quotation = await QuotationService.GetByIdAsync(QuotationId);
+
+        if (_quotation is not null)
+        {
+            var checkResult = await QuotationService.CheckConversionDiscrepanciesAsync(QuotationId);
+            if (checkResult.IsSuccess && checkResult.Value!.HasWarnings)
+                _discrepancies = checkResult.Value;
+        }
 
         _loading = false;
     }

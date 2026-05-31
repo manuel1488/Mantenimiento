@@ -47,6 +47,58 @@
         </MudAlert>
     }
 
+    @* Tax rate change — blocking: conversion is not allowed *@
+    @if (_discrepancies?.TaxRateChanged == true)
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">
+            <MudText Typo="Typo.body2" Style="font-weight:600;">
+                @L["Conversion blocked: the tax rate changed"]
+            </MudText>
+            <MudText Typo="Typo.body2">
+                @L["Tax rate changed: quoted {0}, current {1}. Create a new quotation at the current rate.",
+                    _discrepancies.QuotedTaxRate.ToString("P2"), _discrepancies.CurrentTaxRate.ToString("P2")]
+            </MudText>
+        </MudAlert>
+    }
+
+    @* Price / rounding — informational, non-blocking *@
+    @if (_discrepancies is not null && (_discrepancies.PriceChanges.Count > 0 || _discrepancies.RoundingEnabled))
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Dense="true">
+            <MudText Typo="Typo.body2" Style="font-weight:600;">
+                @L["This quotation was created earlier — some conditions have changed:"]
+            </MudText>
+            <ul style="margin:0; padding-left:18px;">
+                @if (_discrepancies.PriceChanges.Count > 0)
+                {
+                    <li>
+                        <MudText Typo="Typo.body2">
+                            @L["Catalog price changed for {0} product(s). The remission keeps the quoted price:", _discrepancies.PriceChanges.Count]
+                        </MudText>
+                        <ul style="margin:0; padding-left:18px;">
+                            @foreach (var pc in _discrepancies.PriceChanges)
+                            {
+                                <li>
+                                    <MudText Typo="Typo.caption">
+                                        @pc.ProductName (@pc.ProductCode): @L["quoted"] @pc.QuotedPrice.ToString("C2") → @L["current"] @pc.CurrentPrice.ToString("C2")
+                                    </MudText>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+                @if (_discrepancies.RoundingEnabled)
+                {
+                    <li>
+                        <MudText Typo="Typo.body2">
+                            @L["Rounding is enabled, but this conversion keeps the exact quoted total (no rounding applied)."]
+                        </MudText>
+                    </li>
+                }
+            </ul>
+        </MudAlert>
+    }
+
     <MudPaper Elevation="2" Class="pa-4" Style="display:flex;flex-direction:column;gap:12px;">
 
         @* Top fields *@
@@ -218,7 +270,7 @@
             <MudButton Color="Color.Primary"
                        Variant="Variant.Filled"
                        OnClick="Save"
-                       Disabled="@(_processing || !_isValid || _lines.Count == 0 || !_selectedLocationId.HasValue)">
+                       Disabled="@(_processing || !_isValid || _lines.Count == 0 || !_selectedLocationId.HasValue || _discrepancies?.TaxRateChanged == true)">
                 @if (_processing)
                 {
                     <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
@@ -239,6 +291,7 @@
     #region Lifecycle
     private bool _jsReady;
     private QuotationDto? _sourceQuotation;
+    private QuotationConversionCheckDto? _discrepancies;
 
     protected override async Task OnInitializedAsync()
     {
@@ -259,6 +312,12 @@
     {
         _sourceQuotation = await QuotationService.GetByIdAsync(quotationId);
         if (_sourceQuotation is null) return;
+
+        // Surface discrepancies (catalog price changes, active rounding, tax rate
+        // changes) since the quotation was created. A tax rate change blocks the save.
+        var checkResult = await QuotationService.CheckConversionDiscrepanciesAsync(quotationId);
+        if (checkResult.IsSuccess && checkResult.Value!.HasWarnings)
+            _discrepancies = checkResult.Value;
 
         // Pre-fill customer
         var customer = await CustomerService.GetCustomerByIdAsync(_sourceQuotation.CustomerId);
