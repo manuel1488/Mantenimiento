@@ -30,7 +30,7 @@
   <data name="Sale created successfully" xml:space="preserve"><value>Venta creada exitosamente</value></data>
   <data name="This product does not affect inventory" xml:space="preserve"><value>Este producto no afecta el inventario</value></data>
   <data name="This quotation was created earlier — some conditions have changed:" xml:space="preserve"><value>Esta cotización se creó previamente — algunas condiciones cambiaron:</value></data>
-  <data name="Catalog price changed for {0} product(s). The sale will honor the quoted price:" xml:space="preserve"><value>El precio de catálogo cambió en {0} producto(s). La venta respetará el precio cotizado:</value></data>
+  <data name="The catalog price differs from the quoted price for {0} product(s). The sale will honor the quoted price:" xml:space="preserve"><value>El precio de catálogo difiere del cotizado en {0} producto(s). La venta respetará el precio cotizado:</value></data>
   <data name="quoted" xml:space="preserve"><value>cotizado</value></data>
   <data name="current" xml:space="preserve"><value>actual</value></data>
   <data name="Conversion blocked: the tax rate changed" xml:space="preserve"><value>Conversión bloqueada: la tasa de impuesto cambió</value></data>

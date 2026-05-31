@@ -30,7 +30,7 @@
   <data name="Sale created successfully" xml:space="preserve"><value>Sale created successfully</value></data>
   <data name="This product does not affect inventory" xml:space="preserve"><value>This product does not affect inventory</value></data>
   <data name="This quotation was created earlier — some conditions have changed:" xml:space="preserve"><value>This quotation was created earlier — some conditions have changed:</value></data>
-  <data name="Catalog price changed for {0} product(s). The sale will honor the quoted price:" xml:space="preserve"><value>Catalog price changed for {0} product(s). The sale will honor the quoted price:</value></data>
+  <data name="The catalog price differs from the quoted price for {0} product(s). The sale will honor the quoted price:" xml:space="preserve"><value>The catalog price differs from the quoted price for {0} product(s). The sale will honor the quoted price:</value></data>
   <data name="quoted" xml:space="preserve"><value>quoted</value></data>
   <data name="current" xml:space="preserve"><value>current</value></data>
   <data name="Conversion blocked: the tax rate changed" xml:space="preserve"><value>Conversion blocked: the tax rate changed</value></data>

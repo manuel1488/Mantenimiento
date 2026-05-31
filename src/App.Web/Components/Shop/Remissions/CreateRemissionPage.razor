@@ -73,7 +73,7 @@
                 {
                     <li>
                         <MudText Typo="Typo.body2">
-                            @L["Catalog price changed for {0} product(s). The remission keeps the quoted price:", _discrepancies.PriceChanges.Count]
+                            @L["The catalog price differs from the quoted price for {0} product(s). The remission keeps the quoted price:", _discrepancies.PriceChanges.Count]
                         </MudText>
                         <ul style="margin:0; padding-left:18px;">
                             @foreach (var pc in _discrepancies.PriceChanges)
