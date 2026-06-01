@@ -572,7 +572,7 @@ public class ExcelExportService : IExcelExportService
 
                     var minQtyCell = worksheet.Cells[row, minQtyColIndex];
                     minQtyCell.Value = wholesaleData.MinQuantity;
-                    minQtyCell.Style.Numberformat.Format = "0.##";
+                    minQtyCell.Style.Numberformat.Format = "General";
 
                     var discountCell = worksheet.Cells[row, discountColIndex];
                     if (!usesFixedPrice && wholesaleData.DiscountPercentage > 0)
