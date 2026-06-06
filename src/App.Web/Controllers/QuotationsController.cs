@@ -27,12 +27,23 @@ public class QuotationsController : ControllerBase
         try
         {
             var bytes = await _quotationService.GeneratePdfAsync(id);
-            return File(bytes, "application/pdf"); // inline — browser previews instead of downloading
+            return File(bytes, "application/pdf");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating PDF for quotation {Id}", id);
             return StatusCode(500, "Error generating PDF");
         }
+    }
+
+    [HttpGet("{id:long}/preinvoice-pdf")]
+    [Authorize(Policy = ApplicationClaims.Shop.ViewQuotations)]
+    public async Task<IActionResult> GetPreInvoicePdf(long id)
+    {
+        var result = await _quotationService.GetPreInvoicePdfAsync(id);
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return File(result.Value, "application/pdf");
     }
 }

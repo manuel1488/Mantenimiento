@@ -80,4 +80,54 @@ internal static class CfdiPdfHelper
 
         return html;
     }
+
+    internal static string InjectPreInvoiceWatermark(string html)
+    {
+        if (html.Contains("cfdi-preinvoice-overlay", StringComparison.OrdinalIgnoreCase))
+            return html;
+
+        const string css = """
+            .cfdi-preinvoice-overlay {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                pointer-events: none;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .cfdi-preinvoice-text {
+                font-size: 72px;
+                font-weight: 900;
+                color: rgba(80, 80, 80, 0.15);
+                text-transform: uppercase;
+                letter-spacing: 6px;
+                transform: rotate(-40deg);
+                white-space: nowrap;
+                font-family: Arial Black, Arial, sans-serif;
+                user-select: none;
+                text-align: center;
+                line-height: 1.3;
+            }
+            """;
+
+        const string overlay = """
+            <div class="cfdi-preinvoice-overlay">
+                <div class="cfdi-preinvoice-text">SIN VALIDEZ<br>FISCAL</div>
+            </div>
+            """;
+
+        if (html.Contains("</style>", StringComparison.OrdinalIgnoreCase))
+            html = html.Replace("</style>", css + "\n</style>", StringComparison.OrdinalIgnoreCase);
+        else
+            html = html.Replace("</head>", $"<style>\n{css}\n</style>\n</head>", StringComparison.OrdinalIgnoreCase);
+
+        html = System.Text.RegularExpressions.Regex.Replace(
+            html, @"<body([^>]*)>",
+            m => m.Value + "\n" + overlay,
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        return html;
+    }
 }

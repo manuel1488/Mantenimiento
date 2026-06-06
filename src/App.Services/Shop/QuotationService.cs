@@ -13,6 +13,7 @@ using App.Core.Models.Email;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Shared.Services;
+using App.Services.Billing;
 using App.Services.Resources.PdfTemplates;
 using App.Services.Settings;
 using Scriban;
@@ -36,6 +37,7 @@ public class QuotationService : IQuotationService
     private readonly IDocumentSequenceService _documentSequenceService;
     private readonly IQuotationSettingsService _quotationSettingsService;
     private readonly IRoundingSettingsService _roundingSettingsService;
+    private readonly ITaxSettingsService _taxSettingsService;
 
     public QuotationService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -52,7 +54,8 @@ public class QuotationService : IQuotationService
         IPricingCalculationService pricingService,
         IDocumentSequenceService documentSequenceService,
         IQuotationSettingsService quotationSettingsService,
-        IRoundingSettingsService roundingSettingsService)
+        IRoundingSettingsService roundingSettingsService,
+        ITaxSettingsService taxSettingsService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -69,6 +72,7 @@ public class QuotationService : IQuotationService
         _documentSequenceService = documentSequenceService;
         _quotationSettingsService = quotationSettingsService;
         _roundingSettingsService = roundingSettingsService;
+        _taxSettingsService = taxSettingsService;
     }
 
     public async Task<(int TotalCount, IList<QuotationDto> Items)> GetQuotationsAsync(
@@ -889,6 +893,112 @@ public class QuotationService : IQuotationService
             """;
 
         return await _pdfService.GeneratePdfFromHtmlAsync(fullHtml);
+    }
+
+    public async Task<Result<byte[]>> GetPreInvoicePdfAsync(long id)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var quotation = await context.Quotations
+                .Include(q => q.Customer)
+                    .ThenInclude(c => c.FiscalProfile)
+                .Include(q => q.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.MexicoProductService)
+                .Include(q => q.Details)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.UnitMeasure)
+                            .ThenInclude(u => u!.MexicoSatUnit)
+                .FirstOrDefaultAsync(q => q.Id == id && q.IsDeleted == 0);
+
+            if (quotation == null)
+                return Result<byte[]>.Failure(_localizer["Quotation not found"]);
+
+            if (quotation.Status != QuotationStatus.Accepted)
+                return Result<byte[]>.Failure(_localizer["Only accepted quotations can generate a pre-invoice"]);
+
+            var taxSettings = await _taxSettingsService.GetSettingsAsync();
+            if (taxSettings == null || string.IsNullOrEmpty(taxSettings.TaxId))
+                return Result<byte[]>.Failure(_localizer["Fiscal issuer data is not configured"]);
+
+            var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
+
+            var c = quotation.Customer;
+            var items = quotation.Details.Select(d => (object)new Dictionary<string, object>
+            {
+                { "sat_code", (object)(d.Product.MexicoProductService?.Code ?? "01010101") },
+                { "description", d.ProductName },
+                { "quantity", d.Quantity % 1 == 0 ? ((int)d.Quantity).ToString() : d.Quantity.ToString("G29") },
+                { "unit_code", d.Product.UnitMeasure?.MexicoSatUnit?.Code ?? "H87" },
+                { "unit_name", d.Product.UnitMeasure?.Name ?? string.Empty },
+                { "tax_object", d.Product.IsTaxable ? "02 - Sí objeto de impuesto" : "01 - No objeto de impuesto" },
+                { "unit_price", d.UnitPrice.ToString("N2") },
+                { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
+                { "has_discount", (object)(d.DiscountAmount > 0) },
+                { "amount", d.Total.ToString("N2") }
+            }).ToList();
+
+            var discountTotal = quotation.Details.Sum(d => d.DiscountAmount);
+
+            var pdfData = new Dictionary<string, object>
+            {
+                { "culture", System.Globalization.CultureInfo.CurrentUICulture.Name },
+                { "app_name", "Cleeny" },
+                { "issuer_legal_name", taxSettings.BusinessName },
+                { "issuer_rfc", taxSettings.TaxId },
+                { "issuer_fiscal_regime", taxSettings.FiscalRegime },
+                { "issuer_postal_code", taxSettings.PostalCode ?? string.Empty },
+                { "serie", string.Empty },
+                { "folio", string.Empty },
+                { "folio_display", string.Empty },
+                { "issue_date", quotation.QuoteDate.ToString("dd/MM/yyyy") },
+                { "uuid", string.Empty },
+                { "payment_form", taxSettings.MxDefaultPaymentType ?? string.Empty },
+                { "payment_form_description", string.Empty },
+                { "payment_method", taxSettings.MxDefaultPaymentMethod ?? string.Empty },
+                { "payment_method_description", string.Empty },
+                { "currency", "MXN" },
+                { "customer_legal_name", c.FiscalProfile?.LegalName ?? c.Name },
+                { "customer_rfc", c.FiscalProfile?.TaxId ?? string.Empty },
+                { "customer_fiscal_regime", c.FiscalProfile?.FiscalRegime ?? string.Empty },
+                { "customer_fiscal_regime_description", string.Empty },
+                { "customer_postal_code", c.FiscalProfile?.PostalCode ?? c.PostalCode ?? string.Empty },
+                { "cfdi_use", c.FiscalProfile?.DefaultCfdiUse ?? taxSettings.MxDefaultCfdiUse ?? string.Empty },
+                { "cfdi_use_description", string.Empty },
+                { "subtotal", quotation.Subtotal.ToString("N2") },
+                { "tax_amount", quotation.TaxAmount.ToString("N2") },
+                { "total", quotation.Total.ToString("N2") },
+                { "no_cert_cfdi", string.Empty },
+                { "no_cert_sat", string.Empty },
+                { "stamp_date", string.Empty },
+                { "cadena_original", string.Empty },
+                { "sello_cfdi", string.Empty },
+                { "sello_sat", string.Empty },
+                { "qr_code", string.Empty },
+                { "discount", discountTotal.ToString("N2") },
+                { "items", (object)items },
+                { "has_pdf", (object)true },
+                { "date_year", (object)DateTime.UtcNow.Year },
+                { "is_cancelled", (object)false },
+                { "cancellation_date", string.Empty },
+                { "is_preview", (object)false },
+                { "company_logo_url", string.IsNullOrEmpty(logoBase64)
+                    ? "/images/logo.webp"
+                    : logoBase64 }
+            };
+
+            var html = await _emailTemplateService.GetTemplateAsync("invoice-cfdi", pdfData);
+            html = CfdiPdfHelper.InjectPreInvoiceWatermark(html);
+            var pdf = await _pdfService.GeneratePdfFromHtmlAsync(html);
+            return Result<byte[]>.Success(pdf);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating pre-invoice PDF for quotation {Id}", id);
+            return Result<byte[]>.Failure(_localizer["Error generating pre-invoice PDF"]);
+        }
     }
 
 }

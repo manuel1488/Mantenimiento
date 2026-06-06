@@ -141,6 +141,14 @@
                                                Color="Color.Secondary"
                                                title="@L["Download PDF"]"
                                                OnClick="@(() => DownloadPdfAsync(context.Item))" />
+                                @if (context.Item.Status == QuotationStatus.Accepted)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.ReceiptLong"
+                                                   Size="Size.Small"
+                                                   Color="Color.Primary"
+                                                   title="@L["Pre-invoice"]"
+                                                   OnClick="@(() => PreviewPreInvoiceAsync(context.Item))" />
+                                }
                                 <AuthorizeView Policy="@ApplicationClaims.Shop.SendQuotation">
                                     <Authorized Context="sendAuth">
                                         <MudIconButton Icon="@Icons.Material.Filled.Email"
@@ -293,6 +301,11 @@
     private async Task PreviewPdfAsync(QuotationDto quotation)
     {
         await JS.InvokeVoidAsync("openInNewTab", $"/api/quotations/{quotation.Id}/pdf");
+    }
+
+    private async Task PreviewPreInvoiceAsync(QuotationDto quotation)
+    {
+        await JS.InvokeVoidAsync("openInNewTab", $"/api/quotations/{quotation.Id}/preinvoice-pdf");
     }
 
     private async Task DownloadPdfAsync(QuotationDto quotation)

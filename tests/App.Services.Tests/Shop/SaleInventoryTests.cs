@@ -165,7 +165,8 @@ public class SaleInventoryTests
             pricingService,
             new Mock<IDocumentSequenceService>().Object,
             new Mock<IQuotationSettingsService>().Object,
-            roundingMock.Object);
+            roundingMock.Object,
+            new Mock<ITaxSettingsService>().Object);
 
         _saleService = new SaleService(
             contextFactory,

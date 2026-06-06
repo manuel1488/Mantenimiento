@@ -34,4 +34,6 @@ public interface IQuotationService
     Task<Result> SendByEmailAsync(long id, string? emailOverride = null);
 
     Task<byte[]> GeneratePdfAsync(long id);
+
+    Task<Result<byte[]>> GetPreInvoicePdfAsync(long id);
 }

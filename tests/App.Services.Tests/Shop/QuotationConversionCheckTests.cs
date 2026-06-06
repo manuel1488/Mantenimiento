@@ -96,7 +96,8 @@ public class QuotationConversionCheckTests
                 NullLogger<PricingCalculationService>.Instance),
             new Mock<IDocumentSequenceService>().Object,
             new Mock<IQuotationSettingsService>().Object,
-            _roundingMock.Object);
+            _roundingMock.Object,
+            new Mock<ITaxSettingsService>().Object);
 
         SeedBase();
     }
