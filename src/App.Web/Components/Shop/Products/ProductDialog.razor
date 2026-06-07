@@ -338,6 +338,8 @@
                                                                     Value="config.FixedPrice"
                                                                     ValueChanged="@(v => config.FixedPrice = v)"
                                                                     Min="0M" Step="0.000001M"
+                                                                    Immediate="true"
+                                                                    Validation="@(new Func<decimal?, string?>(ValidateWholesaleFixedPrice))"
                                                                     Variant="Variant.Outlined"
                                                                     Margin="Margin.Dense"
                                                                     HideSpinButtons="true"
@@ -772,6 +774,15 @@
         return string.Empty;
     }
 
+    // A wholesale fixed price must be below retail; one >= retail becomes a surcharge
+    // that corrupts downstream totals. Blocks form submit before any save is attempted.
+    private string? ValidateWholesaleFixedPrice(decimal? fixedPrice)
+    {
+        if (fixedPrice is > 0 && fixedPrice.Value >= _model.Price)
+            return L["Must be less than the retail price ({0})", _model.Price.ToString("N2")];
+        return null;
+    }
+
     private async Task Submit()
     {
         await _form.Validate();
@@ -1174,6 +1185,7 @@
             if (!result.IsSuccess)
             {
                 Logger.LogWarning("Failed to save wholesale prices: {Error}", result.Error);
+                Snackbar.Add(result.Error, Severity.Warning);
             }
         }
         catch (Exception ex)

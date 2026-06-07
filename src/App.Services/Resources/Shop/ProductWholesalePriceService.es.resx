@@ -9,4 +9,10 @@
   <data name="Error updating wholesale prices" xml:space="preserve">
     <value>Error al actualizar los precios de mayoreo</value>
   </data>
+  <data name="Product not found" xml:space="preserve">
+    <value>Producto no encontrado</value>
+  </data>
+  <data name="The wholesale price ({0}) cannot be greater than or equal to the retail price ({1})" xml:space="preserve">
+    <value>El precio de mayoreo ({0}) no puede ser mayor o igual al precio de lista ({1})</value>
+  </data>
 </root>

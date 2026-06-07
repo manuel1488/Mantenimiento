@@ -451,7 +451,11 @@ else
                 Quantity = d.Quantity,
                 UnitPrice = d.UnitPrice,
                 DiscountPercentage = d.DiscountPercentage,
-                DiscountAmount = d.DiscountAmount > 0 ? d.DiscountAmount : null,
+                // Freeze the exact quoted discount, including negative amounts (legacy quotations
+                // captured before wholesale-price validation could hold a surcharge). Using ">0"
+                // dropped negatives, forcing a recalculation from the rounded DiscountPercentage
+                // that drifted by a fractional cent and made the locked payment "less than sale total".
+                DiscountAmount = d.DiscountAmount != 0 ? d.DiscountAmount : null,
                 IsCustomPrice = true
             }).ToList(),
             Payments = _paymentEntries.Select(p => new CreateSalePaymentDto

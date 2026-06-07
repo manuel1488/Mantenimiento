@@ -33,4 +33,7 @@
     <data name="NameRequired" xml:space="preserve">
         <value>Product name is required</value>
     </data>
+    <data name="The retail price ({0}) cannot be lower than or equal to an active wholesale price ({1})" xml:space="preserve">
+        <value>The retail price ({0}) cannot be lower than or equal to an active wholesale price ({1})</value>
+    </data>
 </root>

@@ -147,6 +147,17 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
             if (product == null)
                 return Result.Failure(L["Product not found"]);
 
+            // A wholesale fixed price must be below retail. Allowing one >= retail would
+            // produce a negative "discount" (a surcharge) that corrupts downstream totals.
+            // Only enforce on active tiers so the user can still deactivate a bad row to fix it.
+            var invalidFixedPrice = dto.WholesalePrices
+                .FirstOrDefault(wp => wp.IsActive && wp.FixedPrice is > 0 && wp.FixedPrice.Value >= product.Price);
+            if (invalidFixedPrice != null)
+                return Result.Failure(L[
+                    "The wholesale price ({0}) cannot be greater than or equal to the retail price ({1})",
+                    invalidFixedPrice.FixedPrice!.Value.ToString("N2"),
+                    product.Price.ToString("N2")]);
+
             // Get existing wholesale prices
             var existingPrices = await context.ProductWholesalePrices
                 .Where(wp => wp.ProductId == dto.ProductId)

@@ -3,6 +3,9 @@
   <data name="Active" xml:space="preserve">
     <value>Active</value>
   </data>
+  <data name="Must be less than the retail price ({0})" xml:space="preserve">
+    <value>Must be less than the retail price ({0})</value>
+  </data>
   <data name="Allow Partial Sales" xml:space="preserve">
     <value>Allow Partial Sales</value>
   </data>

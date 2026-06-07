@@ -87,4 +87,5 @@
   <data name="Quotation not found" xml:space="preserve"><value>Cotización no encontrada</value></data>
   <data name="Only accepted quotations can be converted to a sale" xml:space="preserve"><value>Solo las cotizaciones aceptadas pueden convertirse en venta</value></data>
   <data name="Cannot convert: the tax rate changed since this quotation was created (quoted {0}, current {1}). Please create a new quotation." xml:space="preserve"><value>No se puede convertir: la tasa de impuesto cambió desde que se creó esta cotización (cotizada {0}, actual {1}). Crea una nueva cotización.</value></data>
+  <data name="Payment total ({0:C}) is less than sale total ({1:C})" xml:space="preserve"><value>El total pagado ({0:C}) es menor que el total de la venta ({1:C})</value></data>
 </root>

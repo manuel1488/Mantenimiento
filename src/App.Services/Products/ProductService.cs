@@ -301,6 +301,22 @@ public class ProductService : IProductService
             // Update properties
             _mapper.Map(updateDto, product);
 
+            // A retail price drop must not reach or fall below an active wholesale fixed price,
+            // which would turn that wholesale "discount" into a surcharge and corrupt totals.
+            var conflictingWholesale = await _context.ProductWholesalePrices
+                .Where(wp => wp.ProductId == id && wp.IsActive
+                    && wp.FixedPrice != null && wp.FixedPrice >= product.Price)
+                .OrderByDescending(wp => wp.FixedPrice)
+                .FirstOrDefaultAsync();
+
+            if (conflictingWholesale != null)
+            {
+                throw new InvalidOperationException(
+                    _localizer["The retail price ({0}) cannot be lower than or equal to an active wholesale price ({1})",
+                        product.Price.ToString("N2"),
+                        conflictingWholesale.FixedPrice!.Value.ToString("N2")]);
+            }
+
             // Update audit fields
             product.ModifiedBy = _currentUserService.FullName ?? "Unknown";
             product.ModifiedAt = _dateTime.Now;

@@ -67,7 +67,9 @@
       "WebFetch(domain:api.github.com)",
       "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\Cleeny\\\\src\\\\App.Web\" -Recurse -Filter \"*.razor\")",
       "Bash(Find \"C:\\\\repos\\\\Cleeny\" -type f -name \"*.cshtml\")",
-      "Bash(findstr -i \"invoice\\\\|quotation\\\\|pdf\")"
+      "Bash(findstr -i \"invoice\\\\|quotation\\\\|pdf\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\Cleeny\" -Directory)",
+      "Bash(Select-Object Name)"
     ],
     "deny": [],
     "ask": []
