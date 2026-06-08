@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_label_settings")]
-public class LabelSettings : BaseEntity<int>
+public class LabelSettings : BaseEntity<int>, IAuditTracked
 {
     /// <summary>Label width in millimeters (e.g. 62 for Brother DK-2205).</summary>
     [Required]

@@ -44,6 +44,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     #region Shared
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<CustomerFiscalProfile> CustomerFiscalProfiles { get; set; } = null!;
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
     #endregion
 
     #region Shop

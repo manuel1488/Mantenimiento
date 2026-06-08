@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Audit Log" xml:space="preserve">
+    <value>Audit Log</value>
+  </data>
+  <data name="Change history for prices and configuration" xml:space="preserve">
+    <value>Change history for prices and configuration</value>
+  </data>
+  <data name="Entity" xml:space="preserve">
+    <value>Entity</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Date range" xml:space="preserve">
+    <value>Date range</value>
+  </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Modified</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Record" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="Changes" xml:space="preserve">
+    <value>Changes</value>
+  </data>
+  <data name="No audit entries found" xml:space="preserve">
+    <value>No audit entries found</value>
+  </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(empty)</value>
+  </data>
+</root>

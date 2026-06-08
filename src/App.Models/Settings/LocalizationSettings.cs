@@ -2,11 +2,12 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_localization_settings")]
-public class LocalizationSettings : BaseEntity<int>
+public class LocalizationSettings : BaseEntity<int>, IAuditTracked
 {
     [Required]
     [StringLength(5)]

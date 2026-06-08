@@ -1,0 +1,204 @@
+@page "/admin/audit-log"
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Shared
+@using App.Core.Enums.Shared
+@using App.Core.Interfaces
+@using App.Shared.Services
+@using MudBlazor
+
+@inject IAuditLogService AuditLogService
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<AuditLogPage> L
+
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewAudit)]
+
+<PageTitle>@L["Audit Log"]</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">@L["Audit Log"]</MudText>
+<MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">@L["Change history for prices and configuration"]</MudText>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <!-- Filters -->
+            <MudGrid Class="mb-2">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="string" Value="@_entityType" ValueChanged="@OnEntityTypeChanged"
+                               Label="@L["Entity"]" Variant="Variant.Outlined" Dense="true" Clearable="true">
+                        <MudSelectItem T="string" Value="@(null as string)">@L["All"]</MudSelectItem>
+                        @foreach (var type in _entityTypes)
+                        {
+                            <MudSelectItem T="string" Value="@type">@type</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="string" Value="@_userId" ValueChanged="@OnUserChanged"
+                               Label="@L["User"]" Variant="Variant.Outlined" Dense="true" Clearable="true">
+                        <MudSelectItem T="string" Value="@(null as string)">@L["All"]</MudSelectItem>
+                        @foreach (var user in _users)
+                        {
+                            <MudSelectItem T="string" Value="@user.Id">@user.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="AuditAction?" Value="@_action" ValueChanged="@OnActionChanged"
+                               Label="@L["Action"]" Variant="Variant.Outlined" Dense="true" Clearable="true">
+                        <MudSelectItem T="AuditAction?" Value="@(null as AuditAction?)">@L["All"]</MudSelectItem>
+                        <MudSelectItem T="AuditAction?" Value="@AuditAction.Insert">@L["Insert"]</MudSelectItem>
+                        <MudSelectItem T="AuditAction?" Value="@AuditAction.Update">@L["Update"]</MudSelectItem>
+                        <MudSelectItem T="AuditAction?" Value="@AuditAction.Delete">@L["Delete"]</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudDateRangePicker @bind-DateRange="_dateRange" Label="@L["Date range"]"
+                                        Variant="Variant.Outlined" Dense="true" Clearable="true"
+                                        DateFormat="dd/MM/yyyy" OnDateRangeChanged="@((DateRange r) => ReloadAsync())" />
+                </MudItem>
+            </MudGrid>
+
+            <MudDataGrid @ref="_grid" T="AuditLogDto"
+                         ServerData="@LoadServerData"
+                         SortMode="SortMode.None"
+                         RowsPerPage="20"
+                         Dense="true"
+                         Hover="true">
+                <Columns>
+                    <TemplateColumn Title="@L["Date"]">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">@FormatDateTime(context.Item.Timestamp)</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.UserName" Title="@L["User"]" />
+                    <PropertyColumn Property="x => x.EntityType" Title="@L["Entity"]" />
+                    <PropertyColumn Property="x => x.EntityId" Title="@L["Record"]" />
+                    <TemplateColumn Title="@L["Action"]">
+                        <CellTemplate>
+                            @{
+                                var (color, label) = context.Item.Action switch
+                                {
+                                    AuditAction.Insert => (Color.Success, L["Insert"].Value),
+                                    AuditAction.Delete => (Color.Error, L["Delete"].Value),
+                                    _ => (Color.Info, L["Update"].Value)
+                                };
+                            }
+                            <MudChip T="string" Size="Size.Small" Color="@color">@label</MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@L["Changes"]">
+                        <CellTemplate>
+                            @if (context.Item.Changes.Count == 0)
+                            {
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">—</MudText>
+                            }
+                            else
+                            {
+                                <MudStack Spacing="0">
+                                    @foreach (var change in context.Item.Changes)
+                                    {
+                                        <MudText Typo="Typo.caption">
+                                            <strong>@change.Property:</strong>
+                                            <span style="color: var(--mud-palette-error)">@DisplayValue(change.Old)</span>
+                                            <MudIcon Icon="@Icons.Material.Filled.ArrowRightAlt" Size="Size.Small" />
+                                            <span style="color: var(--mud-palette-success)">@DisplayValue(change.New)</span>
+                                        </MudText>
+                                    }
+                                </MudStack>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="AuditLogDto" />
+                </PagerContent>
+                <NoRecordsContent>
+                    <MudText Class="pa-4">@L["No audit entries found"]</MudText>
+                </NoRecordsContent>
+            </MudDataGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    #region Fields
+    private MudDataGrid<AuditLogDto>? _grid;
+    private IList<string> _entityTypes = [];
+    private IList<AuditUserDto> _users = [];
+    private string? _entityType;
+    private string? _userId;
+    private AuditAction? _action;
+    private DateRange? _dateRange;
+    private TimeZoneInfo? _companyTimeZone;
+    #endregion
+
+    #region Lifecycle
+    protected override async Task OnInitializedAsync()
+    {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+        _entityTypes = await AuditLogService.GetEntityTypesAsync();
+        _users = await AuditLogService.GetUsersAsync();
+    }
+    #endregion
+
+    #region Data loading
+    private async Task<GridData<AuditLogDto>> LoadServerData(GridState<AuditLogDto> state)
+    {
+        DateTime? fromUtc = _dateRange?.Start is DateTime s ? ToUtc(s.Date) : null;
+        DateTime? toUtc = _dateRange?.End is DateTime e ? ToUtc(e.Date.AddDays(1).AddSeconds(-1)) : null;
+
+        var (total, items) = await AuditLogService.GetAsync(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            entityType: _entityType,
+            userId: _userId,
+            action: _action,
+            fromUtc: fromUtc,
+            toUtc: toUtc);
+
+        return new GridData<AuditLogDto> { Items = items, TotalItems = total };
+    }
+
+    private async Task ReloadAsync()
+    {
+        if (_grid is not null)
+            await _grid.ReloadServerData();
+    }
+
+    private async Task OnEntityTypeChanged(string? value)
+    {
+        _entityType = value;
+        await ReloadAsync();
+    }
+
+    private async Task OnUserChanged(string? value)
+    {
+        _userId = value;
+        await ReloadAsync();
+    }
+
+    private async Task OnActionChanged(AuditAction? value)
+    {
+        _action = value;
+        await ReloadAsync();
+    }
+    #endregion
+
+    #region Formatting
+    private DateTime ToUtc(DateTime localDate)
+        => _companyTimeZone is null
+            ? localDate.ToUniversalTime()
+            : DateTimeService.ToUtc(localDate, _companyTimeZone);
+
+    private string FormatDateTime(DateTime utcDate)
+        => _companyTimeZone is null
+            ? utcDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+            : DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+
+    private string DisplayValue(string? value)
+        => string.IsNullOrEmpty(value) ? L["(empty)"] : value;
+    #endregion
+}

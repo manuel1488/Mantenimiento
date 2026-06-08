@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_tax_settings")]
-public class TaxSettings : BaseEntity<int>
+public class TaxSettings : BaseEntity<int>, IAuditTracked
 {
     [Required]
     [StringLength(3)]

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Audit Log" xml:space="preserve">
+    <value>Bitácora de Auditoría</value>
+  </data>
+  <data name="Change history for prices and configuration" xml:space="preserve">
+    <value>Historial de cambios en precios y configuración</value>
+  </data>
+  <data name="Entity" xml:space="preserve">
+    <value>Entidad</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Usuario</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Acción</value>
+  </data>
+  <data name="Date range" xml:space="preserve">
+    <value>Rango de fechas</value>
+  </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Creado</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Modificado</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminado</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Record" xml:space="preserve">
+    <value>Registro</value>
+  </data>
+  <data name="Changes" xml:space="preserve">
+    <value>Cambios</value>
+  </data>
+  <data name="No audit entries found" xml:space="preserve">
+    <value>No se encontraron registros de auditoría</value>
+  </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(vacío)</value>
+  </data>
+</root>

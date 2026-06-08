@@ -193,6 +193,12 @@
                     </Authorized>
                 </AuthorizeView>
 
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewAudit">
+                    <Authorized>
+                        <MudNavLink Href="/admin/audit-log" Icon="@Icons.Material.Filled.History">@L["Audit Log"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

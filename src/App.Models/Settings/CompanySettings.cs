@@ -2,11 +2,12 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_settings")]
-public class CompanySettings : BaseEntity<int>
+public class CompanySettings : BaseEntity<int>, IAuditTracked
 {
     [Required]
     [StringLength(100)]

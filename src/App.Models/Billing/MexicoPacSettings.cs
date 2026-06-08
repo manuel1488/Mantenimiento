@@ -1,13 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using App.Core.Attributes;
 using App.Core.Base;
 using App.Core.Enums.Billing;
+using App.Core.Interfaces;
 
 namespace App.Models.Billing;
 
 [Table("mx_pac_settings")]
-public class MexicoPacSettings : BaseEntity<int>
+public class MexicoPacSettings : BaseEntity<int>, IAuditTracked
 {
     // PAC provider authentication
     [Required]
@@ -18,9 +20,11 @@ public class MexicoPacSettings : BaseEntity<int>
     public string? User { get; set; }
 
     [StringLength(200)]
+    [SensitiveData]
     public string? Password { get; set; }
 
     [StringLength(500)]
+    [SensitiveData]
     public string? Token { get; set; }
 
     [Required]
@@ -70,12 +74,15 @@ public class MexicoPacSettings : BaseEntity<int>
 
     // CSD (Certificado de Sello Digital) — stored as Base64
     [Column(TypeName = "text")]
+    [SensitiveData]
     public string? CsdCertificateBase64 { get; set; }
 
     [Column(TypeName = "text")]
+    [SensitiveData]
     public string? CsdPrivateKeyBase64 { get; set; }
 
     [StringLength(200)]
+    [SensitiveData]
     public string? CsdPassword { get; set; }
 
     // Issuer address (required for CFDI 4.0 XML)

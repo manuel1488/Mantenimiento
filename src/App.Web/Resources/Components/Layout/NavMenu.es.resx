@@ -99,4 +99,7 @@
   <data name="Sales Book" xml:space="preserve">
     <value>Historial de Facturación</value>
   </data>
+  <data name="Audit Log" xml:space="preserve">
+    <value>Bitácora de Auditoría</value>
+  </data>
 </root>

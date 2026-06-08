@@ -2,11 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_quotation_settings")]
-public class QuotationSettings : BaseEntity<long>
+public class QuotationSettings : BaseEntity<long>, IAuditTracked
 {
     // ── Payment terms ─────────────────────────────────────────────────────────
     /// <summary>Shown in the quotation PDF footer. Null = section hidden.</summary>

@@ -2,11 +2,12 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
 using App.Core.Enums.Settings;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_rounding_settings")]
-public class RoundingSettings : BaseEntity<int>
+public class RoundingSettings : BaseEntity<int>, IAuditTracked
 {
     /// <summary>
     /// Whether rounding is enabled for sales

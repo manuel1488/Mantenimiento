@@ -2,12 +2,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Core.Interfaces;
 using App.Models.Billing;
 
 namespace App.Models.Shop;
 
 [Table("sh_products")]
-public class Product : BaseEntity<long>
+public class Product : BaseEntity<long>, IAuditTracked
 {
     [Required]
     [StringLength(20)]

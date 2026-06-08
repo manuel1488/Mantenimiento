@@ -455,8 +455,11 @@ void ConfigureDatabase(IServiceCollection services, IConfiguration configuration
             });
 
         var dateTime = serviceProvider.GetRequiredService<IDateTime>();
-        var interceptor = new AuditableEntityInterceptor(dateTime);
-        options.AddInterceptors(interceptor);
+        // Order matters: the auditable interceptor must run first so soft-deletes are
+        // converted (Deleted -> Modified + IsDeleted bump) before the audit log classifies them.
+        var auditableInterceptor = new AuditableEntityInterceptor(dateTime);
+        var auditLogInterceptor = new AuditLogInterceptor(dateTime);
+        options.AddInterceptors(auditableInterceptor, auditLogInterceptor);
 
         if (databaseOptions.EnableDetailedErrors)
             options.EnableDetailedErrors();
@@ -745,6 +748,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<IQuotationService, QuotationService>();
     builder.Services.AddScoped<IQuotationSettingsService, QuotationSettingsService>();
     builder.Services.AddScoped<IRemissionService, RemissionService>();
+    builder.Services.AddScoped<IAuditLogService, App.Services.Shared.AuditLogService>();
 
     // Mexico CFDI billing
     services.AddHttpClient();

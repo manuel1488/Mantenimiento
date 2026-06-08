@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_countries")]
-public class Country : BaseEntity<int>
+public class Country : BaseEntity<int>, IAuditTracked
 {
     [Required]
     [StringLength(2)]

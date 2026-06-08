@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Shop;
 
@@ -8,7 +9,7 @@ namespace App.Models.Shop;
 /// Represents a surcharge configuration for a product-fraction combination.
 /// </summary>
 [Table("sh_product_partial_surcharges")]
-public class ProductPartialSurcharge : BaseEntity<long>
+public class ProductPartialSurcharge : BaseEntity<long>, IAuditTracked
 {
     /// <summary>
     /// Reference to the product.

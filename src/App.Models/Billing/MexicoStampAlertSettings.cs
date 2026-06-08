@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Billing;
 
 [Table("mx_stamp_alert_settings")]
-public class MexicoStampAlertSettings : BaseEntity<int>
+public class MexicoStampAlertSettings : BaseEntity<int>, IAuditTracked
 {
     /// <summary>Send alert when available stamps fall at or below this value.</summary>
     public int LowStampThreshold { get; set; } = 50;

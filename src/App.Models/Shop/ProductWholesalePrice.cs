@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Shop;
 
@@ -7,7 +8,7 @@ namespace App.Models.Shop;
 /// Represents a wholesale discount configuration for a product-tier combination.
 /// </summary>
 [Table("sh_product_wholesale_prices")]
-public class ProductWholesalePrice : BaseEntity<long>
+public class ProductWholesalePrice : BaseEntity<long>, IAuditTracked
 {
     /// <summary>
     /// Reference to the product.

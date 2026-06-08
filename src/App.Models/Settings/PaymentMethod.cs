@@ -2,11 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
 using App.Core.Enums.Shop;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_payment_methods")]
-public class PaymentMethod : BaseEntity<int>
+public class PaymentMethod : BaseEntity<int>, IAuditTracked
 {
     [Required]
     [StringLength(100)]

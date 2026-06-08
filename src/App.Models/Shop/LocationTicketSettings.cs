@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Shop;
 
@@ -10,7 +11,7 @@ namespace App.Models.Shop;
 /// One configuration per location for sales tickets
 /// </summary>
 [Table("sh_location_ticket_settings")]
-public class LocationTicketSettings : BaseEntity<int>
+public class LocationTicketSettings : BaseEntity<int>, IAuditTracked
 {
     [Required]
     public int LocationId { get; set; }

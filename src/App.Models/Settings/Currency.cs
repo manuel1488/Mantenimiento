@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_currencies")]
-public class Currency : BaseEntity<int>
+public class Currency : BaseEntity<int>, IAuditTracked
 {
     [Required]
     [StringLength(3)]

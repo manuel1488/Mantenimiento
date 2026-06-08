@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
+using App.Core.Interfaces;
 
 namespace App.Models.Settings;
 
 [Table("stg_email_template_settings")]
-public class EmailTemplateSettings : BaseEntity<int>
+public class EmailTemplateSettings : BaseEntity<int>, IAuditTracked
 {
     /// <summary>Template name, e.g. "invoice-cfdi"</summary>
     [Required]
