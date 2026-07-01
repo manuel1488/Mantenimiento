@@ -14,6 +14,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 ### Key guides
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
+- [Troubleshooting Index](docs/02-Development/troubleshooting.md) — Problemas conocidos con diagnóstico y solución
 
 ### Strategy
 - [Roadmap SaaS POS](docs/01-Architecture/roadmap-saas-pos.md) — Evolución multi-tenant: agente hardware, terminal PWA tablet, offline, báscula
