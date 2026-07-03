@@ -15,6 +15,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
 - [Troubleshooting Index](docs/02-Development/troubleshooting.md) — Problemas conocidos con diagnóstico y solución
+- [Bitácora de Incidentes de Producción](docs/02-Development/incident-log.md) — Registro de incidentes de despliegue/producción con diagnóstico y reparación aplicada
 
 ### Strategy
 - [Roadmap SaaS POS](docs/01-Architecture/roadmap-saas-pos.md) — Evolución multi-tenant: agente hardware, terminal PWA tablet, offline, báscula
@@ -24,12 +25,15 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - **CleenyAgent** (`C:\repos\CleenyAgent`) — Agente local de hardware (impresora + caja). Integración en `src/App.Web/Services/ThermalPrinterService.cs`. API en `http://localhost:9100`, token en `appsettings.json → AgentSettings:Token`.
 
 ### ADRs
+Índice completo: [docs/01-Architecture/README.md](docs/01-Architecture/README.md)
 - [ADR-007: Factura Global](docs/01-Architecture/adr/0007-factura-global-publica-en-general.md) — Períodos fijos SAT, selección individual rechazada, regla 2.7.1.24 RMF
 - [ADR-008: AutoMapper](docs/01-Architecture/adr/0008-dependencia-automapper.md) — Downgrade a v12.0.1 MIT, vulnerabilidad GHSA-rvv3-g6hj-g44x (riesgo bajo), migración pendiente a Mapperly
+- [ADR-009: Fechas PDF CFDI y regeneración](docs/01-Architecture/adr/0009-fechas-pdf-cfdi-y-regeneracion.md) — FECHA DE EMISIÓN debe usar RequestedInvoiceDate (no StampDate), conversión de zona horaria, flag AllowPdfRegenerationForStampedInvoices
 
 ### CFDI References (docs/03-Modules/)
 - [Guía de llenado CFDI global v4.0](docs/03-Modules/Guia_llenado_CFDI_global.md) — Nodo InformacionGlobal, concepto único, RFC genérico
 - [Anexo 20 — Guía de llenado CFDI](docs/03-Modules/Anexo_20_Guia_de_llenado_CFDI.md) — Especificación técnica CFDI 4.0
+- [Reglas de negocio: fechas de CFDI](docs/03-Modules/business-rules-cfdi-fechas.md) — RequestedInvoiceDate vs StampDate vs Fecha del XML, conversión de zona horaria, reglas de regeneración de PDF
 
 ## Project Overview
 App is a .NET 9 Blazor Server application for product sales and inventory management. The application uses an N-Layer architecture with MySQL database and Entity Framework Core. It includes Mexico CFDI billing support.

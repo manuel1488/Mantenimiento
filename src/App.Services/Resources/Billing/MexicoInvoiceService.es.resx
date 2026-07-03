@@ -15,4 +15,7 @@
   <data name="Invoice date exceeds the maximum backdate window of {0} hours" xml:space="preserve">
     <value>La fecha de la factura excede la ventana máxima de antedatado de {0} horas</value>
   </data>
+  <data name="Regenerating the PDF of an invoice that already has one is disabled. Enable it in Administración > Configuración > Facturación." xml:space="preserve">
+    <value>La regeneración del PDF de una factura que ya tiene uno está deshabilitada. Actívala en Administración > Configuración > Facturación.</value>
+  </data>
 </root>

@@ -35,6 +35,9 @@ public class MexicoPacSettingsDto
     public bool AllowEditFiscalDataInPrompt { get; set; } = true;
     public MultiPaymentFormPolicy MultiPaymentFormPolicy { get; set; } = MultiPaymentFormPolicy.UseHighestAmount;
 
+    /// <summary>When true, a stamped invoice's PDF can be regenerated (overwritten) even if it already has one.</summary>
+    public bool AllowPdfRegenerationForStampedInvoices { get; set; }
+
     /// <summary>True when PAC credentials and CSD are present.</summary>
     public bool IsConfigured =>
         HasCsdCertificate &&

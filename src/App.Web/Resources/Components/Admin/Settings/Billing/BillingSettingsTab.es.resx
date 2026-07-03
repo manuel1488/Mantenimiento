@@ -78,4 +78,10 @@
   <data name="How to determine CFDI FormaPago when a sale has multiple payment methods. On tie, the method with lowest sort order is used." xml:space="preserve">
     <value>Cómo determinar la FormaPago del CFDI cuando una venta tiene múltiples formas de pago. En caso de empate, se usa la forma con menor orden.</value>
   </data>
+  <data name="Allow regenerating PDF of already-stamped invoices" xml:space="preserve">
+    <value>Permitir regenerar el PDF de facturas ya timbradas</value>
+  </data>
+  <data name="When enabled, users can overwrite the PDF of an invoice that already has one (e.g. to fix a rendering issue). Disabled by default to avoid altering issued fiscal documents by accident." xml:space="preserve">
+    <value>Cuando está activado, los usuarios pueden sobrescribir el PDF de una factura que ya tiene uno (por ejemplo, para corregir un problema de formato). Desactivado por defecto para evitar alterar documentos fiscales emitidos por accidente.</value>
+  </data>
 </root>

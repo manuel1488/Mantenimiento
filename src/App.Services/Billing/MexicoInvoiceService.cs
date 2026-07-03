@@ -288,7 +288,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
                     var (formDesc2, methodDesc2) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
                     var (regimeDesc2, useDesc2) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
-                    var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
+                    var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true, issuerTimeZone: issuerTimeZone,
                         discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
                         paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2,
                         customerFiscalRegimeDescription: regimeDesc2, cfdiUseDescription: useDesc2);
@@ -361,6 +361,23 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             if (!invoice.IsStamped)
                 return Result.Failure(_localizer["Only stamped invoices can have PDF regenerated"]);
 
+            // Remove existing PDF file if any
+            var existingPdf = await context.MexicoInvoiceFiles
+                .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "PDF");
+
+            if (existingPdf != null)
+            {
+                // Overwriting an already-issued fiscal PDF must be an explicit administrative
+                // decision — gate it behind the billing preference so it isn't done accidentally.
+                var pacSettings = await _pacSettingsService.GetAsync();
+                if (pacSettings?.AllowPdfRegenerationForStampedInvoices != true)
+                    return Result.Failure(_localizer["Regenerating the PDF of an invoice that already has one is disabled. Enable it in Administración > Configuración > Facturación."]);
+
+                existingPdf.DeletedBy = _currentUserService.UserId;
+                existingPdf.DeletedAt = _dateTime.Now;
+                context.MexicoInvoiceFiles.Remove(existingPdf);
+            }
+
             // Load sale with details for PDF data
             var sale = await context.Sales
                 .Include(s => s.Customer)
@@ -376,16 +393,6 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
             if (sale == null)
                 return Result.Failure(_localizer["Sale not found"]);
-
-            // Remove existing PDF file if any
-            var existingPdf = await context.MexicoInvoiceFiles
-                .FirstOrDefaultAsync(f => f.InvoiceId == invoiceId && f.FileType == "PDF");
-            if (existingPdf != null)
-            {
-                existingPdf.DeletedBy = _currentUserService.UserId;
-                existingPdf.DeletedAt = _dateTime.Now;
-                context.MexicoInvoiceFiles.Remove(existingPdf);
-            }
 
             // Generate PDF
             var folioDisplay = string.IsNullOrEmpty(invoice.Serie)
@@ -408,7 +415,8 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
             var (formDesc, methodDesc) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
             var (regimeDesc, useDesc) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
-            var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
+            var issuerTimeZone = await ResolveIssuerTimeZoneAsync();
+            var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true, issuerTimeZone: issuerTimeZone,
                 discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
                 paymentFormDescription: formDesc, paymentMethodDescription: methodDesc,
                 customerFiscalRegimeDescription: regimeDesc, cfdiUseDescription: useDesc);
@@ -619,7 +627,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
                     var (formDesc2, methodDesc2) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
                     var (regimeDesc2, useDesc2) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
-                    var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true,
+                    var pdfData = BuildInvoiceTemplateData(invoice, folioDisplay, pdfItems, hasPdf: true, issuerTimeZone: issuerTimeZone,
                         discountTotal: discountTotal, logoBase64: logoBase64, serie: invoice.Serie ?? string.Empty,
                         paymentFormDescription: formDesc2, paymentMethodDescription: methodDesc2,
                         customerFiscalRegimeDescription: regimeDesc2, cfdiUseDescription: useDesc2);
@@ -1702,14 +1710,15 @@ public class MexicoInvoiceService : IMexicoInvoiceService
 
             var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
             var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
+            var issuerTimeZone = await ResolveIssuerTimeZoneAsync();
             var cancellationDate = invoice.CancellationDate.HasValue
-                ? invoice.CancellationDate.Value.ToString("dd/MM/yyyy")
+                ? TimeZoneInfo.ConvertTimeFromUtc(invoice.CancellationDate.Value, issuerTimeZone).ToString("dd/MM/yyyy")
                 : string.Empty;
 
             var (formDesc, methodDesc) = await GetPaymentDescriptionsAsync(context, invoice.PaymentForm, invoice.PaymentMethod);
             var (regimeDesc, useDesc) = await GetCatalogDescriptionsAsync(context, invoice.CustomerFiscalRegime, invoice.CfdiUse);
             var pdfData = BuildInvoiceTemplateData(
-                invoice, folioDisplay, pdfItems, hasPdf: true,
+                invoice, folioDisplay, pdfItems, hasPdf: true, issuerTimeZone: issuerTimeZone,
                 discountTotal: discountTotal, logoBase64: logoBase64,
                 serie: invoice.Serie ?? string.Empty,
                 isCancelled: true,
@@ -1731,13 +1740,40 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     private static string InjectCancellationWatermark(string html, string cancellationDate)
         => CfdiPdfHelper.InjectCancellationWatermark(html, cancellationDate);
 
+    /// <summary>
+    /// Resolves the issuer's timezone the same way the CFDI Fecha node is resolved when stamping,
+    /// so PDF regeneration flows (which don't already have it in scope) render dates consistently.
+    /// </summary>
+    private async Task<TimeZoneInfo> ResolveIssuerTimeZoneAsync()
+    {
+        var taxSettings = await _taxSettingsService.GetSettingsAsync();
+        if (!string.IsNullOrEmpty(taxSettings?.PostalCodeIanaTimeZoneId))
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(taxSettings.PostalCodeIanaTimeZoneId);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                _logger.LogWarning("Configured postal code timezone {TimeZoneId} not found — falling back to company timezone",
+                    taxSettings.PostalCodeIanaTimeZoneId);
+            }
+        }
+
+        return await _companySettingsService.GetCurrentTimeZoneAsync();
+    }
+
     private Dictionary<string, object> BuildInvoiceTemplateData(
         MexicoInvoice invoice, string folioDisplay, List<object> items, bool hasPdf,
+        TimeZoneInfo issuerTimeZone,
         decimal discountTotal = 0, string logoBase64 = "", string serie = "",
         bool isCancelled = false, string cancellationDate = "",
         string paymentFormDescription = "", string paymentMethodDescription = "",
         string customerFiscalRegimeDescription = "", string cfdiUseDescription = "")
     {
+        var (issueDateLocal, stampDateLocal) = CfdiPdfDateResolver.Resolve(
+            invoice.RequestedInvoiceDate, invoice.StampDate, issuerTimeZone);
+
         var qrCode = string.Empty;
         if (!string.IsNullOrEmpty(invoice.Uuid) && !string.IsNullOrEmpty(invoice.SelloCfdi))
         {
@@ -1764,7 +1800,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             { "serie", serie },
             { "folio", invoice.Folio.ToString() },
             { "folio_display", folioDisplay },
-            { "issue_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
+            { "issue_date", issueDateLocal?.ToString("dd/MM/yyyy HH:mm") ?? string.Empty },
             { "uuid", invoice.Uuid ?? string.Empty },
             { "payment_form", invoice.PaymentForm },
             { "payment_form_description", paymentFormDescription },
@@ -1783,7 +1819,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             { "total", invoice.Total.ToString("N2") },
             { "no_cert_cfdi", invoice.NoCertificadoCfdi ?? string.Empty },
             { "no_cert_sat", invoice.NoCertificadoSat ?? string.Empty },
-            { "stamp_date", invoice.StampDate?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty },
+            { "stamp_date", stampDateLocal?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty },
             { "cadena_original", invoice.CadenaOriginalSat ?? string.Empty },
             { "sello_cfdi", invoice.SelloCfdi ?? string.Empty },
             { "sello_sat", invoice.SelloSat ?? string.Empty },

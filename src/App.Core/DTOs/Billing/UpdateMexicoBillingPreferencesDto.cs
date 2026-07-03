@@ -13,4 +13,5 @@ public class UpdateMexicoBillingPreferencesDto
     public bool AutoInvoicePromptEnabled { get; set; }
     public bool AllowEditFiscalDataInPrompt { get; set; } = true;
     public MultiPaymentFormPolicy MultiPaymentFormPolicy { get; set; } = MultiPaymentFormPolicy.UseHighestAmount;
+    public bool AllowPdfRegenerationForStampedInvoices { get; set; }
 }

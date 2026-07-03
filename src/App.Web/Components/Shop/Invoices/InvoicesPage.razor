@@ -9,6 +9,7 @@
 @using MudBlazor
 
 @inject IMexicoInvoiceService InvoiceService
+@inject IMexicoPacSettingsService PacSettingsService
 @inject CancellationMonitorService CancellationMonitor
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -239,6 +240,17 @@
                                                    Color="Color.Secondary"
                                                    OnClick="@(() => DownloadPdf(context.Id))" />
                                 </MudTooltip>
+
+                                @if (_allowPdfRegenerationForStampedInvoices && context.IsStamped)
+                                {
+                                    <MudTooltip Text="@L["Regenerate PDF"]">
+                                        <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                                       Size="Size.Small"
+                                                       Color="Color.Warning"
+                                                       Disabled="_regeneratingPdf"
+                                                       OnClick="@(() => RegeneratePdf(context))" />
+                                    </MudTooltip>
+                                }
                             }
                             else if (context.IsStamped)
                             {
@@ -396,10 +408,13 @@
     private int _pendingCancellationCount;
     private bool _refreshingCancellations;
     private TimeZoneInfo? _companyTimeZone;
+    private bool _allowPdfRegenerationForStampedInvoices;
 
     protected override async Task OnInitializedAsync()
     {
         _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+        var pacSettings = await PacSettingsService.GetAsync();
+        _allowPdfRegenerationForStampedInvoices = pacSettings?.AllowPdfRegenerationForStampedInvoices ?? false;
 
         if (SaleIdFilter.HasValue)
         {

@@ -107,6 +107,15 @@
                             </MudText>
                         </MudItem>
                         <MudItem xs="12" sm="6">
+                            <MudSwitch @bind-Value="_model.AllowPdfRegenerationForStampedInvoices"
+                                       Label="@L["Allow regenerating PDF of already-stamped invoices"]"
+                                       Color="Color.Primary"
+                                       Disabled="@(!_hasWriteAccess)" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-10">
+                                @L["When enabled, users can overwrite the PDF of an invoice that already has one (e.g. to fix a rendering issue). Disabled by default to avoid altering issued fiscal documents by accident."]
+                            </MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
                             <MudSelect @bind-Value="_model.MultiPaymentFormPolicy"
                                        Label="@L["Multiple payment methods (CFDI)"]"
                                        Variant="Variant.Outlined"
@@ -186,7 +195,8 @@
                     GlobalInvoiceFolioLength = settings.GlobalInvoiceFolioLength,
                     AutoInvoicePromptEnabled = settings.AutoInvoicePromptEnabled,
                     AllowEditFiscalDataInPrompt = settings.AllowEditFiscalDataInPrompt,
-                    MultiPaymentFormPolicy = settings.MultiPaymentFormPolicy
+                    MultiPaymentFormPolicy = settings.MultiPaymentFormPolicy,
+                    AllowPdfRegenerationForStampedInvoices = settings.AllowPdfRegenerationForStampedInvoices
                 };
             }
         }

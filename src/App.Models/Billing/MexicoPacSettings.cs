@@ -98,4 +98,12 @@ public class MexicoPacSettings : BaseEntity<int>, IAuditTracked
 
     /// <summary>How to resolve CFDI FormaPago when a sale has multiple payment methods.</summary>
     public MultiPaymentFormPolicy MultiPaymentFormPolicy { get; set; } = MultiPaymentFormPolicy.UseHighestAmount;
+
+    /// <summary>
+    /// When true, users may regenerate the PDF of a stamped invoice that already has one
+    /// (e.g. to fix a rendering issue), overwriting the previously issued PDF file.
+    /// When false (default), PDF generation is only allowed the first time (right after stamping,
+    /// or via retry when it failed and no PDF exists yet).
+    /// </summary>
+    public bool AllowPdfRegenerationForStampedInvoices { get; set; } = false;
 }

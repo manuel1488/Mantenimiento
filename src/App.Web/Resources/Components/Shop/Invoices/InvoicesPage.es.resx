@@ -180,6 +180,9 @@
   <data name="Generate PDF" xml:space="preserve">
     <value>Generar PDF</value>
   </data>
+  <data name="Regenerate PDF" xml:space="preserve">
+    <value>Regenerar PDF</value>
+  </data>
   <data name="PDF generated successfully" xml:space="preserve">
     <value>PDF generado exitosamente</value>
   </data>

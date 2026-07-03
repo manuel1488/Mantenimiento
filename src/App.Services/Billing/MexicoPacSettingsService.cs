@@ -117,6 +117,7 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
             settings.AutoInvoicePromptEnabled = dto.AutoInvoicePromptEnabled;
             settings.AllowEditFiscalDataInPrompt = dto.AllowEditFiscalDataInPrompt;
             settings.MultiPaymentFormPolicy = dto.MultiPaymentFormPolicy;
+            settings.AllowPdfRegenerationForStampedInvoices = dto.AllowPdfRegenerationForStampedInvoices;
 
             await context.SaveChangesAsync();
             return Result<MexicoPacSettingsDto>.Success(MapToDto(settings));
@@ -176,6 +177,7 @@ public class MexicoPacSettingsService : IMexicoPacSettingsService
         HasCsdPassword = !string.IsNullOrEmpty(s.CsdPassword),
         AutoInvoicePromptEnabled = s.AutoInvoicePromptEnabled,
         AllowEditFiscalDataInPrompt = s.AllowEditFiscalDataInPrompt,
-        MultiPaymentFormPolicy = s.MultiPaymentFormPolicy
+        MultiPaymentFormPolicy = s.MultiPaymentFormPolicy,
+        AllowPdfRegenerationForStampedInvoices = s.AllowPdfRegenerationForStampedInvoices
     };
 }

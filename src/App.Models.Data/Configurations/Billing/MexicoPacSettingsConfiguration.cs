@@ -28,5 +28,8 @@ public class MexicoPacSettingsConfiguration : IEntityTypeConfiguration<MexicoPac
 
         builder.Property(e => e.IsProduction)
             .HasDefaultValue(false);
+
+        builder.Property(e => e.AllowPdfRegenerationForStampedInvoices)
+            .HasDefaultValue(false);
     }
 }
