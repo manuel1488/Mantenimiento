@@ -16,6 +16,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
 - [Troubleshooting Index](docs/02-Development/troubleshooting.md) — Problemas conocidos con diagnóstico y solución
 - [Bitácora de Incidentes de Producción](docs/02-Development/incident-log.md) — Registro de incidentes de despliegue/producción con diagnóstico y reparación aplicada
+- [Deuda Técnica](docs/02-Development/tech-debt.md) — Problemas conocidos no urgentes (constraints ignorados, columnas mal dimensionadas, etc.)
 
 ### Strategy
 - [Roadmap SaaS POS](docs/01-Architecture/roadmap-saas-pos.md) — Evolución multi-tenant: agente hardware, terminal PWA tablet, offline, báscula
