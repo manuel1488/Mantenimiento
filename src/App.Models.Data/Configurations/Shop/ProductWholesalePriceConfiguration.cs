@@ -30,7 +30,10 @@ public class ProductWholesalePriceConfiguration : IEntityTypeConfiguration<Produ
         builder.Property(e => e.DiscountPercentage)
             .HasColumnType("decimal(9,6)");
 
+        // Must match sh_products.Price (decimal(10,6)) — a fixed wholesale price can never
+        // legitimately exceed the retail price, but the column still needs the same range or
+        // MySQL rejects the save outright for any product priced at or above $1,000.
         builder.Property(e => e.FixedPrice)
-            .HasColumnType("decimal(9,6)");
+            .HasColumnType("decimal(10,6)");
     }
 }

@@ -564,6 +564,11 @@
         public decimal DiscountPercentage { get; set; }
         public decimal? FixedPrice { get; set; }
         public bool IsActive { get; set; } = true;
+
+        // True when this tier already had a saved row when the dialog loaded. Needed so clearing
+        // a tier back to zero still reaches the server for removal instead of being silently
+        // dropped by the "only save meaningful data" filter in SaveWholesalePrices.
+        public bool HadExistingRow { get; set; }
     }
 
     protected override async Task OnInitializedAsync()
@@ -776,10 +781,16 @@
 
     // A wholesale fixed price must be below retail; one >= retail becomes a surcharge
     // that corrupts downstream totals. Blocks form submit before any save is attempted.
+    // Must match sh_product_wholesale_prices.FixedPrice column type (decimal(10,6)) — reject
+    // in the UI what the database would reject anyway, instead of failing silently on save.
+    private const decimal MaxWholesaleFixedPrice = 9999.999999M;
+
     private string? ValidateWholesaleFixedPrice(decimal? fixedPrice)
     {
         if (fixedPrice is > 0 && fixedPrice.Value >= _model.Price)
             return L["Must be less than the retail price ({0})", _model.Price.ToString("N2")];
+        if (fixedPrice > MaxWholesaleFixedPrice)
+            return L["Must be less than {0}", MaxWholesaleFixedPrice.ToString("N2")];
         return null;
     }
 
@@ -855,9 +866,10 @@
                     await SaveSurcharges(updatedProduct.Id);
 
                     // Save wholesale prices
-                    await SaveWholesalePrices(updatedProduct.Id);
+                    var wholesaleSaved = await SaveWholesalePrices(updatedProduct.Id);
 
-                    Snackbar.Add(L["Product updated successfully"], Severity.Success);
+                    if (wholesaleSaved)
+                        Snackbar.Add(L["Product updated successfully"], Severity.Success);
                 }
                 else
                 {
@@ -879,9 +891,10 @@
                     await SaveSurcharges(newProduct.Id);
 
                     // Save wholesale prices
-                    await SaveWholesalePrices(newProduct.Id);
+                    var wholesaleSaved = await SaveWholesalePrices(newProduct.Id);
 
-                    Snackbar.Add(L["Product created successfully"], Severity.Success);
+                    if (wholesaleSaved)
+                        Snackbar.Add(L["Product created successfully"], Severity.Success);
                 }
 
                 MudDialog.Close(DialogResult.Ok(true));
@@ -1138,7 +1151,10 @@
                     MinQuantity = existing?.MinQuantity ?? 0,
                     DiscountPercentage = existing?.DiscountPercentage ?? 0,
                     FixedPrice = existing?.FixedPrice,
-                    IsActive = existing?.IsActive ?? true
+                    // Default to inactive when the tier was never configured — defaulting to
+                    // true made an untouched tier look "active" as soon as the dialog opened.
+                    IsActive = existing?.IsActive ?? false,
+                    HadExistingRow = existing != null
                 };
             }).ToList();
         }
@@ -1153,18 +1169,22 @@
         }
     }
 
-    private async Task SaveWholesalePrices(long productId)
+    private async Task<bool> SaveWholesalePrices(long productId)
     {
         if (_wholesalePriceConfigs.Count == 0)
-            return;
+            return true;
 
-        // Only save configs that have meaningful data
+        // Only keep/upsert configs that have meaningful data; a tier cleared back to zero falls
+        // out of this list on purpose, which tells the server to remove it (see
+        // UpdateProductWholesalePricesAsync's "no longer in the list" cleanup).
         var validConfigs = _wholesalePriceConfigs
             .Where(c => c.MinQuantity > 0 && (_productUseFixedPrice ? c.FixedPrice is > 0 : c.DiscountPercentage > 0))
             .ToList();
 
-        if (validConfigs.Count == 0)
-            return;
+        // Nothing to save AND nothing previously saved to remove — skip the round trip entirely.
+        var hasExistingRowToClean = _wholesalePriceConfigs.Any(c => c.HadExistingRow);
+        if (validConfigs.Count == 0 && !hasExistingRowToClean)
+            return true;
 
         try
         {
@@ -1186,11 +1206,16 @@
             {
                 Logger.LogWarning("Failed to save wholesale prices: {Error}", result.Error);
                 Snackbar.Add(result.Error, Severity.Warning);
+                return false;
             }
+
+            return true;
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error saving wholesale prices for product {ProductId}", productId);
+            Snackbar.Add(L["Error updating wholesale prices"], Severity.Warning);
+            return false;
         }
     }
 

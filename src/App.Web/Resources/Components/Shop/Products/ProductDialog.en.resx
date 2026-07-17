@@ -6,6 +6,12 @@
   <data name="Must be less than the retail price ({0})" xml:space="preserve">
     <value>Must be less than the retail price ({0})</value>
   </data>
+  <data name="Must be less than {0}" xml:space="preserve">
+    <value>Must be less than {0}</value>
+  </data>
+  <data name="Error updating wholesale prices" xml:space="preserve">
+    <value>Error updating wholesale prices</value>
+  </data>
   <data name="Allow Partial Sales" xml:space="preserve">
     <value>Allow Partial Sales</value>
   </data>
