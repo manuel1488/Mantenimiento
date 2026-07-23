@@ -1,6 +1,6 @@
 ### ADR-010: Acceso al usuario actual en Blazor Server — prohibido sync-over-async
 
-**Estado:** Aceptado (mitigación aplicada, refactor de raíz pendiente)
+**Estado:** Aceptado e implementado
 **Fecha:** 2026-07-23
 
 **Contexto:**
@@ -23,18 +23,18 @@ El bug era preexistente (desde el commit `22ae5bb`) pero probabilístico: solo s
    ```
    Esto es una **mitigación aceptada**, no el patrón preferido — evita el deadlock, pero sigue bloqueando un hilo y no debe usarse en código nuevo.
 
-2. **Código nuevo que necesite el usuario actual debe usar (o exponer) APIs async.** `ICurrentUserService` debe migrar `UserId`, `UserName`, `IsGlobalAccess` y `FullName` de propiedades síncronas a métodos `Task<...>` (p. ej. `Task<string> GetUserIdAsync()`). Esto es la corrección de raíz, pendiente como refactor separado por su alcance (45 archivos consumidores en `App.Services` y `App.Web` — ver [tech-debt.md](../../02-Development/tech-debt.md)). Mientras no se complete, todo el código existente sigue protegido por la mitigación del punto 1.
+2. **Código nuevo que necesite el usuario actual debe usar las APIs async.** `ICurrentUserService` migró `UserId`, `UserName`, `IsGlobalAccess`, `FullName` y `ActiveLocationId` de propiedades síncronas a métodos `Task<...>` (`GetUserIdAsync()`, `GetUserNameAsync()`, `GetFullNameAsync()`, `GetIsGlobalAccessAsync()`, `GetActiveLocationIdAsync()`), commit `226d322`, actualizando los 45 consumidores existentes en `App.Services`, `App.Web` y los tests. Ya no queda ningún `.Result`/`.GetAwaiter().GetResult()`/`Task.Run(...)` en `CurrentUserService.cs` — la mitigación del punto 1 queda como referencia para código nuevo que no pueda evitar una API síncrona, no como el estado actual de este servicio.
 
 3. **Cualquier servicio o componente que dependa de `IAuthenticationStateProvider`/`ICurrentUserService` dentro de un manejador de evento de Blazor Server debe asumir que el estado de autenticación puede no estar resuelto todavía** — especialmente en las primeras interacciones tras el login o tras un reinicio de la app. No asumir que la lectura es "instantánea porque ya se resolvió antes".
 
 **Consecuencias:**
 
 - Positivas:
-  - Elimina la clase de bug (deadlock silencioso, sin log) que causó el incidente del 2026-07-23.
-  - No requiere tocar los 45 consumidores actuales de inmediato — la mitigación es interna a `CurrentUserService`.
+  - Elimina por completo la clase de bug (deadlock silencioso, sin log) que causó el incidente del 2026-07-23 — no solo la mitiga, la erradica: no queda ningún bloqueo de hilo en el camino de `ICurrentUserService`.
+  - Los 45 consumidores ahora reflejan honestamente que leer el usuario actual es una operación async — más fácil de razonar para quien lea el código nuevo.
 - Negativas:
-  - La mitigación (`Task.Run`) sigue bloqueando un hilo del thread pool por cada acceso a estas propiedades — no es gratis, solo ya no puede colgar el circuito. El costo real de no completar el refactor async es deuda técnica de rendimiento, no de correctitud.
-  - Mientras el refactor a async no se haga, cualquier código nuevo que copie el patrón `.Result` sin pasar por `CurrentUserService` (p. ej. un componente que inyecte `AuthenticationStateProvider` directamente) puede reintroducir el mismo bug — este ADR es la referencia a citar en code review si eso ocurre.
+  - Refactor de 60 archivos en una sola sesión, inmediatamente después de un incidente en producción — mayor superficie de riesgo de regresión que la mitigación mínima. Mitigado con: build limpio (0 errores) y suite de tests (249/255 — los 6 fallos restantes son pruebas de integración con Testcontainers que requieren Docker, no relacionadas con este cambio) antes de hacer commit.
+  - Cualquier código nuevo que inyecte `AuthenticationStateProvider` directamente (en vez de pasar por `ICurrentUserService`) y copie el patrón `.Result` puede reintroducir el mismo bug — este ADR es la referencia a citar en code review si eso ocurre.
 
 **Referencias:**
 - [Bitácora de incidentes — 2026-07-23](../../02-Development/incident-log.md)

@@ -300,7 +300,11 @@ Esto mueve la espera bloqueante a un hilo del thread pool **sin** el `Synchroniz
 
 Desplegado reconstruyendo la imagen desde la máquina con `.env.production` (`docker compose --profile production --env-file .env.production build --no-cache && ... up -d`). Como mitigación temporal mientras se preparaba el deploy, también se hizo `docker restart app-prod-web-prod` (destraba cualquier circuito ya colgado, pero no corrige la causa de raíz — ver ADR-010).
 
+### Corrección de raíz aplicada (mismo día)
+
+Commit `226d322`: `ICurrentUserService` (`UserId`, `UserName`, `FullName`, `IsGlobalAccess`, `ActiveLocationId`) se convirtió por completo a métodos async (`GetUserIdAsync()`, etc.), eliminando cualquier bloqueo sync-over-async en `CurrentUserService.cs`. Se actualizaron los 45 consumidores en `App.Services`, `App.Web` y los mocks de tests. Ver [ADR-010](../01-Architecture/adr/0010-acceso-async-usuario-actual.md) para el detalle de la decisión. Verificado con build limpio (0 errores) y suite de tests (249/255 — los 6 fallos son pruebas de integración con Testcontainers que requieren Docker, no relacionadas con este cambio).
+
 ### Pendiente
 
-- Ver [ADR-010](../01-Architecture/adr/0010-acceso-async-usuario-actual.md): la corrección de raíz (convertir `ICurrentUserService` a métodos 100% async) queda como iniciativa separada por su alcance (45 archivos consumidores). Ver también [tech-debt.md](tech-debt.md).
 - Rotar la contraseña de la cuenta `app` de MySQL — quedó expuesta en texto plano durante el diagnóstico de este incidente (se extrajo de `docker inspect` para poder reconstruir el despliegue sin acceso a la máquina con `.env.production`).
+- Desplegar el commit `226d322` a producción (el fix mínimo de `5f4e141` ya está desplegado y resuelve el deadlock; este refactor es la corrección de raíz, sin cambio de comportamiento esperado, pero queda pendiente de su propio despliegue y verificación).
