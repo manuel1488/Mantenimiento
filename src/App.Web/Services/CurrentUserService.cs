@@ -54,7 +54,7 @@ public class CurrentUserService : ICurrentUserService
 
             try
             {
-                var authState = _authenticationStateProvider.GetAuthenticationStateAsync().Result;
+                var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
                 var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 return userId ?? throw new InvalidOperationException("No user ID found");
             }
@@ -76,7 +76,7 @@ public class CurrentUserService : ICurrentUserService
 
             try
             {
-                var authState = _authenticationStateProvider.GetAuthenticationStateAsync().Result;
+                var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
                 return authState.User.Identity?.Name;
             }
             catch
@@ -109,7 +109,7 @@ public class CurrentUserService : ICurrentUserService
 
             try
             {
-                var authState = _authenticationStateProvider.GetAuthenticationStateAsync().Result;
+                var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
                 var user = authState.User;
                 return user.IsInRole(ApplicationRoles.SuperAdmin) ||
                        user.IsInRole(ApplicationRoles.Admin);
@@ -256,7 +256,7 @@ public class CurrentUserService : ICurrentUserService
 
                 using var scope = _serviceProvider.CreateScope();
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                return userManager.FindByIdAsync(userId).Result;
+                return Task.Run(() => userManager.FindByIdAsync(userId)).GetAwaiter().GetResult();
             });
 
             return value;
