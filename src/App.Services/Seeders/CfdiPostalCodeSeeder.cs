@@ -1,12 +1,15 @@
-using CsvHelper;
-using CsvHelper.Configuration;
+using System.Globalization;
+
 using App.Core.Interfaces;
 using App.Models.Billing;
 using App.Models.Data.Contexts;
 using App.Shared.Services;
+
+using CsvHelper;
+using CsvHelper.Configuration;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 
 namespace App.Services.Seeders;
 
@@ -23,11 +26,11 @@ public class CfdiPostalCodeSeeder : ICfdiPostalCodeSeeder
     private static readonly Dictionary<string, (string IanaId, int OffsetWinter, int OffsetSummer)> _timezoneMap =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["Tiempo del Centro"]              = ("America/Mexico_City", -6, -6),
-            ["Tiempo del Centro en Frontera"]  = ("America/Matamoros",   -6, -5),
-            ["Tiempo del Noroeste"]            = ("America/Tijuana",     -8, -7),
-            ["Tiempo del Pacífico"]            = ("America/Hermosillo",  -7, -7),
-            ["Tiempo del Sureste"]             = ("America/Cancun",      -5, -5),
+            ["Tiempo del Centro"] = ("America/Mexico_City", -6, -6),
+            ["Tiempo del Centro en Frontera"] = ("America/Matamoros", -6, -5),
+            ["Tiempo del Noroeste"] = ("America/Tijuana", -8, -7),
+            ["Tiempo del Pacífico"] = ("America/Hermosillo", -7, -7),
+            ["Tiempo del Sureste"] = ("America/Cancun", -5, -5),
         };
 
     public CfdiPostalCodeSeeder(
@@ -142,16 +145,20 @@ public class CfdiPostalCodeSeeder : ICfdiPostalCodeSeeder
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            using var transaction = await context.Database.BeginTransactionAsync();
-
-            for (int i = 0; i < batches; i++)
+            var strategy = context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                var batch = records.Skip(i * BatchSize).Take(BatchSize).ToList();
-                await InsertBatchAsync(context, batch);
-                _logger.LogInformation("Seeded batch {Current}/{Total} of CFDI postal codes", i + 1, batches);
-            }
+                using var transaction = await context.Database.BeginTransactionAsync();
 
-            await transaction.CommitAsync();
+                for (int i = 0; i < batches; i++)
+                {
+                    var batch = records.Skip(i * BatchSize).Take(BatchSize).ToList();
+                    await InsertBatchAsync(context, batch);
+                    _logger.LogInformation("Seeded batch {Current}/{Total} of CFDI postal codes", i + 1, batches);
+                }
+
+                await transaction.CommitAsync();
+            });
             _logger.LogInformation("Successfully seeded {Total} CFDI postal code records", total);
         }
         catch (Exception ex)

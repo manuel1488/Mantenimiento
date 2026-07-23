@@ -1,8 +1,3 @@
-using AutoMapper;
-using Moq;
-using NUnit.Framework;
-using Testcontainers.MySql;
-
 using App.Core.Common;
 using App.Core.Constants;
 using App.Core.DTOs.Inventory;
@@ -21,13 +16,21 @@ using App.Services.Settings;
 using App.Services.Shop;
 using App.Shared.Services;
 
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 
-using ShopLocation = App.Models.Shop.Location;
+using Moq;
+
+using NUnit.Framework;
+
+using Testcontainers.MySql;
+
 using InventoryRow = App.Models.Shop.Inventory;
+using ShopLocation = App.Models.Shop.Location;
 
 namespace App.Services.Tests.Shop;
 
@@ -125,7 +128,7 @@ public class RemissionIntegrityInMemoryTests
             .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
 
         var docSeqMock = new Mock<IDocumentSequenceService>();
-        docSeqMock.Setup(d => d.GetNextNumberAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+        docSeqMock.Setup(d => d.GetNextNumberAsync(It.IsAny<ApplicationDbContext>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
             .ReturnsAsync("REM-TEST-0001");
 
         var discountSettingsMock = new Mock<IDiscountSettingsService>();
@@ -202,8 +205,10 @@ public class RemissionIntegrityInMemoryTests
             Name = "Test Customer",
             CountryCode = "MX",
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         };
         ctx.Customers.Add(customer);
         await ctx.SaveChangesAsync();
@@ -219,8 +224,10 @@ public class RemissionIntegrityInMemoryTests
             Code = Guid.NewGuid().ToString()[..4],
             Name = "Pieza",
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         };
         ctx.UnitMeasures.Add(unitMeasure);
         await ctx.SaveChangesAsync();
@@ -239,8 +246,10 @@ public class RemissionIntegrityInMemoryTests
             Content = 1,
             UnitMeasureId = unitMeasure.Id,
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         };
         ctx.Products.Add(product);
         await ctx.SaveChangesAsync();
@@ -258,8 +267,10 @@ public class RemissionIntegrityInMemoryTests
                 Name = "Branch",
                 Type = LocationType.Branch,
                 IsActive = true,
-                CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-                ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+                CreatedBy = "seed",
+                CreatedAt = DateTime.UtcNow,
+                ModifiedBy = "seed",
+                ModifiedAt = DateTime.UtcNow
             });
         }
         if (!await ctx.PaymentMethods.AnyAsync(p => p.Id == PaymentMethodId))
@@ -270,8 +281,10 @@ public class RemissionIntegrityInMemoryTests
                 Name = "Cash",
                 Type = PaymentMethodType.Cash,
                 IsActive = true,
-                CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-                ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+                CreatedBy = "seed",
+                CreatedAt = DateTime.UtcNow,
+                ModifiedBy = "seed",
+                ModifiedAt = DateTime.UtcNow
             });
         }
         await ctx.SaveChangesAsync();
@@ -288,8 +301,10 @@ public class RemissionIntegrityInMemoryTests
             ValidUntil = DateTime.UtcNow.AddDays(30),
             Status = QuotationStatus.Accepted,
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow,
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow,
             Details =
             [
                 new QuotationDetail
@@ -322,8 +337,10 @@ public class RemissionIntegrityInMemoryTests
             ValidUntil = DateTime.UtcNow.AddDays(30),
             Status = QuotationStatus.Accepted,
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow,
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow,
             Details =
             [
                 new QuotationDetail
@@ -652,10 +669,13 @@ public class RemissionRollbackContainerTests
             .Build();
         await _mysql.StartAsync();
 
+        // EnableRetryOnFailure mirrors Program.cs's production configuration — this fixture
+        // proves the 20 manually-wrapped transaction sites work under a real retrying
+        // execution strategy against real MySQL, not just EF InMemory's no-op strategy.
         _options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseMySql(_mysql.GetConnectionString(),
                 ServerVersion.Parse("8.0"),
-                o => o.CommandTimeout(60))
+                o => o.CommandTimeout(60).EnableRetryOnFailure(3))
             .Options;
 
         await using var ctx = new ApplicationDbContext(_options);
@@ -670,8 +690,10 @@ public class RemissionRollbackContainerTests
                 Name = "Branch",
                 Type = LocationType.Branch,
                 IsActive = true,
-                CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-                ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+                CreatedBy = "seed",
+                CreatedAt = DateTime.UtcNow,
+                ModifiedBy = "seed",
+                ModifiedAt = DateTime.UtcNow
             });
         }
         if (!await ctx.PaymentMethods.AnyAsync(p => p.Id == PaymentMethodId))
@@ -682,8 +704,10 @@ public class RemissionRollbackContainerTests
                 Name = "Cash",
                 Type = PaymentMethodType.Cash,
                 IsActive = true,
-                CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-                ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+                CreatedBy = "seed",
+                CreatedAt = DateTime.UtcNow,
+                ModifiedBy = "seed",
+                ModifiedAt = DateTime.UtcNow
             });
         }
         await ctx.SaveChangesAsync();
@@ -767,7 +791,7 @@ public class RemissionRollbackContainerTests
             .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
 
         var docSeqMock = new Mock<IDocumentSequenceService>();
-        docSeqMock.Setup(d => d.GetNextNumberAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+        docSeqMock.Setup(d => d.GetNextNumberAsync(It.IsAny<ApplicationDbContext>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
             .ReturnsAsync("REM-TC-0001");
 
         var discountSettingsMock = new Mock<IDiscountSettingsService>();
@@ -840,6 +864,130 @@ public class RemissionRollbackContainerTests
         return (remissionService, saleService);
     }
 
+    /// <summary>
+    /// Same wiring as <see cref="BuildServices"/> but with a real <see cref="DocumentSequenceService"/>
+    /// instead of a mock, so the folio increment goes through the actual ambient-context code path.
+    /// </summary>
+    private (RemissionService Remission, SaleService Sale) BuildServicesWithRealDocumentSequence()
+    {
+        var contextFactory = new TestDbContextFactory(_options);
+
+        var localizerInventoryMock = new Mock<IStringLocalizer<InventoryService>>();
+        localizerInventoryMock.Setup(l => l[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+
+        var realInventoryService = new InventoryService(
+            contextFactory,
+            Mock.Of<IMapper>(),
+            NullLogger<InventoryService>.Instance,
+            Mock.Of<ICurrentUserService>(u => u.UserId == "test"),
+            localizerInventoryMock.Object,
+            Mock.Of<IDateTime>(d => d.Now == DateTime.UtcNow),
+            Mock.Of<IInventoryAlertEmailService>());
+
+        var currentUserMock = new Mock<ICurrentUserService>();
+        currentUserMock.Setup(u => u.UserId).Returns("test");
+
+        var dateTimeMock = new Mock<IDateTime>();
+        dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);
+
+        var taxRateMock = new Mock<ITaxRateService>();
+        taxRateMock.Setup(t => t.GetEffectiveRateAsync(
+                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<DateTime?>()))
+            .ReturnsAsync(0m);
+
+        var companySettingsMock = new Mock<ICompanySettingsService>();
+        companySettingsMock.Setup(c => c.GetSettingsAsync())
+            .ReturnsAsync(new CompanySettingsDto { CountryCode = "MX" });
+
+        var roundingMock = new Mock<IRoundingSettingsService>();
+        roundingMock
+            .Setup(r => r.ApplyRoundingAsync(It.IsAny<decimal>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((decimal amount, CancellationToken _) =>
+                Result<(decimal, decimal)>.Success((amount, 0m)));
+
+        var pricingService = new PricingCalculationService(
+            taxRateMock.Object,
+            companySettingsMock.Object,
+            roundingMock.Object,
+            NullLogger<PricingCalculationService>.Instance);
+
+        var localizerRMock = new Mock<IStringLocalizer<RemissionService>>();
+        localizerRMock.Setup(l => l[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        localizerRMock.Setup(l => l[It.IsAny<string>(), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
+
+        var discountSettingsMock = new Mock<IDiscountSettingsService>();
+        discountSettingsMock.Setup(d => d.GetSettingsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<DiscountSettingsDto>.Success(new DiscountSettingsDto
+            {
+                MaximumPublicDiscount = 100,
+                RequireAuthorizationForPublicDiscount = false
+            }));
+
+        var cashRegisterMock = new Mock<ICashRegisterService>();
+        cashRegisterMock
+            .Setup(c => c.GetActiveCashRegisterAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .ReturnsAsync(Result<CashRegisterDto?>.Success(new CashRegisterDto { Id = 1 }));
+        cashRegisterMock
+            .Setup(c => c.GetSettingsAsync())
+            .ReturnsAsync(Result<CashRegisterSettingsDto>.Success(
+                new CashRegisterSettingsDto { IsStrictCashLimit = false }));
+
+        var taxSettingsMock = new Mock<ITaxSettingsService>();
+        taxSettingsMock.Setup(t => t.GetSettingsAsync())
+            .ReturnsAsync(new TaxSettingsDto
+            {
+                CountryCode = "MX",
+                BusinessName = "Test",
+                TaxId = "TEST010101AAA",
+                FiscalRegime = "601"
+            });
+
+        var localizerSMock = new Mock<IStringLocalizer<SaleService>>();
+        localizerSMock.Setup(l => l[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        localizerSMock.Setup(l => l[It.IsAny<string>(), It.IsAny<object[]>()])
+            .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
+
+        var saleService = new SaleService(
+            contextFactory,
+            Mock.Of<IMapper>(),
+            NullLogger<SaleService>.Instance,
+            localizerSMock.Object,
+            currentUserMock.Object,
+            dateTimeMock.Object,
+            discountSettingsMock.Object,
+            Mock.Of<IDiscountAuthorizerService>(),
+            realInventoryService,
+            taxRateMock.Object,
+            companySettingsMock.Object,
+            taxSettingsMock.Object,
+            Mock.Of<IProductPartialSurchargeService>(),
+            roundingMock.Object,
+            cashRegisterMock.Object,
+            pricingService);
+
+        var remissionService = new RemissionService(
+            contextFactory,
+            Mock.Of<IMapper>(),
+            NullLogger<RemissionService>.Instance,
+            localizerRMock.Object,
+            currentUserMock.Object,
+            dateTimeMock.Object,
+            taxRateMock.Object,
+            companySettingsMock.Object,
+            realInventoryService,
+            pricingService,
+            Mock.Of<IPdfService>(),
+            Mock.Of<IEmailTemplateService>(),
+            saleService,
+            new DocumentSequenceService());
+
+        return (remissionService, saleService);
+    }
+
     // -------------------------------------------------------------------------
     // Seed helpers
     // -------------------------------------------------------------------------
@@ -852,8 +1000,10 @@ public class RemissionRollbackContainerTests
             Name = "Test Customer",
             CountryCode = "MX",
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         };
         ctx.Customers.Add(customer);
         await ctx.SaveChangesAsync();
@@ -869,8 +1019,10 @@ public class RemissionRollbackContainerTests
             Code = Guid.NewGuid().ToString("N")[..4],
             Name = "Pieza",
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         };
         ctx.UnitMeasures.Add(unitMeasure);
         await ctx.SaveChangesAsync();
@@ -889,8 +1041,10 @@ public class RemissionRollbackContainerTests
             Content = 1,
             UnitMeasureId = unitMeasure.Id,
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         };
         ctx.Products.Add(product);
         await ctx.SaveChangesAsync();
@@ -909,8 +1063,10 @@ public class RemissionRollbackContainerTests
             ProductId = productId,
             LocationId = LocationId,
             Quantity = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         });
         await ctx.SaveChangesAsync();
     }
@@ -923,8 +1079,10 @@ public class RemissionRollbackContainerTests
             ProductId = productId,
             LocationId = LocationId,
             Quantity = quantity,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         });
         await ctx.SaveChangesAsync();
     }
@@ -940,8 +1098,10 @@ public class RemissionRollbackContainerTests
             Quantity = 1,
             UnitPrice = 10m,
             TaxRate = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow
         }).ToList();
 
         var quotation = new Quotation
@@ -952,8 +1112,10 @@ public class RemissionRollbackContainerTests
             ValidUntil = DateTime.UtcNow.AddDays(30),
             Status = QuotationStatus.Accepted,
             IsDeleted = 0,
-            CreatedBy = "seed", CreatedAt = DateTime.UtcNow,
-            ModifiedBy = "seed", ModifiedAt = DateTime.UtcNow,
+            CreatedBy = "seed",
+            CreatedAt = DateTime.UtcNow,
+            ModifiedBy = "seed",
+            ModifiedAt = DateTime.UtcNow,
             Details = details
         };
         ctx.Quotations.Add(quotation);
@@ -1161,6 +1323,75 @@ public class RemissionRollbackContainerTests
 
         Assert.That(await ctx.Sales.CountAsync(), Is.EqualTo(0),
             "Sale row must not survive when the inventory movement fails");
+    }
+
+    // =========================================================================
+    // Test 13 — DocumentSequenceService (real, not mocked): folio increment must
+    // roll back together with the remission when the operation fails.
+    //
+    // REGRESSION TEST for the incident-log 2026-07-22 fix: before it,
+    // DocumentSequenceService.GetNextNumberAsync opened its own DbContext and
+    // committed independently of the outer remission transaction. A failed
+    // remission still consumed a sequence number, permanently burning it.
+    // Expected: DocumentSequences row unchanged after a failed attempt, and the
+    // next successful remission gets REM-{year}-0001 (no gap).
+    // =========================================================================
+
+    [Test]
+    public async Task CreateRemission_RealDocumentSequence_FolioRolledBackOnFailure_NoGapOnNextSuccess()
+    {
+        var customerId = await SeedCustomerAsync();
+        var failingProductId = await SeedProductAsync();
+        await SeedDivergentInventoryAsync(failingProductId);
+        var quotationId = await SeedAcceptedQuotationAsync(customerId, failingProductId);
+
+        var (remissionService, _) = BuildServicesWithRealDocumentSequence();
+
+        var failedResult = await remissionService.CreateAsync(new CreateRemissionDto
+        {
+            CustomerId = customerId,
+            LocationId = LocationId,
+            QuotationId = quotationId,
+            Details = [new CreateRemissionDetailDto { ProductId = failingProductId, Quantity = 1, UnitPrice = 10m }]
+        });
+
+        Assert.That(failedResult.IsSuccess, Is.False, "Movement failure must cause the remission operation to fail");
+
+        await using (var ctx = new ApplicationDbContext(_options))
+        {
+            var sequenceRow = await ctx.DocumentSequences
+                .FirstOrDefaultAsync(s => s.DocumentType == "Remission" && s.Year == DateTime.UtcNow.Year);
+            Assert.That(sequenceRow, Is.Null,
+                "The sequence increment must roll back with the failed transaction — a non-null row here " +
+                "means GetNextNumberAsync committed on its own, permanently burning the folio number.");
+        }
+
+        // Now succeed with a different product on normal inventory, and confirm no gap was left.
+        var okProductId = await SeedProductAsync();
+        await SeedNormalInventoryAsync(okProductId, quantity: 10);
+        var okQuotationId = await SeedAcceptedQuotationAsync(customerId, okProductId);
+
+        var okResult = await remissionService.CreateAsync(new CreateRemissionDto
+        {
+            CustomerId = customerId,
+            LocationId = LocationId,
+            QuotationId = okQuotationId,
+            Details = [new CreateRemissionDetailDto { ProductId = okProductId, Quantity = 1, UnitPrice = 10m }]
+        });
+
+        Assert.That(okResult.IsSuccess, Is.True, okResult.Error);
+
+        // Query the DB directly rather than trusting Result.Value — the AutoMapper mock in this
+        // fixture has no Map<RemissionDto> setup, so the mapped DTO is always null even on success.
+        await using var okCtx = new ApplicationDbContext(_options);
+        var createdRemission = await okCtx.Remissions
+            .Where(r => r.CustomerId == customerId && r.QuotationId == okQuotationId)
+            .OrderByDescending(r => r.Id)
+            .FirstAsync();
+
+        Assert.That(createdRemission.RemissionNumber, Is.EqualTo($"REM-{DateTime.UtcNow.Year}-0001"),
+            "First successful remission must get folio 0001 — a higher number means the failed " +
+            "attempt already burned a sequence value.");
     }
 
     // =========================================================================

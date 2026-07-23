@@ -1,7 +1,5 @@
 ﻿using System.Globalization;
 
-using Microsoft.AspNetCore.DataProtection;
-
 using App.Core.Constants;
 using App.Core.Identity.Interfaces;
 using App.Core.Interfaces;
@@ -39,12 +37,13 @@ using App.Shared.Services;
 using App.Shared.Services.Implementation;
 using App.Web.Components;
 using App.Web.Components.Account;
+using App.Web.Middleware;
 using App.Web.Services;
 using App.Web.Services.Background;
-using App.Web.Middleware;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -60,8 +59,9 @@ using MudBlazor;
 using MudBlazor.Services;
 using MudBlazor.Translations;
 
-using Serilog;
 using OfficeOpenXml;
+
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -452,6 +452,7 @@ void ConfigureDatabase(IServiceCollection services, IConfiguration configuration
                 mySqlOptions.CommandTimeout(databaseOptions.CommandTimeout);
                 mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 mySqlOptions.MigrationsHistoryTable("__EFMigrationsHistory");
+                mySqlOptions.EnableRetryOnFailure(databaseOptions.MaxRetryCount);
             });
 
         var dateTime = serviceProvider.GetRequiredService<IDateTime>();

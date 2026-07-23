@@ -85,94 +85,98 @@ public class StockEntryService : IStockEntryService
 
             // All movements succeeded — persist the StockEntry header and items
             await using var context = await _contextFactory.CreateDbContextAsync(ct);
-            await using var transaction = await context.Database.BeginTransactionAsync(ct);
-
-            var stockEntry = new StockEntry
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                MovementType = dto.MovementType,
-                MovementSubType = dto.MovementSubType,
-                LocationId = dto.LocationId,
-                SupplierId = dto.SupplierId,
-                SupplierName = dto.SupplierName,
-                DocumentNumber = dto.DocumentNumber,
-                Reference = dto.Reference,
-                Reason = dto.Reason,
-                EntryDate = entryDate,
-                AttachmentFileName = dto.AttachmentFileName,
-                AttachmentMimeType = dto.AttachmentMimeType,
-                AttachmentData = dto.AttachmentData,
-                CreatedBy = currentUser,
-                CreatedAt = currentTime,
-                ModifiedBy = currentUser,
-                ModifiedAt = currentTime
-            };
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            context.StockEntries.Add(stockEntry);
-            await context.SaveChangesAsync(ct);
-
-            var itemResults = new List<StockEntryItemResultDto>();
-
-            foreach (var (item, movementId) in movementResults)
-            {
-                var entryItem = new StockEntryItem
+                var stockEntry = new StockEntry
                 {
-                    StockEntryId = stockEntry.Id,
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    UnitCost = item.UnitCost,
-                    InventoryMovementId = movementId,
+                    MovementType = dto.MovementType,
+                    MovementSubType = dto.MovementSubType,
+                    LocationId = dto.LocationId,
+                    SupplierId = dto.SupplierId,
+                    SupplierName = dto.SupplierName,
+                    DocumentNumber = dto.DocumentNumber,
+                    Reference = dto.Reference,
+                    Reason = dto.Reason,
+                    EntryDate = entryDate,
+                    AttachmentFileName = dto.AttachmentFileName,
+                    AttachmentMimeType = dto.AttachmentMimeType,
+                    AttachmentData = dto.AttachmentData,
                     CreatedBy = currentUser,
                     CreatedAt = currentTime,
                     ModifiedBy = currentUser,
                     ModifiedAt = currentTime
                 };
-                context.StockEntryItems.Add(entryItem);
 
-                // Link the movement back to this stock entry
-                var movement = await context.InventoryMovements.FindAsync([movementId], ct);
-                if (movement != null)
+                context.StockEntries.Add(stockEntry);
+                await context.SaveChangesAsync(ct);
+
+                var itemResults = new List<StockEntryItemResultDto>();
+
+                foreach (var (item, movementId) in movementResults)
                 {
-                    movement.StockEntryId = stockEntry.Id;
-                    movement.ModifiedBy = currentUser;
-                    movement.ModifiedAt = currentTime;
+                    var entryItem = new StockEntryItem
+                    {
+                        StockEntryId = stockEntry.Id,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        UnitCost = item.UnitCost,
+                        InventoryMovementId = movementId,
+                        CreatedBy = currentUser,
+                        CreatedAt = currentTime,
+                        ModifiedBy = currentUser,
+                        ModifiedAt = currentTime
+                    };
+                    context.StockEntryItems.Add(entryItem);
+
+                    // Link the movement back to this stock entry
+                    var movement = await context.InventoryMovements.FindAsync([movementId], ct);
+                    if (movement != null)
+                    {
+                        movement.StockEntryId = stockEntry.Id;
+                        movement.ModifiedBy = currentUser;
+                        movement.ModifiedAt = currentTime;
+                    }
+
+                    itemResults.Add(new StockEntryItemResultDto
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = string.Empty,
+                        ProductCode = string.Empty,
+                        Quantity = item.Quantity,
+                        UnitCost = item.UnitCost,
+                        InventoryMovementId = movementId,
+                        Success = true
+                    });
                 }
 
-                itemResults.Add(new StockEntryItemResultDto
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                var locationName = (await context.Locations.FindAsync([dto.LocationId], ct))?.Name ?? string.Empty;
+
+                var resultDto = new StockEntryDto
                 {
-                    ProductId = item.ProductId,
-                    ProductName = string.Empty,
-                    ProductCode = string.Empty,
-                    Quantity = item.Quantity,
-                    UnitCost = item.UnitCost,
-                    InventoryMovementId = movementId,
-                    Success = true
-                });
-            }
+                    Id = stockEntry.Id,
+                    MovementType = stockEntry.MovementType,
+                    MovementSubType = stockEntry.MovementSubType,
+                    LocationId = stockEntry.LocationId,
+                    LocationName = locationName,
+                    SupplierId = stockEntry.SupplierId,
+                    SupplierName = stockEntry.SupplierName,
+                    DocumentNumber = stockEntry.DocumentNumber,
+                    Reference = stockEntry.Reference,
+                    Reason = stockEntry.Reason,
+                    EntryDate = stockEntry.EntryDate,
+                    AttachmentFileName = stockEntry.AttachmentFileName,
+                    AttachmentMimeType = stockEntry.AttachmentMimeType,
+                    Items = itemResults
+                };
 
-            await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-
-            var locationName = (await context.Locations.FindAsync([dto.LocationId], ct))?.Name ?? string.Empty;
-
-            var resultDto = new StockEntryDto
-            {
-                Id = stockEntry.Id,
-                MovementType = stockEntry.MovementType,
-                MovementSubType = stockEntry.MovementSubType,
-                LocationId = stockEntry.LocationId,
-                LocationName = locationName,
-                SupplierId = stockEntry.SupplierId,
-                SupplierName = stockEntry.SupplierName,
-                DocumentNumber = stockEntry.DocumentNumber,
-                Reference = stockEntry.Reference,
-                Reason = stockEntry.Reason,
-                EntryDate = stockEntry.EntryDate,
-                AttachmentFileName = stockEntry.AttachmentFileName,
-                AttachmentMimeType = stockEntry.AttachmentMimeType,
-                Items = itemResults
-            };
-
-            return Result<StockEntryDto>.Success(resultDto);
+                return Result<StockEntryDto>.Success(resultDto);
+            });
         }
         catch (Exception ex)
         {

@@ -193,7 +193,7 @@ public class SaleInventoryTests
             .Returns((string key, object[] args) => new LocalizedString(key, string.Format(key, args)));
 
         var docSeqMock = new Mock<IDocumentSequenceService>();
-        docSeqMock.Setup(d => d.GetNextNumberAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+        docSeqMock.Setup(d => d.GetNextNumberAsync(It.IsAny<ApplicationDbContext>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
             .ReturnsAsync("REM-TEST-0001");
 
         _remissionService = new RemissionService(

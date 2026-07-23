@@ -1,9 +1,9 @@
-﻿using AutoMapper;
-
-using App.Core.DTOs.Settings;
+﻿using App.Core.DTOs.Settings;
 using App.Models.Data.Contexts;
 using App.Models.Settings;
 using App.Shared.Services;
+
+using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -41,7 +41,7 @@ public class TaxRateService : ITaxRateService
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            
+
             var rate = await context.TaxRates
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -63,7 +63,7 @@ public class TaxRateService : ITaxRateService
 
             var query = context.TaxRates
                 .AsNoTracking()
-                .Where(x => x.CountryCode == countryCode && 
+                .Where(x => x.CountryCode == countryCode &&
                            x.IsActive &&
                            x.EffectiveFrom <= _dateTime.Now &&
                            (!x.EffectiveTo.HasValue || x.EffectiveTo > _dateTime.Now));
@@ -88,8 +88,8 @@ public class TaxRateService : ITaxRateService
     }
 
     public async Task<IList<TaxRateDto>> GetHistoricalRatesAsync(
-        string countryCode, 
-        DateTime startDate, 
+        string countryCode,
+        DateTime startDate,
         DateTime endDate)
     {
         try
@@ -129,8 +129,8 @@ public class TaxRateService : ITaxRateService
 
             // Validate unique code for country
             var codeExists = await context.TaxRates
-                .AnyAsync(x => x.CountryCode == createDto.CountryCode && 
-                              x.Code == createDto.Code && 
+                .AnyAsync(x => x.CountryCode == createDto.CountryCode &&
+                              x.Code == createDto.Code &&
                               x.IsActive);
 
             if (codeExists)
@@ -185,7 +185,7 @@ public class TaxRateService : ITaxRateService
             }
 
             // Validte rate if it changed
-            if (updateDto.Rate != rate.Rate && 
+            if (updateDto.Rate != rate.Rate &&
                 !await ValidateRateAsync(rate.CountryCode, updateDto.Rate))
             {
                 throw new InvalidOperationException(
@@ -233,8 +233,8 @@ public class TaxRateService : ITaxRateService
     }
 
     public async Task<decimal> GetEffectiveRateAsync(
-        string countryCode, 
-        string? provinceCode = null, 
+        string countryCode,
+        string? provinceCode = null,
         DateTime? effectiveDate = null)
     {
         try
@@ -265,31 +265,35 @@ public class TaxRateService : ITaxRateService
     public async Task<bool> DeleteRateAsync(int id)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
-        try
-        {            
-            var rate = await context.TaxRates.FindAsync(id);
-            if (rate == null) return false;
-
-            rate.IsActive = false;
-            rate.IsDefault = false;
-            rate.ModifiedBy = _currentUserService.FullName;
-            await context.SaveChangesAsync();
-            
-            rate.DeletedBy = _currentUserService.FullName;
-            context.TaxRates.Remove(rate);
-
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return true;
-        }
-        catch (Exception ex)
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            _logger.LogError(ex, "Error deleting tax rate {Id}", id);
-            await transaction.RollbackAsync();
-            throw;
-        }
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var rate = await context.TaxRates.FindAsync(id);
+                if (rate == null) return false;
+
+                rate.IsActive = false;
+                rate.IsDefault = false;
+                rate.ModifiedBy = _currentUserService.FullName;
+                await context.SaveChangesAsync();
+
+                rate.DeletedBy = _currentUserService.FullName;
+                context.TaxRates.Remove(rate);
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting tax rate {Id}", id);
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
 
     public async Task<bool> ValidateRateAsync(string countryCode, decimal rate)

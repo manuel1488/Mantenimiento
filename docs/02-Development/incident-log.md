@@ -164,3 +164,78 @@ También se generó localmente el SQL de la migración base (`dotnet ef migratio
 
 - Aplicar la migración `WidenWholesaleFixedPricePrecision` en producción (no se ejecutó en este incidente, solo se diagnosticó y corrigió el código).
 - Decidir si se corrige el índice único filtrado (`HasFilter("IsDeleted = 0")`) que Pomelo ignora en MySQL — hoy no es la causa de ningún bug conocido, pero es una condición latente para cualquier tabla con soft-delete + índice único compuesto.
+
+---
+
+## 2026-07-22 — `sistema.cleeny.com.mx` sin responder (~20 min), resuelto con reinicio manual
+
+### Síntoma
+
+Usuario reporta que `https://sistema.cleeny.com.mx/` no carga. Un monitor de uptime externo registró **5 minutos y 12 segundos de inactividad**. El usuario reinició manualmente el contenedor `app-prod-web-prod` antes de que se completara el diagnóstico, y el sitio volvió a responder de inmediato.
+
+### Diagnóstico
+
+Con el contexto Docker remoto (`docker --context cleeny`), sin acceso SSH manual:
+
+```bash
+docker --context cleeny ps -a
+# app-prod-web-prod: Up About a minute (healthy) — sugiere reinicio reciente
+# app-prod-mysql:    Up 5 days (healthy)
+
+docker --context cleeny logs app-prod-web-prod --since 20m
+docker --context cleeny inspect app-prod-web-prod --format='OOMKilled={{.State.OOMKilled}} ExitCode={{.State.ExitCode}}'
+# OOMKilled=false ExitCode=0 → apagado limpio, no un crash ni un OOM-kill
+docker --context cleeny stats --no-stream
+# Memoria al 20%, CPU casi en cero → no fue agotamiento de recursos
+```
+
+El log del día mostró:
+
+```
+12:46:32.669 [ERR] An error occurred using the connection to database 'App' on server 'db'.
+14:41:20.009 [WRN] 404 Not Found: ...   ← la app siguió respondiendo después del error
+14:41:26.461 [WRN] 404 Not Found: ...
+                                         ← silencio total ~20 min (consistente con el cuelgue reportado)
+15:01:07.864 [INF] Application is shutting down...   ← reinicio manual del usuario
+15:01:23.774 [INF] Application started.
+```
+
+`RestartCount: 0` en `docker inspect` confirma que no fue un reinicio automático por política de Docker — fue el reinicio manual del usuario el que resolvió el cuelgue.
+
+### Causa raíz
+
+El único error de MySQL registrado (12:46:32) no tiene traza de excepción en el log (el mensaje es el diagnóstico interno de EF Core, sin `{Exception}` adjunto — ver "Deuda técnica" abajo). No se pudo confirmar con certeza que ese error específico causara el cuelgue posterior; es la explicación más plausible dado que es el único evento anómalo antes del silencio, pero no hay prueba definitiva.
+
+Se confirmó una causa raíz de fondo real en el código, independiente de si fue la causante exacta de este incidente: **`Database:MaxRetryCount: 3` estaba definido en `appsettings.json` pero nunca se usaba** — `Program.cs` configuraba MySQL sin `EnableRetryOnFailure()`. Cualquier fallo transitorio de conexión (timeout de red, `wait_timeout` del servidor, blip momentáneo) no se reintentaba automáticamente.
+
+### Reparación aplicada
+
+1. **`Program.cs`**: se agregó `mySqlOptions.EnableRetryOnFailure(databaseOptions.MaxRetryCount)` a la configuración de `UseMySql`.
+
+2. **Habilitar retry sin romper transacciones manuales.** EF Core prohíbe usar `Database.BeginTransactionAsync()` bajo una execution strategy de reintento sin envolverla en `Database.CreateExecutionStrategy().ExecuteAsync(...)` — lanza `InvalidOperationException` en tiempo de ejecución si no se hace. Se auditaron y envolvieron los **20 sitios** que abren transacciones manuales:
+   - `IdentityService` (`CreateUserAsync`, `UpdateUserAsync`)
+   - `ProductPartialSurchargeService.UpdateProductSurchargesAsync`
+   - `StockEntryService.CreateStockEntryAsync`
+   - `AdjustmentEntryService.CreateAdjustmentEntryAsync`
+   - `TaxRateService.DeleteRateAsync`
+   - `CashRegisterService.CloseCashRegisterAsync`
+   - `RemissionService` (`CreateAsync`, `CancelAsync`, `ConsolidateAsync`)
+   - `InventoryService` (`CreateMovementAsync`, `CreateTransferAsync`, `CreateInitialInventoryAsync`, `CreateBulkInitialInventoryAsync`, `CreateInventoryAdjustmentAsync`)
+   - `SaleService` (`CreateSaleAsync`, `CancelSaleAsync`)
+   - `ProductWholesalePriceService.UpdateProductWholesalePricesAsync`
+   - `CfdiPostalCodeSeeder.BulkInsertAsync`, `MexicoFiscalCatalogSeeder.BulkInsertAsync`
+
+3. **Bug de fondo encontrado y corregido durante la auditoría**: `RemissionService.CreateAsync` generaba el folio (`REM-{año}-{consecutivo}`) llamando a `DocumentSequenceService.GetNextNumberAsync`, que abría **su propio `DbContext` y hacía commit por su cuenta**, fuera de la transacción de la remisión. Si el bloque completo se reintentaba por una falla transitoria, se habría generado un **segundo folio distinto** (el primero quedaba perdido, saltando un número). Se cambió `IDocumentSequenceService.GetNextNumberAsync` para que reciba el `ApplicationDbContext` del llamador en lugar de abrir uno propio, de modo que el incremento participe en la misma transacción/reintento que el resto de la operación (afecta también a `QuotationService`, que generaba folios de la misma forma sin estar bajo transacción explícita, pero se corrigió igual por consistencia). La interfaz se movió de `App.Core.Interfaces.Shop` a `App.Services.Shop` porque ahora depende de `ApplicationDbContext` (capa de datos), seleccionado siguiendo el mismo patrón ya usado por `IContextualInventoryService`.
+
+4. **Correos de alerta de stock duplicados en un reintento**: en `InventoryService.CreateTransferAsync` y `CreateInventoryAdjustmentAsync`, el envío de correo de alerta (`Task.Run(SendInventoryAlertAsync)`) se sacó fuera del bloque envuelto en `ExecuteAsync`, para que un reintento transitorio no reenvíe el correo. `CreateMovementAsync` (con contexto compartido, usado por Ventas/Remisiones/Entradas/Ajustes) quedó con el riesgo aceptado sin resolver — ver deuda técnica.
+
+Verificación: build limpio (`dotnet build App.sln`, 0 errores) y suite completa de pruebas (`dotnet test tests/App.Services.Tests`, 255/255 exitosas) tras el cambio.
+
+**Validación contra MySQL real.** Ya existía `RemissionRollbackContainerTests` (`tests/App.Services.Tests/Shop/TransactionIntegrityTests.cs`), una fixture con Testcontainers que levanta un MySQL 8.0 real para probar rollback — pero construía sus propias `DbContextOptions` **sin** `EnableRetryOnFailure`, por lo que no ejercitaba la execution strategy de reintento agregada esta noche. Se le agregó `EnableRetryOnFailure(3)` (igual que `Program.cs`), y se agregó un test nuevo (`CreateRemission_RealDocumentSequence_FolioRolledBackOnFailure_NoGapOnNextSuccess`) que usa el **`DocumentSequenceService` real** (no un mock) para probar directamente el bug de folios que se corrigió: confirma que el incremento del folio se revierte junto con la remisión fallida (sin fila huérfana en `sh_document_sequences`), y que la siguiente remisión exitosa recibe `REM-{año}-0001` sin saltos. 6/6 pruebas de esta fixture pasan contra MySQL real con retry habilitado.
+
+**Cobertura de integración real que queda pendiente**: de los 20 sitios envueltos, solo `RemissionService.CreateAsync` y `SaleService.CreateSaleAsync`/`CancelSaleAsync` tienen prueba contra MySQL real. Los otros 17 (`IdentityService`, `ProductPartialSurchargeService`, `StockEntryService`, `AdjustmentEntryService`, `TaxRateService`, `CashRegisterService`, `RemissionService.CancelAsync`/`ConsolidateAsync`, la mayoría de `InventoryService`, `ProductWholesalePriceService`, los 2 seeders) solo están cubiertos por build + tests unitarios con mocks/EF InMemory, que no ejercitan la execution strategy de reintento real. Ver [tech-debt.md](tech-debt.md).
+
+### Pendiente / deuda técnica generada
+
+- Ver [tech-debt.md](tech-debt.md): posible correo de alerta duplicado en `CreateMovementAsync` bajo reintento transitorio; `IdentityService` con transacción que no cubre realmente las operaciones de `UserManager` (bug preexistente, solo confirmado durante esta auditoría).
+- El log de producción no adjunta la traza de excepción completa en los mensajes `[ERR]` — dificultó confirmar la causa exacta del cuelgue. Considerar revisar la plantilla de salida de Serilog para asegurar que `{Exception}` se incluya de forma consistente.

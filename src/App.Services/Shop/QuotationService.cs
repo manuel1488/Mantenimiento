@@ -1,7 +1,3 @@
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
 using App.Core.Common;
 using App.Core.DTOs.Shop;
 using App.Core.DTOs.Shop.Calculation;
@@ -12,10 +8,17 @@ using App.Core.Interfaces.Shop;
 using App.Core.Models.Email;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
-using App.Shared.Services;
 using App.Services.Billing;
 using App.Services.Resources.PdfTemplates;
 using App.Services.Settings;
+using App.Shared.Services;
+
+using AutoMapper;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
+
 using Scriban;
 
 namespace App.Services.Shop;
@@ -188,7 +191,7 @@ public class QuotationService : IQuotationService
             var countryCode = companySettings?.CountryCode ?? "MX";
             var taxRate = await _taxRateService.GetEffectiveRateAsync(countryCode);
 
-            var quotationNumber = await _documentSequenceService.GetNextNumberAsync("Quotation", "COT", now.Year);
+            var quotationNumber = await _documentSequenceService.GetNextNumberAsync(context, "Quotation", "COT", now.Year);
 
             var quotation = new Quotation
             {
@@ -467,7 +470,7 @@ public class QuotationService : IQuotationService
 
             var validTransitions = new Dictionary<QuotationStatus, QuotationStatus[]>
             {
-                [QuotationStatus.Draft]   = [QuotationStatus.Pending],
+                [QuotationStatus.Draft] = [QuotationStatus.Pending],
                 [QuotationStatus.Pending] = [QuotationStatus.Accepted, QuotationStatus.Rejected, QuotationStatus.Expired],
             };
 
@@ -752,116 +755,116 @@ public class QuotationService : IQuotationService
         {
             // Document
             quotation_number = quotation.QuotationNumber,
-            quote_date       = quotation.QuoteDate.ToString("dd/MM/yyyy"),
-            valid_until      = quotation.ValidUntil.ToString("dd/MM/yyyy"),
-            notes            = quotation.Notes ?? string.Empty,
-            has_notes        = !string.IsNullOrEmpty(quotation.Notes),
+            quote_date = quotation.QuoteDate.ToString("dd/MM/yyyy"),
+            valid_until = quotation.ValidUntil.ToString("dd/MM/yyyy"),
+            notes = quotation.Notes ?? string.Empty,
+            has_notes = !string.IsNullOrEmpty(quotation.Notes),
 
             // Totals
-            subtotal        = $"{sym}{quotation.Subtotal:N2}",
-            has_discount    = quotation.DiscountAmount > 0,
+            subtotal = $"{sym}{quotation.Subtotal:N2}",
+            has_discount = quotation.DiscountAmount > 0,
             discount_amount = $"{sym}{quotation.DiscountAmount:N2}",
-            tax_amount      = $"{sym}{quotation.TaxAmount:N2}",
-            total           = $"{sym}{quotation.Total:N2}",
+            tax_amount = $"{sym}{quotation.TaxAmount:N2}",
+            total = $"{sym}{quotation.Total:N2}",
 
             // Line items
             has_discounts = hasDiscounts,
             details = details.Select((d, i) => new
             {
-                index          = i + 1,
-                product_code   = d.ProductCode ?? string.Empty,
-                product_name   = d.ProductName ?? string.Empty,
-                quantity       = d.Quantity.ToString("G29"),
-                unit_price     = $"{sym}{d.UnitPrice:N2}",
+                index = i + 1,
+                product_code = d.ProductCode ?? string.Empty,
+                product_name = d.ProductName ?? string.Empty,
+                quantity = d.Quantity.ToString("G29"),
+                unit_price = $"{sym}{d.UnitPrice:N2}",
                 discount_amount = d.DiscountAmount > 0 ? $"-{sym}{d.DiscountAmount:N2}" : string.Empty,
-                tax_amount     = $"{sym}{d.TaxAmount:N2}",
-                total          = $"{sym}{d.Total:N2}"
+                tax_amount = $"{sym}{d.TaxAmount:N2}",
+                total = $"{sym}{d.Total:N2}"
             }).ToList(),
 
             // Company
             company_name = companySettings?.CompanyName ?? "Cleeny",
-            has_logo     = !string.IsNullOrEmpty(logoBase64),
-            logo_base64  = logoBase64,
+            has_logo = !string.IsNullOrEmpty(logoBase64),
+            logo_base64 = logoBase64,
 
             // Customer — commercial
-            customer_name         = c.Name,
-            has_contact_name      = !string.IsNullOrWhiteSpace(c.ContactName),
+            customer_name = c.Name,
+            has_contact_name = !string.IsNullOrWhiteSpace(c.ContactName),
             customer_contact_name = c.ContactName ?? string.Empty,
-            has_customer_email    = !string.IsNullOrEmpty(c.FiscalProfile?.FiscalEmail ?? c.Email),
-            customer_email        = c.FiscalProfile?.FiscalEmail ?? c.Email ?? string.Empty,
-            has_customer_phone    = !string.IsNullOrEmpty(c.Phone),
-            customer_phone        = c.Phone ?? string.Empty,
-            has_customer_address  = !string.IsNullOrWhiteSpace(commercialAddress),
-            customer_address      = commercialAddress,
+            has_customer_email = !string.IsNullOrEmpty(c.FiscalProfile?.FiscalEmail ?? c.Email),
+            customer_email = c.FiscalProfile?.FiscalEmail ?? c.Email ?? string.Empty,
+            has_customer_phone = !string.IsNullOrEmpty(c.Phone),
+            customer_phone = c.Phone ?? string.Empty,
+            has_customer_address = !string.IsNullOrWhiteSpace(commercialAddress),
+            customer_address = commercialAddress,
 
             // Customer — fiscal
             customer_has_fiscal_data = hasFiscalData,
-            customer_tax_id          = c.FiscalProfile?.TaxId ?? string.Empty,
-            show_legal_name          = !string.IsNullOrEmpty(c.FiscalProfile?.LegalName) && c.FiscalProfile?.LegalName != c.Name,
-            customer_legal_name      = c.FiscalProfile?.LegalName ?? string.Empty,
-            has_fiscal_regime        = !string.IsNullOrEmpty(c.FiscalProfile?.FiscalRegime),
-            customer_fiscal_regime   = c.FiscalProfile?.FiscalRegime ?? string.Empty,
+            customer_tax_id = c.FiscalProfile?.TaxId ?? string.Empty,
+            show_legal_name = !string.IsNullOrEmpty(c.FiscalProfile?.LegalName) && c.FiscalProfile?.LegalName != c.Name,
+            customer_legal_name = c.FiscalProfile?.LegalName ?? string.Empty,
+            has_fiscal_regime = !string.IsNullOrEmpty(c.FiscalProfile?.FiscalRegime),
+            customer_fiscal_regime = c.FiscalProfile?.FiscalRegime ?? string.Empty,
 
             // Payment terms
-            has_payment_terms  = !string.IsNullOrWhiteSpace(quotationSettings.PaymentTermsText),
+            has_payment_terms = !string.IsNullOrWhiteSpace(quotationSettings.PaymentTermsText),
             payment_terms_text = quotationSettings.PaymentTermsText ?? string.Empty,
 
             // Bank
-            show_bank_details      = showBank,
-            bank_beneficiary       = quotationSettings.BankBeneficiary ?? string.Empty,
-            bank_rfc               = quotationSettings.BankRfc ?? string.Empty,
-            bank_name              = quotationSettings.BankName ?? string.Empty,
-            bank_account_number    = quotationSettings.BankAccountNumber ?? string.Empty,
-            bank_clabe_number      = quotationSettings.BankClabeNumber ?? string.Empty,
-            bank_swift             = quotationSettings.BankSwift ?? string.Empty,
-            has_bank_beneficiary   = !string.IsNullOrWhiteSpace(quotationSettings.BankBeneficiary),
-            has_bank_rfc           = !string.IsNullOrWhiteSpace(quotationSettings.BankRfc),
-            has_bank_name          = !string.IsNullOrWhiteSpace(quotationSettings.BankName),
+            show_bank_details = showBank,
+            bank_beneficiary = quotationSettings.BankBeneficiary ?? string.Empty,
+            bank_rfc = quotationSettings.BankRfc ?? string.Empty,
+            bank_name = quotationSettings.BankName ?? string.Empty,
+            bank_account_number = quotationSettings.BankAccountNumber ?? string.Empty,
+            bank_clabe_number = quotationSettings.BankClabeNumber ?? string.Empty,
+            bank_swift = quotationSettings.BankSwift ?? string.Empty,
+            has_bank_beneficiary = !string.IsNullOrWhiteSpace(quotationSettings.BankBeneficiary),
+            has_bank_rfc = !string.IsNullOrWhiteSpace(quotationSettings.BankRfc),
+            has_bank_name = !string.IsNullOrWhiteSpace(quotationSettings.BankName),
             has_bank_account_number = !string.IsNullOrWhiteSpace(quotationSettings.BankAccountNumber),
-            has_bank_clabe         = !string.IsNullOrWhiteSpace(quotationSettings.BankClabeNumber),
-            has_bank_swift         = !string.IsNullOrWhiteSpace(quotationSettings.BankSwift),
+            has_bank_clabe = !string.IsNullOrWhiteSpace(quotationSettings.BankClabeNumber),
+            has_bank_swift = !string.IsNullOrWhiteSpace(quotationSettings.BankSwift),
 
             // Contact
-            show_contact_info      = showContact,
-            contact_website        = quotationSettings.ContactWebsite ?? string.Empty,
-            contact_phone          = quotationSettings.ContactPhone ?? string.Empty,
-            contact_email          = quotationSettings.ContactEmail ?? string.Empty,
-            contact_whatsapp       = quotationSettings.ContactWhatsapp ?? string.Empty,
-            contact_facebook       = quotationSettings.ContactFacebook ?? string.Empty,
-            contact_instagram      = quotationSettings.ContactInstagram ?? string.Empty,
-            has_contact_website    = !string.IsNullOrWhiteSpace(quotationSettings.ContactWebsite),
-            has_contact_phone      = !string.IsNullOrWhiteSpace(quotationSettings.ContactPhone),
-            has_contact_email      = !string.IsNullOrWhiteSpace(quotationSettings.ContactEmail),
-            has_contact_whatsapp   = !string.IsNullOrWhiteSpace(quotationSettings.ContactWhatsapp),
-            has_contact_facebook   = !string.IsNullOrWhiteSpace(quotationSettings.ContactFacebook),
-            has_contact_instagram  = !string.IsNullOrWhiteSpace(quotationSettings.ContactInstagram),
+            show_contact_info = showContact,
+            contact_website = quotationSettings.ContactWebsite ?? string.Empty,
+            contact_phone = quotationSettings.ContactPhone ?? string.Empty,
+            contact_email = quotationSettings.ContactEmail ?? string.Empty,
+            contact_whatsapp = quotationSettings.ContactWhatsapp ?? string.Empty,
+            contact_facebook = quotationSettings.ContactFacebook ?? string.Empty,
+            contact_instagram = quotationSettings.ContactInstagram ?? string.Empty,
+            has_contact_website = !string.IsNullOrWhiteSpace(quotationSettings.ContactWebsite),
+            has_contact_phone = !string.IsNullOrWhiteSpace(quotationSettings.ContactPhone),
+            has_contact_email = !string.IsNullOrWhiteSpace(quotationSettings.ContactEmail),
+            has_contact_whatsapp = !string.IsNullOrWhiteSpace(quotationSettings.ContactWhatsapp),
+            has_contact_facebook = !string.IsNullOrWhiteSpace(quotationSettings.ContactFacebook),
+            has_contact_instagram = !string.IsNullOrWhiteSpace(quotationSettings.ContactInstagram),
 
             // Localised labels
-            label_quotation           = _localizer["Quotation"].Value,
-            label_date                = _localizer["Date"].Value,
-            label_valid_until         = _localizer["Valid Until"].Value,
-            label_quotation_number    = _localizer["Quotation #"].Value,
-            label_customer            = _localizer["Customer"].Value,
-            label_fiscal_data         = _localizer["Fiscal Data"].Value,
-            label_tax_id              = _localizer["Tax ID"].Value,
-            label_fiscal_regime       = _localizer["Fiscal Regime"].Value,
-            label_code                = _localizer["Code"].Value,
-            label_product             = _localizer["Product"].Value,
-            label_qty                 = _localizer["Qty"].Value,
-            label_unit_price          = _localizer["Unit Price"].Value,
-            label_discount            = _localizer["Discount"].Value,
-            label_tax                 = _localizer["Tax"].Value,
-            label_total               = _localizer["Total"].Value,
-            label_subtotal            = _localizer["Subtotal"].Value,
-            label_notes_conditions    = _localizer["Notes & Conditions"].Value,
-            label_payment_terms       = _localizer["Payment Terms"].Value,
+            label_quotation = _localizer["Quotation"].Value,
+            label_date = _localizer["Date"].Value,
+            label_valid_until = _localizer["Valid Until"].Value,
+            label_quotation_number = _localizer["Quotation #"].Value,
+            label_customer = _localizer["Customer"].Value,
+            label_fiscal_data = _localizer["Fiscal Data"].Value,
+            label_tax_id = _localizer["Tax ID"].Value,
+            label_fiscal_regime = _localizer["Fiscal Regime"].Value,
+            label_code = _localizer["Code"].Value,
+            label_product = _localizer["Product"].Value,
+            label_qty = _localizer["Qty"].Value,
+            label_unit_price = _localizer["Unit Price"].Value,
+            label_discount = _localizer["Discount"].Value,
+            label_tax = _localizer["Tax"].Value,
+            label_total = _localizer["Total"].Value,
+            label_subtotal = _localizer["Subtotal"].Value,
+            label_notes_conditions = _localizer["Notes & Conditions"].Value,
+            label_payment_terms = _localizer["Payment Terms"].Value,
             label_wire_transfer_details = _localizer["Wire Transfer Details"].Value,
-            label_beneficiary         = _localizer["Beneficiary"].Value,
-            label_rfc                 = _localizer["RFC"].Value,
-            label_bank                = _localizer["Bank"].Value,
-            label_account_number      = _localizer["Account Number"].Value,
-            label_end_of_document     = _localizer["End of Document"].Value,
-            label_valid_until_footer  = _localizer["This quotation is valid until"].Value,
+            label_beneficiary = _localizer["Beneficiary"].Value,
+            label_rfc = _localizer["RFC"].Value,
+            label_bank = _localizer["Bank"].Value,
+            label_account_number = _localizer["Account Number"].Value,
+            label_end_of_document = _localizer["End of Document"].Value,
+            label_valid_until_footer = _localizer["This quotation is valid until"].Value,
         };
 
         // ── Choose body: custom HTML from DB or embedded default ───────────

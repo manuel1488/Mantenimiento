@@ -1,4 +1,3 @@
-using AutoMapper;
 using App.Core.Common;
 using App.Core.DTOs.Shop;
 using App.Core.Enums.Shop;
@@ -8,9 +7,13 @@ using App.Models.Data.Contexts;
 using App.Models.Settings;
 using App.Models.Shop;
 using App.Shared.Services;
+
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+
 using PaymentMethodType = App.Core.Enums.Shop.PaymentMethodType;
 using SaleStatus = App.Core.Enums.Shop.SaleStatus;
 
@@ -207,63 +210,67 @@ public class CashRegisterService : ICashRegisterService
     public async Task<Result<CashRegisterDto>> CloseCashRegisterAsync(CloseCashRegisterDto dto)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        await using var transaction = await context.Database.BeginTransactionAsync();
-        try
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var cashRegister = await context.CashRegisters
-                .Include(c => c.Location)
-                .Include(c => c.Movements)
-                .Include(c => c.Denominations)
-                .FirstOrDefaultAsync(c => c.Id == dto.CashRegisterId);
-
-            if (cashRegister == null)
-                return Result<CashRegisterDto>.Failure(L["Cash register not found"]);
-
-            if (cashRegister.Status == CashRegisterStatus.Closed)
-                return Result<CashRegisterDto>.Failure(L["Cash register is already closed"]);
-
-            var now = _dateTime.Now;
-
-            // Save denomination counts (only non-zero quantities)
-            foreach (var (denominationValue, quantity) in dto.DenominationCounts.Where(kvp => kvp.Value > 0))
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
             {
-                var catalogEntry = DenominationCatalog.FirstOrDefault(d => d.Value == denominationValue);
-                if (catalogEntry == default) continue;
+                var cashRegister = await context.CashRegisters
+                    .Include(c => c.Location)
+                    .Include(c => c.Movements)
+                    .Include(c => c.Denominations)
+                    .FirstOrDefaultAsync(c => c.Id == dto.CashRegisterId);
 
-                context.CashRegisterDenominations.Add(new CashRegisterDenomination
+                if (cashRegister == null)
+                    return Result<CashRegisterDto>.Failure(L["Cash register not found"]);
+
+                if (cashRegister.Status == CashRegisterStatus.Closed)
+                    return Result<CashRegisterDto>.Failure(L["Cash register is already closed"]);
+
+                var now = _dateTime.Now;
+
+                // Save denomination counts (only non-zero quantities)
+                foreach (var (denominationValue, quantity) in dto.DenominationCounts.Where(kvp => kvp.Value > 0))
                 {
-                    CashRegisterId = cashRegister.Id,
-                    DenominationType = catalogEntry.Type,
-                    DenominationValue = denominationValue,
-                    Quantity = quantity,
-                    CreatedBy = _currentUserService.FullName,
-                    CreatedAt = now,
-                    ModifiedBy = _currentUserService.FullName,
-                    ModifiedAt = now
-                });
+                    var catalogEntry = DenominationCatalog.FirstOrDefault(d => d.Value == denominationValue);
+                    if (catalogEntry == default) continue;
+
+                    context.CashRegisterDenominations.Add(new CashRegisterDenomination
+                    {
+                        CashRegisterId = cashRegister.Id,
+                        DenominationType = catalogEntry.Type,
+                        DenominationValue = denominationValue,
+                        Quantity = quantity,
+                        CreatedBy = _currentUserService.FullName,
+                        CreatedAt = now,
+                        ModifiedBy = _currentUserService.FullName,
+                        ModifiedAt = now
+                    });
+                }
+
+                cashRegister.Status = CashRegisterStatus.Closed;
+                cashRegister.ClosingNotes = dto.ClosingNotes;
+                cashRegister.ClosedAt = now;
+                cashRegister.ModifiedBy = _currentUserService.FullName;
+                cashRegister.ModifiedAt = now;
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Reload denominations after save
+                await context.Entry(cashRegister).Collection(c => c.Denominations).LoadAsync();
+
+                var result = await BuildCashRegisterDtoAsync(context, cashRegister);
+                return Result<CashRegisterDto>.Success(result);
             }
-
-            cashRegister.Status = CashRegisterStatus.Closed;
-            cashRegister.ClosingNotes = dto.ClosingNotes;
-            cashRegister.ClosedAt = now;
-            cashRegister.ModifiedBy = _currentUserService.FullName;
-            cashRegister.ModifiedAt = now;
-
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            // Reload denominations after save
-            await context.Entry(cashRegister).Collection(c => c.Denominations).LoadAsync();
-
-            var result = await BuildCashRegisterDtoAsync(context, cashRegister);
-            return Result<CashRegisterDto>.Success(result);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Error closing cash register {Id}", dto.CashRegisterId);
-            return Result<CashRegisterDto>.Failure(L["Error closing cash register"]);
-        }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error closing cash register {Id}", dto.CashRegisterId);
+                return Result<CashRegisterDto>.Failure(L["Error closing cash register"]);
+            }
+        });
     }
 
     public async Task<Result<CashRegisterMovementDto>> AddMovementAsync(AddCashRegisterMovementDto dto)

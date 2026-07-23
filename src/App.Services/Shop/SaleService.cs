@@ -1,20 +1,20 @@
-﻿using AutoMapper;
-
-using App.Core.Common;
+﻿using App.Core.Common;
 using App.Core.Constants;
 using App.Core.DTOs.Inventory;
 using App.Core.DTOs.Shop;
 using App.Core.DTOs.Shop.Calculation;
+using App.Core.Enums.Billing;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
-using App.Core.Enums.Billing;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Inventory;
 using App.Services.Settings;
 using App.Shared.Services;
+
+using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -186,13 +186,13 @@ public class SaleService : IContextualSaleService
             // Apply sorting — dynamic column sort with fallback to SaleDate desc
             var orderedQuery = sortColumn switch
             {
-                "Id"          => sortDescending ? query.OrderByDescending(s => s.Id)            : query.OrderBy(s => s.Id),
-                "SaleDate"    => sortDescending ? query.OrderByDescending(s => s.SaleDate)       : query.OrderBy(s => s.SaleDate),
-                "CustomerName"=> sortDescending ? query.OrderByDescending(s => s.Customer.Name)  : query.OrderBy(s => s.Customer.Name),
-                "Total"       => sortDescending ? query.OrderByDescending(s => s.Total)          : query.OrderBy(s => s.Total),
-                "Status"      => sortDescending ? query.OrderByDescending(s => s.Status)         : query.OrderBy(s => s.Status),
-                "CreatedBy"   => sortDescending ? query.OrderByDescending(s => s.CreatedBy)      : query.OrderBy(s => s.CreatedBy),
-                _             => query.OrderByDescending(s => s.SaleDate)
+                "Id" => sortDescending ? query.OrderByDescending(s => s.Id) : query.OrderBy(s => s.Id),
+                "SaleDate" => sortDescending ? query.OrderByDescending(s => s.SaleDate) : query.OrderBy(s => s.SaleDate),
+                "CustomerName" => sortDescending ? query.OrderByDescending(s => s.Customer.Name) : query.OrderBy(s => s.Customer.Name),
+                "Total" => sortDescending ? query.OrderByDescending(s => s.Total) : query.OrderBy(s => s.Total),
+                "Status" => sortDescending ? query.OrderByDescending(s => s.Status) : query.OrderBy(s => s.Status),
+                "CreatedBy" => sortDescending ? query.OrderByDescending(s => s.CreatedBy) : query.OrderBy(s => s.CreatedBy),
+                _ => query.OrderByDescending(s => s.SaleDate)
             };
 
             // Apply pagination
@@ -263,20 +263,24 @@ public class SaleService : IContextualSaleService
     public async Task<Result<SaleDto>> CreateSaleAsync(CreateSaleDto createDto)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        await using var transaction = await context.Database.BeginTransactionAsync();
-        try
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var result = await CreateSaleInternalAsync(createDto, context);
-            if (result.IsSuccess)
-                await transaction.CommitAsync();
-            return result;
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Error creating sale");
-            return Result<SaleDto>.Failure(L["An error occurred while creating the sale: {0}", ex.Message]);
-        }
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var result = await CreateSaleInternalAsync(createDto, context);
+                if (result.IsSuccess)
+                    await transaction.CommitAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error creating sale");
+                return Result<SaleDto>.Failure(L["An error occurred while creating the sale: {0}", ex.Message]);
+            }
+        });
     }
 
     public async Task<Result<SaleDto>> CreateSaleAsync(
@@ -574,98 +578,102 @@ public class SaleService : IContextualSaleService
     public async Task<Result<bool>> CancelSaleAsync(long id, string reason)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
-        try
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var sale = await context.Sales
-                .Include(s => s.Details)
-                .FirstOrDefaultAsync(s => s.Id == id);
+            await using var transaction = await context.Database.BeginTransactionAsync();
 
-            if (sale == null)
+            try
             {
-                return Result<bool>.Failure(L["Sale not found with ID: {0}", id]);
-            }
+                var sale = await context.Sales
+                    .Include(s => s.Details)
+                    .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (sale.Status == App.Core.Enums.Shop.SaleStatus.Cancelled)
-            {
-                return Result<bool>.Success(true); // Already cancelled
-            }
-
-            // Use LocationId from the sale entity
-            int? locationId = sale.LocationId;
-            var currentUser = _currentUserService.UserId ?? "System";
-            var now = _dateTime.Now;
-
-            if (sale.SaleType == SaleType.Remission)
-            {
-                // For remission-consolidated sales, inventory is owned by the remissions.
-                // Revert associated remissions back to Pending so they can be cancelled individually.
-                var remissions = await context.Remissions
-                    .Where(r => r.ConsolidatedSaleId == sale.Id)
-                    .ToListAsync();
-
-                foreach (var remission in remissions)
+                if (sale == null)
                 {
-                    remission.Status = RemissionStatus.Active;
-                    remission.ConsolidatedSaleId = null;
-                    remission.ConsolidatedAt = null;
-                    remission.ConsolidatedBy = null;
-                    remission.ModifiedBy = currentUser;
-                    remission.ModifiedAt = now;
+                    return Result<bool>.Failure(L["Sale not found with ID: {0}", id]);
                 }
-            }
-            else
-            {
-                // Return inventory for products that require inventory tracking
-                var cancelProductIds = sale.Details.Select(d => d.ProductId).ToList();
-                var cancelInventoryFlags = await context.Products
-                    .AsNoTracking()
-                    .Where(p => cancelProductIds.Contains(p.Id))
-                    .Select(p => new { p.Id, p.RequiresInventory })
-                    .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
 
-                foreach (var detail in sale.Details)
+                if (sale.Status == App.Core.Enums.Shop.SaleStatus.Cancelled)
                 {
-                    if (cancelInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
-                        continue;
+                    return Result<bool>.Success(true); // Already cancelled
+                }
 
-                    var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
-                    {
-                        ProductId = detail.ProductId,
-                        LocationId = locationId ?? 0,
-                        Quantity = detail.Quantity,
-                        MovementType = InventoryMovementType.Return,
-                        MovementSubType = InventoryMovementSubType.DirectSale,
-                        Reference = $"Cancel-Sale-{sale.Id}",
-                        Reason = reason
-                    }, context);
+                // Use LocationId from the sale entity
+                int? locationId = sale.LocationId;
+                var currentUser = _currentUserService.UserId ?? "System";
+                var now = _dateTime.Now;
 
-                    if (!movementResult.Success)
+                if (sale.SaleType == SaleType.Remission)
+                {
+                    // For remission-consolidated sales, inventory is owned by the remissions.
+                    // Revert associated remissions back to Pending so they can be cancelled individually.
+                    var remissions = await context.Remissions
+                        .Where(r => r.ConsolidatedSaleId == sale.Id)
+                        .ToListAsync();
+
+                    foreach (var remission in remissions)
                     {
-                        throw new InvalidOperationException(
-                            L["Error returning inventory: {0}", movementResult.Message ?? "Unknown error"]);
+                        remission.Status = RemissionStatus.Active;
+                        remission.ConsolidatedSaleId = null;
+                        remission.ConsolidatedAt = null;
+                        remission.ConsolidatedBy = null;
+                        remission.ModifiedBy = currentUser;
+                        remission.ModifiedAt = now;
                     }
                 }
+                else
+                {
+                    // Return inventory for products that require inventory tracking
+                    var cancelProductIds = sale.Details.Select(d => d.ProductId).ToList();
+                    var cancelInventoryFlags = await context.Products
+                        .AsNoTracking()
+                        .Where(p => cancelProductIds.Contains(p.Id))
+                        .Select(p => new { p.Id, p.RequiresInventory })
+                        .ToDictionaryAsync(p => p.Id, p => p.RequiresInventory);
+
+                    foreach (var detail in sale.Details)
+                    {
+                        if (cancelInventoryFlags.TryGetValue(detail.ProductId, out var requiresInventory) && !requiresInventory)
+                            continue;
+
+                        var movementResult = await _inventoryService.CreateMovementAsync(new CreateInventoryMovementDto
+                        {
+                            ProductId = detail.ProductId,
+                            LocationId = locationId ?? 0,
+                            Quantity = detail.Quantity,
+                            MovementType = InventoryMovementType.Return,
+                            MovementSubType = InventoryMovementSubType.DirectSale,
+                            Reference = $"Cancel-Sale-{sale.Id}",
+                            Reason = reason
+                        }, context);
+
+                        if (!movementResult.Success)
+                        {
+                            throw new InvalidOperationException(
+                                L["Error returning inventory: {0}", movementResult.Message ?? "Unknown error"]);
+                        }
+                    }
+                }
+
+                // Update sale status
+                sale.Status = App.Core.Enums.Shop.SaleStatus.Cancelled;
+                sale.CancellationReason = reason;
+                sale.ModifiedBy = _currentUserService.FullName;
+                sale.ModifiedAt = _dateTime.Now;
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Result<bool>.Success(true);
             }
-
-            // Update sale status
-            sale.Status = App.Core.Enums.Shop.SaleStatus.Cancelled;
-            sale.CancellationReason = reason;
-            sale.ModifiedBy = _currentUserService.FullName;
-            sale.ModifiedAt = _dateTime.Now;
-
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Error cancelling sale {Id}", id);
-            return Result<bool>.Failure(L["An error occurred while cancelling the sale: {0}", ex.Message]);
-        }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error cancelling sale {Id}", id);
+                return Result<bool>.Failure(L["An error occurred while cancelling the sale: {0}", ex.Message]);
+            }
+        });
     }
 
     public async Task<Result<bool>> ValidateDiscountAsync(

@@ -1,11 +1,13 @@
-﻿using AutoMapper;
-using App.Core.Common;
+﻿using App.Core.Common;
 using App.Core.DTOs.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Shop;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Shared.Services;
+
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -102,71 +104,75 @@ public class ProductPartialSurchargeService : IProductPartialSurchargeService
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            await using var transaction = await context.Database.BeginTransactionAsync();
-
-            // Verify product exists and allows partial sales
-            var product = await context.Products
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
-
-            if (product == null)
-                return Result.Failure(L["Product not found"]);
-
-            if (!product.IsPartialSaleAllowed)
-                return Result.Failure(L["Product does not allow partial sales"]);
-
-            // Get existing surcharges
-            var existingSurcharges = await context.ProductPartialSurcharges
-                .Where(s => s.ProductId == dto.ProductId)
-                .ToListAsync();
-
-            // Process each surcharge in the update
-            foreach (var surchargeDto in dto.Surcharges)
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                var existing = existingSurcharges
-                    .FirstOrDefault(s => s.PartialSaleFractionId == surchargeDto.PartialSaleFractionId);
+                await using var transaction = await context.Database.BeginTransactionAsync();
 
-                if (existing != null)
+                // Verify product exists and allows partial sales
+                var product = await context.Products
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
+
+                if (product == null)
+                    return Result.Failure(L["Product not found"]);
+
+                if (!product.IsPartialSaleAllowed)
+                    return Result.Failure(L["Product does not allow partial sales"]);
+
+                // Get existing surcharges
+                var existingSurcharges = await context.ProductPartialSurcharges
+                    .Where(s => s.ProductId == dto.ProductId)
+                    .ToListAsync();
+
+                // Process each surcharge in the update
+                foreach (var surchargeDto in dto.Surcharges)
                 {
-                    // Update existing
-                    existing.SurchargePercentage = surchargeDto.SurchargePercentage;
-                    existing.IsActive = surchargeDto.IsActive;
-                    existing.ModifiedBy = _currentUserService.FullName;
-                    existing.ModifiedAt = _dateTime.Now;
-                }
-                else
-                {
-                    // Create new
-                    var newSurcharge = new ProductPartialSurcharge
+                    var existing = existingSurcharges
+                        .FirstOrDefault(s => s.PartialSaleFractionId == surchargeDto.PartialSaleFractionId);
+
+                    if (existing != null)
                     {
-                        ProductId = dto.ProductId,
-                        PartialSaleFractionId = surchargeDto.PartialSaleFractionId,
-                        SurchargePercentage = surchargeDto.SurchargePercentage,
-                        IsActive = surchargeDto.IsActive,
-                        CreatedBy = _currentUserService.FullName ?? "System",
-                        CreatedAt = _dateTime.Now
-                    };
-                    context.ProductPartialSurcharges.Add(newSurcharge);
+                        // Update existing
+                        existing.SurchargePercentage = surchargeDto.SurchargePercentage;
+                        existing.IsActive = surchargeDto.IsActive;
+                        existing.ModifiedBy = _currentUserService.FullName;
+                        existing.ModifiedAt = _dateTime.Now;
+                    }
+                    else
+                    {
+                        // Create new
+                        var newSurcharge = new ProductPartialSurcharge
+                        {
+                            ProductId = dto.ProductId,
+                            PartialSaleFractionId = surchargeDto.PartialSaleFractionId,
+                            SurchargePercentage = surchargeDto.SurchargePercentage,
+                            IsActive = surchargeDto.IsActive,
+                            CreatedBy = _currentUserService.FullName ?? "System",
+                            CreatedAt = _dateTime.Now
+                        };
+                        context.ProductPartialSurcharges.Add(newSurcharge);
+                    }
                 }
-            }
 
-            // Soft delete surcharges that are no longer in the list
-            var fractionIdsInUpdate = dto.Surcharges.Select(s => s.PartialSaleFractionId).ToHashSet();
-            var surchargesToRemove = existingSurcharges
-                .Where(s => !fractionIdsInUpdate.Contains(s.PartialSaleFractionId))
-                .ToList();
+                // Soft delete surcharges that are no longer in the list
+                var fractionIdsInUpdate = dto.Surcharges.Select(s => s.PartialSaleFractionId).ToHashSet();
+                var surchargesToRemove = existingSurcharges
+                    .Where(s => !fractionIdsInUpdate.Contains(s.PartialSaleFractionId))
+                    .ToList();
 
-            foreach (var toRemove in surchargesToRemove)
-            {
-                toRemove.IsDeleted = 1;
-                toRemove.DeletedBy = _currentUserService.FullName;
-                toRemove.DeletedAt = _dateTime.Now;
-            }
+                foreach (var toRemove in surchargesToRemove)
+                {
+                    toRemove.IsDeleted = 1;
+                    toRemove.DeletedBy = _currentUserService.FullName;
+                    toRemove.DeletedAt = _dateTime.Now;
+                }
 
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-            return Result.Success();
+                return Result.Success();
+            });
         }
         catch (Exception ex)
         {

@@ -3,6 +3,7 @@ using App.Core.Interfaces;
 using App.Models.Billing;
 using App.Models.Data.Contexts;
 using App.Shared.Services;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -50,7 +51,7 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
     private async Task BulkInsertAsync<TEntity, TDto>(
         IEnumerable<TDto> dtos,
         Func<TDto, TEntity> mapEntity,
-        string catalogName) 
+        string catalogName)
         where TEntity : class
     {
         if (!dtos.Any())
@@ -63,7 +64,7 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
         var batches = (totalRecords + BatchSize - 1) / BatchSize;
         var now = _dateTime.Now;
 
-        _logger.LogInformation("Starting bulk insert for {CatalogName}. Total records: {TotalRecords}", 
+        _logger.LogInformation("Starting bulk insert for {CatalogName}. Total records: {TotalRecords}",
             catalogName, totalRecords);
 
         try
@@ -71,27 +72,31 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
             await using var _context = await _contextFactory.CreateDbContextAsync();
             var dbSet = _context.Set<TEntity>();
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            for (int i = 0; i < batches; i++)
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                var batch = dtos.Skip(i * BatchSize).Take(BatchSize);
-                var entities = batch.Select(dto =>
+                using var transaction = await _context.Database.BeginTransactionAsync();
+
+                for (int i = 0; i < batches; i++)
                 {
-                    var entity = mapEntity(dto);
-                    SetAuditFields(entity, now);
-                    return entity;
-                });
+                    var batch = dtos.Skip(i * BatchSize).Take(BatchSize);
+                    var entities = batch.Select(dto =>
+                    {
+                        var entity = mapEntity(dto);
+                        SetAuditFields(entity, now);
+                        return entity;
+                    });
 
-                await dbSet.AddRangeAsync(entities);
-                await _context.SaveChangesAsync();
+                    await dbSet.AddRangeAsync(entities);
+                    await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Processed batch {CurrentBatch}/{TotalBatches} for {CatalogName}", 
-                    i + 1, batches, catalogName);
-            }
+                    _logger.LogInformation("Processed batch {CurrentBatch}/{TotalBatches} for {CatalogName}",
+                        i + 1, batches, catalogName);
+                }
 
-            await transaction.CommitAsync();
-            _logger.LogInformation("Successfully seeded {CatalogName}. Total records: {TotalRecords}", 
+                await transaction.CommitAsync();
+            });
+            _logger.LogInformation("Successfully seeded {CatalogName}. Total records: {TotalRecords}",
                 catalogName, totalRecords);
         }
         catch (Exception ex)
@@ -117,7 +122,7 @@ public class MexicoFiscalCatalogSeeder : IMexicoFiscalSeeder
         if (!await _context.MexicoFiscalRegimes.AsNoTracking().AnyAsync())
         {
             var dtos = await _dataReader.GetFiscalRegimesAsync();
-            await BulkInsertAsync(                
+            await BulkInsertAsync(
                 dtos,
                 dto => new MexicoFiscalRegime
                 {

@@ -1,9 +1,6 @@
 ﻿using System.Globalization;
 using System.Security.Claims;
 
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
 using App.Core.Common;
 using App.Core.DTOs.Identity;
 using App.Core.Identity.Interfaces;
@@ -13,6 +10,9 @@ using App.Models.Data.Contexts;
 using App.Models.Identity;
 using App.Services.Email;
 using App.Shared.Services;
+
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +76,7 @@ public class IdentityService : IIdentityService
             {
                 return Result<UserDto>.Failure(_localizer["User not found"]);
             }
-            
+
             var userDto = _mapper.Map<UserDto>(user);
 
             return Result<UserDto>.Success(userDto);
@@ -164,46 +164,50 @@ public class IdentityService : IIdentityService
         await using var _context = await _contextFactory.CreateDbContextAsync();
 
         // Use transaction to ensure both user creation and role assignment succeed
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var result = await _userManager.CreateAsync(user, createUserDto.Password);
-            if (result.Succeeded && !string.IsNullOrEmpty(createUserDto.Role))
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                // Assign role to the user
-                var roleResult = await _userManager.AddToRoleAsync(user, createUserDto.Role);
-                if (!roleResult.Succeeded)
+                var result = await _userManager.CreateAsync(user, createUserDto.Password);
+                if (result.Succeeded && !string.IsNullOrEmpty(createUserDto.Role))
                 {
-                    await transaction.RollbackAsync();
-                    return (roleResult, string.Empty);
-                }
-
-                // Get the role claims to assign them as individual claims to the user
-                var role = await _roleManager.FindByNameAsync(createUserDto.Role);
-                if (role != null)
-                {
-                    var roleClaims = await _roleManager.GetClaimsAsync(role);
-                    if (roleClaims.Any())
+                    // Assign role to the user
+                    var roleResult = await _userManager.AddToRoleAsync(user, createUserDto.Role);
+                    if (!roleResult.Succeeded)
                     {
-                        var claimsResult = await _userManager.AddClaimsAsync(user, roleClaims);
-                        if (!claimsResult.Succeeded)
+                        await transaction.RollbackAsync();
+                        return (roleResult, string.Empty);
+                    }
+
+                    // Get the role claims to assign them as individual claims to the user
+                    var role = await _roleManager.FindByNameAsync(createUserDto.Role);
+                    if (role != null)
+                    {
+                        var roleClaims = await _roleManager.GetClaimsAsync(role);
+                        if (roleClaims.Any())
                         {
-                            await transaction.RollbackAsync();
-                            return (claimsResult, string.Empty);
+                            var claimsResult = await _userManager.AddClaimsAsync(user, roleClaims);
+                            if (!claimsResult.Succeeded)
+                            {
+                                await transaction.RollbackAsync();
+                                return (claimsResult, string.Empty);
+                            }
                         }
                     }
                 }
-            }
 
-            await transaction.CommitAsync();
-            return (result, user.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating user {UserName}", createUserDto.UserName);
-            await transaction.RollbackAsync();
-            throw;
-        }
+                await transaction.CommitAsync();
+                return (result, user.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user {UserName}", createUserDto.UserName);
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
 
     public async Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto updateUserDto)
@@ -227,43 +231,47 @@ public class IdentityService : IIdentityService
 
         await using var _context = await _contextFactory.CreateDbContextAsync();
 
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    await transaction.RollbackAsync();
+                    return result;
+                }
+
+                if (!string.IsNullOrEmpty(updateUserDto.Role))
+                {
+                    var currentRoles = await _userManager.GetRolesAsync(user);
+                    var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                    if (!removeResult.Succeeded)
+                    {
+                        await transaction.RollbackAsync();
+                        return removeResult;
+                    }
+
+                    var addResult = await _userManager.AddToRoleAsync(user, updateUserDto.Role);
+                    if (!addResult.Succeeded)
+                    {
+                        await transaction.RollbackAsync();
+                        return addResult;
+                    }
+                }
+
+                await transaction.CommitAsync();
+                return IdentityResult.Success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user {UserId}", userId);
                 await transaction.RollbackAsync();
-                return result;
+                throw;
             }
-
-            if (!string.IsNullOrEmpty(updateUserDto.Role))
-            {
-                var currentRoles = await _userManager.GetRolesAsync(user);
-                var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
-                if (!removeResult.Succeeded)
-                {
-                    await transaction.RollbackAsync();
-                    return removeResult;
-                }
-
-                var addResult = await _userManager.AddToRoleAsync(user, updateUserDto.Role);
-                if (!addResult.Succeeded)
-                {
-                    await transaction.RollbackAsync();
-                    return addResult;
-                }
-            }
-
-            await transaction.CommitAsync();
-            return IdentityResult.Success;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating user {UserId}", userId);
-            await transaction.RollbackAsync();
-            throw;
-        }
+        });
     }
 
     public async Task<IdentityResult> DeleteUserAsync(string userId)

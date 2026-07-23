@@ -82,85 +82,89 @@ public class AdjustmentEntryService : IAdjustmentEntryService
 
             // All movements succeeded — persist the AdjustmentEntry header and items
             await using var context = await _contextFactory.CreateDbContextAsync(ct);
-            await using var transaction = await context.Database.BeginTransactionAsync(ct);
-
-            var entry = new AdjustmentEntry
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                AdjustmentType = dto.AdjustmentType,
-                LocationId = dto.LocationId,
-                Reference = dto.Reference,
-                Reason = dto.Reason,
-                AdjustmentDate = adjustmentDate,
-                CreatedBy = currentUser,
-                CreatedAt = currentTime,
-                ModifiedBy = currentUser,
-                ModifiedAt = currentTime
-            };
+                await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            context.AdjustmentEntries.Add(entry);
-            await context.SaveChangesAsync(ct);
-
-            var itemResults = new List<AdjustmentEntryItemResultDto>();
-
-            foreach (var (item, movementId, alert) in movementResults)
-            {
-                var movement = await context.InventoryMovements.FindAsync([movementId], ct);
-                var previousQuantity = movement?.PreviousBalance ?? 0;
-
-                var entryItem = new AdjustmentEntryItem
+                var entry = new AdjustmentEntry
                 {
-                    AdjustmentEntryId = entry.Id,
-                    ProductId = item.ProductId,
-                    NewQuantity = item.NewQuantity,
-                    PreviousQuantity = previousQuantity,
-                    InventoryMovementId = movementId,
+                    AdjustmentType = dto.AdjustmentType,
+                    LocationId = dto.LocationId,
+                    Reference = dto.Reference,
+                    Reason = dto.Reason,
+                    AdjustmentDate = adjustmentDate,
                     CreatedBy = currentUser,
                     CreatedAt = currentTime,
                     ModifiedBy = currentUser,
                     ModifiedAt = currentTime
                 };
-                context.AdjustmentEntryItems.Add(entryItem);
 
-                if (movement != null)
+                context.AdjustmentEntries.Add(entry);
+                await context.SaveChangesAsync(ct);
+
+                var itemResults = new List<AdjustmentEntryItemResultDto>();
+
+                foreach (var (item, movementId, alert) in movementResults)
                 {
-                    movement.AdjustmentEntryId = entry.Id;
-                    movement.ModifiedBy = currentUser;
-                    movement.ModifiedAt = currentTime;
+                    var movement = await context.InventoryMovements.FindAsync([movementId], ct);
+                    var previousQuantity = movement?.PreviousBalance ?? 0;
+
+                    var entryItem = new AdjustmentEntryItem
+                    {
+                        AdjustmentEntryId = entry.Id,
+                        ProductId = item.ProductId,
+                        NewQuantity = item.NewQuantity,
+                        PreviousQuantity = previousQuantity,
+                        InventoryMovementId = movementId,
+                        CreatedBy = currentUser,
+                        CreatedAt = currentTime,
+                        ModifiedBy = currentUser,
+                        ModifiedAt = currentTime
+                    };
+                    context.AdjustmentEntryItems.Add(entryItem);
+
+                    if (movement != null)
+                    {
+                        movement.AdjustmentEntryId = entry.Id;
+                        movement.ModifiedBy = currentUser;
+                        movement.ModifiedAt = currentTime;
+                    }
+
+                    itemResults.Add(new AdjustmentEntryItemResultDto
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = string.Empty,
+                        ProductCode = string.Empty,
+                        NewQuantity = item.NewQuantity,
+                        PreviousQuantity = previousQuantity,
+                        InventoryMovementId = movementId,
+                        Success = true,
+                        AlertType = alert?.AlertType,
+                        AlertCurrentStock = alert?.CurrentStock,
+                        AlertThreshold = alert?.Threshold
+                    });
                 }
 
-                itemResults.Add(new AdjustmentEntryItemResultDto
+                await context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                var locationName = (await context.Locations.FindAsync([dto.LocationId], ct))?.Name ?? string.Empty;
+
+                var resultDto = new AdjustmentEntryDto
                 {
-                    ProductId = item.ProductId,
-                    ProductName = string.Empty,
-                    ProductCode = string.Empty,
-                    NewQuantity = item.NewQuantity,
-                    PreviousQuantity = previousQuantity,
-                    InventoryMovementId = movementId,
-                    Success = true,
-                    AlertType = alert?.AlertType,
-                    AlertCurrentStock = alert?.CurrentStock,
-                    AlertThreshold = alert?.Threshold
-                });
-            }
+                    Id = entry.Id,
+                    AdjustmentType = entry.AdjustmentType,
+                    LocationId = entry.LocationId,
+                    LocationName = locationName,
+                    Reference = entry.Reference,
+                    Reason = entry.Reason,
+                    AdjustmentDate = entry.AdjustmentDate,
+                    Items = itemResults
+                };
 
-            await context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-
-            var locationName = (await context.Locations.FindAsync([dto.LocationId], ct))?.Name ?? string.Empty;
-
-            var resultDto = new AdjustmentEntryDto
-            {
-                Id = entry.Id,
-                AdjustmentType = entry.AdjustmentType,
-                LocationId = entry.LocationId,
-                LocationName = locationName,
-                Reference = entry.Reference,
-                Reason = entry.Reason,
-                AdjustmentDate = entry.AdjustmentDate,
-                Items = itemResults
-            };
-
-            return Result<AdjustmentEntryDto>.Success(resultDto);
+                return Result<AdjustmentEntryDto>.Success(resultDto);
+            });
         }
         catch (Exception ex)
         {
