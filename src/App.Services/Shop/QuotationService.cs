@@ -185,7 +185,7 @@ public class QuotationService : IQuotationService
                 return Result<QuotationDto>.Failure(_localizer["Customer not found"]);
 
             var now = _dateTime.Now;
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
             var countryCode = companySettings?.CountryCode ?? "MX";
@@ -319,7 +319,7 @@ public class QuotationService : IQuotationService
                 return Result<QuotationDto>.Failure(_localizer["Customer not found"]);
 
             var now = _dateTime.Now;
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
             var countryCode = companySettings?.CountryCode ?? "MX";
@@ -443,7 +443,7 @@ public class QuotationService : IQuotationService
                 return Result.Failure(_localizer["Quotation not found"]);
 
             quotation.IsDeleted = 1;
-            quotation.DeletedBy = _currentUserService.UserId ?? "System";
+            quotation.DeletedBy = await _currentUserService.GetUserIdAsync() ?? "System";
             quotation.DeletedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -480,7 +480,7 @@ public class QuotationService : IQuotationService
             quotation.Status = status;
             if (status == QuotationStatus.Rejected && !string.IsNullOrWhiteSpace(reason))
                 quotation.RejectionReason = reason;
-            quotation.ModifiedBy = _currentUserService.UserId ?? "System";
+            quotation.ModifiedBy = await _currentUserService.GetUserIdAsync() ?? "System";
             quotation.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -656,7 +656,7 @@ public class QuotationService : IQuotationService
                 quotation.Status = QuotationStatus.Pending;
             quotation.SentAt = _dateTime.Now;
             quotation.SentToEmail = toEmail;
-            quotation.ModifiedBy = _currentUserService.UserId ?? "System";
+            quotation.ModifiedBy = await _currentUserService.GetUserIdAsync() ?? "System";
             quotation.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();

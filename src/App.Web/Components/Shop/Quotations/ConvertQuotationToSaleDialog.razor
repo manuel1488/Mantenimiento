@@ -252,7 +252,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userId = CurrentUserService.UserId ?? string.Empty;
+        var userId = await CurrentUserService.GetUserIdAsync();
         var cashResult = await CashRegisterService.GetActiveCashRegisterByUserAsync(userId);
         if (cashResult.IsSuccess && cashResult.Value is not null)
             _activeCashRegister = cashResult.Value;

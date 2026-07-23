@@ -344,7 +344,7 @@ public class SaleService : IContextualSaleService
             {
                 var cashRegResult = await _cashRegisterService.GetActiveCashRegisterAsync(
                     saleLocationId.Value,
-                    _currentUserService.UserId);
+                    await _currentUserService.GetUserIdAsync());
 
                 if (!cashRegResult.IsSuccess)
                     return Result<SaleDto>.Failure(cashRegResult.Error!);
@@ -422,7 +422,7 @@ public class SaleService : IContextualSaleService
             }
 
             // Attach payment entries
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var now = _dateTime.Now;
             foreach (var paymentDto in createDto.Payments)
             {
@@ -561,7 +561,7 @@ public class SaleService : IContextualSaleService
             }
 
             // Update audit fields
-            sale.ModifiedBy = _currentUserService.FullName;
+            sale.ModifiedBy = await _currentUserService.GetFullNameAsync();
             sale.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -601,7 +601,7 @@ public class SaleService : IContextualSaleService
 
                 // Use LocationId from the sale entity
                 int? locationId = sale.LocationId;
-                var currentUser = _currentUserService.UserId ?? "System";
+                var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
                 var now = _dateTime.Now;
 
                 if (sale.SaleType == SaleType.Remission)
@@ -659,7 +659,7 @@ public class SaleService : IContextualSaleService
                 // Update sale status
                 sale.Status = App.Core.Enums.Shop.SaleStatus.Cancelled;
                 sale.CancellationReason = reason;
-                sale.ModifiedBy = _currentUserService.FullName;
+                sale.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 sale.ModifiedAt = _dateTime.Now;
 
                 await context.SaveChangesAsync();
@@ -798,6 +798,8 @@ public class SaleService : IContextualSaleService
                     L["Location is required for sales"]);
             }
 
+            var currentUserFullName = await _currentUserService.GetFullNameAsync();
+
             // Create new sale entity
             var sale = new Sale
             {
@@ -810,7 +812,7 @@ public class SaleService : IContextualSaleService
                 DiscountPercentage = createDto.DiscountPercentage,
                 DiscountAuthorizedBy = createDto.DiscountAuthorizedBy,
                 QuotationId = createDto.QuotationId,
-                CreatedBy = _currentUserService.FullName,
+                CreatedBy = currentUserFullName,
                 CreatedAt = _dateTime.Now,
                 Details = new List<SaleDetail>()
             };
@@ -954,7 +956,7 @@ public class SaleService : IContextualSaleService
                     SurchargePercentage = surchargePercentage,
                     SurchargeAmount = surchargeAmount,
                     BasePriceBeforeSurcharge = basePriceBeforeSurcharge,
-                    CreatedBy = _currentUserService.FullName,
+                    CreatedBy = currentUserFullName,
                     CreatedAt = _dateTime.Now
                 };
 

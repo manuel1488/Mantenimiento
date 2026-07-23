@@ -239,3 +239,72 @@ Verificación: build limpio (`dotnet build App.sln`, 0 errores) y suite completa
 
 - Ver [tech-debt.md](tech-debt.md): posible correo de alerta duplicado en `CreateMovementAsync` bajo reintento transitorio; `IdentityService` con transacción que no cubre realmente las operaciones de `UserManager` (bug preexistente, solo confirmado durante esta auditoría).
 - El log de producción no adjunta la traza de excepción completa en los mensajes `[ERR]` — dificultó confirmar la causa exacta del cuelgue. Considerar revisar la plantilla de salida de Serilog para asegurar que `{Exception}` se incluya de forma consistente.
+
+---
+
+## 2026-07-23 — "Abrir Caja" se queda colgado en "ABRIENDO..." indefinidamente (solo para usuarios no-admin)
+
+### Síntoma
+
+La cajera jacq reporta que el diálogo de apertura de caja (`OpenCashRegisterDialog.razor`) se queda congelado en "ABRIENDO..." sin error ni resolución. Reproducido en otra máquina impersonando la sesión de jacq. Al probar con las cuentas `admin`/`admin2` en la misma máquina, el flujo funciona con normalidad.
+
+### Cómo se diagnosticó
+
+Acceso directo por SSH al servidor de producción (no había contexto Docker remoto configurado en esta sesión):
+
+```bash
+# Logs de la app (sin errores ni excepciones relacionadas con caja)
+docker exec app-prod-web-prod grep -i -B2 -A40 'CashRegister' /app/logs/log-20260723.txt
+
+# Estado de la base de datos: sin locks, sin deadlocks, sin transacciones abiertas
+docker exec app-prod-mysql mysql -uroot -p... -e "SHOW FULL PROCESSLIST;"
+docker exec app-prod-mysql mysql -uroot -p... -e "SELECT * FROM performance_schema.data_locks;"
+docker exec app-prod-mysql mysql -uroot -p... -e "SHOW ENGINE INNODB STATUS\G"  # sin "LATEST DETECTED DEADLOCK"
+
+# Historial de cajas del usuario afectado (sin caja huérfana abierta)
+docker exec app-prod-mysql mysql -uroot -p... App -e \
+  "SELECT Id, LocationId, CashStationId, UserId, Status, OpenedAt, ClosedAt FROM sh_cash_registers WHERE UserId='<jacq-id>' ORDER BY OpenedAt DESC LIMIT 5;"
+```
+
+Todo lo anterior descartó: registro huérfano abierto, perfil de cajera inactivo, estación de caja inactiva/ocupada, deadlock de InnoDB, agotamiento de recursos del contenedor (`docker stats`), y conexiones abortadas relevantes (`Aborted_connects` alto pero explicado en su totalidad por el healthcheck `mysqladmin ping` sin password cada 10s).
+
+El hallazgo decisivo fue reproducir el bug impersonando cuentas distintas en la **misma máquina/navegador**: funciona con `admin`/`admin2` (rol con `IsGlobalAccess`), falla con `jacq` (cajera normal, sin acceso global) — descartando causas de red/proxy/circuito de SignalR y apuntando a una rama de código exclusiva de usuarios no-admin.
+
+### Causa raíz
+
+`CurrentUserService.cs` (`UserId`, `UserName`, `IsGlobalAccess`, `GetCurrentUser()`) resolvía el estado de autenticación de forma **síncrona sobre asíncrona**:
+
+```csharp
+var authState = _authenticationStateProvider.GetAuthenticationStateAsync().Result;
+```
+
+En Blazor Server, cada circuito serializa su trabajo en un único `RendererSynchronizationContext`. Si la tarea awaited necesita reanudar su continuación en ese mismo contexto y el hilo está bloqueado esperando `.Result`, se produce un deadlock clásico de sync-over-async — el spinner queda colgado para siempre, sin excepción ni entrada de log (el código nunca llega a lanzar ni a completar).
+
+Por qué se manifestó específicamente en "Abrir Caja" y para usuarios no-admin:
+
+1. **Ventana de carrera, no un fallo determinista.** El patrón `.Result` existe desde el commit `22ae5bb` (mucho anterior a este incidente); solo se dispara si la tarea de `GetAuthenticationStateAsync()` sigue en vuelo justo en el instante en que se lee la propiedad.
+2. "Abrir Caja" es casi siempre la primera acción interactiva tras el login — el momento en que más probablemente esa tarea de autenticación todavía no ha resuelto.
+3. `CashRegisterService.OpenCashRegisterAsync` es el único punto en la capa de servicios que llama a `IsGlobalAccess` justo después de leer `UserId`, sin ningún `await` real entre medio — dos bloqueos consecutivos, doble ventana de riesgo. Para usuarios con `IsGlobalAccess = true` el chequeo interno de perfil de cajera se salta por completo (la rama de código de jacq nunca se ejecuta para admin), reduciendo aún más su exposición.
+4. El reinicio del contenedor la noche anterior (deploy de `EnableRetryOnFailure`, ver incidente anterior en esta bitácora) dejó todas las cachés en frío. Justo tras un restart, la resolución de claims/roles tarda más (sin caché tibia), ampliando la ventana de carrera — probablemente el motivo de que apareciera justo esa mañana.
+5. `admin`/`admin2` no lo sufrieron porque son cuentas de uso frecuente para pruebas: su estado de autenticación ya estaba resuelto/cacheado en el momento de la prueba.
+
+### Reparación aplicada (mitigación, no la corrección de raíz)
+
+Commit `5f4e141`. Se envolvieron las 4 llamadas bloqueantes de `CurrentUserService.cs` en `Task.Run(...)` antes del `.Result`/`.GetAwaiter().GetResult()`:
+
+```csharp
+var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
+```
+
+Esto mueve la espera bloqueante a un hilo del thread pool **sin** el `SynchronizationContext` del circuito capturado, así la continuación de `GetAuthenticationStateAsync()` ya no intenta reanudarse en el hilo bloqueado — rompe el deadlock sin cambiar la interfaz pública `ICurrentUserService` ni tocar ninguno de sus 45 consumidores.
+
+Desplegado reconstruyendo la imagen desde la máquina con `.env.production` (`docker compose --profile production --env-file .env.production build --no-cache && ... up -d`). Como mitigación temporal mientras se preparaba el deploy, también se hizo `docker restart app-prod-web-prod` (destraba cualquier circuito ya colgado, pero no corrige la causa de raíz — ver ADR-010).
+
+### Corrección de raíz aplicada (mismo día)
+
+Commit `226d322`: `ICurrentUserService` (`UserId`, `UserName`, `FullName`, `IsGlobalAccess`, `ActiveLocationId`) se convirtió por completo a métodos async (`GetUserIdAsync()`, etc.), eliminando cualquier bloqueo sync-over-async en `CurrentUserService.cs`. Se actualizaron los 45 consumidores en `App.Services`, `App.Web` y los mocks de tests. Ver [ADR-010](../01-Architecture/adr/0010-acceso-async-usuario-actual.md) para el detalle de la decisión. Verificado con build limpio (0 errores) y suite de tests (249/255 — los 6 fallos son pruebas de integración con Testcontainers que requieren Docker, no relacionadas con este cambio).
+
+### Pendiente
+
+- Rotar la contraseña de la cuenta `app` de MySQL — quedó expuesta en texto plano durante el diagnóstico de este incidente (se extrajo de `docker inspect` para poder reconstruir el despliegue sin acceso a la máquina con `.env.production`).
+- Desplegar el commit `226d322` a producción (el fix mínimo de `5f4e141` ya está desplegado y resuelve el deadlock; este refactor es la corrección de raíz, sin cambio de comportamiento esperado, pero queda pendiente de su propio despliegue y verificación).

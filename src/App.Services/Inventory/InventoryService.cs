@@ -144,7 +144,7 @@ public class InventoryService : IContextualInventoryService
                 Quantity = 0,
                 Product = product,
                 Location = location,
-                CreatedBy = _currentUserService.FullName ?? "Unknown",
+                CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                 CreatedAt = _dateTime.Now
             };
             context.Inventory.Add(inventory);
@@ -204,13 +204,13 @@ public class InventoryService : IContextualInventoryService
             UnitCost = createDto.UnitCost,
             MovementDate = createDto.MovementDate ?? _dateTime.Now,
             RelatedParty = createDto.RelatedParty,
-            CreatedBy = _currentUserService.FullName ?? "Unknown",
+            CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
             CreatedAt = _dateTime.Now
         };
 
         context.InventoryMovements.Add(movement);
         inventory.Quantity = newQuantityBalance;
-        inventory.ModifiedBy = _currentUserService.FullName;
+        inventory.ModifiedBy = await _currentUserService.GetFullNameAsync();
 
         await context.SaveChangesAsync(cancellationToken);
 
@@ -297,7 +297,7 @@ public class InventoryService : IContextualInventoryService
                         ProductId = transferDto.ProductId,
                         LocationId = transferDto.DestinationLocationId,
                         Quantity = 0,
-                        CreatedBy = _currentUserService.FullName ?? "Unknown",
+                        CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                         CreatedAt = _dateTime.Now
                     };
                     _context.Inventory.Add(destinationInventory);
@@ -320,7 +320,7 @@ public class InventoryService : IContextualInventoryService
                     UnitCost = transferDto.UnitCost,
                     MovementDate = transferDto.MovementDate ?? _dateTime.Now,
                     RelatedParty = transferDto.RelatedParty,
-                    CreatedBy = _currentUserService.FullName ?? "Unknown",
+                    CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                     CreatedAt = _dateTime.Now
                 };
 
@@ -331,9 +331,9 @@ public class InventoryService : IContextualInventoryService
                 decimal newDestinationStock = destinationInventory.Quantity + transferDto.Quantity;
 
                 sourceInventory.Quantity = newSourceStock;
-                sourceInventory.ModifiedBy = _currentUserService.FullName;
+                sourceInventory.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 destinationInventory.Quantity = newDestinationStock;
-                destinationInventory.ModifiedBy = _currentUserService.FullName;
+                destinationInventory.ModifiedBy = await _currentUserService.GetFullNameAsync();
 
                 await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -648,7 +648,7 @@ public class InventoryService : IContextualInventoryService
             UnitCost = dto.UnitCost,
             MovementDate = dto.MovementDate ?? _dateTime.Now,
             RelatedParty = dto.RelatedParty,
-            CreatedBy = _currentUserService.FullName ?? "Unknown",
+            CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
             CreatedAt = _dateTime.Now
         };
 
@@ -795,7 +795,7 @@ public class InventoryService : IContextualInventoryService
                         L["Inventory not found for product {0} in location {1}", productId, locationId]);
 
                 var now = _dateTime.Now;
-                var user = _currentUserService.FullName ?? "Unknown";
+                var user = await _currentUserService.GetFullNameAsync() ?? "Unknown";
                 inventory = new App.Models.Shop.Inventory
                 {
                     ProductId = productId,
@@ -831,7 +831,7 @@ public class InventoryService : IContextualInventoryService
             }
 
             // Update audit fields
-            inventory.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            inventory.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             inventory.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -928,7 +928,7 @@ public class InventoryService : IContextualInventoryService
                         Quantity = loadDto.Quantity,
                         MinStock = loadDto.MinStock,
                         MaxStock = loadDto.MaxStock,
-                        CreatedBy = _currentUserService.FullName ?? "Unknown",
+                        CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                         CreatedAt = _dateTime.Now
                     };
 
@@ -1100,7 +1100,7 @@ public class InventoryService : IContextualInventoryService
                             Quantity = item.Quantity,
                             MinStock = item.MinStock,
                             MaxStock = item.MaxStock,
-                            CreatedBy = _currentUserService.FullName ?? "Unknown",
+                            CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                             CreatedAt = _dateTime.Now
                         };
 
@@ -1126,7 +1126,7 @@ public class InventoryService : IContextualInventoryService
                                 NewBalance = item.Quantity,
                                 PreviousIndividualBalance = 0,
                                 NewIndividualBalance = individualUnits,
-                                CreatedBy = _currentUserService.FullName ?? "Unknown",
+                                CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                                 CreatedAt = _dateTime.Now
                             };
 
@@ -1219,7 +1219,7 @@ public class InventoryService : IContextualInventoryService
             UnitCost = dto.UnitCost,
             MovementDate = dto.MovementDate ?? _dateTime.Now,
             RelatedParty = dto.RelatedParty,
-            CreatedBy = _currentUserService.FullName ?? "Unknown",
+            CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
             CreatedAt = _dateTime.Now
         };
 
@@ -1325,7 +1325,7 @@ public class InventoryService : IContextualInventoryService
                     PreviousBalance = previousBalance,
                     NewBalance = adjustmentDto.NewQuantity,
                     MovementDate = adjustmentDto.AdjustmentDate ?? _dateTime.Now,
-                    CreatedBy = _currentUserService.FullName ?? "Unknown",
+                    CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                     CreatedAt = _dateTime.Now
                 };
 
@@ -1333,7 +1333,7 @@ public class InventoryService : IContextualInventoryService
 
                 // Actualizar inventario
                 inventory.Quantity = adjustmentDto.NewQuantity;
-                inventory.ModifiedBy = _currentUserService.FullName;
+                inventory.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 inventory.ModifiedAt = _dateTime.Now;
 
                 await _context.SaveChangesAsync(cancellationToken);

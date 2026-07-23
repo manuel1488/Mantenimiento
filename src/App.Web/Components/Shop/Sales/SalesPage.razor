@@ -831,7 +831,7 @@ else
 
     private async Task LoadActiveCashRegisterAsync()
     {
-        var userId = CurrentUserService.UserId;
+        var userId = await CurrentUserService.GetUserIdAsync();
         var result = await CashRegisterService.GetActiveCashRegisterByUserAsync(userId);
         if (result.IsSuccess)
             _activeCashRegister = result.Value;
@@ -859,7 +859,7 @@ else
     private async Task LoadLocation()
     {
         // Get location from active location, falling back to the open cash register's location
-        var activeLocationId = CurrentUserService.ActiveLocationId
+        var activeLocationId = await CurrentUserService.GetActiveLocationIdAsync()
             ?? _activeCashRegister?.LocationId;
         if (!activeLocationId.HasValue)
         {

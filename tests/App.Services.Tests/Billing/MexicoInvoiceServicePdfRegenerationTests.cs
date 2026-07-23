@@ -94,7 +94,7 @@ public class MexicoInvoiceServicePdfRegenerationTests
             .ReturnsAsync(new byte[] { 0x25, 0x50, 0x44, 0x46 });
 
         var currentUserServiceMock = new Mock<ICurrentUserService>();
-        currentUserServiceMock.Setup(u => u.UserId).Returns("test-user");
+        currentUserServiceMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test-user");
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);

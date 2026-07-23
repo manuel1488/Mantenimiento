@@ -157,7 +157,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         try
         {
             _logger.LogInformation("Creating global invoice by {User} for range {Start} - {End}",
-                _currentUserService.UserName ?? _currentUserService.UserId, dto.StartDate, dto.EndDate);
+                await _currentUserService.GetUserNameAsync() ?? await _currentUserService.GetUserIdAsync(), dto.StartDate, dto.EndDate);
 
             // 1. Load PAC settings
             var pacSettings = await _pacSettingsService.GetAsync();
@@ -247,9 +247,9 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 IssuerLegalName = taxSettings.BusinessName ?? string.Empty,
                 IssuerFiscalRegime = taxSettings.FiscalRegime ?? string.Empty,
                 IssuerPostalCode = taxSettings.PostalCode ?? string.Empty,
-                CreatedBy = _currentUserService.UserId,
+                CreatedBy = await _currentUserService.GetUserIdAsync(),
                 CreatedAt = _dateTime.Now,
-                ModifiedBy = _currentUserService.UserId,
+                ModifiedBy = await _currentUserService.GetUserIdAsync(),
                 ModifiedAt = _dateTime.Now
             };
 
@@ -331,7 +331,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 globalInvoice.SelloCfdi = stamp.SelloCfdi;
                 globalInvoice.CadenaOriginalSat = stamp.CadenaOriginalSat;
                 globalInvoice.StampError = null;
-                globalInvoice.ModifiedBy = _currentUserService.UserId;
+                globalInvoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
                 globalInvoice.ModifiedAt = _dateTime.Now;
                 await context.SaveChangesAsync();
 
@@ -477,7 +477,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             invoice.ReplacementUuid = replacementUuid;
             invoice.CancellationDate = _dateTime.Now;
             invoice.CancellationStatus = "Pending";
-            invoice.ModifiedBy = _currentUserService.UserId;
+            invoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
             invoice.ModifiedAt = _dateTime.Now;
             await context.SaveChangesAsync();
 
@@ -917,7 +917,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
     {
         invoice.Status = GlobalInvoiceStatus.StampError;
         invoice.StampError = error.Length > 1000 ? error[..1000] : error;
-        invoice.ModifiedBy = _currentUserService.UserId;
+        invoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
         invoice.ModifiedAt = _dateTime.Now;
         await context.SaveChangesAsync();
 

@@ -136,7 +136,7 @@ public class ProductPartialSurchargeService : IProductPartialSurchargeService
                         // Update existing
                         existing.SurchargePercentage = surchargeDto.SurchargePercentage;
                         existing.IsActive = surchargeDto.IsActive;
-                        existing.ModifiedBy = _currentUserService.FullName;
+                        existing.ModifiedBy = await _currentUserService.GetFullNameAsync();
                         existing.ModifiedAt = _dateTime.Now;
                     }
                     else
@@ -148,7 +148,7 @@ public class ProductPartialSurchargeService : IProductPartialSurchargeService
                             PartialSaleFractionId = surchargeDto.PartialSaleFractionId,
                             SurchargePercentage = surchargeDto.SurchargePercentage,
                             IsActive = surchargeDto.IsActive,
-                            CreatedBy = _currentUserService.FullName ?? "System",
+                            CreatedBy = await _currentUserService.GetFullNameAsync() ?? "System",
                             CreatedAt = _dateTime.Now
                         };
                         context.ProductPartialSurcharges.Add(newSurcharge);
@@ -164,7 +164,7 @@ public class ProductPartialSurchargeService : IProductPartialSurchargeService
                 foreach (var toRemove in surchargesToRemove)
                 {
                     toRemove.IsDeleted = 1;
-                    toRemove.DeletedBy = _currentUserService.FullName;
+                    toRemove.DeletedBy = await _currentUserService.GetFullNameAsync();
                     toRemove.DeletedAt = _dateTime.Now;
                 }
 

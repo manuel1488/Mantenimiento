@@ -1,14 +1,14 @@
-﻿namespace App.Shared.Services;
+namespace App.Shared.Services;
 
 public interface ICurrentUserService
 {
-    string UserId { get; }
-    string? UserName { get; }
-    string? FullName { get; }
+    Task<string> GetUserIdAsync();
+    Task<string?> GetUserNameAsync();
+    Task<string?> GetFullNameAsync();
 
     // Location context
-    int? ActiveLocationId { get; }
-    bool IsGlobalAccess { get; }
+    Task<int?> GetActiveLocationIdAsync();
+    Task<bool> GetIsGlobalAccessAsync();
     Task EnsureInitializedAsync();
     Task<IReadOnlyList<int>> GetAssignedLocationIdsAsync();
     Task SetActiveLocationAsync(int? locationId);

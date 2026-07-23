@@ -250,9 +250,9 @@ public class WholesaleDiscountTests
             });
 
         var userMock = new Mock<ICurrentUserService>();
-        userMock.Setup(u => u.UserId).Returns(UserId);
-        userMock.Setup(u => u.FullName).Returns("Test User");
-        userMock.Setup(u => u.ActiveLocationId).Returns(LocationId);
+        userMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync(UserId);
+        userMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync("Test User");
+        userMock.Setup(u => u.GetActiveLocationIdAsync()).ReturnsAsync(LocationId);
 
         var dateMock = new Mock<IDateTime>();
         dateMock.Setup(d => d.Now).Returns(DateTime.UtcNow);

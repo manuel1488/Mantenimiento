@@ -112,7 +112,7 @@
     {
         await CurrentUserService.EnsureInitializedAsync();
 
-        var userId = CurrentUserService.UserId;
+        var userId = await CurrentUserService.GetUserIdAsync();
         if (!string.IsNullOrEmpty(userId))
         {
             var profileLocationId = await GetCashierProfileLocationAsync(userId);

@@ -16,7 +16,7 @@
                Class="ml-4"
                Style="min-width: 180px; max-width: 250px; color: white;"
                Placeholder="@L["All Locations"]">
-        @if (_currentUserService.IsGlobalAccess)
+        @if (_isGlobalAccess)
         {
             <MudSelectItem T="int?" Value="@((int?)null)">@L["All Locations"]</MudSelectItem>
         }
@@ -34,30 +34,33 @@
 
     private IList<LocationDto> _locations = new List<LocationDto>();
     private int? _selectedLocationId;
+    private bool _isGlobalAccess;
 
     protected override async Task OnInitializedAsync()
     {
+        _isGlobalAccess = await _currentUserService.GetIsGlobalAccessAsync();
         await LoadLocations();
-        _selectedLocationId = _currentUserService.ActiveLocationId;
+        _selectedLocationId = await _currentUserService.GetActiveLocationIdAsync();
     }
 
     private async Task LoadLocations()
     {
         try
         {
-            if (_currentUserService.IsGlobalAccess)
+            if (_isGlobalAccess)
             {
                 _locations = await LocationService.GetActiveLocationsAsync();
             }
             else
             {
-                var result = await UserLocationService.GetUserLocationsAsync(_currentUserService.UserId);
+                var userId = await _currentUserService.GetUserIdAsync();
+                var result = await UserLocationService.GetUserLocationsAsync(userId);
                 if (result.IsSuccess)
                 {
                     _locations = result.Value;
 
                     // Auto-select first location if user has only one and none is selected
-                    if (_locations.Count == 1 && _currentUserService.ActiveLocationId == null)
+                    if (_locations.Count == 1 && await _currentUserService.GetActiveLocationIdAsync() == null)
                     {
                         await OnLocationChanged(_locations[0].Id);
                     }

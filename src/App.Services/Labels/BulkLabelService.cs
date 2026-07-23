@@ -74,7 +74,7 @@ public class BulkLabelService : IBulkLabelService
             if (product == null)
                 return Result<BulkLabelJobDto>.Failure(_localizer["Product not found"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var now = _dateTime.Now;
 
             // Calculate effective unit price — apply wholesale tier if applicable

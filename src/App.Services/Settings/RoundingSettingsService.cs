@@ -99,7 +99,7 @@ public class RoundingSettingsService : IRoundingSettingsService
                     Method = updateDto.Method,
                     DecimalPlaces = updateDto.DecimalPlaces,
                     MinimumThreshold = updateDto.MinimumThreshold,
-                    CreatedBy = _currentUserService.FullName,
+                    CreatedBy = await _currentUserService.GetFullNameAsync(),
                     CreatedAt = _dateTime.Now
                 };
 
@@ -112,7 +112,7 @@ public class RoundingSettingsService : IRoundingSettingsService
                 settings.Method = updateDto.Method;
                 settings.DecimalPlaces = updateDto.DecimalPlaces;
                 settings.MinimumThreshold = updateDto.MinimumThreshold;
-                settings.ModifiedBy = _currentUserService.FullName;
+                settings.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 settings.ModifiedAt = _dateTime.Now;
             }
 

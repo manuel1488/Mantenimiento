@@ -139,7 +139,7 @@
         try
         {
             await CurrentUserService.EnsureInitializedAsync();
-            var locationId = CurrentUserService.ActiveLocationId;
+            var locationId = await CurrentUserService.GetActiveLocationIdAsync();
             var (total, items) = await CashRegisterService.GetHistoryAsync(
                 locationId,
                 page: state.Page + 1,

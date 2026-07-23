@@ -157,7 +157,7 @@ public class CustomerService : ICustomerService
 
             var customer = _mapper.Map<Customer>(createDto);
 
-            var currentUser = _currentUserService.FullName ?? "Unknown";
+            var currentUser = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             var now = _dateTime.Now;
             customer.CreatedBy = currentUser;
             customer.CreatedAt = now;
@@ -210,7 +210,7 @@ public class CustomerService : ICustomerService
             // Update commercial fields
             _mapper.Map(updateDto, customer);
 
-            var currentUser = _currentUserService.UserId ?? "Unknown";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "Unknown";
             var now = _dateTime.Now;
             customer.ModifiedBy = currentUser;
             customer.ModifiedAt = now;
@@ -260,7 +260,7 @@ public class CustomerService : ICustomerService
             if (customer == null)
                 throw new InvalidOperationException(_localizer["Customer not found with ID {0}", customerId]);
 
-            var currentUser = _currentUserService.UserId ?? "Unknown";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "Unknown";
             var now = _dateTime.Now;
 
             if (fiscalProfileDto == null)
@@ -336,7 +336,7 @@ public class CustomerService : ICustomerService
             if (hasRelatedRecords)
                 throw new InvalidOperationException(_localizer["Cannot delete customer because it has related records"]);
 
-            customer.DeletedBy = _currentUserService.FullName ?? "Unknown";
+            customer.DeletedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             context.Customers.Remove(customer);
             await context.SaveChangesAsync();
 

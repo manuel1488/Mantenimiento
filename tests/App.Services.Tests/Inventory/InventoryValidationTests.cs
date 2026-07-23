@@ -53,7 +53,7 @@ public class InventoryValidationTests
             .Returns((string key) => new LocalizedString(key, key));
 
         var currentUserMock = new Mock<ICurrentUserService>();
-        currentUserMock.Setup(u => u.FullName).Returns("Test User");
+        currentUserMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync("Test User");
 
         _inventoryService = new InventoryService(
             contextFactory,

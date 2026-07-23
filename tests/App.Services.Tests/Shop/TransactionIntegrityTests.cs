@@ -89,7 +89,7 @@ public class RemissionIntegrityInMemoryTests
         var contextFactory = new TestDbContextFactory(_dbOptions);
 
         var currentUserMock = new Mock<ICurrentUserService>();
-        currentUserMock.Setup(u => u.UserId).Returns("test-user");
+        currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test-user");
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);
@@ -752,13 +752,13 @@ public class RemissionRollbackContainerTests
             contextFactory,
             Mock.Of<IMapper>(),
             NullLogger<InventoryService>.Instance,
-            Mock.Of<ICurrentUserService>(u => u.UserId == "test"),
+            Mock.Of<ICurrentUserService>(u => u.GetUserIdAsync().Result == "test"),
             localizerInventoryMock.Object,
             Mock.Of<IDateTime>(d => d.Now == DateTime.UtcNow),
             Mock.Of<IInventoryAlertEmailService>());
 
         var currentUserMock = new Mock<ICurrentUserService>();
-        currentUserMock.Setup(u => u.UserId).Returns("test");
+        currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test");
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);
@@ -880,13 +880,13 @@ public class RemissionRollbackContainerTests
             contextFactory,
             Mock.Of<IMapper>(),
             NullLogger<InventoryService>.Instance,
-            Mock.Of<ICurrentUserService>(u => u.UserId == "test"),
+            Mock.Of<ICurrentUserService>(u => u.GetUserIdAsync().Result == "test"),
             localizerInventoryMock.Object,
             Mock.Of<IDateTime>(d => d.Now == DateTime.UtcNow),
             Mock.Of<IInventoryAlertEmailService>());
 
         var currentUserMock = new Mock<ICurrentUserService>();
-        currentUserMock.Setup(u => u.UserId).Returns("test");
+        currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test");
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);

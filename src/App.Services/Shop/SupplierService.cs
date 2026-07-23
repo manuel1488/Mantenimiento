@@ -138,7 +138,7 @@ public class SupplierService : ISupplierService
             }
 
             var supplier = _mapper.Map<Supplier>(dto);
-            supplier.CreatedBy = _currentUserService.FullName ?? "Unknown";
+            supplier.CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             supplier.CreatedAt = _dateTime.Now;
 
             context.Suppliers.Add(supplier);
@@ -175,7 +175,7 @@ public class SupplierService : ISupplierService
             }
 
             _mapper.Map(dto, supplier);
-            supplier.ModifiedBy = _currentUserService.UserId;
+            supplier.ModifiedBy = await _currentUserService.GetUserIdAsync();
             supplier.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -206,7 +206,7 @@ public class SupplierService : ISupplierService
             if (hasMovements)
                 return Result.Failure(_localizer["Cannot delete supplier because it has related inventory movements"]);
 
-            supplier.DeletedBy = _currentUserService.FullName ?? "Unknown";
+            supplier.DeletedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             context.Suppliers.Remove(supplier);
             await context.SaveChangesAsync();
 

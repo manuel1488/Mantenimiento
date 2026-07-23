@@ -56,8 +56,8 @@ public class InventoryAdjustmentTests
             .Returns((string key) => new LocalizedString(key, key));
 
         var currentUserMock = new Mock<ICurrentUserService>();
-        currentUserMock.Setup(u => u.UserId).Returns("test-user");
-        currentUserMock.Setup(u => u.FullName).Returns("Test User");
+        currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test-user");
+        currentUserMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync("Test User");
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);

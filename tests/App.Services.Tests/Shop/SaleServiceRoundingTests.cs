@@ -121,9 +121,9 @@ public class SaleServiceRoundingTests
 
         // Current user
         _currentUserServiceMock = new Mock<ICurrentUserService>();
-        _currentUserServiceMock.Setup(u => u.UserId).Returns(UserId);
-        _currentUserServiceMock.Setup(u => u.FullName).Returns("Test User");
-        _currentUserServiceMock.Setup(u => u.ActiveLocationId).Returns(LocationId);
+        _currentUserServiceMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync(UserId);
+        _currentUserServiceMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync("Test User");
+        _currentUserServiceMock.Setup(u => u.GetActiveLocationIdAsync()).ReturnsAsync(LocationId);
 
         // DateTime
         _dateTimeMock = new Mock<IDateTime>();

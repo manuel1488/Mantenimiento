@@ -116,7 +116,7 @@ public class LocationTicketSettingsService : ILocationTicketSettingsService
             var entity = _mapper.Map<LocationTicketSettings>(createDto);
 
             // Set audit fields
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTime.Now;
             entity.CreatedBy = currentUser;
             entity.CreatedAt = currentTime;
@@ -152,7 +152,7 @@ public class LocationTicketSettingsService : ILocationTicketSettingsService
             _mapper.Map(updateDto, entity);
 
             // Update audit fields
-            entity.ModifiedBy = _currentUserService.UserId ?? "System";
+            entity.ModifiedBy = await _currentUserService.GetUserIdAsync() ?? "System";
             entity.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -226,7 +226,7 @@ public class LocationTicketSettingsService : ILocationTicketSettingsService
             }
 
             // Create location settings from global configuration
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTime.Now;
 
             var entity = new LocationTicketSettings

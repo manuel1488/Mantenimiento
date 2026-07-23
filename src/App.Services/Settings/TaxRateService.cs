@@ -151,13 +151,13 @@ public class TaxRateService : ITaxRateService
                 foreach (var rate in existingDefaults)
                 {
                     rate.IsDefault = false;
-                    rate.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+                    rate.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
                     rate.ModifiedAt = _dateTime.Now;
                 }
             }
 
             var entity = _mapper.Map<TaxRate>(createDto);
-            entity.CreatedBy = _currentUserService.FullName ?? "Unknown";
+            entity.CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             entity.CreatedAt = _dateTime.Now;
 
             context.TaxRates.Add(entity);
@@ -205,7 +205,7 @@ public class TaxRateService : ITaxRateService
                 foreach (var defaultRate in existingDefaults)
                 {
                     defaultRate.IsDefault = false;
-                    defaultRate.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+                    defaultRate.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
                     defaultRate.ModifiedAt = _dateTime.Now;
                 }
             }
@@ -218,7 +218,7 @@ public class TaxRateService : ITaxRateService
             }
 
             _mapper.Map(updateDto, rate);
-            rate.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            rate.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             rate.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -277,10 +277,10 @@ public class TaxRateService : ITaxRateService
 
                 rate.IsActive = false;
                 rate.IsDefault = false;
-                rate.ModifiedBy = _currentUserService.FullName;
+                rate.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 await context.SaveChangesAsync();
 
-                rate.DeletedBy = _currentUserService.FullName;
+                rate.DeletedBy = await _currentUserService.GetFullNameAsync();
                 context.TaxRates.Remove(rate);
 
                 await context.SaveChangesAsync();

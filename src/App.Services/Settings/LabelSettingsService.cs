@@ -73,7 +73,7 @@ public class LabelSettingsService : ILabelSettingsService
                 .OrderByDescending(x => x.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var now = _dateTime.Now;
 
             if (settings == null)

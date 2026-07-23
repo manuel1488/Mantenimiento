@@ -131,7 +131,7 @@ public class ThermalPrinterService : IThermalPrinterService
                 "thermalPrint.printSale", data, config.PrintFlushDelayMs, config.PrintChunkSize, config.PortSettlingDelayMs);
             if (printResult == null)
                 return Result.Failure(_localizer["No response from printer — refresh the page and try again"]);
-            LogPrintResult("Sale", saleId, printResult);
+            await LogPrintResult("Sale", saleId, printResult);
 
             if (!printResult.Success)
                 return Result.Failure(_localizer["Printer did not confirm success"]);
@@ -156,7 +156,7 @@ public class ThermalPrinterService : IThermalPrinterService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Direct print failed for sale {SaleId} by user {User}", saleId, _currentUser.UserName ?? _currentUser.UserId);
+            _logger.LogWarning(ex, "Direct print failed for sale {SaleId} by user {User}", saleId, await _currentUser.GetUserNameAsync() ?? await _currentUser.GetUserIdAsync());
             return Result.Failure(_localizer["Print failed — check printer connection and try again"]);
         }
     }
@@ -207,7 +207,7 @@ public class ThermalPrinterService : IThermalPrinterService
                 "thermalPrint.printWithdrawal", data, config.PrintFlushDelayMs, config.PrintChunkSize, config.PortSettlingDelayMs);
             if (printResult == null)
                 return Result.Failure(_localizer["No response from printer — refresh the page and try again"]);
-            LogPrintResult("Withdrawal", movementId, printResult);
+            await LogPrintResult("Withdrawal", movementId, printResult);
 
             return printResult.Success
                 ? Result.Success()
@@ -219,7 +219,7 @@ public class ThermalPrinterService : IThermalPrinterService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Direct print failed for withdrawal {MovementId} by user {User}", movementId, _currentUser.UserName ?? _currentUser.UserId);
+            _logger.LogWarning(ex, "Direct print failed for withdrawal {MovementId} by user {User}", movementId, await _currentUser.GetUserNameAsync() ?? await _currentUser.GetUserIdAsync());
             return Result.Failure(_localizer["Print failed — check printer connection and try again"]);
         }
     }
@@ -232,7 +232,7 @@ public class ThermalPrinterService : IThermalPrinterService
             var printResult = await _js.InvokeAsync<DirectPrintResult?>("thermalPrint.printTest", config.PortSettlingDelayMs);
             if (printResult == null)
                 return Result.Failure(_localizer["No response from printer — refresh the page and try again"]);
-            LogPrintResult("TestPage", 0, printResult);
+            await LogPrintResult("TestPage", 0, printResult);
 
             return printResult.Success
                 ? Result.Success()
@@ -240,7 +240,7 @@ public class ThermalPrinterService : IThermalPrinterService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Test print failed by user {User}", _currentUser.UserName ?? _currentUser.UserId);
+            _logger.LogWarning(ex, "Test print failed by user {User}", await _currentUser.GetUserNameAsync() ?? await _currentUser.GetUserIdAsync());
             return Result.Failure(_localizer["Print failed — check printer connection and try again"]);
         }
     }
@@ -265,7 +265,7 @@ public class ThermalPrinterService : IThermalPrinterService
         }
     }
 
-    private void LogPrintResult(string operation, long entityId, DirectPrintResult? result)
+    private async Task LogPrintResult(string operation, long entityId, DirectPrintResult? result)
     {
         if (result == null) return;
         if (result.Success)
@@ -285,7 +285,7 @@ public class ThermalPrinterService : IThermalPrinterService
                 "Direct print {Operation} #{EntityId} failed: {Error} ({BytesSent} bytes sent) portFresh={PortFresh} DSR={Dsr} CTS={Cts} — user {User}",
                 operation, entityId, result.Error ?? "unknown", result.BytesSent,
                 result.PortFresh, result.Dsr, result.Cts,
-                _currentUser.UserName ?? _currentUser.UserId);
+                await _currentUser.GetUserNameAsync() ?? await _currentUser.GetUserIdAsync());
         }
     }
 

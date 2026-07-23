@@ -85,7 +85,7 @@ public class WholesaleSettingsService : IWholesaleSettingsService
                 {
                     PriceMode = updateDto.PriceMode,
                     ApplyWholesaleToRemissions = updateDto.ApplyWholesaleToRemissions,
-                    CreatedBy = _currentUserService.FullName,
+                    CreatedBy = await _currentUserService.GetFullNameAsync(),
                     CreatedAt = _dateTime.Now
                 };
                 context.WholesaleSettings.Add(settings);
@@ -94,7 +94,7 @@ public class WholesaleSettingsService : IWholesaleSettingsService
             {
                 settings.PriceMode = updateDto.PriceMode;
                 settings.ApplyWholesaleToRemissions = updateDto.ApplyWholesaleToRemissions;
-                settings.ModifiedBy = _currentUserService.FullName;
+                settings.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 settings.ModifiedAt = _dateTime.Now;
             }
 

@@ -10,6 +10,7 @@
 - [ADR-007: Factura Global — Ventas al Público en General](adr/0007-factura-global-publica-en-general.md)
 - [ADR-008: Dependencia AutoMapper](adr/0008-dependencia-automapper.md)
 - [ADR-009: Fechas del PDF de CFDI y Regeneración de PDF Timbrado](adr/0009-fechas-pdf-cfdi-y-regeneracion.md)
+- [ADR-010: Acceso al Usuario Actual en Blazor Server — Prohibido Sync-over-Async](adr/0010-acceso-async-usuario-actual.md)
 
 ## Diagramas
 - [Esquema de Autenticación](diagrams/auth-schema.md)

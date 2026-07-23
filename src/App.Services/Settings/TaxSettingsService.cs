@@ -82,7 +82,7 @@ public class TaxSettingsService : ITaxSettingsService
             {
                 settings = new TaxSettings
                 {
-                    CreatedBy = _currentUserService.FullName ?? "Unknown",
+                    CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                     CreatedAt = _dateTime.Now
                 };
                 _context.TaxSettings.Add(settings);
@@ -126,7 +126,7 @@ public class TaxSettingsService : ITaxSettingsService
             }
 
             // Update audit fields
-            settings.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            settings.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             settings.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync();

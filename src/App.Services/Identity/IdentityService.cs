@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Security.Claims;
 
 using App.Core.Common;
@@ -155,8 +155,8 @@ public class IdentityService : IIdentityService
         var user = _mapper.Map<ApplicationUser>(createUserDto);
 
         // These will be handled by the interceptor
-        user.CreatedBy = _currentUserService.FullName;
-        user.ModifiedBy = _currentUserService.FullName;
+        user.CreatedBy = await _currentUserService.GetFullNameAsync();
+        user.ModifiedBy = await _currentUserService.GetFullNameAsync();
         user.CreatedAt = _dateTime.Now;
         user.IsActive = true;
         user.EmailConfirmed = true; // Since we're not implementing email confirmation
@@ -226,7 +226,7 @@ public class IdentityService : IIdentityService
         user.IsActive = updateUserDto.IsActive;
 
         // The interceptor will handle these
-        user.ModifiedBy = _currentUserService.UserId;
+        user.ModifiedBy = await _currentUserService.GetUserIdAsync();
         user.ModifiedAt = _dateTime.Now;
 
         await using var _context = await _contextFactory.CreateDbContextAsync();
@@ -282,7 +282,7 @@ public class IdentityService : IIdentityService
             return IdentityResult.Failed(
                 new IdentityError { Description = _localizer["User not found"] });
         }
-        user.DeletedBy = _currentUserService.FullName ?? "Unknown";
+        user.DeletedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
         // The interceptor will handle the soft delete
         return await _userManager.DeleteAsync(user);
     }
@@ -558,7 +558,7 @@ public class IdentityService : IIdentityService
             if (result.Succeeded)
             {
                 // Update modified info
-                user.ModifiedBy = _currentUserService.FullName;
+                user.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 user.ModifiedAt = _dateTime.Now;
                 await _userManager.UpdateAsync(user);
 

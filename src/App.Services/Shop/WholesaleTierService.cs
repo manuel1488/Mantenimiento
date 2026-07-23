@@ -117,7 +117,7 @@ public class WholesaleTierService : IWholesaleTierService
             if (existingName)
                 return Result<WholesaleTierDto>.Failure(L["Wholesale tier name already exists"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             var tier = new WholesaleTier
@@ -164,7 +164,7 @@ public class WholesaleTierService : IWholesaleTierService
             if (existingName)
                 return Result<WholesaleTierDto>.Failure(L["Wholesale tier name already exists"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             tier.Name = dto.Name;
@@ -204,7 +204,7 @@ public class WholesaleTierService : IWholesaleTierService
             if (isInUse)
                 return Result.Failure(L["Cannot delete tier that is in use by products"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             tier.IsDeleted = 1;
@@ -234,7 +234,7 @@ public class WholesaleTierService : IWholesaleTierService
             if (tier == null)
                 return Result.Failure(L["Wholesale tier not found"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             tier.IsActive = !tier.IsActive;

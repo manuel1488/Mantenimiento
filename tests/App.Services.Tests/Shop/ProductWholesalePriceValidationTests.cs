@@ -42,7 +42,7 @@ public class ProductWholesalePriceValidationTests
             .Options;
 
         var userMock = new Mock<ICurrentUserService>();
-        userMock.Setup(u => u.FullName).Returns("Test User");
+        userMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync("Test User");
 
         var dateMock = new Mock<IDateTime>();
         dateMock.Setup(d => d.Now).Returns(DateTime.UtcNow);

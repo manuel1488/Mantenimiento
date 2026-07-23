@@ -70,7 +70,7 @@ public class EmailSettingsService : IEmailSettingsService
             {
                 settings = new EmailSettings
                 {
-                    CreatedBy = _currentUserService.FullName ?? "Unknown",
+                    CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                     CreatedAt = _dateTime.Now
                 };
                 _context.EmailSettings.Add(settings);
@@ -101,7 +101,7 @@ public class EmailSettingsService : IEmailSettingsService
             _mapper.Map(updateDto, settings);
 
             // Update audit fields
-            settings.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            settings.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             settings.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync();

@@ -257,7 +257,7 @@ else
         {
             await CurrentUserService.EnsureInitializedAsync();
             var result = await CashRegisterService.GetActiveCashRegisterByUserAsync(
-                CurrentUserService.UserId);
+                await CurrentUserService.GetUserIdAsync());
             if (result.IsSuccess)
                 _register = result.Value;
             else
