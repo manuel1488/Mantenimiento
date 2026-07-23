@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Bulk Transfer">
+    <value>Transferencia Masiva</value>
+  </data>
+  <data name="Back">
+    <value>Regresar</value>
+  </data>
+  <data name="Source Location">
+    <value>Ubicación Origen</value>
+  </data>
+  <data name="Destination Location">
+    <value>Ubicación Destino</value>
+  </data>
+  <data name="Transfer Type">
+    <value>Tipo de Transferencia</value>
+  </data>
+  <data name="Standard Transfer">
+    <value>Transferencia Estándar</value>
+  </data>
+  <data name="Rush Transfer">
+    <value>Transferencia Urgente</value>
+  </data>
+  <data name="Stock Rebalancing">
+    <value>Rebalanceo de Stock</value>
+  </data>
+  <data name="Reference">
+    <value>Referencia</value>
+  </data>
+  <data name="Reason">
+    <value>Motivo</value>
+  </data>
+  <data name="Source location is required">
+    <value>La ubicación origen es requerida</value>
+  </data>
+  <data name="Destination location is required">
+    <value>La ubicación destino es requerida</value>
+  </data>
+  <data name="Transfer type is required">
+    <value>El tipo de transferencia es requerido</value>
+  </data>
+  <data name="Reason is required">
+    <value>El motivo es requerido</value>
+  </data>
+  <data name="Products">
+    <value>Productos</value>
+  </data>
+  <data name="Add product">
+    <value>Agregar producto</value>
+  </data>
+  <data name="Add at least one product">
+    <value>Agrega al menos un producto</value>
+  </data>
+  <data name="Product">
+    <value>Producto</value>
+  </data>
+  <data name="Available Stock">
+    <value>Stock Disponible</value>
+  </data>
+  <data name="Quantity">
+    <value>Cantidad</value>
+  </data>
+  <data name="Error">
+    <value>Error</value>
+  </data>
+  <data name="Cancel">
+    <value>Cancelar</value>
+  </data>
+  <data name="Process Transfer">
+    <value>Procesar Transferencia</value>
+  </data>
+  <data name="Processing">
+    <value>Procesando</value>
+  </data>
+  <data name="This product was already added to this transfer">
+    <value>Este producto ya fue agregado a esta transferencia</value>
+  </data>
+  <data name="Source and destination locations must be different">
+    <value>Las ubicaciones origen y destino deben ser diferentes</value>
+  </data>
+  <data name="One or more lines failed validation; no transfer was applied">
+    <value>Una o más líneas no pasaron la validación; no se aplicó ninguna transferencia</value>
+  </data>
+  <data name="Error searching products">
+    <value>Error al buscar productos</value>
+  </data>
+  <data name="Error loading product stock">
+    <value>Error al cargar stock del producto</value>
+  </data>
+  <data name="Error loading locations">
+    <value>Error al cargar ubicaciones</value>
+  </data>
+  <data name="Error creating transfer">
+    <value>Error al crear transferencia</value>
+  </data>
+  <data name="Transfer created successfully">
+    <value>Transferencia creada exitosamente</value>
+  </data>
+  <data name="Batch">
+    <value>Lote</value>
+  </data>
+  <data name="Date">
+    <value>Fecha</value>
+  </data>
+  <data name="Created By">
+    <value>Creado Por</value>
+  </data>
+  <data name="Previous Balance">
+    <value>Saldo Anterior</value>
+  </data>
+  <data name="New Balance">
+    <value>Saldo Nuevo</value>
+  </data>
+  <data name="Print">
+    <value>Imprimir</value>
+  </data>
+  <data name="New Bulk Transfer">
+    <value>Nueva Transferencia Masiva</value>
+  </data>
+</root>

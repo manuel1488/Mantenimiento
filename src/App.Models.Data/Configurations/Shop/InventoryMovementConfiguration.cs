@@ -43,6 +43,9 @@ public class InventoryMovementConfiguration : IEntityTypeConfiguration<Inventory
         // Index for performance
         builder.HasIndex(e => new { e.ProductId, e.LocationId, e.MovementDate });
 
+        // Index for grouping bulk transfer batches
+        builder.HasIndex(e => e.BatchId);
+
         // Relations
         builder.HasOne(e => e.Product)
             .WithMany()

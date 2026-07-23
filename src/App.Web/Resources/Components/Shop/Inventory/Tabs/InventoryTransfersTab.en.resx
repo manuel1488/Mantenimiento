@@ -5,6 +5,10 @@
     <value>New Transfer</value>
     <comment>Button to create a new inventory transfer</comment>
   </data>
+  <data name="Bulk Transfer">
+    <value>Bulk Transfer</value>
+    <comment>Button to navigate to the bulk transfer page</comment>
+  </data>
 
   <!-- Filters -->
   <data name="Date Range">

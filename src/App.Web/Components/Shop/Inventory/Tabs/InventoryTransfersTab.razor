@@ -26,13 +26,22 @@
             <!-- Fila de acciones -->
             <MudItem xs="12" Class="d-flex justify-space-between align-center">
                 <AuthorizeView Context="contextNew" Policy="@ApplicationClaims.Shop.ManageInventoryTransfers">
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.Add"
-                               OnClick="OpenTransferDialog"
-                               Class="da-button-rounded">
-                        @L["New Transfer"]
-                    </MudButton>
+                    <MudStack Row="true" Spacing="2">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   OnClick="OpenTransferDialog"
+                                   Class="da-button-rounded">
+                            @L["New Transfer"]
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Upload"
+                                   OnClick="@(() => NavigationManager.NavigateTo("/shop/inventory/bulk-transfer"))"
+                                   Class="da-button-rounded">
+                            @L["Bulk Transfer"]
+                        </MudButton>
+                    </MudStack>
                 </AuthorizeView>
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
                     <MudMenuItem Icon="@Icons.Material.Filled.FileDownload" OnClick="ExportToExcel">

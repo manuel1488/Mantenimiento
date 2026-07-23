@@ -398,6 +398,230 @@ public class InventoryService : IContextualInventoryService
         return result;
     }
 
+    public async Task<InventoryOperationResult<BulkTransferResultDto>> CreateBulkTransferAsync(
+        CreateBulkInventoryTransferDto transferDto,
+        CancellationToken cancellationToken = default)
+    {
+        if (transferDto.LocationId == transferDto.DestinationLocationId)
+        {
+            return InventoryOperationResult<BulkTransferResultDto>.Error(
+                L["Source and destination locations must be different"]);
+        }
+
+        if (transferDto.Lines.Count == 0)
+        {
+            return InventoryOperationResult<BulkTransferResultDto>.Error(
+                L["At least one line is required"]);
+        }
+
+        if (transferDto.Lines.Select(l => l.ProductId).Distinct().Count() != transferDto.Lines.Count)
+        {
+            return InventoryOperationResult<BulkTransferResultDto>.Error(
+                L["Duplicate products are not allowed in the same transfer"]);
+        }
+
+        await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var location = await _context.Locations
+            .FirstOrDefaultAsync(x => x.Id == transferDto.LocationId && x.IsActive, cancellationToken);
+        var destinationLocation = await _context.Locations
+            .FirstOrDefaultAsync(x => x.Id == transferDto.DestinationLocationId && x.IsActive, cancellationToken);
+
+        if (location == null || destinationLocation == null)
+        {
+            return InventoryOperationResult<BulkTransferResultDto>.Error(L["Invalid or inactive location"]);
+        }
+
+        var productIds = transferDto.Lines.Select(l => l.ProductId).ToList();
+
+        var inventories = await _context.Inventory
+            .Include(x => x.Product)
+            .Include(x => x.Location)
+            .Where(x => productIds.Contains(x.ProductId) &&
+                (x.LocationId == transferDto.LocationId || x.LocationId == transferDto.DestinationLocationId))
+            .ToListAsync(cancellationToken);
+
+        var lineErrors = new List<BulkTransferLineResultDto>();
+        var validLines = new List<(BulkTransferLineDto Line, App.Models.Shop.Inventory Source)>();
+
+        foreach (var line in transferDto.Lines)
+        {
+            var source = inventories.FirstOrDefault(x =>
+                x.ProductId == line.ProductId && x.LocationId == transferDto.LocationId);
+
+            if (source == null || !source.Product.IsActive)
+            {
+                lineErrors.Add(new BulkTransferLineResultDto
+                {
+                    ProductId = line.ProductId,
+                    ProductCode = source?.Product.Code ?? line.ProductId.ToString(),
+                    ProductName = source?.Product.Name ?? "-",
+                    Quantity = line.Quantity,
+                    Success = false,
+                    Error = L["Invalid product or location"]
+                });
+                continue;
+            }
+
+            if (line.Quantity <= 0)
+            {
+                lineErrors.Add(new BulkTransferLineResultDto
+                {
+                    ProductId = line.ProductId,
+                    ProductCode = source.Product.Code,
+                    ProductName = source.Product.Name,
+                    Quantity = line.Quantity,
+                    Success = false,
+                    Error = L["Quantity must be greater than zero"]
+                });
+                continue;
+            }
+
+            if (source.Quantity < line.Quantity)
+            {
+                lineErrors.Add(new BulkTransferLineResultDto
+                {
+                    ProductId = line.ProductId,
+                    ProductCode = source.Product.Code,
+                    ProductName = source.Product.Name,
+                    Quantity = line.Quantity,
+                    Success = false,
+                    Error = L["Insufficient stock"]
+                });
+                continue;
+            }
+
+            validLines.Add((line, source));
+        }
+
+        if (lineErrors.Count > 0)
+        {
+            // All-or-nothing: at least one line failed validation, so nothing is committed.
+            return InventoryOperationResult<BulkTransferResultDto>.Error(
+                L["One or more lines failed validation; no transfer was applied"],
+                new BulkTransferResultDto
+                {
+                    LocationId = transferDto.LocationId,
+                    LocationName = location.Name,
+                    DestinationLocationId = transferDto.DestinationLocationId,
+                    DestinationLocationName = destinationLocation.Name,
+                    TransferType = transferDto.TransferType,
+                    Reason = transferDto.Reason,
+                    Reference = transferDto.Reference,
+                    Lines = lineErrors
+                });
+        }
+
+        var batchId = Guid.NewGuid();
+        var movementDate = _dateTime.Now;
+        var createdBy = _currentUserService.FullName ?? "Unknown";
+
+        var strategy = _context.Database.CreateExecutionStrategy();
+        var result = await strategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                var destinationByProduct = inventories
+                    .Where(x => x.LocationId == transferDto.DestinationLocationId)
+                    .ToDictionary(x => x.ProductId);
+
+                var lineResults = new List<BulkTransferLineResultDto>();
+
+                foreach (var (line, source) in validLines)
+                {
+                    if (!destinationByProduct.TryGetValue(line.ProductId, out var destination))
+                    {
+                        destination = new App.Models.Shop.Inventory
+                        {
+                            ProductId = line.ProductId,
+                            LocationId = transferDto.DestinationLocationId,
+                            Quantity = 0,
+                            CreatedBy = createdBy,
+                            CreatedAt = movementDate
+                        };
+                        _context.Inventory.Add(destination);
+                        destinationByProduct[line.ProductId] = destination;
+                    }
+
+                    var previousSourceBalance = source.Quantity;
+                    var newSourceBalance = source.Quantity - line.Quantity;
+                    var newDestinationBalance = destination.Quantity + line.Quantity;
+
+                    source.Quantity = newSourceBalance;
+                    source.ModifiedBy = createdBy;
+                    destination.Quantity = newDestinationBalance;
+                    destination.ModifiedBy = createdBy;
+
+                    var movement = new InventoryMovement
+                    {
+                        ProductId = line.ProductId,
+                        LocationId = transferDto.LocationId,
+                        DestinationLocationId = transferDto.DestinationLocationId,
+                        MovementType = InventoryMovementType.Transfer,
+                        MovementSubType = transferDto.TransferType,
+                        Quantity = line.Quantity,
+                        Reference = transferDto.Reference,
+                        Reason = transferDto.Reason,
+                        PreviousBalance = previousSourceBalance,
+                        NewBalance = newSourceBalance,
+                        MovementDate = movementDate,
+                        BatchId = batchId,
+                        CreatedBy = createdBy,
+                        CreatedAt = movementDate
+                    };
+
+                    _context.InventoryMovements.Add(movement);
+
+                    lineResults.Add(new BulkTransferLineResultDto
+                    {
+                        ProductId = line.ProductId,
+                        ProductCode = source.Product.Code,
+                        ProductName = source.Product.Name,
+                        Quantity = line.Quantity,
+                        PreviousBalance = previousSourceBalance,
+                        NewBalance = newSourceBalance,
+                        Success = true
+                    });
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return InventoryOperationResult<BulkTransferResultDto>.Ok(new BulkTransferResultDto
+                {
+                    BatchId = batchId,
+                    LocationId = transferDto.LocationId,
+                    LocationName = location.Name,
+                    DestinationLocationId = transferDto.DestinationLocationId,
+                    DestinationLocationName = destinationLocation.Name,
+                    TransferType = transferDto.TransferType,
+                    Reason = transferDto.Reason,
+                    Reference = transferDto.Reference,
+                    MovementDate = movementDate,
+                    CreatedBy = createdBy,
+                    Lines = lineResults
+                });
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                _logger.LogError(ex, "Concurrency error creating bulk transfer");
+                return InventoryOperationResult<BulkTransferResultDto>.Error(
+                    L["The inventory was modified by another process"]);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                _logger.LogError(ex, "Error creating bulk transfer");
+                return InventoryOperationResult<BulkTransferResultDto>.Error(ex.Message);
+            }
+        });
+
+        return result;
+    }
+
     private async Task<InventoryMovement> CreateMovementRecordInternalAsync(
         ApplicationDbContext context,
         BaseInventoryMovementDto dto,

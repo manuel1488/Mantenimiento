@@ -30,6 +30,14 @@ public interface IInventoryService
         CreateInventoryTransferDto transferDto,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Creates a bulk inventory transfer (multiple products, same source/destination/reason).
+    /// All lines are validated up front; if any line is invalid, nothing is committed.
+    /// </summary>
+    Task<InventoryOperationResult<BulkTransferResultDto>> CreateBulkTransferAsync(
+        CreateBulkInventoryTransferDto transferDto,
+        CancellationToken cancellationToken = default);
+
     Task<(int TotalCount, IList<InventoryMovementDto> Items)> GetMovementsAsync(
         int page = 1,
         int pageSize = 10,

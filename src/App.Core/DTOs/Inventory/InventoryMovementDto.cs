@@ -28,4 +28,5 @@ public class InventoryMovementDto : AuditableDto
     public decimal ProductContent { get; set; }
     public decimal TotalContent => Quantity * ProductContent;
     public DateTime MovementDate { get; set; }
+    public Guid? BatchId { get; set; }
 }

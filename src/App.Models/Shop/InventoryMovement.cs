@@ -81,6 +81,11 @@ public class InventoryMovement : BaseEntity<long>
 
     public long? AdjustmentEntryId { get; set; }
 
+    /// <summary>
+    /// Groups movements created together in a single bulk transfer operation
+    /// </summary>
+    public Guid? BatchId { get; set; }
+
     [ForeignKey(nameof(ProductId))]
     public virtual Product Product { get; set; } = null!;
 
