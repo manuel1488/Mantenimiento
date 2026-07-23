@@ -51,7 +51,7 @@ public class QuotationSettingsService : IQuotationSettingsService
 
             var settings = await context.QuotationSettings.FirstOrDefaultAsync();
             var now = _dateTime.Now;
-            var user = _currentUserService.UserId ?? "System";
+            var user = await _currentUserService.GetUserIdAsync() ?? "System";
 
             if (settings == null)
             {

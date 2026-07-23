@@ -238,7 +238,7 @@ public class ProductService : IProductService
             var product = _mapper.Map<Product>(createDto);
 
             // Set audit fields
-            product.CreatedBy = _currentUserService.FullName ?? "Unknown";
+            product.CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             product.CreatedAt = _dateTime.Now;
 
             _context.Products.Add(product);
@@ -318,7 +318,7 @@ public class ProductService : IProductService
             }
 
             // Update audit fields
-            product.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            product.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             product.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -356,7 +356,7 @@ public class ProductService : IProductService
                     _localizer["Cannot delete product because it has related records"]);
             }
 
-            product.DeletedBy = _currentUserService.FullName ?? "Unknown";
+            product.DeletedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
@@ -401,7 +401,7 @@ public class ProductService : IProductService
                 ThumnailImageData = thumbnailData,
                 ContentType = savedContentType,
                 IsPrimary = isPrimary,
-                CreatedBy = _currentUserService.FullName ?? throw new InvalidOperationException("Unknown user"),
+                CreatedBy = await _currentUserService.GetFullNameAsync() ?? throw new InvalidOperationException("Unknown user"),
                 CreatedAt = _dateTime.Now
             };
 
@@ -414,7 +414,7 @@ public class ProductService : IProductService
                 existingImage.ImageData = imageData;
                 existingImage.ThumnailImageData = thumbnailData;
                 existingImage.ContentType = savedContentType;
-                existingImage.ModifiedBy = _currentUserService.FullName ?? throw new InvalidOperationException("Unknown user");
+                existingImage.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? throw new InvalidOperationException("Unknown user");
                 await _context.SaveChangesAsync(cancellationToken);
             }
             else
@@ -717,7 +717,7 @@ public class ProductService : IProductService
                         QuantityStep = item.QuantityStep,
                         IsLabelingAllowed = item.AllowLabeling,
                         AllowCustomPricing = item.AllowCustomPricing,
-                        CreatedBy = _currentUserService.FullName ?? "System",
+                        CreatedBy = await _currentUserService.GetFullNameAsync() ?? "System",
                         CreatedAt = _dateTime.Now
                     };
 
@@ -743,7 +743,7 @@ public class ProductService : IProductService
                                     DiscountPercentage = wholesaleData.DiscountPercentage,
                                     FixedPrice = wholesaleData.FixedPrice,
                                     IsActive = true,
-                                    CreatedBy = _currentUserService.FullName ?? "System",
+                                    CreatedBy = await _currentUserService.GetFullNameAsync() ?? "System",
                                     CreatedAt = _dateTime.Now
                                 };
                                 _context.ProductWholesalePrices.Add(wholesalePrice);

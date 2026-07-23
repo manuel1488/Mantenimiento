@@ -150,7 +150,7 @@ public class UnitMeasureService : IUnitMeasureService
             var unitMeasure = _mapper.Map<UnitMeasure>(createDto);
 
             // Set audit fields
-            unitMeasure.CreatedBy = _currentUserService.FullName;
+            unitMeasure.CreatedBy = await _currentUserService.GetFullNameAsync();
             unitMeasure.CreatedAt = _dateTime.Now;
 
             _context.UnitMeasures.Add(unitMeasure);
@@ -200,7 +200,7 @@ public class UnitMeasureService : IUnitMeasureService
             _mapper.Map(updateDto, unitMeasure);
 
             // Update audit fields
-            unitMeasure.ModifiedBy = _currentUserService.FullName;
+            unitMeasure.ModifiedBy = await _currentUserService.GetFullNameAsync();
             unitMeasure.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -238,7 +238,7 @@ public class UnitMeasureService : IUnitMeasureService
                     _localizer["Cannot delete unit measure because it is being used by products"]);
             }
 
-            unitMeasure.DeletedBy = _currentUserService.FullName;
+            unitMeasure.DeletedBy = await _currentUserService.GetFullNameAsync();
             unitMeasure.DeletedAt = _dateTime.Now;
             _context.UnitMeasures.Remove(unitMeasure);
             await _context.SaveChangesAsync();

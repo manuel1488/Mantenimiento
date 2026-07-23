@@ -181,7 +181,7 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
                         existing.DiscountPercentage = priceDto.DiscountPercentage;
                         existing.FixedPrice = priceDto.FixedPrice;
                         existing.IsActive = priceDto.IsActive;
-                        existing.ModifiedBy = _currentUserService.FullName;
+                        existing.ModifiedBy = await _currentUserService.GetFullNameAsync();
                         existing.ModifiedAt = _dateTime.Now;
                     }
                     else
@@ -195,7 +195,7 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
                             DiscountPercentage = priceDto.DiscountPercentage,
                             FixedPrice = priceDto.FixedPrice,
                             IsActive = priceDto.IsActive,
-                            CreatedBy = _currentUserService.FullName ?? "System",
+                            CreatedBy = await _currentUserService.GetFullNameAsync() ?? "System",
                             CreatedAt = _dateTime.Now
                         };
                         context.ProductWholesalePrices.Add(newPrice);
@@ -211,7 +211,7 @@ public class ProductWholesalePriceService : IProductWholesalePriceService
                 foreach (var toRemove in pricesToRemove)
                 {
                     toRemove.IsDeleted = 1;
-                    toRemove.DeletedBy = _currentUserService.FullName;
+                    toRemove.DeletedBy = await _currentUserService.GetFullNameAsync();
                     toRemove.DeletedAt = _dateTime.Now;
                 }
 

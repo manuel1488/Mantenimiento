@@ -45,7 +45,7 @@ public class StockEntryService : IStockEntryService
 
         try
         {
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
             var entryDate = dto.EntryDate ?? currentTime;
 

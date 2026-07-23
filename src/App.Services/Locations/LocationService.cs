@@ -155,7 +155,7 @@ public class LocationService : ILocationService
             var location = _mapper.Map<LocationModel>(createDto);
 
             // Set audit fields
-            location.CreatedBy = _currentUserService.FullName ?? "Unknown";
+            location.CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             location.CreatedAt = _dateTime.Now;
 
             context.Locations.Add(location);
@@ -202,7 +202,7 @@ public class LocationService : ILocationService
             _mapper.Map(updateDto, location);
 
             // Update audit fields
-            location.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            location.ModifiedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             location.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -240,7 +240,7 @@ public class LocationService : ILocationService
                     _localizer["Cannot delete location because it has inventory records"]);
             }
 
-            location.DeletedBy = _currentUserService.FullName ?? "Unknown";
+            location.DeletedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
             location.DeletedAt = _dateTime.Now;
             location.IsDeleted = 1;
 

@@ -135,7 +135,7 @@ public class GlobalInvoiceTaxGroupingTests
             .ReturnsAsync(TimeZoneInfo.Utc);
 
         _currentUserMock = new Mock<ICurrentUserService>();
-        _currentUserMock.Setup(x => x.UserId).Returns("test-user");
+        _currentUserMock.Setup(x => x.GetUserIdAsync()).ReturnsAsync("test-user");
 
         _dateTimeMock = new Mock<IDateTime>();
         _dateTimeMock.Setup(x => x.Now).Returns(new DateTime(2026, 4, 1, 12, 0, 0, DateTimeKind.Utc));

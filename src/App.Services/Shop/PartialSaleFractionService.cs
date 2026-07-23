@@ -140,7 +140,7 @@ public class PartialSaleFractionService : IPartialSaleFractionService
             if (existingCode)
                 return Result<PartialSaleFractionDto>.Failure(L["Fraction code already exists"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             var fraction = new PartialSaleFraction
@@ -191,7 +191,7 @@ public class PartialSaleFractionService : IPartialSaleFractionService
             if (existingCode)
                 return Result<PartialSaleFractionDto>.Failure(L["Fraction code already exists"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             fraction.Code = dto.Code;
@@ -235,7 +235,7 @@ public class PartialSaleFractionService : IPartialSaleFractionService
             if (isInUse)
                 return Result.Failure(L["Cannot delete fraction that is in use by products"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             fraction.IsDeleted = 1;
@@ -265,7 +265,7 @@ public class PartialSaleFractionService : IPartialSaleFractionService
             if (fraction == null)
                 return Result.Failure(L["Fraction not found"]);
 
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
 
             fraction.IsActive = !fraction.IsActive;

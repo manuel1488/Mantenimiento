@@ -91,7 +91,7 @@ public class DiscountSettingsService : IDiscountSettingsService
                 {
                     RequireAuthorizationForPublicDiscount = updateDto.RequireAuthorizationForPublicDiscount,
                     MaximumPublicDiscount = updateDto.MaximumPublicDiscount,
-                    CreatedBy = _currentUserService.FullName,
+                    CreatedBy = await _currentUserService.GetFullNameAsync(),
                     CreatedAt = _dateTime.Now
                 };
 
@@ -101,7 +101,7 @@ public class DiscountSettingsService : IDiscountSettingsService
             {
                 settings.RequireAuthorizationForPublicDiscount = updateDto.RequireAuthorizationForPublicDiscount;
                 settings.MaximumPublicDiscount = updateDto.MaximumPublicDiscount;
-                settings.ModifiedBy = _currentUserService.FullName;
+                settings.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 settings.ModifiedAt = _dateTime.Now;
             }
 

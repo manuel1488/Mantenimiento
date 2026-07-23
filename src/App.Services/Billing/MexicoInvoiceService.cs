@@ -189,9 +189,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 RequestedInvoiceDate = dto.InvoiceDate.HasValue
                     ? TimeZoneInfo.ConvertTimeToUtc(dto.InvoiceDate.Value, issuerTimeZone)
                     : null,
-                CreatedBy = _currentUserService.UserId,
+                CreatedBy = await _currentUserService.GetUserIdAsync(),
                 CreatedAt = _dateTime.Now,
-                ModifiedBy = _currentUserService.UserId,
+                ModifiedBy = await _currentUserService.GetUserIdAsync(),
                 ModifiedAt = _dateTime.Now
             };
 
@@ -247,7 +247,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 invoice.SelloCfdi = stamp.SelloCfdi;
                 invoice.CadenaOriginalSat = stamp.CadenaOriginalSat;
                 invoice.StampError = null;
-                invoice.ModifiedBy = _currentUserService.UserId;
+                invoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
                 invoice.ModifiedAt = _dateTime.Now;
 
                 // 11. Save stamped XML
@@ -257,9 +257,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     InvoiceId = invoice.Id,
                     FileType = "XML",
                     FileData = System.Text.Encoding.UTF8.GetBytes(stampedXml),
-                    CreatedBy = _currentUserService.UserId,
+                    CreatedBy = await _currentUserService.GetUserIdAsync(),
                     CreatedAt = _dateTime.Now,
-                    ModifiedBy = _currentUserService.UserId,
+                    ModifiedBy = await _currentUserService.GetUserIdAsync(),
                     ModifiedAt = _dateTime.Now
                 });
 
@@ -299,9 +299,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         InvoiceId = invoice.Id,
                         FileType = "PDF",
                         FileData = pdf,
-                        CreatedBy = _currentUserService.UserId,
+                        CreatedBy = await _currentUserService.GetUserIdAsync(),
                         CreatedAt = _dateTime.Now,
-                        ModifiedBy = _currentUserService.UserId,
+                        ModifiedBy = await _currentUserService.GetUserIdAsync(),
                         ModifiedAt = _dateTime.Now
                     });
                     await context.SaveChangesAsync();
@@ -373,7 +373,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 if (pacSettings?.AllowPdfRegenerationForStampedInvoices != true)
                     return Result.Failure(_localizer["Regenerating the PDF of an invoice that already has one is disabled. Enable it in Administración > Configuración > Facturación."]);
 
-                existingPdf.DeletedBy = _currentUserService.UserId;
+                existingPdf.DeletedBy = await _currentUserService.GetUserIdAsync();
                 existingPdf.DeletedAt = _dateTime.Now;
                 context.MexicoInvoiceFiles.Remove(existingPdf);
             }
@@ -428,9 +428,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 InvoiceId = invoice.Id,
                 FileType = "PDF",
                 FileData = pdf,
-                CreatedBy = _currentUserService.UserId,
+                CreatedBy = await _currentUserService.GetUserIdAsync(),
                 CreatedAt = _dateTime.Now,
-                ModifiedBy = _currentUserService.UserId,
+                ModifiedBy = await _currentUserService.GetUserIdAsync(),
                 ModifiedAt = _dateTime.Now
             });
 
@@ -495,7 +495,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 .ToListAsync();
             foreach (var file in oldFiles)
             {
-                file.DeletedBy = _currentUserService.UserId;
+                file.DeletedBy = await _currentUserService.GetUserIdAsync();
                 file.DeletedAt = _dateTime.Now;
             }
             context.MexicoInvoiceFiles.RemoveRange(oldFiles);
@@ -586,7 +586,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 invoice.SelloCfdi = stamp.SelloCfdi;
                 invoice.CadenaOriginalSat = stamp.CadenaOriginalSat;
                 invoice.StampError = null;
-                invoice.ModifiedBy = _currentUserService.UserId;
+                invoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
                 invoice.ModifiedAt = _dateTime.Now;
 
                 // Save stamped XML
@@ -596,9 +596,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                     InvoiceId = invoice.Id,
                     FileType = "XML",
                     FileData = Encoding.UTF8.GetBytes(stampedXml),
-                    CreatedBy = _currentUserService.UserId,
+                    CreatedBy = await _currentUserService.GetUserIdAsync(),
                     CreatedAt = _dateTime.Now,
-                    ModifiedBy = _currentUserService.UserId,
+                    ModifiedBy = await _currentUserService.GetUserIdAsync(),
                     ModifiedAt = _dateTime.Now
                 });
 
@@ -638,9 +638,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         InvoiceId = invoice.Id,
                         FileType = "PDF",
                         FileData = pdf,
-                        CreatedBy = _currentUserService.UserId,
+                        CreatedBy = await _currentUserService.GetUserIdAsync(),
                         CreatedAt = _dateTime.Now,
-                        ModifiedBy = _currentUserService.UserId,
+                        ModifiedBy = await _currentUserService.GetUserIdAsync(),
                         ModifiedAt = _dateTime.Now
                     });
                     await context.SaveChangesAsync();
@@ -899,7 +899,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 {
                     file.FileData = watermarkedPdf;
                     file.ModifiedAt = _dateTime.Now;
-                    file.ModifiedBy = _currentUserService.UserId;
+                    file.ModifiedBy = await _currentUserService.GetUserIdAsync();
                     await context.SaveChangesAsync();
                     return Result<byte[]>.Success(watermarkedPdf);
                 }
@@ -1141,7 +1141,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
             {
                 invoice.CancellationStatus = "Error";
                 invoice.ModifiedAt = _dateTime.Now;
-                invoice.ModifiedBy = _currentUserService.UserId;
+                invoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
                 await context.SaveChangesAsync();
                 return Result.Failure("La factura no tiene motivo de cancelación registrado");
             }
@@ -1601,7 +1601,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
     {
         invoice.Status = "StampError";
         invoice.StampError = error;
-        invoice.ModifiedBy = _currentUserService.UserId;
+        invoice.ModifiedBy = await _currentUserService.GetUserIdAsync();
         invoice.ModifiedAt = _dateTime.Now;
 
         if (!string.IsNullOrEmpty(xmlContent))
@@ -1611,9 +1611,9 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 InvoiceId = invoice.Id,
                 FileType = "XML",
                 FileData = System.Text.Encoding.UTF8.GetBytes(xmlContent),
-                CreatedBy = _currentUserService.UserId,
+                CreatedBy = await _currentUserService.GetUserIdAsync(),
                 CreatedAt = _dateTime.Now,
-                ModifiedBy = _currentUserService.UserId,
+                ModifiedBy = await _currentUserService.GetUserIdAsync(),
                 ModifiedAt = _dateTime.Now
             });
         }

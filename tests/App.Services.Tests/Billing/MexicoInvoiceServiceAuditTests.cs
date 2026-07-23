@@ -63,7 +63,7 @@ public class MexicoInvoiceServiceAuditTests
 
         // Current user — the value we expect in all audit fields
         _currentUserServiceMock = new Mock<ICurrentUserService>();
-        _currentUserServiceMock.Setup(u => u.UserId).Returns(TestUserId);
+        _currentUserServiceMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync(TestUserId);
 
         // DateTime
         _dateTimeMock = new Mock<IDateTime>();

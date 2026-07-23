@@ -45,7 +45,7 @@ public class AdjustmentEntryService : IAdjustmentEntryService
 
         try
         {
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
             var currentTime = _dateTimeService.Now;
             var adjustmentDate = dto.AdjustmentDate ?? currentTime;
 

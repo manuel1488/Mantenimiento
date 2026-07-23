@@ -109,7 +109,7 @@ public class CashStationService : ICashStationService
                 return Result<CashStationDto>.Failure(_localizer["A cash station with this name already exists at this location"]);
 
             var now = _dateTime.Now;
-            var currentUser = _currentUserService.FullName;
+            var currentUser = await _currentUserService.GetFullNameAsync();
 
             var station = new CashStation
             {
@@ -160,7 +160,7 @@ public class CashStationService : ICashStationService
 
             station.Name = dto.Name;
             station.IsActive = dto.IsActive;
-            station.ModifiedBy = _currentUserService.FullName;
+            station.ModifiedBy = await _currentUserService.GetFullNameAsync();
             station.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();

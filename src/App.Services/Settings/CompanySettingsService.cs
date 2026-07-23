@@ -79,7 +79,7 @@ public class CompanySettingsService : ICompanySettingsService
             {
                 settings = new CompanySettings
                 {
-                    CreatedBy = _currentUserService.FullName ?? "Unknown",
+                    CreatedBy = await _currentUserService.GetFullNameAsync() ?? "Unknown",
                     CreatedAt = _dateTime.Now
                 };
                 _context.CompanySettings.Add(settings);
@@ -98,14 +98,15 @@ public class CompanySettingsService : ICompanySettingsService
                 settings.TimeZoneDisplayName = updateDto.TimeZoneId;
             }
 
-            settings.ModifiedBy = _currentUserService.FullName ?? "Unknown";
+            var fullName = await _currentUserService.GetFullNameAsync();
+            settings.ModifiedBy = fullName ?? "Unknown";
             settings.ModifiedAt = _dateTime.Now;
 
             await _context.SaveChangesAsync();
 
             _logger.LogInformation(
                 "Company settings updated by {User}. Timezone set to: {TimeZoneId}",
-                _currentUserService.FullName, settings.TimeZoneId);
+                fullName, settings.TimeZoneId);
 
             return _mapper.Map<CompanySettingsDto>(settings);
         }

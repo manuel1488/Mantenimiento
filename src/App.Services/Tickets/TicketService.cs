@@ -409,13 +409,13 @@ public class TicketService : ITicketService
             {
                 // Crear nueva configuración
                 config = new TicketConfiguration();
-                config.CreatedBy = _currentUserService.FullName;
+                config.CreatedBy = await _currentUserService.GetFullNameAsync();
                 context.TicketConfigurations.Add(config);
             }
             else
             {
                 // Actualizar la fecha de modificación
-                config.ModifiedBy = _currentUserService.FullName;                
+                config.ModifiedBy = await _currentUserService.GetFullNameAsync();
             }
             
             // Actualizar propiedades (solo las que no son null)

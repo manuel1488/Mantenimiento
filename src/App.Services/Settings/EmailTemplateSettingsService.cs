@@ -59,7 +59,7 @@ public class EmailTemplateSettingsService : IEmailTemplateSettingsService
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
             var now = _dateTime.Now;
-            var user = _currentUserService.UserId ?? "System";
+            var user = await _currentUserService.GetUserIdAsync() ?? "System";
 
             var entity = await context.EmailTemplateSettings
                 .FirstOrDefaultAsync(t => t.Name == dto.Name);
@@ -107,7 +107,7 @@ public class EmailTemplateSettingsService : IEmailTemplateSettingsService
             if (entity == null)
                 return Result.Failure(_localizer["Template not found"]);
 
-            entity.DeletedBy = _currentUserService.UserId;
+            entity.DeletedBy = await _currentUserService.GetUserIdAsync();
             entity.DeletedAt = _dateTime.Now;
             context.EmailTemplateSettings.Remove(entity);
             await context.SaveChangesAsync();

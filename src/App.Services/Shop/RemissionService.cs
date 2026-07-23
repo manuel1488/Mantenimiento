@@ -201,7 +201,7 @@ public class RemissionService : IRemissionService
                         return Result<RemissionDto>.Failure(_localizer["Location not found"]);
 
                     var now = _dateTime.Now;
-                    var currentUser = _currentUserService.UserId ?? "System";
+                    var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
 
                     var companySettings = await _companySettingsService.GetSettingsAsync();
                     var countryCode = companySettings?.CountryCode ?? "MX";
@@ -421,7 +421,7 @@ public class RemissionService : IRemissionService
                         return Result.Failure(_localizer["Only pending remissions can be cancelled"]);
 
                     var now = _dateTime.Now;
-                    var currentUser = _currentUserService.UserId ?? "System";
+                    var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
 
                     // Revert inventory
                     var cancelProductIds = remission.Details.Select(d => d.ProductId).ToList();
@@ -583,7 +583,7 @@ public class RemissionService : IRemissionService
 
                 var saleId = saleResult.Value!.Id;
                 var now = _dateTime.Now;
-                var currentUser = _currentUserService.UserId ?? "System";
+                var currentUser = await _currentUserService.GetUserIdAsync() ?? "System";
 
                 foreach (var remission in remissions)
                 {

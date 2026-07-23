@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 
 using App.Core.DTOs.Billing;
 using App.Core.DTOs.Billing.Mexico;
@@ -69,7 +69,7 @@ public class MexicoFiscalCatalogService : IMexicoFiscalCatalogService
             var entity = _mapper.Map<T>(createDto);
             
             // Set audit fields
-            typeof(T).GetProperty("CreatedBy")?.SetValue(entity, _currentUserService.FullName ?? "Unknown");
+            typeof(T).GetProperty("CreatedBy")?.SetValue(entity, await _currentUserService.GetFullNameAsync() ?? "Unknown");
             typeof(T).GetProperty("CreatedAt")?.SetValue(entity, _dateTime.Now);
 
             _context.Set<T>().Add(entity);
@@ -99,7 +99,7 @@ public class MexicoFiscalCatalogService : IMexicoFiscalCatalogService
         _mapper.Map(updateDto, entity);
 
         // Update audit fields
-        typeof(T).GetProperty("ModifiedBy")?.SetValue(entity, _currentUserService.FullName ?? "Unknown");
+        typeof(T).GetProperty("ModifiedBy")?.SetValue(entity, await _currentUserService.GetFullNameAsync() ?? "Unknown");
         typeof(T).GetProperty("ModifiedAt")?.SetValue(entity, _dateTime.Now);
 
         await _context.SaveChangesAsync();

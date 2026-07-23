@@ -462,7 +462,7 @@
             _dateRange = new DateRange(firstDayOfMonth, lastDayOfMonth);
 
             // Default to active location if set
-            _selectedLocationId = CurrentUserService.ActiveLocationId;
+            _selectedLocationId = await CurrentUserService.GetActiveLocationIdAsync();
         }
 
         // Load locations for filter
@@ -471,13 +471,13 @@
 
     private async Task LoadLocations()
     {
-        if (CurrentUserService.IsGlobalAccess)
+        if (await CurrentUserService.GetIsGlobalAccessAsync())
         {
             _locations = await LocationService.GetActiveLocationsAsync();
         }
         else
         {
-            var userId = CurrentUserService.UserId;
+            var userId = await CurrentUserService.GetUserIdAsync();
             if (userId != null)
             {
                 var result = await UserLocationService.GetUserLocationsAsync(userId);

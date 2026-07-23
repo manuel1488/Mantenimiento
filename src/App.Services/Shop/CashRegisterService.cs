@@ -128,10 +128,10 @@ public class CashRegisterService : ICashRegisterService
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            var userId = _currentUserService.UserId;
+            var userId = await _currentUserService.GetUserIdAsync();
             var now = _dateTime.Now;
 
-            if (!_currentUserService.IsGlobalAccess)
+            if (!await _currentUserService.GetIsGlobalAccessAsync())
             {
                 var isCashier = await _cashierProfileService.IsActiveCashierAsync(userId!);
                 if (!isCashier)
@@ -155,7 +155,7 @@ public class CashRegisterService : ICashRegisterService
             if (station == null)
                 return Result<CashRegisterDto>.Failure(L["Cash station not found or inactive"]);
 
-            if (!_currentUserService.IsGlobalAccess)
+            if (!await _currentUserService.GetIsGlobalAccessAsync())
             {
                 var profile = await context.CashierProfiles
                     .AsNoTracking()
@@ -180,9 +180,9 @@ public class CashRegisterService : ICashRegisterService
                 InitialFund = dto.InitialFund,
                 OpeningNotes = dto.Notes,
                 OpenedAt = now,
-                CreatedBy = _currentUserService.FullName,
+                CreatedBy = await _currentUserService.GetFullNameAsync(),
                 CreatedAt = now,
-                ModifiedBy = _currentUserService.FullName,
+                ModifiedBy = await _currentUserService.GetFullNameAsync(),
                 ModifiedAt = now
             };
 
@@ -242,9 +242,9 @@ public class CashRegisterService : ICashRegisterService
                         DenominationType = catalogEntry.Type,
                         DenominationValue = denominationValue,
                         Quantity = quantity,
-                        CreatedBy = _currentUserService.FullName,
+                        CreatedBy = await _currentUserService.GetFullNameAsync(),
                         CreatedAt = now,
-                        ModifiedBy = _currentUserService.FullName,
+                        ModifiedBy = await _currentUserService.GetFullNameAsync(),
                         ModifiedAt = now
                     });
                 }
@@ -252,7 +252,7 @@ public class CashRegisterService : ICashRegisterService
                 cashRegister.Status = CashRegisterStatus.Closed;
                 cashRegister.ClosingNotes = dto.ClosingNotes;
                 cashRegister.ClosedAt = now;
-                cashRegister.ModifiedBy = _currentUserService.FullName;
+                cashRegister.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 cashRegister.ModifiedAt = now;
 
                 await context.SaveChangesAsync();
@@ -318,9 +318,9 @@ public class CashRegisterService : ICashRegisterService
                 Amount = dto.Amount,
                 Reason = dto.Reason,
                 WithdrawalNumber = withdrawalNumber,
-                CreatedBy = _currentUserService.FullName,
+                CreatedBy = await _currentUserService.GetFullNameAsync(),
                 CreatedAt = now,
-                ModifiedBy = _currentUserService.FullName,
+                ModifiedBy = await _currentUserService.GetFullNameAsync(),
                 ModifiedAt = now
             };
 
@@ -533,9 +533,9 @@ public class CashRegisterService : ICashRegisterService
                     MaxCashLimit = dto.MaxCashLimit,
                     IsStrictCashLimit = dto.IsStrictCashLimit,
                     DefaultInitialFund = dto.DefaultInitialFund,
-                    CreatedBy = _currentUserService.FullName,
+                    CreatedBy = await _currentUserService.GetFullNameAsync(),
                     CreatedAt = now,
-                    ModifiedBy = _currentUserService.FullName,
+                    ModifiedBy = await _currentUserService.GetFullNameAsync(),
                     ModifiedAt = now
                 };
                 context.CashRegisterSettings.Add(settings);
@@ -547,7 +547,7 @@ public class CashRegisterService : ICashRegisterService
                 settings.MaxCashLimit = dto.MaxCashLimit;
                 settings.IsStrictCashLimit = dto.IsStrictCashLimit;
                 settings.DefaultInitialFund = dto.DefaultInitialFund;
-                settings.ModifiedBy = _currentUserService.FullName;
+                settings.ModifiedBy = await _currentUserService.GetFullNameAsync();
                 settings.ModifiedAt = now;
             }
 

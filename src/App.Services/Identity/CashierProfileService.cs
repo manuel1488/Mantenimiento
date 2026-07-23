@@ -122,7 +122,7 @@ public class CashierProfileService : ICashierProfileService
                 return Result<CashierProfileDto>.Failure(_localizer["Location is required"]);
 
             var now = _dateTime.Now;
-            var currentUser = _currentUserService.FullName;
+            var currentUser = await _currentUserService.GetFullNameAsync();
 
             var profile = new CashierProfile
             {
@@ -173,7 +173,7 @@ public class CashierProfileService : ICashierProfileService
                 profile.LocationId = dto.LocationId;
             profile.IsActive = dto.IsActive;
             profile.Notes = dto.Notes;
-            profile.ModifiedBy = _currentUserService.FullName;
+            profile.ModifiedBy = await _currentUserService.GetFullNameAsync();
             profile.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();

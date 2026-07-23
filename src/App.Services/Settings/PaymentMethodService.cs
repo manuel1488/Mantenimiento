@@ -81,7 +81,7 @@ public class PaymentMethodService : IPaymentMethodService
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             var entity = _mapper.Map<PaymentMethod>(dto);
-            SetAuditFields(entity);
+            await SetAuditFieldsAsync(entity);
 
             context.PaymentMethods.Add(entity);
             await context.SaveChangesAsync();
@@ -106,7 +106,7 @@ public class PaymentMethodService : IPaymentMethodService
                 return Result<PaymentMethodDto>.Failure(_localizer["Payment method not found"]);
 
             _mapper.Map(dto, entity);
-            entity.ModifiedBy = _currentUserService.UserId ?? "System";
+            entity.ModifiedBy = await _currentUserService.GetUserIdAsync() ?? "System";
             entity.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -131,7 +131,7 @@ public class PaymentMethodService : IPaymentMethodService
                 return Result.Failure(_localizer["Payment method not found"]);
 
             entity.IsActive = !entity.IsActive;
-            entity.ModifiedBy = _currentUserService.UserId ?? "System";
+            entity.ModifiedBy = await _currentUserService.GetUserIdAsync() ?? "System";
             entity.ModifiedAt = _dateTime.Now;
 
             await context.SaveChangesAsync();
@@ -169,9 +169,9 @@ public class PaymentMethodService : IPaymentMethodService
         }
     }
 
-    private void SetAuditFields(PaymentMethod entity)
+    private async Task SetAuditFieldsAsync(PaymentMethod entity)
     {
-        var user = _currentUserService.UserId ?? "System";
+        var user = await _currentUserService.GetUserIdAsync() ?? "System";
         var now = _dateTime.Now;
         entity.CreatedBy = user;
         entity.CreatedAt = now;

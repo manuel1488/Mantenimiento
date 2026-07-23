@@ -38,86 +38,76 @@ public class CurrentUserService : ICurrentUserService
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
-    public string UserId
+    public async Task<string> GetUserIdAsync()
     {
-        get
+        // Primary: HttpContext (works for both API controllers and Blazor initial render) — synchronous, no await needed.
+        var httpUserId = _httpContextAccessor?.HttpContext?.User
+            .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (httpUserId != null)
+            return httpUserId;
+
+        // Fallback: AuthenticationStateProvider (Blazor async circuit)
+        if (_authenticationStateProvider == null)
+            throw new InvalidOperationException("AuthenticationStateProvider is not initialized");
+
+        try
         {
-            // Primary: HttpContext (works for both API controllers and Blazor initial render)
-            var httpUserId = _httpContextAccessor?.HttpContext?.User
-                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (httpUserId != null)
-                return httpUserId;
-
-            // Fallback: AuthenticationStateProvider (Blazor async circuit)
-            if (_authenticationStateProvider == null)
-                throw new InvalidOperationException("AuthenticationStateProvider is not initialized");
-
-            try
-            {
-                var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
-                var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                return userId ?? throw new InvalidOperationException("No user ID found");
-            }
-            catch
-            {
-                throw new InvalidOperationException("Unable to determine current user");
-            }
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return userId ?? throw new InvalidOperationException("No user ID found");
+        }
+        catch
+        {
+            throw new InvalidOperationException("Unable to determine current user");
         }
     }
 
-    public string? UserName
+    public async Task<string?> GetUserNameAsync()
     {
-        get
-        {
-            if (_authenticationStateProvider == null)
-            {
-                return null;
-            }
+        if (_authenticationStateProvider == null)
+            return null;
 
-            try
-            {
-                var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
-                return authState.User.Identity?.Name;
-            }
-            catch
-            {
-                return null;
-            }
+        try
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            return authState.User.Identity?.Name;
+        }
+        catch
+        {
+            return null;
         }
     }
 
-    public string? FullName => GetCurrentUser()?.FullName ?? UserName;
-
-    public int? ActiveLocationId
+    public async Task<string?> GetFullNameAsync()
     {
-        get
-        {
-            if (!_locationInitialized)
-            {
-                InitializeActiveLocationAsync().GetAwaiter().GetResult();
-            }
-            return _activeLocationId;
-        }
+        var user = await GetCurrentUserAsync();
+        return user?.FullName ?? await GetUserNameAsync();
     }
 
-    public bool IsGlobalAccess
+    public async Task<int?> GetActiveLocationIdAsync()
     {
-        get
+        if (!_locationInitialized)
         {
-            if (_authenticationStateProvider == null)
-                return false;
+            await InitializeActiveLocationAsync();
+        }
+        return _activeLocationId;
+    }
 
-            try
-            {
-                var authState = Task.Run(() => _authenticationStateProvider.GetAuthenticationStateAsync()).GetAwaiter().GetResult();
-                var user = authState.User;
-                return user.IsInRole(ApplicationRoles.SuperAdmin) ||
-                       user.IsInRole(ApplicationRoles.Admin);
-            }
-            catch
-            {
-                return false;
-            }
+    public async Task<bool> GetIsGlobalAccessAsync()
+    {
+        if (_authenticationStateProvider == null)
+            return false;
+
+        try
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            return user.IsInRole(ApplicationRoles.SuperAdmin) ||
+                   user.IsInRole(ApplicationRoles.Admin);
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -125,7 +115,7 @@ public class CurrentUserService : ICurrentUserService
     {
         try
         {
-            var userId = UserId;
+            var userId = await GetUserIdAsync();
             var cacheKey = $"{LOCATION_CACHE_KEY_PREFIX}{userId}";
 
             var locationIds = _cache.Get<IReadOnlyList<int>>(cacheKey);
@@ -164,7 +154,7 @@ public class CurrentUserService : ICurrentUserService
         {
             try
             {
-                var userId = UserId;
+                var userId = await GetUserIdAsync();
                 var cacheKey = $"{LOCATION_CACHE_KEY_PREFIX}{userId}";
                 if (!_cache.TryGetValue(cacheKey, out _))
                 {
@@ -195,7 +185,7 @@ public class CurrentUserService : ICurrentUserService
 
     public async Task<bool> HasAccessToLocationAsync(int locationId)
     {
-        if (IsGlobalAccess)
+        if (await GetIsGlobalAccessAsync())
             return true;
 
         var assignedIds = await GetAssignedLocationIdsAsync();
@@ -239,24 +229,28 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
-    private ApplicationUser? GetCurrentUser()
+    private async Task<ApplicationUser?> GetCurrentUserAsync()
     {
         try
         {
-            var userId = UserId;
+            var userId = await GetUserIdAsync();
             if (userId == "System")
                 return null;
 
             var cacheKey = $"{USER_CACHE_KEY_PREFIX}{userId}";
 
-            var value = _cache.GetOrCreate(cacheKey, entry =>
-            {
-                entry.SlidingExpiration = CACHE_DURATION;
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+            if (_cache.TryGetValue(cacheKey, out ApplicationUser? cached))
+                return cached;
 
-                using var scope = _serviceProvider.CreateScope();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                return Task.Run(() => userManager.FindByIdAsync(userId)).GetAwaiter().GetResult();
+            using var scope = _serviceProvider.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var value = await userManager.FindByIdAsync(userId);
+
+            _cache.Set(cacheKey, value, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = CACHE_DURATION,
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+
             });
 
             return value;

@@ -57,8 +57,8 @@ public class QuotationStatusTransitionTests
                 new LocalizedString(key, string.Format(key, args)));
 
         var currentUserMock = new Mock<ICurrentUserService>();
-        currentUserMock.Setup(u => u.UserId).Returns((string?)"test-user");
-        currentUserMock.Setup(u => u.FullName).Returns((string?)"Test User");
+        currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test-user");
+        currentUserMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync((string?)"Test User");
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);
