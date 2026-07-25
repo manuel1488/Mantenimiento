@@ -93,13 +93,19 @@
   <data name="Passwords do not match" xml:space="preserve">
     <value>Passwords do not match</value>
   </data>
-  <data name="Assigned Branches" xml:space="preserve">
-    <value>Assigned Branches</value>
+  <data name="Assigned Locations" xml:space="preserve">
+    <value>Assigned Locations</value>
   </data>
-  <data name="No branches assigned" xml:space="preserve">
-    <value>No branches assigned</value>
+  <data name="No locations assigned" xml:space="preserve">
+    <value>No locations assigned</value>
   </data>
-  <data name="Select the branches this user can access. Leave empty for no branch restriction." xml:space="preserve">
-    <value>Select the branches this user can access. Leave empty for no branch restriction.</value>
+  <data name="Select the locations this user can access. Leave empty for no location restriction." xml:space="preserve">
+    <value>Select the locations this user can access. Leave empty for no location restriction.</value>
+  </data>
+  <data name="Access to all locations" xml:space="preserve">
+    <value>Access to all locations</value>
+  </data>
+  <data name="The user will be able to view and operate on all locations without needing individual assignment." xml:space="preserve">
+    <value>The user will be able to view and operate on all locations without needing individual assignment.</value>
   </data>
 </root>

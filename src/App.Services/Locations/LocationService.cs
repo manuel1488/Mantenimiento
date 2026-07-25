@@ -117,6 +117,46 @@ public class LocationService : ILocationService
         }
     }
 
+    public async Task<IList<LocationDto>> GetAccessibleLocationsAsync(LocationType? type = null)
+    {
+        try
+        {
+            if (await _currentUserService.GetIsGlobalAccessAsync())
+            {
+                return await GetActiveLocationsAsync(type);
+            }
+
+            var assignedLocationIds = await _currentUserService.GetAssignedLocationIdsAsync();
+            if (assignedLocationIds.Count == 0)
+            {
+                return new List<LocationDto>();
+            }
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            IQueryable<LocationModel> query = context.Locations
+                .AsNoTracking()
+                .Where(x => x.IsActive && assignedLocationIds.Contains(x.Id));
+
+            if (type.HasValue)
+            {
+                query = query.Where(x => x.Type == type.Value);
+            }
+
+            var locations = await query
+                .OrderBy(x => x.Type)
+                .ThenBy(x => x.Name)
+                .ToListAsync();
+
+            return locations.Select(x => _mapper.Map<LocationDto>(x)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting accessible locations");
+            throw;
+        }
+    }
+
     public async Task<LocationDto?> GetLocationByIdAsync(int id)
     {
         try

@@ -3,6 +3,7 @@
 using App.Core.DTOs.Inventory;
 using App.Core.Interfaces;
 using App.Models.Data.Contexts;
+using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,15 +15,18 @@ public class InventoryQueryService : IInventoryQueryService
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly IMapper _mapper;
     private readonly ILogger<InventoryQueryService> _logger;
+    private readonly ICurrentUserService _currentUserService;
 
     public InventoryQueryService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
         IMapper mapper,
-        ILogger<InventoryQueryService> logger)
+        ILogger<InventoryQueryService> logger,
+        ICurrentUserService currentUserService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
         _logger = logger;
+        _currentUserService = currentUserService;
     }
 
     public async Task<(int TotalCount, IList<InventoryDto> Items)> GetInventoryStatusAsync(
@@ -38,6 +42,11 @@ public class InventoryQueryService : IInventoryQueryService
     {
         try
         {
+            if (locationId.HasValue && !await _currentUserService.HasAccessToLocationAsync(locationId.Value))
+            {
+                return (0, new List<InventoryDto>());
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             IQueryable<App.Models.Shop.Inventory> query = _context.Inventory
@@ -58,6 +67,11 @@ public class InventoryQueryService : IInventoryQueryService
             if (locationId.HasValue)
             {
                 query = query.Where(x => x.LocationId == locationId.Value);
+            }
+            else if (!await _currentUserService.GetIsGlobalAccessAsync())
+            {
+                var assignedIds = await _currentUserService.GetAssignedLocationIdsAsync();
+                query = query.Where(x => assignedIds.Contains(x.LocationId));
             }
 
             if (hasStock.HasValue)
@@ -193,6 +207,9 @@ public class InventoryQueryService : IInventoryQueryService
     {
         try
         {
+            if (!await _currentUserService.HasAccessToLocationAsync(locationId))
+                throw new InvalidOperationException($"Location not found: {locationId}");
+
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var location = await _context.Locations

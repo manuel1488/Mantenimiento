@@ -224,6 +224,7 @@ public class IdentityService : IIdentityService
         user.FullName = updateUserDto.FullName;
         user.Email = updateUserDto.Email;
         user.IsActive = updateUserDto.IsActive;
+        user.HasGlobalLocationAccess = updateUserDto.HasGlobalLocationAccess;
 
         // The interceptor will handle these
         user.ModifiedBy = await _currentUserService.GetUserIdAsync();

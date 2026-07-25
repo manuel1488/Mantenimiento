@@ -59,6 +59,8 @@ public class InventoryAdjustmentTests
         var currentUserMock = new Mock<ICurrentUserService>();
         currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test-user");
         currentUserMock.Setup(u => u.GetFullNameAsync()).ReturnsAsync("Test User");
+        currentUserMock.Setup(u => u.GetIsGlobalAccessAsync()).ReturnsAsync(true);
+        currentUserMock.Setup(u => u.HasAccessToLocationAsync(It.IsAny<int>())).ReturnsAsync(true);
 
         var dateTimeMock = new Mock<IDateTime>();
         dateTimeMock.Setup(d => d.Now).Returns(DateTime.UtcNow);
@@ -81,7 +83,8 @@ public class InventoryAdjustmentTests
         _queryService = new InventoryQueryService(
             contextFactory,
             new Mock<IMapper>().Object,
-            NullLogger<InventoryQueryService>.Instance);
+            NullLogger<InventoryQueryService>.Instance,
+            currentUserMock.Object);
     }
 
     // ── InventoryService: adjustment validation ──────────────────────────────

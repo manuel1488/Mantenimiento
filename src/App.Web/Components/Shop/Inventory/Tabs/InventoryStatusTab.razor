@@ -214,7 +214,7 @@
     {
         try
         {
-            _locations = (await LocationService.GetActiveLocationsAsync()).ToList();
+            _locations = (await LocationService.GetAccessibleLocationsAsync()).ToList();
         }
         catch (Exception ex)
         {

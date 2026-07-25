@@ -237,7 +237,8 @@
                         Password = model.Password!,
                         FullName = model.FullName,
                         Email = model.Email,
-                        Role = model.Role
+                        Role = model.Role,
+                        HasGlobalLocationAccess = model.HasGlobalLocationAccess
                     };
 
                 var (identityResult, userId) = await IdentityService.CreateUserAsync(createDto);
@@ -313,6 +314,7 @@
                         Email = userInfo.Email,
                         FullName = userInfo.FullName,
                         IsActive = userInfo.IsActive,
+                        HasGlobalLocationAccess = userInfo.HasGlobalLocationAccess,
                         Role = currentRole,
                         LocationIds = userLocationIds
                     }
@@ -332,7 +334,8 @@
                         FullName = model.FullName,
                         Email = model.Email,
                         Role = model.Role,
-                        IsActive = model.IsActive
+                        IsActive = model.IsActive,
+                        HasGlobalLocationAccess = model.HasGlobalLocationAccess
                     };
 
                     var identityResult = await IdentityService.UpdateUserAsync(model.Id!, updateDto);

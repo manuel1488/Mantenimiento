@@ -102,13 +102,16 @@ public class CurrentUserService : ICurrentUserService
         {
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-            return user.IsInRole(ApplicationRoles.SuperAdmin) ||
-                   user.IsInRole(ApplicationRoles.Admin);
+            if (user.IsInRole(ApplicationRoles.SuperAdmin) || user.IsInRole(ApplicationRoles.Admin))
+                return true;
         }
         catch
         {
             return false;
         }
+
+        var currentUser = await GetCurrentUserAsync();
+        return currentUser?.HasGlobalLocationAccess ?? false;
     }
 
     public async Task<IReadOnlyList<int>> GetAssignedLocationIdsAsync()

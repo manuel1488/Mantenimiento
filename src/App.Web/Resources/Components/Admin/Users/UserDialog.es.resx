@@ -93,13 +93,19 @@
   <data name="Passwords do not match" xml:space="preserve">
     <value>Las contraseñas no coinciden</value>
   </data>
-  <data name="Assigned Branches" xml:space="preserve">
-    <value>Sucursales Asignadas</value>
+  <data name="Assigned Locations" xml:space="preserve">
+    <value>Almacenes Asignados</value>
   </data>
-  <data name="No branches assigned" xml:space="preserve">
-    <value>Sin sucursales asignadas</value>
+  <data name="No locations assigned" xml:space="preserve">
+    <value>Sin almacenes asignados</value>
   </data>
-  <data name="Select the branches this user can access. Leave empty for no branch restriction." xml:space="preserve">
-    <value>Selecciona las sucursales a las que este usuario puede acceder. Deja vacío para no restringir por sucursal.</value>
+  <data name="Select the locations this user can access. Leave empty for no location restriction." xml:space="preserve">
+    <value>Selecciona los almacenes a los que este usuario puede acceder. Deja vacío para no restringir por almacén.</value>
+  </data>
+  <data name="Access to all locations" xml:space="preserve">
+    <value>Acceso a todos los almacenes</value>
+  </data>
+  <data name="The user will be able to view and operate on all locations without needing individual assignment." xml:space="preserve">
+    <value>El usuario podrá ver y operar todos los almacenes sin necesidad de asignación individual.</value>
   </data>
 </root>

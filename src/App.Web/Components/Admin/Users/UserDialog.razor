@@ -136,9 +136,19 @@
                     </MudItem>
 
                     <MudItem xs="12" md="6" Class="mt-3 d-flex align-center">
-                        <MudSwitch T="bool" @bind-Value="Model.IsActive" 
-                                 Color="Color.Success" 
+                        <MudSwitch T="bool" @bind-Value="Model.IsActive"
+                                 Color="Color.Success"
                                  Label="@L["Active"]" />
+                    </MudItem>
+
+                    <!-- Global Location Access -->
+                    <MudItem xs="12" Class="mt-3">
+                        <MudSwitch T="bool" @bind-Value="Model.HasGlobalLocationAccess"
+                                 Color="Color.Primary"
+                                 Label="@L["Access to all locations"]" />
+                        <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary">
+                            @L["The user will be able to view and operate on all locations without needing individual assignment."]
+                        </MudText>
                     </MudItem>
 
                     <!-- Mensaje de advertencia sobre permisos -->
@@ -160,7 +170,7 @@
                     }
 
                     <!-- Location Assignment -->
-                    @if (_locations.Any())
+                    @if (_locations.Any() && !Model.HasGlobalLocationAccess)
                     {
                         <MudItem xs="12" Class="mt-3">
                             <MudSelect T="int" Label="@L["Assigned Locations"]"

@@ -54,6 +54,9 @@ public class InventoryService : IContextualInventoryService
         _documentSequenceService = documentSequenceService;
     }
 
+    private Task<bool> HasLocationAccessAsync(int locationId) =>
+        _currentUserService.HasAccessToLocationAsync(locationId);
+
     public async Task<bool> ValidateStockAvailabilityAsync(
         long productId,
         int locationId,
@@ -81,6 +84,9 @@ public class InventoryService : IContextualInventoryService
         CreateInventoryMovementDto createDto,
         CancellationToken cancellationToken = default)
     {
+        if (!await HasLocationAccessAsync(createDto.LocationId))
+            return MovementOperationResult.Failure(L["You don't have access to this location"]);
+
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var strategy = context.Database.CreateExecutionStrategy();
         return await strategy.ExecuteAsync(async () =>
@@ -265,6 +271,10 @@ public class InventoryService : IContextualInventoryService
         CreateInventoryTransferDto transferDto,
         CancellationToken cancellationToken = default)
     {
+        if (!await HasLocationAccessAsync(transferDto.LocationId) ||
+            !await HasLocationAccessAsync(transferDto.DestinationLocationId))
+            return MovementOperationResult.Failure(L["You don't have access to this location"]);
+
         await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var strategy = _context.Database.CreateExecutionStrategy();
         var result = await strategy.ExecuteAsync(async () =>
@@ -419,6 +429,13 @@ public class InventoryService : IContextualInventoryService
         {
             return InventoryOperationResult<BulkTransferResultDto>.Error(
                 L["Source and destination locations must be different"]);
+        }
+
+        if (!await HasLocationAccessAsync(transferDto.LocationId) ||
+            !await HasLocationAccessAsync(transferDto.DestinationLocationId))
+        {
+            return InventoryOperationResult<BulkTransferResultDto>.Error(
+                L["You don't have access to this location"]);
         }
 
         if (transferDto.Lines.Count == 0)
@@ -749,6 +766,11 @@ public class InventoryService : IContextualInventoryService
     {
         try
         {
+            if (locationId.HasValue && !await HasLocationAccessAsync(locationId.Value))
+            {
+                return (0, new List<InventoryMovementDto>());
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             IQueryable<InventoryMovement> query = _context.InventoryMovements
@@ -767,6 +789,12 @@ public class InventoryService : IContextualInventoryService
             {
                 query = query.Where(x => x.LocationId == locationId.Value ||
                                        x.DestinationLocationId == locationId.Value);
+            }
+            else if (!await _currentUserService.GetIsGlobalAccessAsync())
+            {
+                var assignedIds = await _currentUserService.GetAssignedLocationIdsAsync();
+                query = query.Where(x => assignedIds.Contains(x.LocationId) ||
+                    (x.DestinationLocationId.HasValue && assignedIds.Contains(x.DestinationLocationId.Value)));
             }
 
             if (!string.IsNullOrEmpty(movementType))
@@ -809,6 +837,11 @@ public class InventoryService : IContextualInventoryService
     {
         try
         {
+            if (locationId.HasValue && !await HasLocationAccessAsync(locationId.Value))
+            {
+                return new List<InventoryAlertDto>();
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync();
 
             var query = _context.Inventory
@@ -823,6 +856,11 @@ public class InventoryService : IContextualInventoryService
             if (locationId.HasValue)
             {
                 query = query.Where(x => x.LocationId == locationId.Value);
+            }
+            else if (!await _currentUserService.GetIsGlobalAccessAsync())
+            {
+                var assignedIds = await _currentUserService.GetAssignedLocationIdsAsync();
+                query = query.Where(x => assignedIds.Contains(x.LocationId));
             }
 
             var alerts = await query
@@ -844,6 +882,9 @@ public class InventoryService : IContextualInventoryService
         UpdateInventoryDto updateDto,
         CancellationToken cancellationToken = default)
     {
+        if (!await HasLocationAccessAsync(locationId))
+            throw new InvalidOperationException(L["You don't have access to this location"]);
+
         try
         {
             await using var _context = await _contextFactory.CreateDbContextAsync();
@@ -940,6 +981,12 @@ public class InventoryService : IContextualInventoryService
         {
             return InventoryOperationResult<InventoryMovementDto>.Error(
                 L["Quantity must be greater than or equal to 0"]);
+        }
+
+        if (!await HasLocationAccessAsync(loadDto.LocationId))
+        {
+            return InventoryOperationResult<InventoryMovementDto>.Error(
+                L["You don't have access to this location"]);
         }
 
         try
@@ -1052,6 +1099,12 @@ public class InventoryService : IContextualInventoryService
     {
         var results = new List<BulkInventoryLoadResultDto>();
         var validItems = new List<(Product Product, BulkInventoryLoadDto Item)>();
+
+        if (!await HasLocationAccessAsync(request.LocationId))
+        {
+            return InventoryOperationResult<List<BulkInventoryLoadResultDto>>.Error(
+                L["You don't have access to this location"]);
+        }
 
         try
         {
@@ -1356,6 +1409,9 @@ public class InventoryService : IContextualInventoryService
         CreateInventoryAdjustmentDto adjustmentDto,
         CancellationToken cancellationToken = default)
     {
+        if (!await HasLocationAccessAsync(adjustmentDto.LocationId))
+            return MovementOperationResult.Failure(L["You don't have access to this location"]);
+
         await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var strategy = _context.Database.CreateExecutionStrategy();
         var result = await strategy.ExecuteAsync(async () =>

@@ -21,6 +21,13 @@ public interface ILocationService
     Task<IList<LocationDto>> GetActiveLocationsAsync(LocationType? type = null);
 
     /// <summary>
+    /// Gets the active locations the current user can access: all of them for global-access
+    /// users (SuperAdmin/Admin or the HasGlobalLocationAccess flag), or only the locations
+    /// assigned to the user in UserLocation otherwise.
+    /// </summary>
+    Task<IList<LocationDto>> GetAccessibleLocationsAsync(LocationType? type = null);
+
+    /// <summary>
     /// Gets a location by ID
     /// </summary>
     Task<LocationDto?> GetLocationByIdAsync(int id);

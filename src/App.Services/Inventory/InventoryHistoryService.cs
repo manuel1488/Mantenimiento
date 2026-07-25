@@ -20,19 +20,34 @@ public class InventoryHistoryService : IInventoryHistoryService
     private readonly ILogger<InventoryHistoryService> _logger;
     private readonly ICompanySettingsService _companySettingsService;
     private readonly IDateTime _dateTime;
+    private readonly ICurrentUserService _currentUserService;
 
     public InventoryHistoryService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
         IMapper mapper,
         ILogger<InventoryHistoryService> logger,
         ICompanySettingsService companySettingsService,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        ICurrentUserService currentUserService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
         _logger = logger;
         _companySettingsService = companySettingsService;
         _dateTime = dateTime;
+        _currentUserService = currentUserService;
+    }
+
+    /// <summary>
+    /// Returns null (no restriction) for global-access users; otherwise the user's assigned
+    /// location ids, used to constrain queries to LocationId/DestinationLocationId columns.
+    /// </summary>
+    private async Task<IReadOnlyList<int>?> GetLocationRestrictionAsync()
+    {
+        if (await _currentUserService.GetIsGlobalAccessAsync())
+            return null;
+
+        return await _currentUserService.GetAssignedLocationIdsAsync();
     }
 
     public async Task<IList<InventoryMovementDto>> GetProductMovementHistoryAsync(
@@ -51,6 +66,13 @@ public class InventoryHistoryService : IInventoryHistoryService
                 .Include(x => x.DestinationLocation)
                 .Where(x => x.ProductId == productId)
                 .AsNoTracking();
+
+            var locationRestriction = await GetLocationRestrictionAsync();
+            if (locationRestriction != null)
+            {
+                query = query.Where(x => locationRestriction.Contains(x.LocationId) ||
+                    (x.DestinationLocationId.HasValue && locationRestriction.Contains(x.DestinationLocationId.Value)));
+            }
 
             var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync() ?? TimeZoneInfo.Utc;
 
@@ -98,6 +120,12 @@ public class InventoryHistoryService : IInventoryHistoryService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (warehouseId.HasValue && warehouseId.Value > 0 &&
+                !await _currentUserService.HasAccessToLocationAsync(warehouseId.Value))
+            {
+                return (new List<InventoryMovementDto>(), 0);
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var query = _context.InventoryMovements
@@ -112,6 +140,15 @@ public class InventoryHistoryService : IInventoryHistoryService
             {
                 query = query.Where(x => x.LocationId == warehouseId.Value ||
                     x.DestinationLocationId == warehouseId.Value);
+            }
+            else
+            {
+                var locationRestriction = await GetLocationRestrictionAsync();
+                if (locationRestriction != null)
+                {
+                    query = query.Where(x => locationRestriction.Contains(x.LocationId) ||
+                        (x.DestinationLocationId.HasValue && locationRestriction.Contains(x.DestinationLocationId.Value)));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(movementSubType))
@@ -139,7 +176,7 @@ public class InventoryHistoryService : IInventoryHistoryService
             // Filtro de búsqueda (nombre del producto, código o referencia)
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(x => 
+                query = query.Where(x =>
                     x.Product.Name.Contains(searchString) ||
                     x.Product.Code.Contains(searchString) ||
                     (x.Reference != null && x.Reference.Contains(searchString)));
@@ -185,6 +222,11 @@ public class InventoryHistoryService : IInventoryHistoryService
     {
         try
         {
+            if (!await _currentUserService.HasAccessToLocationAsync(warehouseId))
+            {
+                return new List<InventoryMovementDto>();
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var transferEntities = await _context.InventoryMovements
@@ -222,6 +264,14 @@ public class InventoryHistoryService : IInventoryHistoryService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if ((sourceWarehouseId.HasValue && sourceWarehouseId.Value > 0 &&
+                    !await _currentUserService.HasAccessToLocationAsync(sourceWarehouseId.Value)) ||
+                (destinationWarehouseId.HasValue && destinationWarehouseId.Value > 0 &&
+                    !await _currentUserService.HasAccessToLocationAsync(destinationWarehouseId.Value)))
+            {
+                return (new List<InventoryMovementDto>(), 0);
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var query = _context.InventoryMovements
@@ -241,6 +291,17 @@ public class InventoryHistoryService : IInventoryHistoryService
             if (destinationWarehouseId.HasValue && destinationWarehouseId.Value > 0)
             {
                 query = query.Where(x => x.DestinationLocationId == destinationWarehouseId.Value);
+            }
+
+            if ((!sourceWarehouseId.HasValue || sourceWarehouseId.Value <= 0) &&
+                (!destinationWarehouseId.HasValue || destinationWarehouseId.Value <= 0))
+            {
+                var locationRestriction = await GetLocationRestrictionAsync();
+                if (locationRestriction != null)
+                {
+                    query = query.Where(x => locationRestriction.Contains(x.LocationId) ||
+                        (x.DestinationLocationId.HasValue && locationRestriction.Contains(x.DestinationLocationId.Value)));
+                }
             }
 
             // Filtros de fecha
@@ -303,6 +364,11 @@ public class InventoryHistoryService : IInventoryHistoryService
     {
         try
         {
+            if (warehouseId.HasValue && !await _currentUserService.HasAccessToLocationAsync(warehouseId.Value))
+            {
+                return new List<InventoryAlertDto>();
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var query = _context.Inventory
@@ -317,7 +383,15 @@ public class InventoryHistoryService : IInventoryHistoryService
                 .AsNoTracking();
 
             if (warehouseId.HasValue)
+            {
                 query = query.Where(x => x.LocationId == warehouseId.Value);
+            }
+            else
+            {
+                var locationRestriction = await GetLocationRestrictionAsync();
+                if (locationRestriction != null)
+                    query = query.Where(x => locationRestriction.Contains(x.LocationId));
+            }
 
             var alertEntities = await query
                 .ToListAsync(cancellationToken);
@@ -341,6 +415,11 @@ public class InventoryHistoryService : IInventoryHistoryService
     {
         try
         {
+            if (warehouseId.HasValue && !await _currentUserService.HasAccessToLocationAsync(warehouseId.Value))
+            {
+                return new List<InventoryAlertDto>();
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             // Para el historial de alertas, usamos los movimientos que generaron
@@ -352,7 +431,15 @@ public class InventoryHistoryService : IInventoryHistoryService
                 .AsNoTracking();
 
             if (warehouseId.HasValue)
+            {
                 query = query.Where(x => x.LocationId == warehouseId.Value);
+            }
+            else
+            {
+                var locationRestriction = await GetLocationRestrictionAsync();
+                if (locationRestriction != null)
+                    query = query.Where(x => locationRestriction.Contains(x.LocationId));
+            }
 
             var movements = await query.ToListAsync(cancellationToken);
 
@@ -428,6 +515,12 @@ public class InventoryHistoryService : IInventoryHistoryService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (warehouseId.HasValue && warehouseId.Value > 0 &&
+                !await _currentUserService.HasAccessToLocationAsync(warehouseId.Value))
+            {
+                return (new List<InventoryMovementDto>(), 0);
+            }
+
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var query = _context.InventoryMovements
@@ -442,6 +535,15 @@ public class InventoryHistoryService : IInventoryHistoryService
             {
                 query = query.Where(x => x.LocationId == warehouseId.Value ||
                     x.DestinationLocationId == warehouseId.Value);
+            }
+            else
+            {
+                var locationRestriction = await GetLocationRestrictionAsync();
+                if (locationRestriction != null)
+                {
+                    query = query.Where(x => locationRestriction.Contains(x.LocationId) ||
+                        (x.DestinationLocationId.HasValue && locationRestriction.Contains(x.DestinationLocationId.Value)));
+                }
             }
 
             // Filtro de tipos de movimiento - Solución para evitar el error de Contains()
@@ -538,14 +640,19 @@ public class InventoryHistoryService : IInventoryHistoryService
             await using var _context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             // Consulta optimizada que solo cuenta registros en la base de datos
-            var count = await _context.Inventory
+            var query = _context.Inventory
                 .AsNoTracking()
                 .Where(x =>
                     x.Product.IsActive &&
                     x.Location.IsActive &&
                     ((x.MinStock.HasValue && x.Quantity < x.MinStock.Value) ||
-                     (x.MaxStock.HasValue && x.Quantity > x.MaxStock.Value)))
-                .CountAsync(cancellationToken);
+                     (x.MaxStock.HasValue && x.Quantity > x.MaxStock.Value)));
+
+            var locationRestriction = await GetLocationRestrictionAsync();
+            if (locationRestriction != null)
+                query = query.Where(x => locationRestriction.Contains(x.LocationId));
+
+            var count = await query.CountAsync(cancellationToken);
 
             return count;
         }
