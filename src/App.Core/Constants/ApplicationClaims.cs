@@ -29,6 +29,10 @@ public static class ApplicationClaims
         public const string ViewInventoryAlerts = "Shop.InventoryAlerts.View";
         public const string ReceiveInventoryAlertEmails = "Shop.InventoryAlerts.ReceiveEmails";
 
+        // Physical Inventory Counts
+        public const string ViewPhysicalCounts = "Shop.PhysicalCounts.View";
+        public const string ManagePhysicalCounts = "Shop.PhysicalCounts.Manage";
+
         // Products
         public const string ViewProducts = "Shop.Products.View";
         public const string ManageProducts = "Shop.Products.Manage";

@@ -1,0 +1,142 @@
+@page "/shop/inventory/physical-count/{Id:long}"
+@using App.Core.DTOs.Inventory
+@using App.Core.Interfaces
+@using Microsoft.AspNetCore.Authorization
+
+@inject IStringLocalizer<PhysicalInventoryCountDetailPage> L
+@inject IPhysicalInventoryCountService PhysicalInventoryCountService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ILogger<PhysicalInventoryCountDetailPage> Logger
+@inject IJSRuntime JS
+
+@attribute [Authorize(Policy = ApplicationClaims.Shop.ViewPhysicalCounts)]
+
+<PageTitle>@L["Physical Count Detail"]</PageTitle>
+
+@if (_loading)
+{
+    <div style="display:flex; justify-content:center; padding:60px;">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_count == null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-3">@L["Physical count not found"]</MudAlert>
+    <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack">@L["Back"]</MudButton>
+}
+else
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Default"
+                       OnClick="GoBack"
+                       title="@L["Back"]" />
+        <MudText Typo="Typo.h5" Style="flex:1;">@_count.BatchNumber</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                       Color="Color.Default"
+                       title="@L["Print"]"
+                       OnClick="PrintAsync" />
+    </MudStack>
+
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Location"]</MudText>
+                <MudText Typo="Typo.body2">@_count.LocationName</MudText>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Date"]</MudText>
+                <MudText Typo="Typo.body2">@_count.CountDate.ToLocalTime().ToString("g")</MudText>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Created By"]</MudText>
+                <MudText Typo="Typo.body2">@_count.CreatedBy</MudText>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Reference"]</MudText>
+                <MudText Typo="Typo.body2">@(_count.Reference ?? "-")</MudText>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Reason"]</MudText>
+                <MudText Typo="Typo.body2">@_count.Reason</MudText>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudPaper Elevation="2" Class="pa-4">
+        <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Lines"]</MudText>
+        <div style="overflow-x:auto;">
+            <MudSimpleTable Dense="true" Hover="true">
+                <thead>
+                    <tr>
+                        <th>@L["Product"]</th>
+                        <th style="text-align:right">@L["System Qty"]</th>
+                        <th style="text-align:right">@L["Counted Qty"]</th>
+                        <th style="text-align:right">@L["Difference"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in _count.Lines)
+                    {
+                        <tr>
+                            <td>@line.ProductName (@line.ProductCode)</td>
+                            <td style="text-align:right">@line.SystemQuantity.ToString("N2")</td>
+                            <td style="text-align:right">@line.CountedQuantity.ToString("N2")</td>
+                            <td style="text-align:right">
+                                <MudText Color="@(line.Difference == 0 ? Color.Default : line.Difference > 0 ? Color.Success : Color.Error)">
+                                    @line.Difference.ToString("+0.##;-0.##;0")
+                                </MudText>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+
+    private bool _loading = true;
+    private PhysicalInventoryCountResultDto? _count;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _count = await PhysicalInventoryCountService.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading physical count {Id}", Id);
+            Snackbar.Add(L["Error loading physical count"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/shop/inventory");
+
+    private async Task PrintAsync()
+    {
+        if (_count == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("openInNewTab", $"/api/physical-inventory-counts/batch/{_count.BatchId}/pdf");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening physical count PDF");
+            Snackbar.Add(L["Error opening PDF"], Severity.Error);
+        }
+    }
+}

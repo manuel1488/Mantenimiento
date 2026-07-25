@@ -19,6 +19,7 @@
 @using App.Web.Components.Admin.Settings.Pac
 @using App.Web.Components.Admin.Settings.Labels
 @using App.Web.Components.Admin.Settings.Quotation
+@using App.Web.Components.Admin.Settings.Inventory
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -131,6 +132,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Quotation"]" Icon="@Icons.Material.Filled.RequestQuote">
                         <QuotationSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Inventory"]" Icon="@Icons.Material.Filled.Inventory">
+                        <InventorySettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

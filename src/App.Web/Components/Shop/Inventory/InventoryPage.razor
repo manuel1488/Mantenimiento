@@ -64,7 +64,13 @@
                             <MudTabPanel Text="@L["Adjustments"]" Icon="@Icons.Material.Filled.SettingsBackupRestore">
                                 <InventoryAdjustmentsTab />
                             </MudTabPanel>
-                        </AuthorizeView>                        
+                        </AuthorizeView>
+
+                        <AuthorizeView Policy="@ApplicationClaims.Shop.ViewPhysicalCounts">
+                            <MudTabPanel Text="@L["Physical Counts"]" Icon="@Icons.Material.Filled.FactCheck">
+                                <PhysicalCountsTab />
+                            </MudTabPanel>
+                        </AuthorizeView>
 
                         <AuthorizeView Policy="@ApplicationClaims.Shop.ViewInventoryAlerts">
                             <MudTabPanel Text="@L["Alerts"]" Icon="@Icons.Material.Filled.Warning" BadgeData="@_alertCount" BadgeColor="Color.Error">

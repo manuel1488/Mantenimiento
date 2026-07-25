@@ -1,0 +1,161 @@
+@using App.Core.DTOs.Inventory
+@using App.Core.DTOs.Location
+@using App.Core.Constants
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<PhysicalCountsTab> L
+@inject IPhysicalInventoryCountService PhysicalInventoryCountService
+@inject ILocationService LocationService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject ILogger<PhysicalCountsTab> Logger
+@inject IJSRuntime JS
+
+<AuthorizeView Policy="@ApplicationClaims.Shop.ViewPhysicalCounts">
+    <Authorized Context="viewAuth">
+        <MudGrid>
+            <MudItem xs="12" Class="d-flex justify-space-between align-center flex-wrap gap-2">
+                <MudSelect T="int?"
+                           Label="@L["Location"]"
+                           Value="_selectedLocation"
+                           ValueChanged="OnLocationFilterChanged"
+                           Clearable="true"
+                           Variant="Variant.Outlined"
+                           Style="min-width: 220px;">
+                    <MudSelectItem T="int?" Value="@((int?)null)">@L["All"]</MudSelectItem>
+                    @foreach (var location in _locations)
+                    {
+                        <MudSelectItem T="int?" Value="@location.Id">@location.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <AuthorizeView Context="contextManage" Policy="@ApplicationClaims.Shop.ManagePhysicalCounts">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.FactCheck"
+                               OnClick="@(() => Navigation.NavigateTo("/shop/inventory/physical-count"))"
+                               Class="da-button-rounded">
+                        @L["New Physical Count"]
+                    </MudButton>
+                </AuthorizeView>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudDataGrid T="PhysicalInventoryCountResultDto"
+                             @ref="_grid"
+                             ServerData="@LoadServerData"
+                             SortMode="SortMode.None"
+                             RowsPerPage="15"
+                             Dense="true"
+                             Hover="true"
+                             HorizontalScrollbar="true">
+                    <Columns>
+                        <PropertyColumn Property="x => x.BatchNumber" Title="@L["Batch"]" CellStyle="white-space:nowrap" HeaderStyle="white-space:nowrap" />
+                        <PropertyColumn Property="x => x.LocationName" Title="@L["Location"]" />
+                        <TemplateColumn Title="@L["Date"]">
+                            <CellTemplate>
+                                @context.Item.CountDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <PropertyColumn Property="x => x.Reason" Title="@L["Reason"]" />
+                        <PropertyColumn Property="x => x.CreatedBy" Title="@L["Created By"]" />
+                        <TemplateColumn Title="@L["Lines"]">
+                            <CellTemplate>
+                                @context.Item.Lines.Count
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="@L["Differences"]">
+                            <CellTemplate>
+                                @{
+                                    var diffCount = context.Item.Lines.Count(l => l.MovementApplied);
+                                }
+                                @if (diffCount > 0)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">@diffCount</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success">0</MudChip>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="@L["Actions"]">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Size="Size.Small"
+                                               Color="Color.Default"
+                                               title="@L["View Detail"]"
+                                               OnClick="@(() => Navigation.NavigateTo($"/shop/inventory/physical-count/{context.Item.Id}"))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                               Size="Size.Small"
+                                               Color="Color.Default"
+                                               title="@L["Print"]"
+                                               OnClick="@(() => PrintAsync(context.Item))" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="PhysicalInventoryCountResultDto" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudItem>
+        </MudGrid>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudDataGrid<PhysicalInventoryCountResultDto>? _grid;
+    private List<LocationDto> _locations = new();
+    private int? _selectedLocation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _locations = (await LocationService.GetAccessibleLocationsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading locations");
+            Snackbar.Add(L["Error loading locations"], Severity.Error);
+        }
+    }
+
+    private async Task<GridData<PhysicalInventoryCountResultDto>> LoadServerData(GridState<PhysicalInventoryCountResultDto> state)
+    {
+        var (total, items) = await PhysicalInventoryCountService.GetAllAsync(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            locationId: _selectedLocation);
+
+        return new GridData<PhysicalInventoryCountResultDto> { Items = items, TotalItems = total };
+    }
+
+    private async Task OnLocationFilterChanged(int? locationId)
+    {
+        _selectedLocation = locationId;
+        if (_grid != null)
+        {
+            await _grid.ReloadServerData();
+        }
+    }
+
+    private async Task PrintAsync(PhysicalInventoryCountResultDto item)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("openInNewTab", $"/api/physical-inventory-counts/batch/{item.BatchId}/pdf");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening physical count PDF");
+            Snackbar.Add(L["Error opening PDF"], Severity.Error);
+        }
+    }
+}

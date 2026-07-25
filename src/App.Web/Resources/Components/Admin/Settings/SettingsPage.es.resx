@@ -87,4 +87,7 @@
   <data name="Quotation" xml:space="preserve">
     <value>Cotización</value>
   </data>
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventario</value>
+  </data>
 </root>

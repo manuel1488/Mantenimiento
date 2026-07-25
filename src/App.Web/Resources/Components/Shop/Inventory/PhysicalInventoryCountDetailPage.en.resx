@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Physical Count Detail" xml:space="preserve">
+    <value>Physical Count Detail</value>
+  </data>
+  <data name="Physical count not found" xml:space="preserve">
+    <value>Physical count not found</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Created By</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Lines" xml:space="preserve">
+    <value>Lines</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="System Qty" xml:space="preserve">
+    <value>System Qty</value>
+  </data>
+  <data name="Counted Qty" xml:space="preserve">
+    <value>Counted Qty</value>
+  </data>
+  <data name="Difference" xml:space="preserve">
+    <value>Difference</value>
+  </data>
+  <data name="Error loading physical count" xml:space="preserve">
+    <value>Error loading physical count</value>
+  </data>
+  <data name="Error opening PDF" xml:space="preserve">
+    <value>Error opening PDF</value>
+  </data>
+</root>

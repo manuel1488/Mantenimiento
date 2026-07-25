@@ -39,6 +39,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<CashRegisterSettings> CashRegisterSettings { get; set; } = null!;
     public DbSet<LabelSettings> LabelSettings { get; set; } = null!;
     public DbSet<EmailTemplateSettings> EmailTemplateSettings { get; set; } = null!;
+    public DbSet<InventorySettings> InventorySettings { get; set; } = null!;
     #endregion
 
     #region Shared
@@ -79,6 +80,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<Remission> Remissions { get; set; } = null!;
     public DbSet<RemissionDetail> RemissionDetails { get; set; } = null!;
     public DbSet<DocumentSequence> DocumentSequences { get; set; } = null!;
+    public DbSet<PhysicalInventoryCount> PhysicalInventoryCounts { get; set; } = null!;
+    public DbSet<PhysicalInventoryCountLine> PhysicalInventoryCountLines { get; set; } = null!;
     #endregion
 
     #region Identity Extensions

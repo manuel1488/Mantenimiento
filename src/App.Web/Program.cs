@@ -343,6 +343,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shop.ManageInventoryAdjustments, policy => policy.RequireClaim(ApplicationClaims.Shop.ManageInventoryAdjustments));
         options.AddPolicy(ApplicationClaims.Shop.ViewInventoryAlerts, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewInventoryAlerts));
         options.AddPolicy(ApplicationClaims.Shop.ReceiveInventoryAlertEmails, policy => policy.RequireClaim(ApplicationClaims.Shop.ReceiveInventoryAlertEmails));
+        options.AddPolicy(ApplicationClaims.Shop.ViewPhysicalCounts, policy => policy.RequireClaim(ApplicationClaims.Shop.ViewPhysicalCounts));
+        options.AddPolicy(ApplicationClaims.Shop.ManagePhysicalCounts, policy => policy.RequireClaim(ApplicationClaims.Shop.ManagePhysicalCounts));
 
         // Shared policies
         options.AddPolicy(ApplicationClaims.Shared.ViewCustomers, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewCustomers));
@@ -718,6 +720,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IDiscountSettingsService, DiscountSettingsService>();
     services.AddScoped<IWholesaleSettingsService, WholesaleSettingsService>();
     services.AddScoped<IRoundingSettingsService, RoundingSettingsService>();
+    services.AddScoped<IInventorySettingsService, InventorySettingsService>();
     services.AddScoped<ILabelSettingsService, LabelSettingsService>();
     services.AddScoped<IPaymentMethodService, PaymentMethodService>();
     services.AddScoped<IPricingCalculationService, PricingCalculationService>();
@@ -739,6 +742,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     builder.Services.AddScoped<IInventoryAlertEmailService, InventoryAlertEmailService>();
     builder.Services.AddScoped<IStockEntryService, StockEntryService>();
     builder.Services.AddScoped<IAdjustmentEntryService, AdjustmentEntryService>();
+    builder.Services.AddScoped<IPhysicalInventoryCountService, PhysicalInventoryCountService>();
     builder.Services.AddScoped<IExcelProcessingService, ExcelProcessingService>();
     builder.Services.AddScoped<IInventoryColumnMappingService, InventoryColumnMappingService>();
     builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();

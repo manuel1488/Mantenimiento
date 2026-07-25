@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Inventory Settings" xml:space="preserve">
+    <value>Configuración de Inventario</value>
+  </data>
+  <data name="Show system stock during physical count" xml:space="preserve">
+    <value>Mostrar existencia del sistema durante el conteo físico</value>
+  </data>
+  <data name="When disabled, the current system quantity is hidden while counting to avoid biasing the counted value. It is always shown in the review step before applying the count." xml:space="preserve">
+    <value>Cuando está deshabilitado, la cantidad actual del sistema se oculta durante el conteo para evitar sesgar el valor contado. Siempre se muestra en el paso de revisión antes de aplicar el conteo.</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error al cargar la configuración</value>
+  </data>
+  <data name="Error updating settings" xml:space="preserve">
+    <value>Error al actualizar la configuración</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+  <data name="Inventory settings updated successfully" xml:space="preserve">
+    <value>Configuración de inventario actualizada correctamente</value>
+  </data>
+</root>

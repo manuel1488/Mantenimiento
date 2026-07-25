@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Review the system quantity against the counted quantity before applying this count. Lines with no difference will not generate an inventory movement." xml:space="preserve">
+    <value>Revisa la cantidad del sistema contra la cantidad contada antes de aplicar este conteo. Las líneas sin diferencia no generarán un movimiento de inventario.</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="System Qty" xml:space="preserve">
+    <value>Cant. Sistema</value>
+  </data>
+  <data name="Counted Qty" xml:space="preserve">
+    <value>Cant. Contada</value>
+  </data>
+  <data name="Difference" xml:space="preserve">
+    <value>Diferencia</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Apply Count" xml:space="preserve">
+    <value>Aplicar Conteo</value>
+  </data>
+</root>

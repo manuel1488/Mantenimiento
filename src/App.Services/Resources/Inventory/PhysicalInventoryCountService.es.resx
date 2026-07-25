@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="You don't have access to this location" xml:space="preserve">
+    <value>No tienes acceso a esta ubicación</value>
+  </data>
+  <data name="At least one counted line is required" xml:space="preserve">
+    <value>Se requiere al menos una línea contada</value>
+  </data>
+  <data name="Duplicate products are not allowed in the same count" xml:space="preserve">
+    <value>No se permiten productos duplicados en el mismo conteo</value>
+  </data>
+  <data name="Invalid or inactive location" xml:space="preserve">
+    <value>Ubicación inválida o inactiva</value>
+  </data>
+  <data name="One or more lines are invalid; no count was applied" xml:space="preserve">
+    <value>Una o más líneas son inválidas; no se aplicó el conteo</value>
+  </data>
+  <data name="The inventory was modified by another process" xml:space="preserve">
+    <value>El inventario fue modificado por otro proceso</value>
+  </data>
+  <data name="Physical Inventory Count" xml:space="preserve">
+    <value>Conteo Físico de Inventario</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>Folio</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referencia</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Creado Por</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="System Qty" xml:space="preserve">
+    <value>Cant. Sistema</value>
+  </data>
+  <data name="Counted Qty" xml:space="preserve">
+    <value>Cant. Contada</value>
+  </data>
+  <data name="Difference" xml:space="preserve">
+    <value>Diferencia</value>
+  </data>
+</root>

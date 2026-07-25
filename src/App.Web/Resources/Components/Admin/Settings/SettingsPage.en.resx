@@ -87,4 +87,8 @@
   <data name="Quotation" xml:space="preserve">
     <value>Quotation</value>
   </data>
+  <data name="Inventory" xml:space="preserve">
+    <value>Inventory</value>
+    <comment>Inventory settings tab</comment>
+  </data>
 </root>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Physical Inventory Count" xml:space="preserve">
+    <value>Physical Inventory Count</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Location is required" xml:space="preserve">
+    <value>Location is required</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Reason is required" xml:space="preserve">
+    <value>Reason is required</value>
+  </data>
+  <data name="Search or scan product" xml:space="preserve">
+    <value>Search or scan product</value>
+  </data>
+  <data name="Type a name or code to filter, or scan a barcode and press Enter to jump to its quantity" xml:space="preserve">
+    <value>Type a name or code to filter, or scan a barcode and press Enter to jump to its quantity</value>
+  </data>
+  <data name="Product not found in this location's count sheet" xml:space="preserve">
+    <value>Product not found in this location's count sheet</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="System Qty" xml:space="preserve">
+    <value>System Qty</value>
+  </data>
+  <data name="Counted Qty" xml:space="preserve">
+    <value>Counted Qty</value>
+  </data>
+  <data name="Difference" xml:space="preserve">
+    <value>Difference</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Counted" xml:space="preserve">
+    <value>Counted</value>
+  </data>
+  <data name="All products have been counted" xml:space="preserve">
+    <value>All products have been counted</value>
+  </data>
+  <data name="No products counted yet" xml:space="preserve">
+    <value>No products counted yet</value>
+  </data>
+  <data name="This location has no tracked products" xml:space="preserve">
+    <value>This location has no tracked products</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Review Count" xml:space="preserve">
+    <value>Review Count</value>
+  </data>
+  <data name="Review Physical Count" xml:space="preserve">
+    <value>Review Physical Count</value>
+  </data>
+  <data name="Count at least one product" xml:space="preserve">
+    <value>Count at least one product</value>
+  </data>
+  <data name="Physical count applied successfully" xml:space="preserve">
+    <value>Physical count applied successfully</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>Batch</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Created By</value>
+  </data>
+  <data name="Print" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="New Physical Count" xml:space="preserve">
+    <value>New Physical Count</value>
+  </data>
+  <data name="Error loading locations" xml:space="preserve">
+    <value>Error loading locations</value>
+  </data>
+  <data name="Error loading products for this location" xml:space="preserve">
+    <value>Error loading products for this location</value>
+  </data>
+  <data name="Error applying physical count" xml:space="preserve">
+    <value>Error applying physical count</value>
+  </data>
+</root>

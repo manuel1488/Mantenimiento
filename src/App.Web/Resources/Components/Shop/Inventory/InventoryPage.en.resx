@@ -24,6 +24,9 @@
   <data name="Alerts" xml:space="preserve">
     <value>Alerts</value>
   </data>
+  <data name="Physical Counts" xml:space="preserve">
+    <value>Physical Counts</value>
+  </data>
   <data name="Error loading alerts" xml:space="preserve">
     <value>Error loading alerts</value>
   </data>
