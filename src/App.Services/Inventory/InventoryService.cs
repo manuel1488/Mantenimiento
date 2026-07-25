@@ -3,6 +3,7 @@ using App.Core.DTOs.Inventory;
 using App.Core.Interfaces;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
+using App.Services.Shop;
 using App.Shared.Services;
 
 using AutoMapper;
@@ -22,6 +23,10 @@ public class InventoryService : IContextualInventoryService
     private readonly IDateTime _dateTime;
     private readonly IMapper _mapper;
     private readonly IInventoryAlertEmailService _inventoryAlertEmailService;
+    private readonly ICompanySettingsService _companySettingsService;
+    private readonly IPdfService _pdfService;
+    private readonly IEmailTemplateService _emailTemplateService;
+    private readonly IDocumentSequenceService _documentSequenceService;
 
     public InventoryService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -30,7 +35,11 @@ public class InventoryService : IContextualInventoryService
         ICurrentUserService currentUserService,
         IStringLocalizer<InventoryService> localizer,
         IDateTime dateTime,
-        IInventoryAlertEmailService inventoryAlertEmailService)
+        IInventoryAlertEmailService inventoryAlertEmailService,
+        ICompanySettingsService companySettingsService,
+        IPdfService pdfService,
+        IEmailTemplateService emailTemplateService,
+        IDocumentSequenceService documentSequenceService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -39,6 +48,10 @@ public class InventoryService : IContextualInventoryService
         L = localizer;
         _dateTime = dateTime;
         _inventoryAlertEmailService = inventoryAlertEmailService;
+        _companySettingsService = companySettingsService;
+        _pdfService = pdfService;
+        _emailTemplateService = emailTemplateService;
+        _documentSequenceService = documentSequenceService;
     }
 
     public async Task<bool> ValidateStockAvailabilityAsync(
@@ -514,7 +527,7 @@ public class InventoryService : IContextualInventoryService
 
         var batchId = Guid.NewGuid();
         var movementDate = _dateTime.Now;
-        var createdBy = _currentUserService.FullName ?? "Unknown";
+        var createdBy = await _currentUserService.GetFullNameAsync() ?? "Unknown";
 
         var strategy = _context.Database.CreateExecutionStrategy();
         var result = await strategy.ExecuteAsync(async () =>
@@ -523,6 +536,9 @@ public class InventoryService : IContextualInventoryService
 
             try
             {
+                var batchNumber = await _documentSequenceService.GetNextNumberAsync(
+                    _context, "InventoryTransferBatch", "TRF", movementDate.Year);
+
                 var destinationByProduct = inventories
                     .Where(x => x.LocationId == transferDto.DestinationLocationId)
                     .ToDictionary(x => x.ProductId);
@@ -568,6 +584,7 @@ public class InventoryService : IContextualInventoryService
                         NewBalance = newSourceBalance,
                         MovementDate = movementDate,
                         BatchId = batchId,
+                        BatchNumber = batchNumber,
                         CreatedBy = createdBy,
                         CreatedAt = movementDate
                     };
@@ -592,6 +609,7 @@ public class InventoryService : IContextualInventoryService
                 return InventoryOperationResult<BulkTransferResultDto>.Ok(new BulkTransferResultDto
                 {
                     BatchId = batchId,
+                    BatchNumber = batchNumber,
                     LocationId = transferDto.LocationId,
                     LocationName = location.Name,
                     DestinationLocationId = transferDto.DestinationLocationId,
@@ -658,6 +676,66 @@ public class InventoryService : IContextualInventoryService
         return movement;
     }
 
+    public async Task<byte[]> GenerateBulkTransferPdfAsync(
+        Guid batchId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var movements = await context.InventoryMovements
+            .Include(x => x.Product)
+            .Include(x => x.Location)
+            .Include(x => x.DestinationLocation)
+            .Where(x => x.BatchId == batchId)
+            .OrderBy(x => x.Id)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        if (movements.Count == 0)
+        {
+            throw new InvalidOperationException($"Bulk transfer batch {batchId} not found");
+        }
+
+        var first = movements[0];
+        var companySettings = await _companySettingsService.GetSettingsAsync();
+        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync("images/logo.webp");
+        var logoBase64 = logoBytes.Length > 0
+            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
+            : string.Empty;
+
+        var transferTypeDisplay = first.MovementSubType switch
+        {
+            InventoryMovementSubType.RushTransfer => L["Rush Transfer"],
+            InventoryMovementSubType.Rebalancing => L["Stock Rebalancing"],
+            _ => L["Standard Transfer"]
+        };
+
+        var model = new BulkTransferPdfDto
+        {
+            CompanyName = companySettings?.CompanyName ?? "Cleeny",
+            LogoBase64 = logoBase64,
+            BatchId = batchId,
+            BatchNumber = first.BatchNumber ?? batchId.ToString(),
+            LocationName = first.Location.Name,
+            DestinationLocationName = first.DestinationLocation?.Name ?? "-",
+            TransferTypeDisplay = transferTypeDisplay,
+            Reason = first.Reason,
+            Reference = first.Reference,
+            MovementDate = first.MovementDate,
+            CreatedBy = first.CreatedBy,
+            Lines = movements.Select(m => new BulkTransferPdfLineDto
+            {
+                ProductCode = m.Product.Code,
+                ProductName = m.Product.Name,
+                Quantity = m.Quantity,
+                PreviousBalance = m.PreviousBalance,
+                NewBalance = m.NewBalance
+            }).ToList()
+        };
+
+        return await _pdfService.GeneratePdfFromViewAsync(
+            "~/Views/InventoryTransfers/BulkTransferDocument.cshtml", model, cancellationToken);
+    }
 
     public async Task<(int TotalCount, IList<InventoryMovementDto> Items)> GetMovementsAsync(
         int page = 1,

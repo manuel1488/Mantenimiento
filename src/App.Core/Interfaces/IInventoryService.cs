@@ -38,6 +38,14 @@ public interface IInventoryService
         CreateBulkInventoryTransferDto transferDto,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Generates a printable PDF report for a bulk transfer batch, rebuilt from the
+    /// persisted movements (grouped by BatchId), so it can be regenerated at any time.
+    /// </summary>
+    Task<byte[]> GenerateBulkTransferPdfAsync(
+        Guid batchId,
+        CancellationToken cancellationToken = default);
+
     Task<(int TotalCount, IList<InventoryMovementDto> Items)> GetMovementsAsync(
         int page = 1,
         int pageSize = 10,

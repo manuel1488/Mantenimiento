@@ -5,6 +5,7 @@ using App.Core.Interfaces;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Inventory;
+using App.Services.Shop;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,11 @@ public class InventoryValidationTests
             currentUserMock.Object,
             localizerMock.Object,
             new Mock<IDateTime>().Object,
-            new Mock<IInventoryAlertEmailService>().Object);
+            new Mock<IInventoryAlertEmailService>().Object,
+            new Mock<ICompanySettingsService>().Object,
+            new Mock<IPdfService>().Object,
+            new Mock<IEmailTemplateService>().Object,
+            new Mock<IDocumentSequenceService>().Object);
     }
 
     // =========================================================================

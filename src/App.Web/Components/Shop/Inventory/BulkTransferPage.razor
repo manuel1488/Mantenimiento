@@ -13,6 +13,7 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject ILogger<BulkTransferPage> Logger
+@inject IJSRuntime JS
 
 @attribute [Authorize(Policy = ApplicationClaims.Shop.ManageInventoryTransfers)]
 
@@ -232,7 +233,7 @@
             <MudGrid>
                 <MudItem xs="12" md="3">
                     <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Batch"]</MudText>
-                    <MudText Typo="Typo.body2">@_result.BatchId</MudText>
+                    <MudText Typo="Typo.body2">@_result.BatchNumber</MudText>
                 </MudItem>
                 <MudItem xs="12" md="3">
                     <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Source Location"]</MudText>
@@ -287,7 +288,7 @@
             <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
                 <MudButton Variant="Variant.Outlined"
                            StartIcon="@Icons.Material.Filled.Print"
-                           OnClick="@(() => Navigation.NavigateTo(Navigation.Uri, forceLoad: false))">
+                           OnClick="PrintResult">
                     @L["Print"]
                 </MudButton>
                 <MudButton Color="Color.Primary"
@@ -471,6 +472,24 @@
         finally
         {
             _processing = false;
+        }
+    }
+
+    private async Task PrintResult()
+    {
+        if (_result == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("openInNewTab", $"/api/inventory-transfers/batch/{_result.BatchId}/pdf");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error opening bulk transfer PDF");
+            Snackbar.Add(L["Error creating transfer"], Severity.Error);
         }
     }
 

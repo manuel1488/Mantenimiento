@@ -8,6 +8,7 @@ using App.Core.Interfaces;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Inventory;
+using App.Services.Shop;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -71,7 +72,11 @@ public class InventoryAdjustmentTests
             currentUserMock.Object,
             localizerMock.Object,
             dateTimeMock.Object,
-            alertEmailMock.Object);
+            alertEmailMock.Object,
+            new Mock<ICompanySettingsService>().Object,
+            new Mock<IPdfService>().Object,
+            new Mock<IEmailTemplateService>().Object,
+            new Mock<IDocumentSequenceService>().Object);
 
         _queryService = new InventoryQueryService(
             contextFactory,

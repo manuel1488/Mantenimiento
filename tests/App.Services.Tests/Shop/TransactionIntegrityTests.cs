@@ -755,7 +755,11 @@ public class RemissionRollbackContainerTests
             Mock.Of<ICurrentUserService>(u => u.GetUserIdAsync().Result == "test"),
             localizerInventoryMock.Object,
             Mock.Of<IDateTime>(d => d.Now == DateTime.UtcNow),
-            Mock.Of<IInventoryAlertEmailService>());
+            Mock.Of<IInventoryAlertEmailService>(),
+            Mock.Of<ICompanySettingsService>(),
+            Mock.Of<IPdfService>(),
+            Mock.Of<IEmailTemplateService>(),
+            Mock.Of<IDocumentSequenceService>());
 
         var currentUserMock = new Mock<ICurrentUserService>();
         currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test");
@@ -883,7 +887,11 @@ public class RemissionRollbackContainerTests
             Mock.Of<ICurrentUserService>(u => u.GetUserIdAsync().Result == "test"),
             localizerInventoryMock.Object,
             Mock.Of<IDateTime>(d => d.Now == DateTime.UtcNow),
-            Mock.Of<IInventoryAlertEmailService>());
+            Mock.Of<IInventoryAlertEmailService>(),
+            Mock.Of<ICompanySettingsService>(),
+            Mock.Of<IPdfService>(),
+            Mock.Of<IEmailTemplateService>(),
+            Mock.Of<IDocumentSequenceService>());
 
         var currentUserMock = new Mock<ICurrentUserService>();
         currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test");

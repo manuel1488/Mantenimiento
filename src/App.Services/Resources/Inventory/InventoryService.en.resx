@@ -73,4 +73,78 @@
   <data name="Error creating inventory adjustment" xml:space="preserve">
     <value>Error creating inventory adjustment</value>
   </data>
+  <!-- Bulk transfer -->
+  <data name="At least one line is required" xml:space="preserve">
+    <value>At least one line is required</value>
+  </data>
+  <data name="Duplicate products are not allowed in the same transfer" xml:space="preserve">
+    <value>Duplicate products are not allowed in the same transfer</value>
+  </data>
+  <data name="One or more lines failed validation; no transfer was applied" xml:space="preserve">
+    <value>One or more lines failed validation; no transfer was applied</value>
+  </data>
+  <data name="Quantity must be greater than zero" xml:space="preserve">
+    <value>Quantity must be greater than zero</value>
+  </data>
+  <data name="Invalid or inactive location" xml:space="preserve">
+    <value>Invalid or inactive location</value>
+  </data>
+  <data name="Invalid product or location" xml:space="preserve">
+    <value>Invalid product or location</value>
+  </data>
+  <data name="Source and destination locations must be different" xml:space="preserve">
+    <value>Source and destination locations must be different</value>
+  </data>
+  <!-- Bulk transfer PDF report -->
+  <data name="Bulk Transfer" xml:space="preserve">
+    <value>Bulk Transfer</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>Batch</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Source Location" xml:space="preserve">
+    <value>Source Location</value>
+  </data>
+  <data name="Destination Location" xml:space="preserve">
+    <value>Destination Location</value>
+  </data>
+  <data name="Transfer Type" xml:space="preserve">
+    <value>Transfer Type</value>
+  </data>
+  <data name="Standard Transfer" xml:space="preserve">
+    <value>Standard Transfer</value>
+  </data>
+  <data name="Rush Transfer" xml:space="preserve">
+    <value>Rush Transfer</value>
+  </data>
+  <data name="Stock Rebalancing" xml:space="preserve">
+    <value>Stock Rebalancing</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Created By</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Previous Balance" xml:space="preserve">
+    <value>Previous Balance</value>
+  </data>
+  <data name="New Balance" xml:space="preserve">
+    <value>New Balance</value>
+  </data>
 </root>

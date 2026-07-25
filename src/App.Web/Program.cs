@@ -410,6 +410,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.ViewLocationFormats.Add("/Views/Reports/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/Quotations/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/Remissions/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Views/InventoryTransfers/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/GlobalInvoices/{0}.cshtml");
         options.ViewLocationFormats.Add("/Views/{0}.cshtml");
 

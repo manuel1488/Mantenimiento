@@ -73,4 +73,78 @@
   <data name="Error creating inventory adjustment" xml:space="preserve">
     <value>Error al crear ajuste de inventario</value>
   </data>
+  <!-- Transferencia masiva -->
+  <data name="At least one line is required" xml:space="preserve">
+    <value>Se requiere al menos una línea</value>
+  </data>
+  <data name="Duplicate products are not allowed in the same transfer" xml:space="preserve">
+    <value>No se permiten productos duplicados en la misma transferencia</value>
+  </data>
+  <data name="One or more lines failed validation; no transfer was applied" xml:space="preserve">
+    <value>Una o más líneas no pasaron la validación; no se aplicó ninguna transferencia</value>
+  </data>
+  <data name="Quantity must be greater than zero" xml:space="preserve">
+    <value>La cantidad debe ser mayor a cero</value>
+  </data>
+  <data name="Invalid or inactive location" xml:space="preserve">
+    <value>Ubicación no válida o inactiva</value>
+  </data>
+  <data name="Invalid product or location" xml:space="preserve">
+    <value>Producto o ubicación no válida</value>
+  </data>
+  <data name="Source and destination locations must be different" xml:space="preserve">
+    <value>Las ubicaciones origen y destino deben ser diferentes</value>
+  </data>
+  <!-- Reporte PDF de transferencia masiva -->
+  <data name="Bulk Transfer" xml:space="preserve">
+    <value>Transferencia Masiva</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>Lote</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Source Location" xml:space="preserve">
+    <value>Ubicación Origen</value>
+  </data>
+  <data name="Destination Location" xml:space="preserve">
+    <value>Ubicación Destino</value>
+  </data>
+  <data name="Transfer Type" xml:space="preserve">
+    <value>Tipo de Transferencia</value>
+  </data>
+  <data name="Standard Transfer" xml:space="preserve">
+    <value>Transferencia Estándar</value>
+  </data>
+  <data name="Rush Transfer" xml:space="preserve">
+    <value>Transferencia Urgente</value>
+  </data>
+  <data name="Stock Rebalancing" xml:space="preserve">
+    <value>Rebalanceo de Stock</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Referencia</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Creado Por</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Previous Balance" xml:space="preserve">
+    <value>Saldo Anterior</value>
+  </data>
+  <data name="New Balance" xml:space="preserve">
+    <value>Saldo Nuevo</value>
+  </data>
 </root>

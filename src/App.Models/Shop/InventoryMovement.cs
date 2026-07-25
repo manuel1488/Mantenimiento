@@ -86,6 +86,12 @@ public class InventoryMovement : BaseEntity<long>
     /// </summary>
     public Guid? BatchId { get; set; }
 
+    /// <summary>
+    /// Human-readable folio for the bulk transfer batch (e.g. TRF-2026-0001)
+    /// </summary>
+    [StringLength(20)]
+    public string? BatchNumber { get; set; }
+
     [ForeignKey(nameof(ProductId))]
     public virtual Product Product { get; set; } = null!;
 
