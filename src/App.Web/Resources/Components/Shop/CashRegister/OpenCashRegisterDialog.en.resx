@@ -45,4 +45,7 @@
   <data name="Error opening cash register" xml:space="preserve">
     <value>Error opening cash register</value>
   </data>
+  <data name="Previous shift closed with {0:C} in cash on {1}" xml:space="preserve">
+    <value>Previous shift closed with {0:C} in cash on {1:g}</value>
+  </data>
 </root>

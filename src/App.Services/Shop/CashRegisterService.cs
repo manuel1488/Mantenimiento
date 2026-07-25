@@ -207,6 +207,34 @@ public class CashRegisterService : ICashRegisterService
         }
     }
 
+    public async Task<Result<CashRegisterDto?>> GetLastClosedRegisterAsync(int cashStationId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var cashRegister = await context.CashRegisters
+                .AsNoTracking()
+                .Include(c => c.Location)
+                .Include(c => c.CashStation)
+                .Include(c => c.Movements)
+                .Include(c => c.Denominations)
+                .Where(c => c.CashStationId == cashStationId && c.Status == CashRegisterStatus.Closed)
+                .OrderByDescending(c => c.ClosedAt)
+                .FirstOrDefaultAsync();
+
+            if (cashRegister == null)
+                return Result<CashRegisterDto?>.Success(null);
+
+            var dto = await BuildCashRegisterDtoAsync(context, cashRegister);
+            return Result<CashRegisterDto?>.Success(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting last closed cash register for station {CashStationId}", cashStationId);
+            return Result<CashRegisterDto?>.Failure(L["Error retrieving cash register"]);
+        }
+    }
+
     public async Task<Result<CashRegisterDto>> CloseCashRegisterAsync(CloseCashRegisterDto dto)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();

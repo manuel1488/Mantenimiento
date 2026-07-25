@@ -24,6 +24,12 @@ public interface ICashRegisterService
     Task<Result<CashRegisterDto>> OpenCashRegisterAsync(OpenCashRegisterDto dto);
 
     /// <summary>
+    /// Gets the most recently closed cash register session for a cash station.
+    /// Returns null in Value if the station has never been closed.
+    /// </summary>
+    Task<Result<CashRegisterDto?>> GetLastClosedRegisterAsync(int cashStationId);
+
+    /// <summary>
     /// Closes an open cash register session with denomination counts.
     /// The cash difference is informational only and does not block closing.
     /// </summary>
