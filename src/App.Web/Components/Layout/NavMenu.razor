@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Reflection
 @using App.Core.Constants
 @using MudBlazor
 @inject IStringLocalizer<NavMenu> L
@@ -203,3 +204,13 @@
         </Authorized>
     </AuthorizeView>
 </MudNavMenu>
+
+<MudText Typo="Typo.caption" Class="pa-4 mud-text-secondary" Style="display:block;">
+    v@_appVersion
+</MudText>
+
+@code {
+    private readonly string _appVersion = Assembly.GetExecutingAssembly()
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? "0.0.0";
+}

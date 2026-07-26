@@ -4,8 +4,43 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Conteos Físicos de Inventario (Physical Inventory Counts)** — nuevo módulo para levantar
+  conteos físicos por ubicación, comparar contra el inventario del sistema y generar ajustes
+  de las diferencias encontradas. Incluye página de listado, detalle, diálogo de revisión,
+  PDF de conteo y configuración de inventario (`InventorySettingsTab`) en Settings.
+- **Control de acceso a ubicaciones (Location Access Control)** — los usuarios ahora pueden
+  restringirse a una o varias ubicaciones específicas (`UserHasGlobalLocationAccess`); si no
+  tienen acceso global, los servicios de inventario filtran automáticamente movimientos,
+  historial y consultas a solo sus ubicaciones asignadas. Se agregó `InventoryLocationAccessTests`
+  (18 tests) cubriendo la restricción.
+- **Transferencia masiva de inventario (Bulk Transfer)** — nueva página `/shop/inventory` →
+  pestaña de transferencias para mover múltiples productos entre ubicaciones en una sola
+  operación, con PDF de comprobante (`BulkTransferDocument`) y `BatchNumber`/`BatchId` en
+  `InventoryMovement` para agrupar los movimientos de un mismo lote.
+- Al abrir una nueva sesión de caja, el diálogo (`OpenCashRegisterDialog`) ahora muestra el
+  saldo final del último corte de caja cerrado, para que el cajero pueda verificarlo antes de
+  iniciar turno.
+
+### Changed
+
+- **`ICurrentUserService` convertido a totalmente asíncrono** — se eliminaron todas las
+  propiedades sync-over-async (`.Result`, `.GetAwaiter().GetResult()`) que podían causar
+  deadlocks en Blazor Server bajo carga concurrente. Ver
+  `docs/01-Architecture/adr/0010-acceso-async-usuario-actual.md` y el incidente documentado en
+  `docs/02-Development/incident-log.md` (2026-07-25). Afecta a la mayoría de los servicios que
+  dependían del usuario/ubicación actual.
+- Refactor de `SaleService` y manejo de transacciones: se amplió la cobertura de
+  `TransactionIntegrityTests` y se documentaron los hallazgos en `incident-log.md` y
+  `tech-debt.md`.
+
 ### Fixed
 
+- **Deadlock en Blazor Server por llamadas sync-over-async en `CurrentUserService`** — bajo
+  ciertas condiciones de concurrencia la UI se congelaba al resolver el usuario/ubicación
+  actual de forma síncrona sobre código asíncrono. Solución: conversión completa a async (ver
+  arriba) más un fix previo puntual en `CurrentUserService.cs`.
 - **Precio de producto edita "sin errores" pero no guarda precios de mayoreo** — Al editar un
   producto con precio de venta ≥ $1,000 y configurar un nivel de mayoreo, el guardado fallaba
   silenciosamente (toast de éxito del producto se mostraba igual, el warning real quedaba
