@@ -549,6 +549,23 @@ public class RemissionService : IRemissionService
                         string.Format(_localizer["Remissions not in pending status: {0}"],
                             string.Join(", ", nonPending.Select(r => r.RemissionNumber))));
 
+                // Block consolidation if the tax rate changed since a remission was created.
+                // The consolidated sale recomputes tax at the current rate, so honoring an
+                // outdated remission total would misstate tax and, since the customer already
+                // paid the frozen remission total, also mismatch the payment validation.
+                var currentRate = await _taxRateService.GetEffectiveRateAsync("MX");
+                foreach (var remission in remissions)
+                {
+                    var remissionTaxRate = remission.Details
+                        .Where(d => d.TaxRate > 0)
+                        .Select(d => (decimal?)d.TaxRate)
+                        .FirstOrDefault();
+                    if (remissionTaxRate.HasValue && Math.Abs(remissionTaxRate.Value - currentRate) >= 0.0001m)
+                        return Result<long>.Failure(
+                            _localizer["Cannot consolidate: the tax rate changed since remission {0} was created (remission {1}, current {2}). Please cancel and recreate the remission.",
+                                remission.RemissionNumber, remissionTaxRate.Value.ToString("P2"), currentRate.ToString("P2")]);
+                }
+
                 // Build consolidated sale details from all remission details
                 var saleDetails = new List<CreateSaleDetailDto>();
                 foreach (var remission in remissions)
@@ -566,14 +583,18 @@ public class RemissionService : IRemissionService
                     }
                 }
 
-                // Create consolidated sale (SaleType.Remission skips inventory deduction)
+                // Create consolidated sale (SaleType.Remission skips inventory deduction).
+                // ApplyRounding=false: the remissions' totals were already frozen without
+                // rounding (RemissionService.CreateAsync uses ApplyRounding=false) and the
+                // customer already paid that exact amount.
                 var createSaleDto = new CreateSaleDto
                 {
                     CustomerId = dto.CustomerId,
                     SaleType = SaleType.Remission,
                     LocationId = dto.LocationId,
                     Payments = dto.Payments,
-                    Details = saleDetails
+                    Details = saleDetails,
+                    ApplyRounding = false
                 };
 
                 // Create sale and mark remissions as consolidated in one atomic transaction

@@ -974,16 +974,15 @@ public class SaleService : IContextualSaleService
             }
 
             // Use centralized service for document-level totals.
-            // Skip rounding when converting from a quotation: the quoted total is
-            // computed without rounding (QuotationService uses ApplyRounding=false) and
-            // the customer pays exactly that quoted total. Rounding the sale up here
-            // would make the locked payment "less than sale total" and block conversion.
+            // ApplyRounding is decided explicitly by the caller (see CreateSaleDto.ApplyRounding) —
+            // callers converting a frozen document (quotation, consolidated remission) must set it
+            // to false so the already-paid locked total isn't rounded up after the fact.
             var docCalc = await _pricingService.CalculateDocumentAsync(new DocumentCalculationInput
             {
                 Lines = documentLines,
                 GlobalDiscountPercentage = createDto.DiscountPercentage,
                 TaxRate = defaultTaxRate,
-                ApplyRounding = createDto.QuotationId is null
+                ApplyRounding = createDto.ApplyRounding
             });
 
             sale.Subtotal = docCalc.Subtotal;

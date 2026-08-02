@@ -308,3 +308,82 @@ Commit `226d322`: `ICurrentUserService` (`UserId`, `UserName`, `FullName`, `IsGl
 
 - Rotar la contraseña de la cuenta `app` de MySQL — quedó expuesta en texto plano durante el diagnóstico de este incidente (se extrajo de `docker inspect` para poder reconstruir el despliegue sin acceso a la máquina con `.env.production`).
 - Desplegar el commit `226d322` a producción (el fix mínimo de `5f4e141` ya está desplegado y resuelve el deadlock; este refactor es la corrección de raíz, sin cambio de comportamiento esperado, pero queda pendiente de su propio despliegue y verificación).
+
+---
+
+## 2026-08-01 — "Consolidar Remisiones" rechaza un pago exacto por $0.01 ("el total pagado es menor que el total de la venta")
+
+### Síntoma
+
+Al consolidar la remisión `REM-2026-0044` (Tienda 1, cliente "La Casona"), la UI muestra el total de la remisión como $2,878.48, el usuario paga exactamente ese monto en efectivo, y al confirmar la consolidación el sistema rechaza la operación:
+
+> El total pagado ($2,878.48) es menor que el total de la venta ($2,878.49)
+
+### Cómo se diagnosticó
+
+Sin acceso SSH manual, usando el contexto Docker remoto ya configurado (`docker context ls` → `cleeny`):
+
+```bash
+docker --context cleeny ps
+# app-prod-web-prod, app-prod-mysql
+
+docker --context cleeny exec app-prod-mysql sh -c \
+  'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" App -e \
+  "SELECT Id, RemissionNumber, Subtotal, DiscountAmount, TaxRate, TaxAmount, Total FROM sh_remissions WHERE RemissionNumber='"'"'REM-2026-0044'"'"';"'
+
+docker --context cleeny exec app-prod-mysql sh -c \
+  'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" App -e \
+  "SELECT ProductId, Quantity, UnitPrice, DiscountAmount, TaxRate, TaxAmount, Subtotal, Total FROM sh_remission_details WHERE RemissionId=44;"'
+```
+
+La suma de los 12 renglones (`Total`) da exactamente $2,878.48, igual que `sh_remissions.Total` — descartando error de captura o de datos. El monto de $2,878.49 solo aparece al pasar por el recálculo de `SaleService.CreateSaleAsync` durante la consolidación.
+
+### Causa raíz
+
+`RemissionService.ConsolidateAsync` reconstruye las líneas desde cero (`Quantity`, `UnitPrice`, `DiscountAmount` de cada `RemissionDetail`) y las pasa a `SaleService.CreateSaleAsync` para crear la venta consolidada — no reutiliza el total ya calculado y congelado en la remisión.
+
+`RemissionService.cs` (línea 318, sin cambios en este incidente) calcula el total de la remisión con `ApplyRounding = false` — el monto que el cliente ve y paga **no** lleva redondeo de caja.
+
+`SaleService.cs` (línea 986, antes de este fix) decidía si aplicar redondeo así:
+
+```csharp
+ApplyRounding = createDto.QuotationId is null
+```
+
+Como la consolidación no trae `QuotationId`, la condición daba `true` → se le aplicaba redondeo de caja a una venta cuyo total ya estaba congelado sin redondeo, sumando $0.01 de más ($2,878.48 → $2,878.49) y rechazando el pago exacto ya cobrado.
+
+**Este es un incidente recurrente.** El mismo patrón ya se había diagnosticado y corregido para la conversión de Cotización→Venta (commit `c5fc09c`, "Implement tax rate change validation for quotation conversion to sale"), que agregó exactamente esa condición `ApplyRounding = createDto.QuotationId is null` con el comentario: *"Skip rounding when converting from a quotation: the quoted total is computed without rounding... Rounding the sale up here would make the locked payment 'less than sale total' and block conversion."* La corrección cubrió Cotizaciones pero no Remisiones, que tienen el mismo `ApplyRounding=false` al crearse — quedó un caso sin cubrir del mismo bug de fondo.
+
+### Reparación aplicada
+
+**Fix inmediato** (primer commit): se amplió la condición de `SaleService.cs` para excluir también las remisiones (`ApplyRounding = createDto.QuotationId is null && createDto.SaleType != SaleType.Remission`). Funcionalmente correcto, pero perpetuaba el mismo patrón frágil que ya había fallado dos veces: inferir `ApplyRounding` a partir de otros campos del DTO en vez de decidirlo explícitamente.
+
+**Refactor de raíz** (mismo día, segundo commit), para que un tercer flujo futuro no vuelva a colarse por el mismo hueco:
+
+1. **`CreateSaleDto`**: nueva propiedad explícita `public bool ApplyRounding { get; set; } = true;` (default = comportamiento normal de venta en POS).
+2. **`SaleService.cs`**: ya no infiere nada — usa `ApplyRounding = createDto.ApplyRounding` directamente.
+3. Los 3 flujos que parten de un documento ya congelado sin redondeo lo declaran explícitamente en `false`:
+   - `RemissionService.ConsolidateAsync` (`CreateSaleDto { ..., ApplyRounding = false }`)
+   - `ConvertQuotationToSalePage.razor`
+   - `ConvertQuotationToSaleDialog.razor`
+
+   Una venta normal de POS (`SalesPage.razor`) no lo toca y usa el default `true`, igual que antes.
+4. **`RemissionService.cs` (`ConsolidateAsync`)**: se agregó, como espejo de la validación ya existente para cotizaciones, un bloqueo si la tasa de IVA cambió desde que se creó cada remisión (antes de reconstruir las líneas y llamar a `SaleService`):
+   ```csharp
+   var currentRate = await _taxRateService.GetEffectiveRateAsync("MX");
+   // por cada remisión: comparar remissionTaxRate vs currentRate, fallar si difieren
+   ```
+   Sin este guard, si la tasa de IVA cambia entre la creación de la remisión y su consolidación, el total recalculado divergiría del congelado por una causa distinta al redondeo — y reaparecería el mismo síntoma ("pago insuficiente") sin que el fix de `ApplyRounding` lo cubra. Mensajes localizados agregados en `RemissionService.en.resx` / `RemissionService.es.resx`.
+
+### Testing
+
+- `dotnet build App.sln`: 0 errores. No se requirió migración de EF (no se tocó ningún modelo).
+- `tests/App.Services.Tests/Shop/SaleServiceRoundingTests.cs`:
+  - Se actualizó `ConvertQuotation_WithRoundingEnabled_ReproducesQuotedTotalWithoutRounding` para fijar `ApplyRounding = false` explícitamente (con el refactor, ya no se infiere solo de `QuotationId`; el test construye el DTO directamente, como haría cualquier llamador, así que debe declararlo igual que la UI real).
+  - Se agregó `ConsolidateRemission_WithRoundingEnabled_ReproducesRemissionTotalWithoutRounding`, que reproduce el escenario exacto del incidente (redondeo de caja activado + `SaleType.Remission` + `ApplyRounding=false`) y confirma que el total consolidado reproduce el total congelado sin sumar el centavo de redondeo.
+  - Suite completa: `dotnet test tests/App.Services.Tests` → 268/268 pruebas exitosas.
+- No se ejecutó una prueba manual de consolidación end-to-end en un entorno de desarrollo con datos reales (UI + backend juntos) — solo build + suite de tests unitarios + verificación aritmética manual contra los datos de producción. Recomendado antes de dar el incidente por completamente cerrado.
+
+### Pendiente
+
+- Prueba manual end-to-end en un entorno de desarrollo antes del despliegue a producción.

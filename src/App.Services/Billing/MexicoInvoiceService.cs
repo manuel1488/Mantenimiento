@@ -282,7 +282,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         { "unit_price", d.UnitPrice.ToString("N2") },
                         { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                         { "has_discount", (object)(d.DiscountAmount > 0) },
-                        { "amount", d.Total.ToString("N2") }
+                        { "amount", d.Subtotal.ToString("N2") }
                     }).ToList();
                     var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
@@ -409,7 +409,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 { "unit_price", d.UnitPrice.ToString("N2") },
                 { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                 { "has_discount", (object)(d.DiscountAmount > 0) },
-                { "amount", d.Total.ToString("N2") }
+                { "amount", d.Subtotal.ToString("N2") }
             }).ToList();
             var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
             var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
@@ -621,7 +621,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                         { "unit_price", d.UnitPrice.ToString("N2") },
                         { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                         { "has_discount", (object)(d.DiscountAmount > 0) },
-                        { "amount", d.Total.ToString("N2") }
+                        { "amount", d.Subtotal.ToString("N2") }
                     }).ToList();
                     var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
                     var discountTotal = sale.Details.Sum(d => d.DiscountAmount);
@@ -1705,7 +1705,7 @@ public class MexicoInvoiceService : IMexicoInvoiceService
                 { "unit_price", d.UnitPrice.ToString("N2") },
                 { "discount", d.DiscountAmount > 0 ? d.DiscountAmount.ToString("N2") : string.Empty },
                 { "has_discount", (object)(d.DiscountAmount > 0) },
-                { "amount", d.Total.ToString("N2") }
+                { "amount", d.Subtotal.ToString("N2") }
             }).ToList();
 
             var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");

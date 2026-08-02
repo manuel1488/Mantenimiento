@@ -606,6 +606,7 @@ public class SaleServiceRoundingTests
             SaleType = SaleType.Public,
             QuotationId = 1,
             DiscountPercentage = 0,
+            ApplyRounding = false, // caller's responsibility: quotation conversion always locks the quoted total
             Details = new List<CreateSaleDetailDto>
             {
                 new() { ProductId = 200, Quantity = 2m, UnitPrice = 45.00m, IsCustomPrice = true }
@@ -626,6 +627,46 @@ public class SaleServiceRoundingTests
             "Converted sale total must equal the quoted total, not a rounded-up value");
         Assert.That(result.Value!.RoundingAmount, Is.EqualTo(0m),
             "No rounding should be applied when converting a quotation");
+    }
+
+    [Test]
+    public async Task ConsolidateRemission_WithRoundingEnabled_ReproducesRemissionTotalWithoutRounding()
+    {
+        // Regression for the incident where consolidating a remission (SaleType.Remission,
+        // no QuotationId) re-applied cash rounding to a total the remission had already
+        // frozen without rounding, bumping it by a cent and rejecting the exact payment
+        // the customer had already made.
+        EnableCeilingRounding();
+
+        SeedProduct(500, 45.00m, isTaxable: true);
+
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Remission,
+            DiscountPercentage = 0,
+            ApplyRounding = false, // caller's responsibility: RemissionService.ConsolidateAsync sets this
+            Details = new List<CreateSaleDetailDto>
+            {
+                new() { ProductId = 500, Quantity = 2m, DiscountPercentage = 0 }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 104.40m }
+            }
+        };
+
+        // Act
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        // Assert: consolidated sale must reproduce the remission's frozen total exactly.
+        Assert.That(result.IsSuccess, Is.True,
+            $"Remission consolidation must not fail on payment validation: {result.Error}");
+        Assert.That(result.Value!.Total, Is.EqualTo(104.40m),
+            "Consolidated sale total must equal the remission's frozen total, not a rounded-up value");
+        Assert.That(result.Value!.RoundingAmount, Is.EqualTo(0m),
+            "No rounding should be applied when consolidating a remission");
     }
 
     [Test]

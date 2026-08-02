@@ -16,6 +16,15 @@ public class CreateSaleDto
 
     public int? LocationId { get; set; }
 
+    /// <summary>
+    /// Whether cash-rounding should be applied to the document total. Set to
+    /// <c>false</c> when the sale originates from a document whose total was
+    /// already frozen without rounding (a converted quotation or a consolidated
+    /// remission) — the customer already paid that exact locked amount, and
+    /// applying rounding here would make the payment appear insufficient.
+    /// </summary>
+    public bool ApplyRounding { get; set; } = true;
+
     [Range(0, 100)]
     public decimal DiscountPercentage { get; set; } = 0;
 

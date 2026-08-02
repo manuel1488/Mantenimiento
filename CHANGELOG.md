@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-01
+
 ### Added
 
 - **Conteos Físicos de Inventario (Physical Inventory Counts)** — nuevo módulo para levantar
@@ -37,6 +39,23 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- **Factura CFDI — columna "Importe" del PDF mostraba el total con IVA incluido** — en el PDF
+  de cortesía de la factura, "Importe" tomaba `SaleDetail.Total` (con IVA) mientras "Precio U."
+  mostraba el precio sin IVA, rompiendo la relación Cantidad × Precio = Importe a nivel de
+  renglón (el XML CFDI timbrado ya calculaba el importe correctamente, sin IVA). Solución:
+  `MexicoInvoiceService.cs` ahora usa `SaleDetail.Subtotal` (sin IVA) para "Importe" en los 4
+  puntos donde se arma el PDF, consistente con el XML y con "Precio U.".
+- **"Consolidar Remisiones" rechazaba un pago exacto por $0.01** — al consolidar una remisión
+  en una venta, se le volvía a aplicar redondeo de caja a un total que ya había quedado
+  congelado sin redondeo al crear la remisión, sumando $0.01 de más y rechazando el pago que el
+  cliente ya había hecho por el monto exacto. Mismo patrón de fondo que un incidente previo con
+  la conversión de Cotización→Venta (ver `docs/02-Development/incident-log.md`, 2026-08-01).
+  Solución: `CreateSaleDto` gana una propiedad explícita `ApplyRounding` (en vez de inferirse de
+  `QuotationId`/`SaleType`); `RemissionService.ConsolidateAsync` y las 2 páginas de conversión
+  de cotización la fijan en `false`. Se agregó también una validación de cambio de tasa de IVA
+  entre la creación de la remisión y su consolidación, espejo de la que ya existía para
+  cotizaciones. Cubierto por `SaleServiceRoundingTests` (nuevo test
+  `ConsolidateRemission_WithRoundingEnabled_ReproducesRemissionTotalWithoutRounding`).
 - **Deadlock en Blazor Server por llamadas sync-over-async en `CurrentUserService`** — bajo
   ciertas condiciones de concurrencia la UI se congelaba al resolver el usuario/ubicación
   actual de forma síncrona sobre código asíncrono. Solución: conversión completa a async (ver

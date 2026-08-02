@@ -324,6 +324,7 @@
             QuotationId = _quotation.Id,
             LocationId = _activeCashRegister?.LocationId,
             DiscountPercentage = _quotation.DiscountPercentage,
+            ApplyRounding = false,
             Details = _quotation.Details.Select(d => new CreateSaleDetailDto
             {
                 ProductId = d.ProductId,
