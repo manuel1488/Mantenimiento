@@ -4,6 +4,35 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-03
+
+### Fixed
+
+- **"Consolidar Remisiones" seguía rechazando un pago exacto por $0.01, tras el fix de
+  redondeo del 1.1.0** — segunda causa raíz para el mismo síntoma: `RemissionService`
+  guardaba el descuento de cada renglón redondeado a 2 decimales, descartando la precisión
+  sub-centavo con la que se calculó el total del documento; al consolidar, `SaleService`
+  recalculaba IVA y subtotal a partir de ese valor truncado y podía reproducir un total hasta
+  $0.01 distinto del ya congelado y pagado. Detalle completo en
+  `docs/02-Development/incident-log.md` (2026-08-03). Solución:
+  - `RemissionService.cs` ya no redondea el descuento por renglón al guardarlo (igual que
+    `QuotationService`).
+  - `CreateSaleDto` gana `FrozenTotals` (`FrozenSaleTotalsDto`): cuando el llamador lo provee,
+    `SaleService` usa esos totales directamente en vez de recalcularlos desde los renglones
+    reconstruidos — blinda el total también para remisiones creadas antes de este fix.
+    `RemissionService.ConsolidateAsync` lo fija a `Σ` de los totales ya congelados de las
+    remisiones consolidadas, y marca `IsCustomPrice = true` en las líneas reconstruidas.
+  - `RemissionDetail.cs`: corregido el atributo de columna de `DiscountAmount` a
+    `decimal(18,6)` — estaba desincronizado de la migración `UpdateDiscountAmountPrecision`
+    (2026-05-06), que ya había ampliado la columna en la BD real. Migración
+    `SyncRemissionDetailDiscountAmountPrecision` agregada para reconciliar el modelo de EF
+    (no-op en la base de datos).
+  - Cubierto por `SaleServiceRoundingTests` (nuevo test
+    `ConsolidateRemission_LineDiscountLostSubCentPrecision_FrozenTotalsStillMatchesPayment`) y
+    por `RemissionServiceConsolidationTests` (nuevo archivo, primeros tests de
+    `RemissionService`): `CreateRemission_LineDiscountFromPercentage_PersistsFullPrecisionNotRoundedToCents`
+    y `ConsolidateRemission_LineWithSubCentDiscountPrecision_SaleTotalMatchesFrozenRemissionTotal`.
+
 ## [1.1.0] - 2026-08-01
 
 ### Added

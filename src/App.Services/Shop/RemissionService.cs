@@ -277,7 +277,6 @@ public class RemissionService : IRemissionService
                             TaxRate = taxRate
                         });
 
-                        var lineDiscount = Math.Round(lineCalc.DiscountAmount, 2);
                         var lineTotal = Math.Round(lineCalc.TaxBase + lineCalc.TaxAmount, 2);
 
                         var detail = new RemissionDetail
@@ -288,7 +287,11 @@ public class RemissionService : IRemissionService
                             Quantity = detailDto.Quantity,
                             UnitPrice = detailDto.UnitPrice,
                             DiscountPercentage = detailDto.DiscountPercentage,
-                            DiscountAmount = lineDiscount,
+                            // Full precision, matching QuotationService — rounding this to 2 decimals
+                            // here (as before) discarded precision the document-level total already
+                            // depended on, so reconstructing the line at consolidation time could
+                            // drift a cent from the frozen remission.Total.
+                            DiscountAmount = lineCalc.DiscountAmount,
                             TaxRate = taxRate,
                             TaxAmount = lineCalc.TaxAmount,
                             Subtotal = lineCalc.TaxBase,
@@ -578,7 +581,12 @@ public class RemissionService : IRemissionService
                             Quantity = detail.Quantity,
                             UnitPrice = detail.UnitPrice,
                             DiscountPercentage = detail.DiscountPercentage,
-                            DiscountAmount = detail.DiscountAmount > 0 ? detail.DiscountAmount : null
+                            DiscountAmount = detail.DiscountAmount > 0 ? detail.DiscountAmount : null,
+                            // Freezes the remission's already-computed price so partial-sale/fractional
+                            // products aren't repriced at consolidation time (same pattern used when
+                            // converting a quotation to a sale) — repricing caused a 1-cent drift between
+                            // the frozen remission total (already paid) and the recalculated sale total.
+                            IsCustomPrice = true
                         });
                     }
                 }
@@ -587,6 +595,18 @@ public class RemissionService : IRemissionService
                 // ApplyRounding=false: the remissions' totals were already frozen without
                 // rounding (RemissionService.CreateAsync uses ApplyRounding=false) and the
                 // customer already paid that exact amount.
+                // The consolidated sale must reproduce exactly what was already paid across the
+                // frozen remissions — force the totals instead of trusting the line-item
+                // reconstruction, which can drift a cent once amounts round-trip through the
+                // 2-decimal-precision detail columns.
+                var frozenTotals = new FrozenSaleTotalsDto
+                {
+                    Subtotal = remissions.Sum(r => r.Subtotal),
+                    DiscountAmount = remissions.Sum(r => r.DiscountAmount),
+                    TaxAmount = remissions.Sum(r => r.TaxAmount),
+                    Total = remissions.Sum(r => r.Total)
+                };
+
                 var createSaleDto = new CreateSaleDto
                 {
                     CustomerId = dto.CustomerId,
@@ -594,7 +614,8 @@ public class RemissionService : IRemissionService
                     LocationId = dto.LocationId,
                     Payments = dto.Payments,
                     Details = saleDetails,
-                    ApplyRounding = false
+                    ApplyRounding = false,
+                    FrozenTotals = frozenTotals
                 };
 
                 // Create sale and mark remissions as consolidated in one atomic transaction

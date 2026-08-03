@@ -26,7 +26,7 @@ public class RemissionDetail : BaseEntity<long>
     [Column(TypeName = "decimal(5,2)")]
     public decimal DiscountPercentage { get; set; } = 0;
 
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(18,6)")]
     public decimal DiscountAmount { get; set; } = 0;
 
     [Column(TypeName = "decimal(5,2)")]

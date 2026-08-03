@@ -387,3 +387,69 @@ Como la consolidación no trae `QuotationId`, la condición daba `true` → se l
 ### Pendiente
 
 - Prueba manual end-to-end en un entorno de desarrollo antes del despliegue a producción.
+
+---
+
+## 2026-08-03 — El mismo incidente persistía tras el fix de redondeo: segunda causa raíz (pérdida de precisión del descuento por renglón)
+
+### Síntoma
+
+El usuario reportó que el error de arriba **seguía apareciendo en producción**, con la misma remisión `REM-2026-0044` y el mismo mensaje exacto: "El total pagado ($2,878.48) es menor que el total de la venta ($2,878.49)". La imagen del contenedor desplegado (`docker --context cleeny inspect app-prod-web-prod`) se creó el 2026-08-02T00:42, después del commit `7e8536d` que aplicó el fix de redondeo — es decir, ese fix **sí estaba desplegado** y, sin embargo, el síntoma no desapareció.
+
+### Cómo se diagnosticó
+
+De nuevo con `docker context cleeny` (sin acceso SSH manual):
+
+```bash
+docker --context cleeny exec app-prod-mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" App -e \
+  "SELECT Id, DiscountPercentage, TaxRate, Subtotal, DiscountAmount, TaxAmount, Total FROM sh_remissions WHERE RemissionNumber='REM-2026-0044';"
+
+docker --context cleeny exec app-prod-mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" App -e \
+  "SELECT ProductId, CAST(DiscountAmount AS CHAR), CAST(Subtotal AS CHAR), CAST(TaxAmount AS CHAR), CAST(Total AS CHAR) FROM sh_remission_details WHERE RemissionId=44;"
+
+docker --context cleeny exec app-prod-mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" App -e \
+  "DESCRIBE sh_remission_details;"
+```
+
+Comparando la suma de los 12 renglones contra los totales del documento:
+
+| | Suma de renglones | Total del documento (`sh_remissions`) |
+|---|---|---|
+| Subtotal | 2,481.46 | 2,481.45 |
+| Descuento | 268.80 | 268.81 |
+| IVA | 397.02 | 397.03 |
+| **Total** | **2,878.48** | **2,878.48** |
+
+Los tres desgloses difieren en $0.01 entre "sumar los renglones" y "el total grabado en el documento" — el Total final coincide solo porque los errores se compensan entre sí (menos descuento restado + menos IVA sumado ≈ mismo resultado).
+
+### Causa raíz
+
+`RemissionService.CreateAsync` (línea 280, antes de este fix) guardaba el descuento de cada renglón con `Math.Round(lineCalc.DiscountAmount, 2)`, descartando la precisión sub-centavo con la que se calculó el total del documento (`docCalc`, que usa el valor **sin redondear**). Ese es el mismo patrón que `QuotationService.cs` (línea 234) resuelve correctamente: ahí se guarda `lineDiscountAmount = detailDto.DiscountAmount ?? lineCalc.DiscountAmount` **sin** el `Math.Round` adicional.
+
+Al consolidar, `RemissionService.ConsolidateAsync` reconstruye las líneas de venta tomando ese `DiscountAmount` ya truncado a 2 decimales y se lo pasa a `SaleService` como si fuera el valor exacto original. `SaleService.CalculateSaleAsync` recalcula IVA y subtotal a partir de ese valor con precisión perdida, reproduciendo un total del documento hasta $0.01 distinto del que la remisión (y el cliente) ya habían congelado — el mismo síntoma que el incidente de 2026-08-01, pero por una causa completamente distinta (pérdida de precisión, no redondeo de caja).
+
+**Hallazgo adicional (schema drift)**: al revisar la columna en producción con `DESCRIBE sh_remission_details`, `DiscountAmount` ya era `decimal(18,6)` — ampliada por la migración `UpdateDiscountAmountPrecision` (2026-05-06) que también amplió `sh_quotation_details.DiscountAmount` al mismo tipo. Sin embargo, la entidad `RemissionDetail.cs` seguía con el atributo `[Column(TypeName = "decimal(10,2)")]` desactualizado (nunca se sincronizó con esa migración), a diferencia de `QuotationDetail.cs` que sí tiene `decimal(18,6)`. Esto no causaba pérdida de datos en tiempo de ejecución (EF no trunca según el atributo, solo lo usa para generar migraciones), pero era un riesgo latente: la próxima vez que alguien ejecutara `dotnet ef migrations add`, EF habría generado una migración para "corregir" la columna de vuelta a `decimal(10,2)`, deshaciendo silenciosamente este fix.
+
+### Reparación aplicada
+
+1. **`RemissionService.cs`**: se quitó el `Math.Round(lineCalc.DiscountAmount, 2)` al guardar `RemissionDetail.DiscountAmount` — ahora se guarda con precisión completa, igual que `QuotationService`.
+2. **`RemissionService.ConsolidateAsync`**: se agregó `IsCustomPrice = true` al reconstruir los detalles de venta (congela el precio unitario igual que en la conversión de cotizaciones) y se calcula un `FrozenTotals` (`Subtotal`/`DiscountAmount`/`TaxAmount`/`Total`) como la suma de esos campos de las remisiones consolidadas.
+3. **`CreateSaleDto` / `FrozenSaleTotalsDto`** (nuevo): propiedad `FrozenTotals` opcional — cuando está presente, `SaleService.CalculateSaleAsync` la usa directamente en vez de recalcular desde los renglones reconstruidos. Esto blinda el total contra *cualquier* pérdida de precisión al reconstruir líneas (incluida la de remisiones ya existentes, creadas antes de este fix, con el descuento ya truncado en la BD) — el total de la venta consolidada siempre será exactamente `Σ remission.Total`, el monto que el cliente ya pagó.
+4. **`RemissionDetail.cs`**: corregido el atributo `[Column(TypeName)]` de `DiscountAmount` a `decimal(18,6)`, sincronizado con la BD real y con `QuotationDetail.cs`.
+5. **Migración `SyncRemissionDetailDiscountAmountPrecision`**: generada para sincronizar el snapshot de EF con el esquema real. Su `Up`/`Down` quedaron vacíos — confirma que no había ninguna diferencia real de esquema que aplicar, solo el modelo de EF estaba desactualizado.
+
+### Testing
+
+- `dotnet build App.sln`: 0 errores.
+- `tests/App.Services.Tests/Shop/SaleServiceRoundingTests.cs`: se agregó `ConsolidateRemission_LineDiscountLostSubCentPrecision_FrozenTotalsStillMatchesPayment`, que confirma que `FrozenTotals` fuerza el total correcto aun cuando la reconstrucción de líneas (con un descuento de precisión truncada) daría un total distinto.
+- `tests/App.Services.Tests/Shop/RemissionServiceConsolidationTests.cs` (nuevo, no existían tests de `RemissionService` antes de este incidente):
+  - `CreateRemission_LineDiscountFromPercentage_PersistsFullPrecisionNotRoundedToCents`: crea una remisión real vía `RemissionService.CreateAsync` con un descuento del 20% sobre `30 × 23.706897` (da `142.241382`, un valor que NO es exacto a 2 decimales) y confirma, leyendo directo de la BD (EF InMemory), que se persiste con precisión completa.
+  - `ConsolidateRemission_LineWithSubCentDiscountPrecision_SaleTotalMatchesFrozenRemissionTotal`: reproduce el incidente completo de punta a punta — crea la remisión con ese mismo descuento, la consolida con un `SaleService` real (no mockeado) y confirma que el total de la venta resultante coincide exactamente con el total congelado de la remisión.
+  - Suite completa: `dotnet test tests/App.Services.Tests` → 271/271 pruebas exitosas.
+- No se ejecutó prueba manual end-to-end en un entorno de desarrollo con UI real. Recomendado antes de desplegar a producción, dado que este es el segundo intento de cerrar el mismo síntoma.
+
+### Pendiente
+
+- Desplegar a `docker context cleeny` (reconstruir imagen + aplicar la migración `SyncRemissionDetailDiscountAmountPrecision`, que es no-op en la BD pero debe correr para mantener el historial de migraciones consistente).
+- Prueba manual end-to-end en un entorno de desarrollo antes de ese despliegue.
+- Las remisiones creadas **antes** de este fix (como `REM-2026-0044`) seguirán teniendo el descuento por renglón truncado en la BD — no se corrigen retroactivamente. `FrozenTotals` las protege igual en la consolidación (el total de venta usa el total ya congelado de la remisión, no el recálculo), así que no vuelven a bloquear el pago exacto, pero su desglose por renglón (Subtotal/Descuento/IVA) puede diferir en $0.01 del total del documento si se inspecciona línea por línea.

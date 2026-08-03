@@ -25,6 +25,15 @@ public class CreateSaleDto
     /// </summary>
     public bool ApplyRounding { get; set; } = true;
 
+    /// <summary>
+    /// Forces the sale's document-level totals (Subtotal, DiscountAmount, TaxAmount, Total)
+    /// to these exact values instead of re-deriving them from the reconstructed line items.
+    /// Set when converting a document whose total was already frozen and paid (a consolidated
+    /// remission) — line items only persist 2-decimal precision, so re-deriving totals from
+    /// them can drift a cent from the frozen amount. When set, this is authoritative.
+    /// </summary>
+    public FrozenSaleTotalsDto? FrozenTotals { get; set; }
+
     [Range(0, 100)]
     public decimal DiscountPercentage { get; set; } = 0;
 

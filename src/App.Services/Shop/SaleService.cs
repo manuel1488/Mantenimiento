@@ -985,11 +985,26 @@ public class SaleService : IContextualSaleService
                 ApplyRounding = createDto.ApplyRounding
             });
 
-            sale.Subtotal = docCalc.Subtotal;
-            sale.TaxAmount = docCalc.TaxAmount;
-            sale.DiscountAmount = docCalc.TotalDiscountAmount;
-            sale.RoundingAmount = docCalc.RoundingAmount;
-            sale.Total = docCalc.Total;
+            // FrozenTotals (set by callers converting an already-paid, frozen document — a
+            // consolidated remission) always wins over the recalculated totals: line items only
+            // persist 2-decimal precision, so re-deriving Subtotal/Discount/Tax from them can
+            // drift a cent from the amount the customer already paid.
+            if (createDto.FrozenTotals is { } frozen)
+            {
+                sale.Subtotal = frozen.Subtotal;
+                sale.TaxAmount = frozen.TaxAmount;
+                sale.DiscountAmount = frozen.DiscountAmount;
+                sale.RoundingAmount = 0;
+                sale.Total = frozen.Total;
+            }
+            else
+            {
+                sale.Subtotal = docCalc.Subtotal;
+                sale.TaxAmount = docCalc.TaxAmount;
+                sale.DiscountAmount = docCalc.TotalDiscountAmount;
+                sale.RoundingAmount = docCalc.RoundingAmount;
+                sale.Total = docCalc.Total;
+            }
 
             return Result<(Sale, List<SaleDetail>)>.Success((sale, detailsToProcess));
         }

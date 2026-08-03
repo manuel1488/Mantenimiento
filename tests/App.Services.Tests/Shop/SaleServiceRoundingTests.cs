@@ -670,6 +670,58 @@ public class SaleServiceRoundingTests
     }
 
     [Test]
+    public async Task ConsolidateRemission_LineDiscountLostSubCentPrecision_FrozenTotalsStillMatchesPayment()
+    {
+        // Regression for a second, distinct root cause behind the same "payment total is less
+        // than sale total" symptom: RemissionService persisted each line's DiscountAmount
+        // rounded to 2 decimals, discarding the sub-cent precision the remission's own frozen
+        // document total was computed with. Reconstructing sale details from those
+        // already-rounded discounts at consolidation time could recompute a document total a
+        // cent higher than what the remission (and the customer) had already settled on.
+        //
+        // This line reproduces that precision loss directly: a discount amount with more than
+        // 2 decimals, as it would have existed transiently before being rounded down for
+        // storage. Without FrozenTotals, re-deriving Subtotal/Tax from the rounded discount
+        // input would NOT reproduce the exact frozen total (104.56 here). FrozenTotals must
+        // force it back to the value that was actually charged.
+        SeedProduct(600, 50.00m, isTaxable: true);
+
+        var dto = new CreateSaleDto
+        {
+            CustomerId = CustomerId,
+            LocationId = LocationId,
+            SaleType = SaleType.Remission,
+            DiscountPercentage = 0,
+            ApplyRounding = false,
+            FrozenTotals = new FrozenSaleTotalsDto
+            {
+                Subtotal = 90.02m,
+                DiscountAmount = 9.98m,
+                TaxAmount = 14.40m,
+                Total = 104.42m
+            },
+            Details = new List<CreateSaleDetailDto>
+            {
+                // Discount override carries only 2-decimal precision (as persisted), while the
+                // frozen document total above reflects the true, higher-precision amount
+                // charged to the customer.
+                new() { ProductId = 600, Quantity = 2m, DiscountPercentage = 0, DiscountAmount = 9.98m }
+            },
+            Payments = new List<CreateSalePaymentDto>
+            {
+                new() { PaymentMethodId = PaymentMethodId, Amount = 104.42m }
+            }
+        };
+
+        var result = await _saleService.CreateSaleAsync(dto);
+
+        Assert.That(result.IsSuccess, Is.True,
+            $"Frozen totals must make the exact remission payment valid: {result.Error}");
+        Assert.That(result.Value!.Total, Is.EqualTo(104.42m),
+            "Sale total must equal the remission's frozen total, not the recalculated one");
+    }
+
+    [Test]
     public async Task ConvertQuotation_PartialSaleProduct_UsesLockedPriceNotCatalogRecalculation()
     {
         // Regression for the reported bug: converting a quotation whose line is a
