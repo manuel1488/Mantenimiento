@@ -4,6 +4,46 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-05
+
+### Added
+
+- **Sistema de marca configurable (white-label) para desplegar la app en tiendas
+  distintas a Cleeny** — mismo código base, un contenedor por tienda, un contenedor
+  MySQL compartido con una base de datos por tienda. Detalle completo en
+  `docs/02-Development/white-label-deployment-guide.md`.
+  - Perfil de marca por tienda: `src/App.Web/Branding/{tienda}.json` (nombre semilla,
+    logo/favicon de fallback, colores del tema), seleccionado en runtime con la
+    variable de entorno `BRANDING_PROFILE`. Nuevo `BrandingOptions`
+    (`App.Core/Options/BrandingOptions.cs`).
+  - **Nombre de la tienda** vive en BD (`CompanySettings.CompanyName`), editable desde
+    Ajustes → General. Sembrado una sola vez desde el perfil JSON al primer arranque
+    (`CompanyBrandingSeeder`) — sin fallback al JSON en lecturas posteriores.
+  - **Dos logos independientes en BD**: `CompanySettings.LogoBase64` (nuevo, migración
+    `AddCompanySettingsLogo`) es el logo general a color, usado en el menú de
+    navegación, login, y todos los PDFs (cotizaciones, remisiones, traspasos, conteos,
+    reporte de ventas) vía `ICompanySettingsService.GetLogoDataUriAsync()`. Es distinto
+    de `TicketConfiguration.CompanyLogoBase64` (ya existente), que sigue siendo
+    exclusivo de los tickets térmicos y puede ser una variante simplificada/blanco y
+    negro. Nueva UI de carga en `GeneralSettingsTab.razor` (mismo patrón que la de
+    tickets).
+  - `CurrentThemeService` ahora arma el `MudTheme` desde `BrandingOptions` en vez de
+    tenerlo hardcodeado; se consolidaron 3 definiciones de tema previamente divergentes
+    (`CurrentThemeService`, `MainLayout.razor`, `ErrorLayout.razor`) en una sola.
+  - Favicon configurable por tienda (`Branding.FaviconPath`), leído en `AppRoot.razor`.
+  - Nuevo servicio genérico `webapp-tenant` en `docker-compose.yml` + red externa
+    `app-shared-network` — se reusa para cualquier tienda adicional sin duplicar
+    bloques de servicio: `docker compose -p {tienda} --profile tenant --env-file
+    .env.{tienda} up -d`. Plantilla en `.env.tenant.example`.
+
+### Changed
+
+- `GlobalInvoiceService`, `QuotationService` (pre-factura de cotización) e
+  `InventoryAlertEmailService` ahora toman el nombre de marca (`app_name` en
+  emails/CFDI) de `CompanySettings.CompanyName`, con fallback a
+  `ApplicationOptions.Name` solo si aún no existe esa fila — antes usaban un valor fijo
+  o solo el de configuración.
+
 ## [1.1.1] - 2026-08-03
 
 ### Fixed

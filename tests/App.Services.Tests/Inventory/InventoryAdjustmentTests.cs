@@ -5,6 +5,7 @@ using NUnit.Framework;
 using App.Core.Constants;
 using App.Core.DTOs.Inventory;
 using App.Core.Interfaces;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Inventory;
@@ -16,6 +17,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 using ShopLocation = App.Models.Shop.Location;
 
@@ -78,7 +80,8 @@ public class InventoryAdjustmentTests
             new Mock<ICompanySettingsService>().Object,
             new Mock<IPdfService>().Object,
             new Mock<IEmailTemplateService>().Object,
-            new Mock<IDocumentSequenceService>().Object);
+            new Mock<IDocumentSequenceService>().Object,
+            Options.Create(new BrandingOptions()));
 
         _queryService = new InventoryQueryService(
             contextFactory,

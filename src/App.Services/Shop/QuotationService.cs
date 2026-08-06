@@ -6,6 +6,7 @@ using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
 using App.Core.Models.Email;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Billing;
@@ -18,6 +19,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Scriban;
 
@@ -41,6 +43,8 @@ public class QuotationService : IQuotationService
     private readonly IQuotationSettingsService _quotationSettingsService;
     private readonly IRoundingSettingsService _roundingSettingsService;
     private readonly ITaxSettingsService _taxSettingsService;
+    private readonly BrandingOptions _brandingOptions;
+    private readonly ApplicationOptions _applicationOptions;
 
     public QuotationService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -58,7 +62,9 @@ public class QuotationService : IQuotationService
         IDocumentSequenceService documentSequenceService,
         IQuotationSettingsService quotationSettingsService,
         IRoundingSettingsService roundingSettingsService,
-        ITaxSettingsService taxSettingsService)
+        ITaxSettingsService taxSettingsService,
+        IOptions<BrandingOptions> brandingOptions,
+        IOptions<ApplicationOptions> applicationOptions)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -76,6 +82,34 @@ public class QuotationService : IQuotationService
         _quotationSettingsService = quotationSettingsService;
         _roundingSettingsService = roundingSettingsService;
         _taxSettingsService = taxSettingsService;
+        _brandingOptions = brandingOptions.Value;
+        _applicationOptions = applicationOptions.Value;
+    }
+
+    // Prefers the admin-uploaded company logo (Settings > Tickets); falls back to the
+    // deployment's static branding asset so a brand-new tenant still shows a logo.
+    private async Task<string> GetLogoDataUriWithFallbackAsync()
+    {
+        var logoDataUri = await _companySettingsService.GetLogoDataUriAsync();
+        if (logoDataUri != null)
+        {
+            return logoDataUri;
+        }
+
+        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync(_brandingOptions.LogoPath.TrimStart('/'));
+        return logoBytes.Length > 0
+            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
+            : string.Empty;
+    }
+
+    // Prefers the store's own display name (Settings > General); falls back to the deployment's
+    // brand profile name only if no CompanySettings row exists yet.
+    private async Task<string> GetCompanyDisplayNameAsync()
+    {
+        var companySettings = await _companySettingsService.GetSettingsAsync();
+        return string.IsNullOrWhiteSpace(companySettings?.CompanyName)
+            ? _applicationOptions.Name
+            : companySettings.CompanyName;
     }
 
     public async Task<(int TotalCount, IList<QuotationDto> Items)> GetQuotationsAsync(
@@ -605,7 +639,7 @@ public class QuotationService : IQuotationService
             }
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
-            var companyName = companySettings?.CompanyName ?? "Cleeny";
+            var companyName = companySettings?.CompanyName ?? string.Empty;
 
             var templateData = new
             {
@@ -697,11 +731,7 @@ public class QuotationService : IQuotationService
     {
         var companySettings = await _companySettingsService.GetSettingsAsync();
         var quotationSettings = await _quotationSettingsService.GetSettingsAsync();
-
-        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync("images/logo.webp");
-        var logoBase64 = logoBytes.Length > 0
-            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
-            : string.Empty;
+        var logoBase64 = await GetLogoDataUriWithFallbackAsync();
 
         var c = quotation.Customer;
 
@@ -782,7 +812,7 @@ public class QuotationService : IQuotationService
             }).ToList(),
 
             // Company
-            company_name = companySettings?.CompanyName ?? "Cleeny",
+            company_name = companySettings?.CompanyName ?? string.Empty,
             has_logo = !string.IsNullOrEmpty(logoBase64),
             logo_base64 = logoBase64,
 
@@ -926,7 +956,8 @@ public class QuotationService : IQuotationService
             if (taxSettings == null || string.IsNullOrEmpty(taxSettings.TaxId))
                 return Result<byte[]>.Failure(_localizer["Fiscal issuer data is not configured"]);
 
-            var logoBase64 = await _emailTemplateService.GetStaticFileBase64Async("images/logo.webp");
+            var logoBase64 = await GetLogoDataUriWithFallbackAsync();
+            var appName = await GetCompanyDisplayNameAsync();
 
             var c = quotation.Customer;
             var items = quotation.Details.Select(d => (object)new Dictionary<string, object>
@@ -948,7 +979,7 @@ public class QuotationService : IQuotationService
             var pdfData = new Dictionary<string, object>
             {
                 { "culture", System.Globalization.CultureInfo.CurrentUICulture.Name },
-                { "app_name", "Cleeny" },
+                { "app_name", appName },
                 { "issuer_legal_name", taxSettings.BusinessName },
                 { "issuer_rfc", taxSettings.TaxId },
                 { "issuer_fiscal_regime", taxSettings.FiscalRegime },

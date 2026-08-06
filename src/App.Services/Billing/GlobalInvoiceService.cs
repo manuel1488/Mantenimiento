@@ -550,8 +550,9 @@ public class GlobalInvoiceService : IGlobalInvoiceService
                 : $"{_applicationOptions.BaseUrl.TrimEnd('/')}/images/logo.webp";
 
             var receiver = await GetPublicGeneralReceiverAsync();
+            var appName = await GetCompanyDisplayNameAsync();
             var data = BuildGlobalInvoiceTemplateData(
-                invoice, tz, paymentFormDesc, logoBase64,
+                invoice, tz, paymentFormDesc, logoBase64, appName,
                 isCancelled: invoice.Status == GlobalInvoiceStatus.Cancelled,
                 isPreview: false,
                 receiver.Name, receiver.FiscalRegime, receiver.CfdiUse);
@@ -644,8 +645,9 @@ public class GlobalInvoiceService : IGlobalInvoiceService
             };
 
             var receiver = await GetPublicGeneralReceiverAsync();
+            var appName = await GetCompanyDisplayNameAsync();
             var data = BuildGlobalInvoiceTemplateData(
-                dummyInvoice, tz, paymentFormDesc, logoBase64,
+                dummyInvoice, tz, paymentFormDesc, logoBase64, appName,
                 isCancelled: false,
                 isPreview: true,
                 receiver.Name, receiver.FiscalRegime, receiver.CfdiUse);
@@ -925,8 +927,18 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         return Result<GlobalInvoiceDto>.Success(MapToDto(invoice));
     }
 
+    // Prefers the store's own display name (Settings > General); falls back to the deployment's
+    // brand profile name only if no CompanySettings row exists yet.
+    private async Task<string> GetCompanyDisplayNameAsync()
+    {
+        var companySettings = await _companySettingsService.GetSettingsAsync();
+        return string.IsNullOrWhiteSpace(companySettings?.CompanyName)
+            ? _applicationOptions.Name
+            : companySettings.CompanyName;
+    }
+
     private Dictionary<string, object> BuildGlobalInvoiceTemplateData(
-        GlobalInvoice invoice, TimeZoneInfo tz, string paymentFormDesc, string logoBase64,
+        GlobalInvoice invoice, TimeZoneInfo tz, string paymentFormDesc, string logoBase64, string appName,
         bool isCancelled, bool isPreview,
         string receiverName = PublicName, string receiverFiscalRegime = PublicFiscalRegime, string receiverCfdiUse = PublicCfdiUse)
     {
@@ -975,7 +987,7 @@ public class GlobalInvoiceService : IGlobalInvoiceService
         return new Dictionary<string, object>
         {
             { "culture", "es" },
-            { "app_name", _applicationOptions.Name },
+            { "app_name", appName },
             { "issuer_legal_name", invoice.IssuerLegalName },
             { "issuer_rfc", invoice.IssuerRfc },
             { "issuer_fiscal_regime", invoice.IssuerFiscalRegime },

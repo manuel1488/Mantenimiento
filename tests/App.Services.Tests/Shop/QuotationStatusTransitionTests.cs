@@ -8,6 +8,7 @@ using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Settings;
@@ -18,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace App.Services.Tests.Shop;
 
@@ -94,7 +96,9 @@ public class QuotationStatusTransitionTests
             new Mock<IDocumentSequenceService>().Object,
             new Mock<IQuotationSettingsService>().Object,
             roundingMock.Object,
-            new Mock<ITaxSettingsService>().Object);
+            new Mock<ITaxSettingsService>().Object,
+            Options.Create(new BrandingOptions()),
+            Options.Create(new ApplicationOptions { Name = "Test App" }));
     }
 
     // -------------------------------------------------------------------------

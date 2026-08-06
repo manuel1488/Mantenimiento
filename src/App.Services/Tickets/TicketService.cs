@@ -376,7 +376,7 @@ public class TicketService : ITicketService
                 
                 result = new TicketConfigurationDto
                 {
-                    CompanyName = companySettings?.CompanyName ?? "App",                    
+                    CompanyName = companySettings?.CompanyName ?? string.Empty,
                     ShowQRCode = true,
                     ShowCompanyLogo = true,
                     CustomFooter = "¡Gracias por su compra!",

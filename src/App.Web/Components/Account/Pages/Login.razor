@@ -1,9 +1,12 @@
 ﻿@page "/Account/Login"
 @layout EmptyLayout
+@using App.Core.Interfaces
+@using App.Core.Options
 @using App.Web.Components.Layout
 @using App.Web.Services
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Options
 @using System.ComponentModel.DataAnnotations
 
 @inject SignInManager<ApplicationUser> SignInManager
@@ -11,6 +14,8 @@
 @inject IdentityRedirectManager RedirectManager
 @inject IStringLocalizer<Login> L
 @inject CurrentThemeService ThemeService
+@inject IOptions<BrandingOptions> BrandingOptions
+@inject ICompanySettingsService CompanySettingsService
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 <MudThemeProvider Theme="ThemeService.Theme"/>
@@ -24,7 +29,7 @@
                 <MudStack Spacing="4">
                     <!-- Logo & Title -->
                     <MudPaper Class="d-flex justify-center align-center pa-4" Style="background-color: #ffffff; border-radius: 8px;">
-                        <MudImage Src="/images/logo.webp" Alt="@L["LogoAlt"]" Height="80" ObjectFit="ObjectFit.Contain" />
+                        <MudImage Src="@_logoSrc" Alt="@L["LogoAlt"]" Height="80" ObjectFit="ObjectFit.Contain" />
                     </MudPaper>
                     <MudText Typo="Typo.h5" Align="Align.Center" Class="mt-4">@L["SignIn"]</MudText>
 
@@ -105,6 +110,7 @@
     private string? errorMessage;
     private bool _isProcessing;
     private bool hasError => !string.IsNullOrEmpty(errorMessage);
+    private string? _logoSrc;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -121,6 +127,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _logoSrc = await CompanySettingsService.GetLogoDataUriAsync() ?? BrandingOptions.Value.LogoPath;
+
         if (HttpContext is not null && HttpMethods.IsGet(HttpContext.Request.Method))
         {
             // Limpiar cualquier mensaje de error previo al cargar la página

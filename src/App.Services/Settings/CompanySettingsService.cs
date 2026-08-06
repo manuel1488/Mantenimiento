@@ -147,6 +147,19 @@ public class CompanySettingsService : ICompanySettingsService
         }
     }
 
+    public async Task<string?> GetLogoDataUriAsync()
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+
+        var logoBase64 = await context.CompanySettings
+            .AsNoTracking()
+            .OrderBy(x => x.Id)
+            .Select(x => x.LogoBase64)
+            .FirstOrDefaultAsync();
+
+        return string.IsNullOrEmpty(logoBase64) ? null : $"data:image/png;base64,{logoBase64}";
+    }
+
     public bool IsValidTimeZone(string timeZoneId)
     {
         if (string.IsNullOrWhiteSpace(timeZoneId))

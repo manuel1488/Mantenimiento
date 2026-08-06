@@ -10,6 +10,7 @@ using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shared;
 using App.Models.Shop;
@@ -22,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace App.Services.Tests.Shop;
 
@@ -225,7 +227,8 @@ public class RemissionServiceConsolidationTests
             pdfServiceMock.Object,
             emailTemplateServiceMock.Object,
             _saleService,
-            documentSequenceServiceMock.Object);
+            documentSequenceServiceMock.Object,
+            Options.Create(new BrandingOptions()));
 
         SeedDatabase();
     }

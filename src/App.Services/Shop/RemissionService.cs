@@ -6,6 +6,7 @@ using App.Core.DTOs.Shop.Calculation;
 using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Shop;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Inventory;
@@ -17,6 +18,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace App.Services.Shop;
 
@@ -36,6 +38,7 @@ public class RemissionService : IRemissionService
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IContextualSaleService _saleService;
     private readonly IDocumentSequenceService _documentSequenceService;
+    private readonly BrandingOptions _brandingOptions;
 
     public RemissionService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -51,7 +54,8 @@ public class RemissionService : IRemissionService
         IPdfService pdfService,
         IEmailTemplateService emailTemplateService,
         IContextualSaleService saleService,
-        IDocumentSequenceService documentSequenceService)
+        IDocumentSequenceService documentSequenceService,
+        IOptions<BrandingOptions> brandingOptions)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -67,6 +71,7 @@ public class RemissionService : IRemissionService
         _emailTemplateService = emailTemplateService;
         _saleService = saleService;
         _documentSequenceService = documentSequenceService;
+        _brandingOptions = brandingOptions.Value;
     }
 
     public async Task<(int TotalCount, IList<RemissionDto> Items)> GetRemissionsAsync(
@@ -678,11 +683,7 @@ public class RemissionService : IRemissionService
     private async Task<byte[]> GeneratePdfBytesAsync(Remission remission)
     {
         var companySettings = await _companySettingsService.GetSettingsAsync();
-
-        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync("images/logo.webp");
-        var logoBase64 = logoBytes.Length > 0
-            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
-            : string.Empty;
+        var logoBase64 = await GetLogoDataUriWithFallbackAsync();
 
         var c = remission.Customer;
 
@@ -714,11 +715,26 @@ public class RemissionService : IRemissionService
             TaxAmount = remission.TaxAmount,
             Total = remission.Total,
             Details = _mapper.Map<List<RemissionDetailDto>>(remission.Details),
-            CompanyName = companySettings?.CompanyName ?? "Cleeny",
+            CompanyName = companySettings?.CompanyName ?? string.Empty,
             LogoBase64 = logoBase64
         };
 
         return await _pdfService.GeneratePdfFromViewAsync("~/Views/Remissions/RemissionDocument.cshtml", model);
     }
 
+    // Prefers the admin-uploaded company logo (Settings > Tickets); falls back to the
+    // deployment's static branding asset so a brand-new tenant still shows a logo.
+    private async Task<string> GetLogoDataUriWithFallbackAsync()
+    {
+        var logoDataUri = await _companySettingsService.GetLogoDataUriAsync();
+        if (logoDataUri != null)
+        {
+            return logoDataUri;
+        }
+
+        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync(_brandingOptions.LogoPath.TrimStart('/'));
+        return logoBytes.Length > 0
+            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
+            : string.Empty;
+    }
 }

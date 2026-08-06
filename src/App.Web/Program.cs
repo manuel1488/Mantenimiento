@@ -65,6 +65,18 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load the per-tenant brand identity (app name, logo, theme colors) from Branding/{profile}.json.
+// Select the profile with the BRANDING_PROFILE env var per deployment — defaults to "cleeny".
+// This file is loaded after appsettings.json/appsettings.{Environment}.json so it can override
+// their Application:Name, but before environment variables are re-applied by AddEnvironmentVariables
+// below, so infra env vars (if ever needed) still win over the committed brand profile.
+var brandingProfile = builder.Configuration["BRANDING_PROFILE"] ?? "cleeny";
+builder.Configuration.AddJsonFile(
+    Path.Combine("Branding", $"{brandingProfile}.json"),
+    optional: false,
+    reloadOnChange: false);
+builder.Configuration.AddEnvironmentVariables();
+
 // Increase max request header size to prevent HTTP 431 errors from large auth cookies
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -119,6 +131,14 @@ void ConfigureApplicationOptions(IServiceCollection services, IConfiguration con
     // Configure and validate ApplicationOptions with data annotations
     services.AddOptions<ApplicationOptions>()
         .Bind(configuration.GetSection(ApplicationOptions.SectionName))
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+
+    // Configure and validate BrandingOptions (app name is covered by ApplicationOptions above;
+    // this only covers visual identity: logo + theme colors) so white-label deployments only need
+    // to change appsettings/env vars, not code.
+    services.AddOptions<BrandingOptions>()
+        .Bind(configuration.GetSection(BrandingOptions.SectionName))
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
@@ -702,6 +722,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IQuotationSettingsSeeder>(sp => new QuotationSettingsSeeder(
         sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
         sp.GetRequiredService<ILogger<QuotationSettingsSeeder>>()));
+    services.AddScoped<ICompanyBrandingSeeder, CompanyBrandingSeeder>();
 
     services.AddSingleton<IFileProvider>(new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
@@ -823,6 +844,7 @@ async Task InitializeDatabase(WebApplication app)
     var paymentMethodSeeder = scope.ServiceProvider.GetRequiredService<IPaymentMethodSeeder>();
     var emailTemplateSeeder = scope.ServiceProvider.GetRequiredService<IEmailTemplateSeeder>();
     var quotationSettingsSeeder = scope.ServiceProvider.GetRequiredService<IQuotationSettingsSeeder>();
+    var companyBrandingSeeder = scope.ServiceProvider.GetRequiredService<ICompanyBrandingSeeder>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
@@ -834,6 +856,7 @@ async Task InitializeDatabase(WebApplication app)
     await paymentMethodSeeder.SeedAsync();
     await emailTemplateSeeder.SeedAsync();
     await quotationSettingsSeeder.SeedAsync();
+    await companyBrandingSeeder.SeedAsync();
 }
 
 #endregion

@@ -16,12 +16,13 @@ services:
       # Database Configuration
       - Database__ConnectionString=${DATABASE_CONNECTION_STRING}
       # Application Configuration
-      - Application__Name=${Application__Name}
       - Application__Version=${Application__Version}
       - Application__DefaultLanguage=${Application__DefaultLanguage}
       - Application__SupportedLanguages__0=${Application__SupportedLanguages__0}
       - Application__SupportedLanguages__1=${Application__SupportedLanguages__1}
       - Application__BaseUrl=${Application__BaseUrl}
+      # Brand identity — selects which Branding/{profile}.json to load (app name, logo, theme colors)
+      - BRANDING_PROFILE=${BRANDING_PROFILE}
     networks:
       - app-network
     volumes:
@@ -60,12 +61,13 @@ services:
       # Database Configuration
       - Database__ConnectionString=${DATABASE_CONNECTION_STRING}
       # Application Configuration
-      - Application__Name=${Application__Name}
       - Application__Version=${Application__Version}
       - Application__DefaultLanguage=${Application__DefaultLanguage}
       - Application__SupportedLanguages__0=${Application__SupportedLanguages__0}
       - Application__SupportedLanguages__1=${Application__SupportedLanguages__1}
       - Application__BaseUrl=${Application__BaseUrl}
+      # Brand identity — selects which Branding/{profile}.json to load (app name, logo, theme colors)
+      - BRANDING_PROFILE=${BRANDING_PROFILE}
     networks:
       - app-network
     volumes:
@@ -87,14 +89,66 @@ services:
     profiles:
       - production
 
+  # Tienda genérica (white-label) — UN servicio reusado para cualquier tienda adicional
+  # a Cleeny, en su propio proyecto de Compose (-p) y su propia BD, compartiendo el mismo
+  # contenedor MySQL vía la red externa `app-shared-network`. No se duplica por tienda:
+  # para agregar una tienda nueva solo se crea su .env.{tienda} y se corre:
+  #   docker compose -p {tienda} --profile tenant --env-file .env.{tienda} up -d
+  # IMPORTANTE: no tiene depends_on de `db` — ver docs/02-Development/white-label-deployment-guide.md
+  # (agregar la dependencia rompería el modelo, porque Compose crearía un `db` nuevo bajo
+  # el proyecto de la tienda en vez de reusar el compartido). Verificar manualmente que el
+  # `db` compartido ya esté healthy antes de levantar una tienda.
+  webapp-tenant:
+    build:
+      context: .
+      dockerfile: .dockerfile
+      args:
+        BUILD_CONFIGURATION: ${BUILD_CONFIGURATION}
+    container_name: ${CONTAINER_PREFIX}-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - TZ=${TZ}
+      # Database Configuration
+      - Database__ConnectionString=${DATABASE_CONNECTION_STRING}
+      # Application Configuration
+      - Application__Version=${Application__Version}
+      - Application__DefaultLanguage=${Application__DefaultLanguage}
+      - Application__SupportedLanguages__0=${Application__SupportedLanguages__0}
+      - Application__SupportedLanguages__1=${Application__SupportedLanguages__1}
+      - Application__BaseUrl=${Application__BaseUrl}
+      # Brand identity — selects which Branding/{profile}.json to load (app name, logo, theme colors)
+      - BRANDING_PROFILE=${BRANDING_PROFILE}
+    networks:
+      - app-shared-network
+    volumes:
+      - app-logs-tenant:/app/logs
+      - uploads-tenant:/app/wwwroot/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: ${CPU_LIMIT}
+          memory: ${MEMORY_LIMIT}
+        reservations:
+          cpus: ${CPU_RESERVATION}
+          memory: ${MEMORY_RESERVATION}
+    profiles:
+      - tenant
+
   # Base de datos para desarrollo y producción (cuando no se usa BD externa).
-  # MySQL no está expuesto al host — solo accesible dentro de app-network.
+  # MySQL no está expuesto al host — accesible dentro de app-network (Cleeny) y
+  # app-shared-network (cualquier tienda adicional levantada con el perfil "tenant").
   db:
     build:
       context: .
       dockerfile: .dockerfile.mysql
     container_name: ${CONTAINER_PREFIX}-mysql
-    command: --default-authentication-plugin=mysql_native_password
+    # log_bin_trust_function_creators: algunas migraciones crean TRIGGERs (ej.
+    # trg_wholesale_price_insert_check) — sin esto, MySQL exige el privilegio SUPER
+    # cuando el binary logging está activo, y el usuario de la app (no root) lo rechaza.
+    command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -109,21 +163,51 @@ services:
       - mysql-data:/var/lib/mysql
     networks:
       - app-network
+      - app-shared-network
+    deploy:
+      resources:
+        limits:
+          cpus: ${DB_CPU_LIMIT}
+          memory: ${DB_MEMORY_LIMIT}
+        reservations:
+          cpus: ${DB_CPU_RESERVATION}
+          memory: ${DB_MEMORY_RESERVATION}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+    # "shared-db" es el perfil a usar cuando este `db` sirve tiendas nuevas en un VDS
+    # dedicado (docker compose --profile shared-db up -d, sin nombrar servicio). Se
+    # incluyen también development/production para no cambiar el comportamiento actual
+    # de Cleeny (donde db siempre acompaña a webapp/webapp-prod). Antes db no tenía
+    # profiles: asignado, así que Compose lo incluía SIEMPRE sin importar el --profile
+    # usado — eso causaba que `up -d --profile tenant` (sin nombrar el servicio)
+    # arrastrara a `db` también, creando una segunda copia de app-network y chocando
+    # con la ya existente. Con perfiles explícitos ya no hace falta nombrar servicios.
+    profiles:
+      - development
+      - production
+      - shared-db
 
 networks:
+  # Red externa compartida entre proyectos de Compose independientes (Cleeny + cada
+  # tienda white-label). Debe crearse UNA sola vez, antes del primer `docker compose up`
+  # que la referencie (incluido el de Cleeny, ya que `db` también se conecta a ella):
+  #   docker network create app-shared-network
+  app-shared-network:
+    name: app-shared-network
+    external: true
+
   app-network:
     driver: bridge
     ipam:
       config:
-        # Subnet fija dentro de 172.17.0.0/16 para compatibilidad con CSF Firewall
-        # en el VPS de Neubox (DOCKER_NETWORK4 = "172.17.0.0/16" en /etc/csf/csf.conf).
+        # Subnet parametrizada — el valor por defecto (172.17.100.0/24) es específico
+        # del VPS de Cleeny (Neubox), para compatibilidad con CSF Firewall
+        # (DOCKER_NETWORK4 = "172.17.0.0/16" en /etc/csf/csf.conf).
         #
-        # REQUISITO EN EL SERVIDOR — /etc/docker/daemon.json debe contener:
+        # REQUISITO EN ESE SERVIDOR — /etc/docker/daemon.json debe contener:
         #   {
         #     "bip": "172.26.0.1/16",
         #       <- mueve docker0 fuera de 172.17.x.x para liberar ese rango
@@ -133,9 +217,14 @@ networks:
         #       <- requerido para que el tráfico use iptables directamente;
         #          sin esto, CSF bloquea docker-proxy en la cadena OUTPUT
         #   }
-        # Si se omite esta config, la app devuelve 502 Bad Gateway detrás de nginx.
-        - subnet: 172.17.100.0/24
-          gateway: 172.17.100.1
+        # Si se omite esta config ahí, la app devuelve 502 Bad Gateway detrás de nginx.
+        #
+        # En cualquier OTRO servidor (p. ej. un VDS de tienda nueva), sobreescribe
+        # APP_NETWORK_SUBNET/APP_NETWORK_GATEWAY en su .env con un rango libre —
+        # revisa antes con `docker network inspect bridge` para no chocar con el
+        # rango que Docker ya esté usando por defecto en ese host.
+        - subnet: ${APP_NETWORK_SUBNET:-172.17.100.0/24}
+          gateway: ${APP_NETWORK_GATEWAY:-172.17.100.1}
 
 volumes:
   mysql-data:
@@ -144,7 +233,11 @@ volumes:
     name: ${CONTAINER_PREFIX}-logs-dev
   app-logs-prod:
     name: ${CONTAINER_PREFIX}-logs-prod
+  app-logs-tenant:
+    name: ${CONTAINER_PREFIX}-logs
   uploads-dev:
     name: ${CONTAINER_PREFIX}-uploads-dev
   uploads-prod:
     name: ${CONTAINER_PREFIX}-uploads-prod
+  uploads-tenant:
+    name: ${CONTAINER_PREFIX}-uploads

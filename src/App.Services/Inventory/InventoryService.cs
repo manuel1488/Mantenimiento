@@ -1,6 +1,7 @@
 ﻿using App.Core.Constants;
 using App.Core.DTOs.Inventory;
 using App.Core.Interfaces;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Shop;
@@ -11,6 +12,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace App.Services.Inventory;
 
@@ -27,6 +29,7 @@ public class InventoryService : IContextualInventoryService
     private readonly IPdfService _pdfService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IDocumentSequenceService _documentSequenceService;
+    private readonly BrandingOptions _brandingOptions;
 
     public InventoryService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -39,7 +42,8 @@ public class InventoryService : IContextualInventoryService
         ICompanySettingsService companySettingsService,
         IPdfService pdfService,
         IEmailTemplateService emailTemplateService,
-        IDocumentSequenceService documentSequenceService)
+        IDocumentSequenceService documentSequenceService,
+        IOptions<BrandingOptions> brandingOptions)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -52,6 +56,7 @@ public class InventoryService : IContextualInventoryService
         _pdfService = pdfService;
         _emailTemplateService = emailTemplateService;
         _documentSequenceService = documentSequenceService;
+        _brandingOptions = brandingOptions.Value;
     }
 
     private Task<bool> HasLocationAccessAsync(int locationId) =>
@@ -715,10 +720,7 @@ public class InventoryService : IContextualInventoryService
 
         var first = movements[0];
         var companySettings = await _companySettingsService.GetSettingsAsync();
-        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync("images/logo.webp");
-        var logoBase64 = logoBytes.Length > 0
-            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
-            : string.Empty;
+        var logoBase64 = await GetLogoDataUriWithFallbackAsync();
 
         var transferTypeDisplay = first.MovementSubType switch
         {
@@ -729,7 +731,7 @@ public class InventoryService : IContextualInventoryService
 
         var model = new BulkTransferPdfDto
         {
-            CompanyName = companySettings?.CompanyName ?? "Cleeny",
+            CompanyName = companySettings?.CompanyName ?? string.Empty,
             LogoBase64 = logoBase64,
             BatchId = batchId,
             BatchNumber = first.BatchNumber ?? batchId.ToString(),
@@ -752,6 +754,22 @@ public class InventoryService : IContextualInventoryService
 
         return await _pdfService.GeneratePdfFromViewAsync(
             "~/Views/InventoryTransfers/BulkTransferDocument.cshtml", model, cancellationToken);
+    }
+
+    // Prefers the admin-uploaded company logo (Settings > Tickets); falls back to the
+    // deployment's static branding asset so a brand-new tenant still shows a logo.
+    private async Task<string> GetLogoDataUriWithFallbackAsync()
+    {
+        var logoDataUri = await _companySettingsService.GetLogoDataUriAsync();
+        if (logoDataUri != null)
+        {
+            return logoDataUri;
+        }
+
+        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync(_brandingOptions.LogoPath.TrimStart('/'));
+        return logoBytes.Length > 0
+            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
+            : string.Empty;
     }
 
     public async Task<(int TotalCount, IList<InventoryMovementDto> Items)> GetMovementsAsync(

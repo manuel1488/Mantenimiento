@@ -14,6 +14,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 ### Key guides
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
+- [White-Label Deployment Guide](docs/02-Development/white-label-deployment-guide.md) — Desplegar la app para otra tienda: perfil de marca (`Branding/{tienda}.json`), logo/nombre en BD, checklist de onboarding
 - [Troubleshooting Index](docs/02-Development/troubleshooting.md) — Problemas conocidos con diagnóstico y solución
 - [Bitácora de Incidentes de Producción](docs/02-Development/incident-log.md) — Registro de incidentes de despliegue/producción con diagnóstico y reparación aplicada
 - [Deuda Técnica](docs/02-Development/tech-debt.md) — Problemas conocidos no urgentes (constraints ignorados, columnas mal dimensionadas, etc.)

@@ -32,6 +32,7 @@ public class SalesReportService : ISalesReportService
     private readonly ICompanySettingsService _companySettingsService;
     private readonly IDateTime _dateTime;
     private readonly ExportOptions _exportOptions;
+    private readonly BrandingOptions _brandingOptions;
 
     public SalesReportService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -41,7 +42,8 @@ public class SalesReportService : ISalesReportService
         IPdfService pdfService,
         ICompanySettingsService companySettingsService,
         IDateTime dateTime,
-        IOptions<ExportOptions> exportOptions)
+        IOptions<ExportOptions> exportOptions,
+        IOptions<BrandingOptions> brandingOptions)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -51,6 +53,7 @@ public class SalesReportService : ISalesReportService
         _companySettingsService = companySettingsService;
         _dateTime = dateTime;
         _exportOptions = exportOptions.Value;
+        _brandingOptions = brandingOptions.Value;
     }
 
     public async Task<SalesSummaryDto> GetSalesSummaryAsync(
@@ -442,13 +445,17 @@ public class SalesReportService : ISalesReportService
             var (_, items) = await GetSalesReportAsync(request, cancellationToken);
             var summary = await GetSalesSummaryAsync(request, cancellationToken);
 
-            string logoBase64 = string.Empty;
-            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo.webp");
-
-            if (File.Exists(logoPath))
+            // The view wraps this in its own "data:image/webp;base64," prefix, so this must stay raw base64.
+            var logoDataUri = await _companySettingsService.GetLogoDataUriAsync();
+            var logoBase64 = logoDataUri?[(logoDataUri.IndexOf(',') + 1)..] ?? string.Empty;
+            if (logoBase64.Length == 0)
             {
-                byte[] logoBytes = await File.ReadAllBytesAsync(logoPath, cancellationToken);
-                logoBase64 = Convert.ToBase64String(logoBytes);
+                var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", _brandingOptions.LogoPath.TrimStart('/'));
+                if (File.Exists(logoPath))
+                {
+                    var logoBytes = await File.ReadAllBytesAsync(logoPath, cancellationToken);
+                    logoBase64 = Convert.ToBase64String(logoBytes);
+                }
             }
 
             // Prepare the model for the PDF view

@@ -27,6 +27,7 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
     private readonly ILogger<InventoryAlertEmailService> _logger;
     private readonly IStringLocalizer<InventoryAlertEmailService> _localizer;
     private readonly ApplicationOptions _applicationOptions;
+    private readonly ICompanySettingsService _companySettingsService;
 
     public InventoryAlertEmailService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -35,7 +36,8 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
         UserManager<Models.Identity.ApplicationUser> userManager,
         ILogger<InventoryAlertEmailService> logger,
         IStringLocalizer<InventoryAlertEmailService> localizer,
-        IOptions<ApplicationOptions> applicationOptions)
+        IOptions<ApplicationOptions> applicationOptions,
+        ICompanySettingsService companySettingsService)
     {
         _contextFactory = contextFactory;
         _emailService = emailService;
@@ -44,6 +46,17 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
         _logger = logger;
         _localizer = localizer;
         _applicationOptions = applicationOptions.Value;
+        _companySettingsService = companySettingsService;
+    }
+
+    // Prefers the store's own display name (Settings > General); falls back to the deployment's
+    // brand profile name only if no CompanySettings row exists yet.
+    private async Task<string> GetCompanyDisplayNameAsync()
+    {
+        var companySettings = await _companySettingsService.GetSettingsAsync();
+        return string.IsNullOrWhiteSpace(companySettings?.CompanyName)
+            ? _applicationOptions.Name
+            : companySettings.CompanyName;
     }
 
     public async Task SendLowStockAlertAsync(InventoryAlertInfo alertInfo, CancellationToken cancellationToken = default)
@@ -81,6 +94,8 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
                 return;
             }
 
+            var appName = await GetCompanyDisplayNameAsync();
+
             // Prepare email data with application URLs
             var emailData = new Dictionary<string, object>
             {
@@ -93,12 +108,12 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
                 { "alert_date", DateTime.UtcNow },
                 { "is_low_stock", alertInfo.AlertType == InventoryAlertType.LowStock },
                 { "is_over_stock", alertInfo.AlertType == InventoryAlertType.OverStock },
-                
+
                 // Application URLs
                 { "base_url", _applicationOptions.BaseUrl.TrimEnd('/') },
                 { "inventory_url", $"{_applicationOptions.BaseUrl.TrimEnd('/')}/shop/inventory" },
                 { "alerts_url", $"{_applicationOptions.BaseUrl.TrimEnd('/')}/shop/inventory#alerts" },
-                { "app_name", _applicationOptions.Name },
+                { "app_name", appName },
                 { "app_version", _applicationOptions.Version }
             };
 
@@ -112,8 +127,8 @@ public class InventoryAlertEmailService : IInventoryAlertEmailService
 
             // Prepare email subject with application name
             var subject = alertInfo.AlertType == InventoryAlertType.LowStock
-                ? _localizer["Low Stock Alert - {0} | {1}", alertInfo.ProductName, _applicationOptions.Name]
-                : _localizer["Over Stock Alert - {0} | {1}", alertInfo.ProductName, _applicationOptions.Name];
+                ? _localizer["Low Stock Alert - {0} | {1}", alertInfo.ProductName, appName]
+                : _localizer["Over Stock Alert - {0} | {1}", alertInfo.ProductName, appName];
 
             // Send email to each recipient
             var emailTasks = recipients.Select(async recipient =>

@@ -51,4 +51,25 @@
     <data name="Prices will be displayed with tax included in the sales terminal and receipts. The total amount does not change." xml:space="preserve">
         <value>Prices will be displayed with tax included in the sales terminal and receipts. The total amount does not change.</value>
     </data>
+    <data name="Brand Logo" xml:space="preserve">
+        <value>Brand Logo</value>
+    </data>
+    <data name="Shown in the navigation menu, login screen, and business documents (quotations, remissions, transfers, counts, sales reports). This is different from the ticket logo configured in the Tickets tab." xml:space="preserve">
+        <value>Shown in the navigation menu, login screen, and business documents (quotations, remissions, transfers, counts, sales reports). This is different from the ticket logo configured in the Tickets tab.</value>
+    </data>
+    <data name="Upload Logo" xml:space="preserve">
+        <value>Upload Logo</value>
+    </data>
+    <data name="Remove Logo" xml:space="preserve">
+        <value>Remove Logo</value>
+    </data>
+    <data name="Logo file is too large (max 1MB)" xml:space="preserve">
+        <value>Logo file is too large (max 1MB)</value>
+    </data>
+    <data name="Only image files are allowed" xml:space="preserve">
+        <value>Only image files are allowed</value>
+    </data>
+    <data name="Error processing logo file" xml:space="preserve">
+        <value>Error processing logo file</value>
+    </data>
 </root>

@@ -29,6 +29,14 @@ public class CompanySettings : BaseEntity<int>, IAuditTracked
     public string? TimeZoneDisplayName { get; set; }
 
     /// <summary>
+    /// Main brand logo (full color), shown in the NavMenu, Login screen, and business
+    /// documents (quotations, remissions, transfers, counts, sales reports). Distinct from
+    /// <c>TicketConfiguration.CompanyLogoBase64</c>, which may be a simplified/B&amp;W variant
+    /// optimized for thermal printing.
+    /// </summary>
+    public string? LogoBase64 { get; set; }
+
+    /// <summary>
     /// When true, product prices are shown with tax (IVA) included in the sales terminal and receipts.
     /// </summary>
     public bool ShowPricesWithTax { get; set; } = false;

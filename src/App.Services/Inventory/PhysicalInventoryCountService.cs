@@ -1,6 +1,7 @@
 using App.Core.Constants;
 using App.Core.DTOs.Inventory;
 using App.Core.Interfaces;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Shop;
 using App.Services.Shop;
@@ -9,6 +10,7 @@ using App.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace App.Services.Inventory;
 
@@ -23,6 +25,7 @@ public class PhysicalInventoryCountService : IPhysicalInventoryCountService
     private readonly IPdfService _pdfService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IDocumentSequenceService _documentSequenceService;
+    private readonly BrandingOptions _brandingOptions;
 
     public PhysicalInventoryCountService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -33,7 +36,8 @@ public class PhysicalInventoryCountService : IPhysicalInventoryCountService
         ICompanySettingsService companySettingsService,
         IPdfService pdfService,
         IEmailTemplateService emailTemplateService,
-        IDocumentSequenceService documentSequenceService)
+        IDocumentSequenceService documentSequenceService,
+        IOptions<BrandingOptions> brandingOptions)
     {
         _contextFactory = contextFactory;
         _logger = logger;
@@ -43,6 +47,7 @@ public class PhysicalInventoryCountService : IPhysicalInventoryCountService
         _companySettingsService = companySettingsService;
         _pdfService = pdfService;
         _emailTemplateService = emailTemplateService;
+        _brandingOptions = brandingOptions.Value;
         _documentSequenceService = documentSequenceService;
     }
 
@@ -372,14 +377,11 @@ public class PhysicalInventoryCountService : IPhysicalInventoryCountService
         }
 
         var companySettings = await _companySettingsService.GetSettingsAsync();
-        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync("images/logo.webp");
-        var logoBase64 = logoBytes.Length > 0
-            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
-            : string.Empty;
+        var logoBase64 = await GetLogoDataUriWithFallbackAsync();
 
         var model = new PhysicalCountPdfDto
         {
-            CompanyName = companySettings?.CompanyName ?? "Cleeny",
+            CompanyName = companySettings?.CompanyName ?? string.Empty,
             LogoBase64 = logoBase64,
             BatchId = batchId,
             BatchNumber = count.BatchNumber,
@@ -400,6 +402,22 @@ public class PhysicalInventoryCountService : IPhysicalInventoryCountService
 
         return await _pdfService.GeneratePdfFromViewAsync(
             "~/Views/PhysicalCounts/PhysicalCountDocument.cshtml", model, cancellationToken);
+    }
+
+    // Prefers the admin-uploaded company logo (Settings > Tickets); falls back to the
+    // deployment's static branding asset so a brand-new tenant still shows a logo.
+    private async Task<string> GetLogoDataUriWithFallbackAsync()
+    {
+        var logoDataUri = await _companySettingsService.GetLogoDataUriAsync();
+        if (logoDataUri != null)
+        {
+            return logoDataUri;
+        }
+
+        var (logoBytes, logoMime) = await _emailTemplateService.GetStaticFileBytesAsync(_brandingOptions.LogoPath.TrimStart('/'));
+        return logoBytes.Length > 0
+            ? $"data:{logoMime};base64,{Convert.ToBase64String(logoBytes)}"
+            : string.Empty;
     }
 
     private static PhysicalInventoryCountResultDto MapToResultDto(PhysicalInventoryCount count) => new()

@@ -7,6 +7,7 @@ using App.Core.Enums.Shop;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Settings;
 using App.Core.Interfaces.Shop;
+using App.Core.Options;
 using App.Models.Data.Contexts;
 using App.Models.Settings;
 using App.Models.Shared;
@@ -22,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 using Moq;
 
@@ -190,7 +192,8 @@ public class RemissionIntegrityInMemoryTests
             Mock.Of<IPdfService>(),
             Mock.Of<IEmailTemplateService>(),
             _saleService,
-            docSeqMock.Object);
+            docSeqMock.Object,
+            Options.Create(new BrandingOptions()));
     }
 
     // -------------------------------------------------------------------------
@@ -759,7 +762,8 @@ public class RemissionRollbackContainerTests
             Mock.Of<ICompanySettingsService>(),
             Mock.Of<IPdfService>(),
             Mock.Of<IEmailTemplateService>(),
-            Mock.Of<IDocumentSequenceService>());
+            Mock.Of<IDocumentSequenceService>(),
+            Options.Create(new BrandingOptions()));
 
         var currentUserMock = new Mock<ICurrentUserService>();
         currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test");
@@ -863,7 +867,8 @@ public class RemissionRollbackContainerTests
             Mock.Of<IPdfService>(),
             Mock.Of<IEmailTemplateService>(),
             saleService,
-            docSeqMock.Object);
+            docSeqMock.Object,
+            Options.Create(new BrandingOptions()));
 
         return (remissionService, saleService);
     }
@@ -891,7 +896,8 @@ public class RemissionRollbackContainerTests
             Mock.Of<ICompanySettingsService>(),
             Mock.Of<IPdfService>(),
             Mock.Of<IEmailTemplateService>(),
-            Mock.Of<IDocumentSequenceService>());
+            Mock.Of<IDocumentSequenceService>(),
+            Options.Create(new BrandingOptions()));
 
         var currentUserMock = new Mock<ICurrentUserService>();
         currentUserMock.Setup(u => u.GetUserIdAsync()).ReturnsAsync("test");
@@ -991,7 +997,8 @@ public class RemissionRollbackContainerTests
             Mock.Of<IPdfService>(),
             Mock.Of<IEmailTemplateService>(),
             saleService,
-            new DocumentSequenceService());
+            new DocumentSequenceService(),
+            Options.Create(new BrandingOptions()));
 
         return (remissionService, saleService);
     }

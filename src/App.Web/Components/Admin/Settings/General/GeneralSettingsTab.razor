@@ -2,6 +2,7 @@
 @using App.Core.Interfaces
 @using App.Core.Constants
 @using App.Web.Services
+@using Microsoft.AspNetCore.Components.Forms
 
 @inject ICompanySettingsService CompanySettingsService
 @inject IPermissionCheckService PermissionService
@@ -76,6 +77,43 @@
                             }
                         </MudItem>
                     </MudGrid>
+                </MudItem>
+
+                <!-- Brand Logo -->
+                <MudItem xs="12">
+                    <MudDivider Class="mb-4" />
+                    <MudText Typo="Typo.h6" Class="mb-3">@L["Brand Logo"]</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                        @L["Shown in the navigation menu, login screen, and business documents (quotations, remissions, transfers, counts, sales reports). This is different from the ticket logo configured in the Tickets tab."]
+                    </MudText>
+
+                    @if (!string.IsNullOrEmpty(_model.LogoBase64))
+                    {
+                        <div class="d-flex justify-center mb-4">
+                            <img src="data:image/png;base64,@_model.LogoBase64"
+                                 style="max-width: 240px; max-height: 120px;" />
+                        </div>
+                    }
+
+                    @if (_hasWriteAccess)
+                    {
+                        <div class="d-flex align-center gap-3">
+                            <InputFile id="brandLogoInput" OnChange="@HandleLogoSelected" accept="image/*" class="d-none" />
+
+                            <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.CloudUpload" for="brandLogoInput">
+                                @L["Upload Logo"]
+                            </MudButton>
+
+                            @if (!string.IsNullOrEmpty(_model.LogoBase64))
+                            {
+                                <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                                           OnClick="@(() => _model.LogoBase64 = null)">
+                                    @L["Remove Logo"]
+                                </MudButton>
+                            }
+                        </div>
+                    }
                 </MudItem>
 
                 <!-- Display Preferences -->
@@ -171,7 +209,8 @@
                     CountryCode = _settings.CountryCode,
                     CurrencyCode = _settings.CurrencyCode,
                     TimeZoneId = _settings.TimeZoneId,
-                    ShowPricesWithTax = _settings.ShowPricesWithTax
+                    ShowPricesWithTax = _settings.ShowPricesWithTax,
+                    LogoBase64 = _settings.LogoBase64
                 };
             }
         }
@@ -239,6 +278,40 @@
         var offset = timeZone.BaseUtcOffset;
         var offsetStr = $"UTC{(offset >= TimeSpan.Zero ? "+" : "-")}{Math.Abs(offset.Hours):D2}:{Math.Abs(offset.Minutes):D2}";
         return $"{timeZone.DisplayName} ({offsetStr})";
+    }
+
+    private async Task HandleLogoSelected(InputFileChangeEventArgs e)
+    {
+        if (!_hasWriteAccess) return;
+
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            if (file.Size > 1024 * 1024) // 1MB
+            {
+                Snackbar.Add(L["Logo file is too large (max 1MB)"], Severity.Warning);
+                return;
+            }
+
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
+                return;
+            }
+
+            using var stream = file.OpenReadStream(1024 * 1024);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            _model.LogoBase64 = Convert.ToBase64String(memoryStream.ToArray());
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing brand logo upload");
+            Snackbar.Add(L["Error processing logo file"], Severity.Error);
+        }
     }
 
     private async Task SaveChangesAsync()

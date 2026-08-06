@@ -1,6 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Localization
 @using System.Globalization
+@using App.Core.Options
 @using App.Web.Components.Shared
+@using Microsoft.Extensions.Options
+@inject IOptions<BrandingOptions> BrandingOptions
 
 <!DOCTYPE html>
 <html lang="@System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName">
@@ -15,7 +18,7 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="_content/Z.Blazor.Diagrams/style.min.css" rel="stylesheet" />
     <link href="_content/Z.Blazor.Diagrams/default.styles.min.css" rel="stylesheet" />
-    <link rel="icon" type="image/ico" href="favicon.ico" />
+    <link rel="icon" type="image/ico" href="@BrandingOptions.Value.FaviconPath" />
     <HeadOutlet @rendermode="RenderModeForPage" />
 </head>
 

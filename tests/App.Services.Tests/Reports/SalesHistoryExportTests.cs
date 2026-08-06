@@ -92,7 +92,8 @@ public class SalesHistoryExportTests
             pdfServiceMock.Object,
             companySettingsMock.Object,
             dateTimeMock.Object,
-            exportOptions);
+            exportOptions,
+            Options.Create(new BrandingOptions()));
     }
 
     // ──────────────────────────────────────────────────────────────────────────

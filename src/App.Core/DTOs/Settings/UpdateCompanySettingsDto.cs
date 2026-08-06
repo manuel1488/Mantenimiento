@@ -22,4 +22,6 @@ public class UpdateCompanySettingsDto
     public string TimeZoneId { get; set; } = null!;
 
     public bool ShowPricesWithTax { get; set; } = false;
+
+    public string? LogoBase64 { get; set; }
 }
