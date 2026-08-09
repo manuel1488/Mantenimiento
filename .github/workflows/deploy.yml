@@ -111,10 +111,10 @@ jobs:
             cd ${{ secrets.VPS_PROJECT_PATH }}
 
             # Pull new image
-            docker compose --profile production --env-file .env.production pull webapp-prod
+            docker compose --profile production --env-file .env.production --env-file .env.production.secrets pull webapp-prod
 
             # Restart with zero-downtime
-            docker compose --profile production --env-file .env.production up -d --no-deps webapp-prod
+            docker compose --profile production --env-file .env.production --env-file .env.production.secrets up -d --no-deps webapp-prod
 
             # Remove old images
             docker image prune -f

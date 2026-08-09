@@ -7,6 +7,9 @@
 .env
 .env.tr
 
+# secrets split out of .env files (MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD, DATABASE_CONNECTION_STRING)
+.env.*.secrets
+
 # User-specific files
 *.rsuser
 *.suo

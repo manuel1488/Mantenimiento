@@ -42,10 +42,11 @@ El servicio `db` **tiene** `profiles: [development, production, shared-db]` asig
 Por eso, en el VDS de tiendas, **siempre hay que pasar el `--profile` correcto** (nunca correr `up -d` a secas):
 
 ```bash
-# Bootstrap del MySQL de este VDS (solo la primera vez)
-docker compose --profile shared-db --env-file .env.{tienda} up -d
+# Bootstrap del MySQL de este VDS (solo la primera vez) — MYSQL_ROOT_PASSWORD vive en
+# .env.{tienda}.secrets (secreto de infraestructura de BD, independiente de la app)
+docker compose --profile shared-db --env-file .env.{tienda} --env-file .env.{tienda}.secrets up -d
 
-# Levantar la app de una tienda
+# Levantar la app de una tienda (no necesita el .secrets — no toca MYSQL_ROOT_PASSWORD)
 docker compose -p {tienda} --profile tenant --env-file .env.{tienda} up -d --build
 ```
 
@@ -119,7 +120,8 @@ En `Branding/tienda-x.json`, `LogoPath` y `FaviconPath` apuntan a `/images/brand
 1. Crear el context de Docker apuntando al VDS (ver sección anterior) y confirmar que el usuario SSH esté en el grupo `docker`.
 2. Revisar qué subnet usa la red `bridge` por defecto en ese servidor: `docker network inspect bridge --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'`. Si coincide con `172.17.0.0/16` (el valor por defecto de Docker, distinto del VPS de Cleeny que ya fue reconfigurado), hay que darle a `app-network` un subnet libre — ver `APP_NETWORK_SUBNET`/`APP_NETWORK_GATEWAY` más abajo.
 3. `docker network create app-shared-network` (red externa, una sola vez por servidor).
-4. `docker compose --profile shared-db --env-file .env.{tienda} up -d` — levanta el MySQL de este VDS y crea automáticamente la BD/usuario de la primera tienda (vía `MYSQL_DATABASE`/`MYSQL_USER`/`MYSQL_PASSWORD` del `.env`).
+4. Crear `.env.{tienda}.secrets` (copiar `.env.production.secrets.example`) con `MYSQL_ROOT_PASSWORD`.
+5. `docker compose --profile shared-db --env-file .env.{tienda} --env-file .env.{tienda}.secrets up -d` — levanta el MySQL de este VDS y crea automáticamente la BD/usuario de la primera tienda (vía `MYSQL_DATABASE`/`MYSQL_USER`/`MYSQL_PASSWORD` del `.env`, y `MYSQL_ROOT_PASSWORD` del `.secrets`).
 
 **Cada tienda nueva** (incluida la primera, después del bootstrap):
 

@@ -172,14 +172,16 @@ Para desplegar desde tu máquina local sin conectarse manualmente al servidor:
 docker context create cleeny --docker "host=ssh://user@servidor"
 
 # Construir imagen en el servidor remoto
-docker --context cleeny compose --profile production --env-file .env.production build --no-cache
+docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
 
 # Desplegar
-docker --context cleeny compose --profile production --env-file .env.production up -d
+docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
 
 # Ver logs
 docker --context cleeny compose --profile production logs -f
 ```
+
+> `MYSQL_ROOT_PASSWORD` vive en `.env.production.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
 
 ### Ambientes y Comandos
 
@@ -187,36 +189,40 @@ docker --context cleeny compose --profile production logs -f
 
 ```bash
 # Construir imágenes
-docker compose --profile development --env-file .\.env.development build --no-cache
+docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets build --no-cache
 
 # Iniciar servicios
-docker compose --profile development --env-file .\.env.development up -d
+docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets up -d
 
 # Ver logs
 docker compose --profile development logs -f
 
 # Detener servicios
-docker compose --profile development --env-file .\.env.development down
+docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets down
 
 # Limpiar volúmenes (borra datos)
-docker compose --profile development --env-file .\.env.development down -v
+docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets down -v
 ```
+
+> `MYSQL_ROOT_PASSWORD` vive en `.env.development.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
 
 #### Producción
 
 ```bash
 # Construir imágenes (en servidor remoto vía SSH context)
-docker --context cleeny compose --profile production --env-file .env.production build --no-cache
+docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
 
 # Iniciar servicios
-docker --context cleeny compose --profile production --env-file .env.production up -d
+docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
 
 # Ver logs
 docker --context cleeny compose --profile production logs -f
 
 # Detener servicios
-docker --context cleeny compose --profile production --env-file .env.production down
+docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets down
 ```
+
+> `MYSQL_ROOT_PASSWORD` vive en `.env.production.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
 
 ### Servicios y Puertos
 
@@ -309,12 +315,13 @@ cd Cleeny
 2. Configurar variables de entorno:
 ```bash
 cp .env.development.example .env.development
-# Editar .env.development con tus valores
+cp .env.development.secrets.example .env.development.secrets
+# Editar ambos archivos con tus valores (.secrets nunca se commitea)
 ```
 
 3. Ejecutar con Docker:
 ```bash
-docker compose --profile development --env-file .\.env.development up -d
+docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets up -d
 ```
 
 4. Acceder a:

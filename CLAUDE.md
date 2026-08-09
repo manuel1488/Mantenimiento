@@ -86,16 +86,18 @@ dotnet ef database update \
 ```
 
 ### Docker Development
+`MYSQL_ROOT_PASSWORD` lives in a companion `.env.{environment}.secrets` file (gitignored,
+DB infra secret independent of the app) — always pass both `--env-file` flags together.
 ```bash
 # Development environment
-docker compose --profile development --env-file .env.development up -d
-docker compose --profile development --env-file .env.development build --no-cache
-docker compose --profile development --env-file .env.development down
+docker compose --profile development --env-file .env.development --env-file .env.development.secrets up -d
+docker compose --profile development --env-file .env.development --env-file .env.development.secrets build --no-cache
+docker compose --profile development --env-file .env.development --env-file .env.development.secrets down
 
 # Production environment
-docker compose --profile production --env-file .env.production up -d
-docker compose --profile production --env-file .env.production build --no-cache
-docker compose --profile production --env-file .env.production down
+docker compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
+docker compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
+docker compose --profile production --env-file .env.production --env-file .env.production.secrets down
 ```
 
 ## Architecture Overview

@@ -157,8 +157,8 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     # Puerto NO expuesto intencionalmente — MySQL solo es accesible dentro de app-network.
     # Descomentar solo para debugging local temporal.
-    #ports:
-    #  - "${MYSQL_PORT}:3306"
+    ports:
+      - "127.0.0.1:${MYSQL_PORT}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
