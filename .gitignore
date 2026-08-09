@@ -492,10 +492,12 @@ $RECYCLE.BIN/
 .env.production
 
 # Image files
-src/DA.Web/wwwroot/uploads/
+src/App.Web/wwwroot/uploads/
 
 # Others
 archivos.ps1
 codigo.txt
 TODO.txt
-TODO.md
+
+# Local Claude Code settings (machine-specific)
+.claude/settings.local.json

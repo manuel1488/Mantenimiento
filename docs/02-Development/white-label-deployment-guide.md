@@ -1,15 +1,14 @@
-# Guía de Despliegue White-Label (Multi-Tienda)
+# Guía de Despliegue White-Label (Multi-Tenant)
 
-Esta guía documenta cómo desplegar el mismo código base para una tienda distinta a Cleeny, con su propio nombre, logo y colores, usando un contenedor MySQL compartido con una base de datos por tienda.
+Esta guía documenta cómo desplegar el mismo código base para múltiples clientes/tenants, cada uno con su propio nombre, logo y colores, usando un contenedor MySQL compartido con una base de datos por tenant.
 
 ## Modelo de despliegue
 
-- **Cleeny** vive en su propio VPS, con su propio MySQL — sin cambios, tal como ya operaba.
-- **Un VDS aparte y dedicado** aloja Two Rockets y cualquier tienda nueva que siga, con **un solo contenedor MySQL compartido entre ellas** (una BD distinta por tienda dentro de ese mismo MySQL).
-- **Un contenedor `App.Web` por tienda** en ese VDS, cada uno con su propia cadena de conexión (a su propia BD) y su propio perfil de marca.
+- **Un VDS dedicado** aloja todos los tenants, con **un solo contenedor MySQL compartido entre ellos** (una BD distinta por tenant dentro de ese mismo MySQL).
+- **Un contenedor `App.Web` por tenant** en ese VDS, cada uno con su propia cadena de conexión (a su propia BD) y su propio perfil de marca.
 - Reverse proxy (Traefik/Nginx) delante, ruteando por dominio/subdominio a cada contenedor.
 
-No es multi-tenant de esquema compartido (no hay `TenantId` en las tablas) — es la misma app, desplegada N veces, cada una aislada en su propia BD. Ver [Roadmap SaaS POS](../01-Architecture/roadmap-saas-pos.md) para la evolución futura hacia multi-tenant real.
+No es multi-tenant de esquema compartido (no hay `TenantId` en las tablas) — es la misma app, desplegada N veces, cada una aislada en su propia BD.
 
 ## Cómo operar el VDS de tiendas remotamente
 
@@ -55,26 +54,23 @@ docker compose -p {tienda} --profile tenant --env-file .env.{tienda} up -d --bui
 | Dato | Fuente | Editable en caliente | Notas |
 |---|---|---|---|
 | **Nombre de la tienda** | BD — `CompanySettings.CompanyName` | Sí, desde Ajustes → General | Sembrado una sola vez desde `Branding/{profile}.json` al primer arranque (`CompanyBrandingSeeder`). Sin fallback al JSON en lecturas posteriores — o está en BD, o se muestra vacío. |
-| **Logo principal** (NavMenu, Login, PDFs de negocio) | BD — `CompanySettings.LogoBase64` | Sí, desde Ajustes → General | Usado por NavMenu, Login/ForgotPassword/ResetPassword, y por los PDFs (cotizaciones, remisiones, traspasos, conteos, reporte de ventas). Si no se ha subido nada, cae al archivo estático de `Branding/{profile}.json`. |
-| **Logo de tickets** | BD — `TicketConfiguration.CompanyLogoBase64` | Sí, desde Ajustes → Tickets | **Campo separado** del logo principal — pensado para una variante simplificada/blanco y negro optimizada para impresión térmica. No se comparte con el logo principal. |
+| **Logo principal** (NavMenu, Login, PDFs) | BD — `CompanySettings.LogoBase64` | Sí, desde Ajustes → General | Usado por NavMenu, Login/ForgotPassword/ResetPassword, y por cualquier PDF generado. Si no se ha subido nada, cae al archivo estático de `Branding/{profile}.json`. |
 | **Colores del tema** (`PrimaryColor`/`SecondaryColor`) | `Branding/{profile}.json` | No — requiere redeploy | Fijos por deployment; `CurrentThemeService` es singleton y arma el `MudTheme` una sola vez al arrancar. |
 | **Favicon** | `Branding/{profile}.json` → `FaviconPath` | No — requiere redeploy | Estático, leído por `AppRoot.razor` (`<link rel="icon">`). Archivo debe existir bajo `wwwroot`. |
-| **`app_name` en emails/CFDI** (Factura Global, alertas de inventario, pre-factura de cotización) | BD — `CompanySettings.CompanyName`, con fallback a `Branding/{profile}.json` si no hay fila aún | Sí | Unificado con el nombre de tienda — si el admin lo cambia en Ajustes, también cambia ahí. |
-
-**Por qué dos logos:** el logo de tickets impresos en térmica suele necesitar una versión más simple (blanco y negro, sin gradientes) que el logo de marca a color usado en pantalla y en PDFs. Son campos independientes en BD — subir uno no afecta al otro.
+| **`app_name` en emails** | BD — `CompanySettings.CompanyName`, con fallback a `Branding/{profile}.json` si no hay fila aún | Sí | Unificado con el nombre del tenant — si el admin lo cambia en Ajustes, también cambia ahí. |
 
 ## Archivo de perfil de marca
 
-Cada tienda tiene un archivo en `src/App.Web/Branding/{nombre}.json`:
+Cada tenant tiene un archivo en `src/App.Web/Branding/{nombre}.json` (ver `Branding/default.json` como ejemplo):
 
 ```json
 {
   "Application": {
-    "Name": "Cleeny"
+    "Name": "MiApp"
   },
   "Branding": {
-    "LogoPath": "/images/brands/cleeny/logo.webp",
-    "FaviconPath": "/images/brands/cleeny/favicon.ico",
+    "LogoPath": "/images/brands/mi-app/logo.webp",
+    "FaviconPath": "/images/brands/mi-app/favicon.ico",
     "PrimaryColor": "#1A6868",
     "SecondaryColor": "#7B3FA0"
   }
@@ -86,10 +82,10 @@ Cada tienda tiene un archivo en `src/App.Web/Branding/{nombre}.json`:
 - `Branding.FaviconPath` — ruta al ícono de pestaña del navegador (`<link rel="icon">` en `AppRoot.razor`). A diferencia del logo, **no vive en BD** — es puramente estático, por deployment. Debe existir bajo `wwwroot`.
 - `Branding.PrimaryColor` / `SecondaryColor` — colores base del tema MudBlazor. `CurrentThemeService` calcula automáticamente las variantes claras/oscuras (`Darken`/`Lighten`) mezclando el color con negro/blanco — no hace falta especificarlas a mano.
 
-El perfil activo se selecciona con la variable de entorno `BRANDING_PROFILE` (por defecto `cleeny`), cargada en `Program.cs` antes de `ConfigureApplicationOptions`:
+El perfil activo se selecciona con la variable de entorno `BRANDING_PROFILE` (por defecto `default`), cargada en `Program.cs` antes de `ConfigureApplicationOptions`:
 
 ```csharp
-var brandingProfile = builder.Configuration["BRANDING_PROFILE"] ?? "cleeny";
+var brandingProfile = builder.Configuration["BRANDING_PROFILE"] ?? "default";
 builder.Configuration.AddJsonFile(Path.Combine("Branding", $"{brandingProfile}.json"), optional: false, reloadOnChange: false);
 ```
 
@@ -97,73 +93,66 @@ El archivo se copia automáticamente al build (los `.json` bajo el proyecto son 
 
 ## Convención de carpetas de assets estáticos
 
-Los assets de fallback (logo principal + favicon) viven versionados en el repo, uno por tienda:
+Los assets de fallback (logo principal + favicon) viven versionados en el repo, uno por tenant:
 
 ```
 src/App.Web/wwwroot/images/brands/
-  cleeny/
-    logo.webp        ← logo principal de fallback (perfil "cleeny")
+  mi-app/
+    logo.webp        ← logo principal de fallback (perfil "mi-app")
     favicon.ico
-  tienda-x/
-    logo.webp        ← logo principal de fallback (perfil "tienda-x")
+  otro-tenant/
+    logo.webp        ← logo principal de fallback (perfil "otro-tenant")
     favicon.ico
 ```
 
-En `Branding/tienda-x.json`, `LogoPath` y `FaviconPath` apuntan a `/images/brands/tienda-x/...`. El logo de fallback solo se usa hasta que el admin de esa tienda sube el suyo propio desde **Ajustes → General** (el cual queda en BD y tiene prioridad). El favicon no tiene equivalente en BD — siempre se sirve desde este archivo estático.
+En `Branding/otro-tenant.json`, `LogoPath` y `FaviconPath` apuntan a `/images/brands/otro-tenant/...`. El logo de fallback solo se usa hasta que el admin de ese tenant sube el suyo propio desde **Ajustes → General** (el cual queda en BD y tiene prioridad). El favicon no tiene equivalente en BD — siempre se sirve desde este archivo estático.
 
-**Nota de compatibilidad:** `wwwroot/images/logo.webp` y `wwwroot/favicon.ico` (rutas planas, sin `brands/`) se mantienen como copias del logo/favicon de Cleeny — varios servicios de CFDI (`MexicoInvoiceService`, `GlobalInvoiceService`) todavía leen esa ruta hardcodeada directamente y no pasan por `BrandingOptions` (ver sección "Fuera de alcance"). No borrar esos archivos aunque parezcan duplicados.
+## Onboarding de un tenant nuevo — checklist
 
-## Onboarding de una tienda nueva — checklist
+**Primer tenant en un VDS nuevo** (bootstrap del servidor, una sola vez):
 
-**Primera tienda en un VDS nuevo** (bootstrap del servidor, una sola vez):
-
-1. Crear el context de Docker apuntando al VDS (ver sección anterior) y confirmar que el usuario SSH esté en el grupo `docker`.
-2. Revisar qué subnet usa la red `bridge` por defecto en ese servidor: `docker network inspect bridge --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'`. Si coincide con `172.17.0.0/16` (el valor por defecto de Docker, distinto del VPS de Cleeny que ya fue reconfigurado), hay que darle a `app-network` un subnet libre — ver `APP_NETWORK_SUBNET`/`APP_NETWORK_GATEWAY` más abajo.
+1. Crear el context de Docker apuntando al VDS (`docker context create <nombre> --docker "host=ssh://usuario@ip-del-vds"`) y confirmar que el usuario SSH esté en el grupo `docker`.
+2. Revisar qué subnet usa la red `bridge` por defecto en ese servidor: `docker network inspect bridge --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'`. Si coincide con `172.17.0.0/16` (el valor por defecto de Docker), hay que darle a `app-network` un subnet libre — ver `APP_NETWORK_SUBNET`/`APP_NETWORK_GATEWAY` más abajo.
 3. `docker network create app-shared-network` (red externa, una sola vez por servidor).
-4. Crear `.env.{tienda}.secrets` (copiar `.env.production.secrets.example`) con `MYSQL_ROOT_PASSWORD`.
-5. `docker compose --profile shared-db --env-file .env.{tienda} --env-file .env.{tienda}.secrets up -d` — levanta el MySQL de este VDS y crea automáticamente la BD/usuario de la primera tienda (vía `MYSQL_DATABASE`/`MYSQL_USER`/`MYSQL_PASSWORD` del `.env`, y `MYSQL_ROOT_PASSWORD` del `.secrets`).
+4. Crear `.env.{tenant}.secrets` (copiar `.env.production.secrets.example`) con `MYSQL_ROOT_PASSWORD`.
+5. `docker compose --profile shared-db --env-file .env.{tenant} --env-file .env.{tenant}.secrets up -d` — levanta el MySQL de este VDS y crea automáticamente la BD/usuario del primer tenant (vía `MYSQL_DATABASE`/`MYSQL_USER`/`MYSQL_PASSWORD` del `.env`, y `MYSQL_ROOT_PASSWORD` del `.secrets`).
 
-**Cada tienda nueva** (incluida la primera, después del bootstrap):
+**Cada tenant nuevo** (incluido el primero, después del bootstrap):
 
-1. **Crear el perfil de marca**: `src/App.Web/Branding/{tienda}.json` con `Application.Name`, `Branding.LogoPath`, `Branding.FaviconPath`, `Branding.PrimaryColor`, `Branding.SecondaryColor`.
-2. **Agregar el logo de fallback y el favicon** (recomendado): `wwwroot/images/brands/{tienda}/logo.webp` y `wwwroot/images/brands/{tienda}/favicon.ico`.
-3. **Si NO es la primera tienda en este servidor**, crear su BD manualmente en el MySQL ya corriendo:
+1. **Crear el perfil de marca**: `src/App.Web/Branding/{tenant}.json` con `Application.Name`, `Branding.LogoPath`, `Branding.FaviconPath`, `Branding.PrimaryColor`, `Branding.SecondaryColor`.
+2. **Agregar el logo de fallback y el favicon** (recomendado): `wwwroot/images/brands/{tenant}/logo.webp` y `wwwroot/images/brands/{tenant}/favicon.ico`.
+3. **Si NO es el primer tenant en este servidor**, crear su BD manualmente en el MySQL ya corriendo:
    ```bash
-   docker exec -it {container-prefix}-mysql mysql -uroot -p -e "CREATE DATABASE {tienda}; CREATE USER '{tienda}'@'%' IDENTIFIED BY '...'; GRANT ALL PRIVILEGES ON {tienda}.* TO '{tienda}'@'%'; FLUSH PRIVILEGES;"
+   docker exec -it {container-prefix}-mysql mysql -uroot -p -e "CREATE DATABASE {tenant}; CREATE USER '{tenant}'@'%' IDENTIFIED BY '...'; GRANT ALL PRIVILEGES ON {tenant}.* TO '{tenant}'@'%'; FLUSH PRIVILEGES;"
    ```
-4. **Crear `.env.{tienda}`** (copiar `.env.tenant.example`) con `BRANDING_PROFILE`, `DATABASE_CONNECTION_STRING`, `Application__BaseUrl`, `PORT` (único por tienda), y límites de recursos.
-5. **Levantar la app**: `docker compose -p {tienda} --profile tenant --env-file .env.{tienda} up -d --build` — nunca omitir `--profile tenant` (ver por qué en la sección anterior). Las migraciones de EF Core y `CompanyBrandingSeeder` corren solos al arrancar.
-6. **Configurar el reverse proxy** para rutear el dominio/subdominio de la tienda al puerto de este contenedor.
-7. Verificar logs: `docker compose -p {tienda} logs -f webapp-tenant`.
+4. **Crear `.env.{tenant}`** (copiar `.env.tenant.example`) con `BRANDING_PROFILE`, `DATABASE_CONNECTION_STRING`, `Application__BaseUrl`, `PORT` (único por tenant), y límites de recursos.
+5. **Levantar la app**: `docker compose -p {tenant} --profile tenant --env-file .env.{tenant} up -d --build` — nunca omitir `--profile tenant` (ver por qué en la sección anterior). Las migraciones de EF Core y `CompanyBrandingSeeder` corren solos al arrancar.
+6. **Configurar el reverse proxy** para rutear el dominio/subdominio del tenant al puerto de este contenedor.
+7. Verificar logs: `docker compose -p {tenant} logs -f webapp-tenant`.
 8. Primer login: `admin` / `Admin123!` (semilla por defecto, igual en toda BD nueva) — **cambiarla de inmediato**.
-9. El admin de la tienda puede después ajustar nombre y logo principal (Ajustes → General) y logo de tickets (Ajustes → Tickets) sin redeploy.
+9. El admin del tenant puede después ajustar nombre y logo principal (Ajustes → General) sin redeploy.
 
 ## Variables de entorno relevantes
 
 ```bash
 # Brand identity — selecciona qué Branding/{profile}.json cargar
-BRANDING_PROFILE=cleeny
+BRANDING_PROFILE=default
 
 # El resto de Application__* sigue siendo config de infraestructura, no de marca
 Application__Version=1.0.0
-Application__DefaultLanguage=es-MX
-Application__SupportedLanguages__0=es-MX
-Application__SupportedLanguages__1=en-US
-Application__BaseUrl=https://sistema.cleeny.com.mx
+Application__DefaultLanguage=en-US
+Application__SupportedLanguages__0=en-US
+Application__SupportedLanguages__1=es-MX
+Application__BaseUrl=https://tuapp.example.com
 
-# Solo necesario en un VDS de tiendas si el subnet por defecto (172.17.100.0/24) choca
+# Solo necesario en un VDS multi-tenant si el subnet por defecto (172.17.100.0/24) choca
 # con el `bridge` u otra red ya existente en ese servidor (ver checklist de bootstrap):
 APP_NETWORK_SUBNET=172.19.100.0/24
 APP_NETWORK_GATEWAY=172.19.100.1
 
-# Límites de recursos del MySQL compartido (antes sin límite — ver docker-compose.yml)
+# Límites de recursos del MySQL compartido
 DB_CPU_LIMIT=2.0
 DB_MEMORY_LIMIT=2G
 DB_CPU_RESERVATION=1
 DB_MEMORY_RESERVATION=1G
 ```
-
-## Fuera de alcance (no tocado por este sistema)
-
-- `MexicoInvoiceService` (CFDI individual) sigue leyendo el logo desde archivo estático `images/logo.webp` directo — no pasa por `BrandingOptions` ni por el logo en BD. No se tocó para no arriesgar el flujo de timbrado.
-- `wwwroot/EmailTemplates/welcome.html` y `password-reset.es.html` tienen "Cleeny" literal (no tokenizado) — a diferencia de los templates de producción en `App.Services/Resources/EmailTemplates/*` que sí usan `{{ app_name }}`/`{{ company_logo_url }}`.

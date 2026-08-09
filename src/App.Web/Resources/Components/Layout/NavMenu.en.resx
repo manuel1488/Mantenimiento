@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="App Name" xml:space="preserve">
-    <value>Cleeny</value>
+    <value>AppBase</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Dashboard</value>

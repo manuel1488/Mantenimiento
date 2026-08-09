@@ -37,7 +37,5 @@ El bug era preexistente (desde el commit `22ae5bb`) pero probabilístico: solo s
   - Cualquier código nuevo que inyecte `AuthenticationStateProvider` directamente (en vez de pasar por `ICurrentUserService`) y copie el patrón `.Result` puede reintroducir el mismo bug — este ADR es la referencia a citar en code review si eso ocurre.
 
 **Referencias:**
-- [Bitácora de incidentes — 2026-07-23](../../02-Development/incident-log.md)
-- [Deuda técnica — ICurrentUserService](../../02-Development/tech-debt.md)
 - [ADR-005: Sistema de Autenticación](0005-sistema-autenticacion.md)
 - [ASP.NET Core Blazor Server — evitar bloqueo de hilos](https://learn.microsoft.com/aspnet/core/blazor/performance#avoid-thread-blocking-calls)

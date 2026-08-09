@@ -90,7 +90,7 @@ services:
       - production
 
   # Tienda genérica (white-label) — UN servicio reusado para cualquier tienda adicional
-  # a Cleeny, en su propio proyecto de Compose (-p) y su propia BD, compartiendo el mismo
+  # a AppBase, en su propio proyecto de Compose (-p) y su propia BD, compartiendo el mismo
   # contenedor MySQL vía la red externa `app-shared-network`. No se duplica por tienda:
   # para agregar una tienda nueva solo se crea su .env.{tienda} y se corre:
   #   docker compose -p {tienda} --profile tenant --env-file .env.{tienda} up -d
@@ -138,7 +138,7 @@ services:
       - tenant
 
   # Base de datos para desarrollo y producción (cuando no se usa BD externa).
-  # MySQL no está expuesto al host — accesible dentro de app-network (Cleeny) y
+  # MySQL no está expuesto al host — accesible dentro de app-network (AppBase) y
   # app-shared-network (cualquier tienda adicional levantada con el perfil "tenant").
   db:
     build:
@@ -180,7 +180,7 @@ services:
     # "shared-db" es el perfil a usar cuando este `db` sirve tiendas nuevas en un VDS
     # dedicado (docker compose --profile shared-db up -d, sin nombrar servicio). Se
     # incluyen también development/production para no cambiar el comportamiento actual
-    # de Cleeny (donde db siempre acompaña a webapp/webapp-prod). Antes db no tenía
+    # de AppBase (donde db siempre acompaña a webapp/webapp-prod). Antes db no tenía
     # profiles: asignado, así que Compose lo incluía SIEMPRE sin importar el --profile
     # usado — eso causaba que `up -d --profile tenant` (sin nombrar el servicio)
     # arrastrara a `db` también, creando una segunda copia de app-network y chocando
@@ -191,9 +191,9 @@ services:
       - shared-db
 
 networks:
-  # Red externa compartida entre proyectos de Compose independientes (Cleeny + cada
+  # Red externa compartida entre proyectos de Compose independientes (AppBase + cada
   # tienda white-label). Debe crearse UNA sola vez, antes del primer `docker compose up`
-  # que la referencie (incluido el de Cleeny, ya que `db` también se conecta a ella):
+  # que la referencie (incluido el de AppBase, ya que `db` también se conecta a ella):
   #   docker network create app-shared-network
   app-shared-network:
     name: app-shared-network
@@ -204,7 +204,7 @@ networks:
     ipam:
       config:
         # Subnet parametrizada — el valor por defecto (172.17.100.0/24) es específico
-        # del VPS de Cleeny (Neubox), para compatibilidad con CSF Firewall
+        # del VPS de AppBase (Neubox), para compatibilidad con CSF Firewall
         # (DOCKER_NETWORK4 = "172.17.0.0/16" en /etc/csf/csf.conf).
         #
         # REQUISITO EN ESE SERVIDOR — /etc/docker/daemon.json debe contener:

@@ -8,37 +8,20 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 |---|---|
 | [`docs/01-Architecture/`](docs/01-Architecture/) | ADRs, system diagrams, architecture decisions |
 | [`docs/02-Development/`](docs/02-Development/) | Development guides and patterns |
-| [`docs/03-Modules/`](docs/03-Modules/) | Module-specific documentation |
-| [`docs/99-Archive/`](docs/99-Archive/) | Archived / legacy files |
 
 ### Key guides
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
-- [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG (Quotations reference impl.)
-- [White-Label Deployment Guide](docs/02-Development/white-label-deployment-guide.md) — Desplegar la app para otra tienda: perfil de marca (`Branding/{tienda}.json`), logo/nombre en BD, checklist de onboarding
-- [Troubleshooting Index](docs/02-Development/troubleshooting.md) — Problemas conocidos con diagnóstico y solución
-- [Bitácora de Incidentes de Producción](docs/02-Development/incident-log.md) — Registro de incidentes de despliegue/producción con diagnóstico y reparación aplicada
-- [Deuda Técnica](docs/02-Development/tech-debt.md) — Problemas conocidos no urgentes (constraints ignorados, columnas mal dimensionadas, etc.)
-
-### Strategy
-- [Roadmap SaaS POS](docs/01-Architecture/roadmap-saas-pos.md) — Evolución multi-tenant: agente hardware, terminal PWA tablet, offline, báscula
-- [Análisis de Mercado POS México 2026](docs/01-Architecture/market-analysis-pos-mexico-2026.md) — Competidores, brechas, oportunidades de diferenciación
-
-### Related Projects
-- **CleenyAgent** (`C:\repos\CleenyAgent`) — Agente local de hardware (impresora + caja). Integración en `src/App.Web/Services/ThermalPrinterService.cs`. API en `http://localhost:9100`, token en `appsettings.json → AgentSettings:Token`.
+- [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG
+- [White-Label Deployment Guide](docs/02-Development/white-label-deployment-guide.md) — Desplegar la app con otra marca: perfil de marca (`Branding/{profile}.json`), logo/nombre en BD, checklist de onboarding
 
 ### ADRs
 Índice completo: [docs/01-Architecture/README.md](docs/01-Architecture/README.md)
-- [ADR-007: Factura Global](docs/01-Architecture/adr/0007-factura-global-publica-en-general.md) — Períodos fijos SAT, selección individual rechazada, regla 2.7.1.24 RMF
+- [ADR-005: Sistema de Autenticación](docs/01-Architecture/adr/0005-sistema-autenticacion.md)
 - [ADR-008: AutoMapper](docs/01-Architecture/adr/0008-dependencia-automapper.md) — Downgrade a v12.0.1 MIT, vulnerabilidad GHSA-rvv3-g6hj-g44x (riesgo bajo), migración pendiente a Mapperly
-- [ADR-009: Fechas PDF CFDI y regeneración](docs/01-Architecture/adr/0009-fechas-pdf-cfdi-y-regeneracion.md) — FECHA DE EMISIÓN debe usar RequestedInvoiceDate (no StampDate), conversión de zona horaria, flag AllowPdfRegenerationForStampedInvoices
-
-### CFDI References (docs/03-Modules/)
-- [Guía de llenado CFDI global v4.0](docs/03-Modules/Guia_llenado_CFDI_global.md) — Nodo InformacionGlobal, concepto único, RFC genérico
-- [Anexo 20 — Guía de llenado CFDI](docs/03-Modules/Anexo_20_Guia_de_llenado_CFDI.md) — Especificación técnica CFDI 4.0
-- [Reglas de negocio: fechas de CFDI](docs/03-Modules/business-rules-cfdi-fechas.md) — RequestedInvoiceDate vs StampDate vs Fecha del XML, conversión de zona horaria, reglas de regeneración de PDF
+- [ADR-010: Acceso al usuario actual en Blazor Server](docs/01-Architecture/adr/0010-acceso-async-usuario-actual.md) — prohibido sync-over-async sobre `ICurrentUserService`
 
 ## Project Overview
-App is a .NET 9 Blazor Server application for product sales and inventory management. The application uses an N-Layer architecture with MySQL database and Entity Framework Core. It includes Mexico CFDI billing support.
+Plantilla base .NET 9 Blazor Server con arquitectura N-Layer, MySQL y Entity Framework Core. Incluye Identity, roles/permisos granulares, soft delete, auditoría, branding white-label, email, generación de PDF y manejo de archivos — sin ningún módulo de dominio de negocio. Parte de este repo para construir tu propia aplicación.
 
 ## Development Commands
 
@@ -119,26 +102,19 @@ docker compose --profile production --env-file .env.production --env-file .env.p
 - **Serilog** for structured logging
 - **Docker** for containerization
 
-### Database Schema Organization
-The database uses logical separation with schemas:
-- `identity`: User management and authentication
-- `shop`: Inventory, products, sales, and store operations
-- `shared`: Common data shared across domains
-
 ### Service Layer Patterns
 - Services use AutoMapper for DTO/Entity mapping
 - Mapping profiles are organized by domain in `App.Services/Mappings/`
 - Interface segregation principle with specific service interfaces
-- Repository pattern implemented through EF Core DbContext
+- DbContext factory pattern (not a classic repository) via `IDbContextFactory<ApplicationDbContext>`
 
 ### Key Features
 - **Multi-language support** (English/Spanish) with resource files
-- **Multi-tenant ready** architecture with proper separation
 - **Audit trails** with created/modified timestamps
 - **Soft delete** implementation across entities
 - **File management** system for document storage
 - **Health checks** for application monitoring
-- **Mexico CFDI billing** support
+- **Branding / white-label** support via `Branding/{profile}.json`
 
 ### Development Environment
 - Uses .NET 9 SDK (configured in global.json)
@@ -167,12 +143,12 @@ The database uses logical separation with schemas:
 
 ```csharp
 // Correct - English names
-private string customerName;
-public async Task<Result<Customer>> GetCustomerByIdAsync(int id)
+private string entityName;
+public async Task<Result<WidgetDto>> GetWidgetByIdAsync(int id)
 
 // Incorrect - Spanish names
-private string nombreCliente;
-public async Task<Result<Customer>> ObtenerClientePorIdAsync(int id)
+private string nombreEntidad;
+public async Task<Result<WidgetDto>> ObtenerWidgetPorIdAsync(int id)
 ```
 
 ### Result Pattern Usage
@@ -180,21 +156,22 @@ public async Task<Result<Customer>> ObtenerClientePorIdAsync(int id)
 
 ```csharp
 // CORRECT - Service method returning value with Result pattern
-public async Task<Result<CustomerDto>> GetByIdAsync(int id)
+public async Task<Result<WidgetDto>> GetByIdAsync(int id)
 {
     try
     {
-        var customer = await _context.Customers.FindAsync(id);
-        if (customer == null)
-            return Result<CustomerDto>.Failure(_localizer["Customer not found"]);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var widget = await context.Widgets.FindAsync(id);
+        if (widget == null)
+            return Result<WidgetDto>.Failure(_localizer["Widget not found"]);
 
-        var dto = _mapper.Map<CustomerDto>(customer);
-        return Result<CustomerDto>.Success(dto);
+        var dto = _mapper.Map<WidgetDto>(widget);
+        return Result<WidgetDto>.Success(dto);
     }
     catch (Exception ex)
     {
-        _logger.LogError(ex, "Error retrieving customer {Id}", id);
-        return Result<CustomerDto>.Failure(_localizer["Error retrieving customer"]);
+        _logger.LogError(ex, "Error retrieving widget {Id}", id);
+        return Result<WidgetDto>.Failure(_localizer["Error retrieving widget"]);
     }
 }
 
@@ -203,26 +180,27 @@ public async Task<Result> DeleteAsync(int id)
 {
     try
     {
-        var customer = await _context.Customers.FindAsync(id);
-        if (customer == null)
-            return Result.Failure(_localizer["Customer not found"]);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var widget = await context.Widgets.FindAsync(id);
+        if (widget == null)
+            return Result.Failure(_localizer["Widget not found"]);
 
-        _context.Customers.Remove(customer);
+        context.Widgets.Remove(widget);
         await context.SaveChangesAsync();
         return Result.Success();
     }
     catch (Exception ex)
     {
-        _logger.LogError(ex, "Error deleting customer {Id}", id);
-        return Result.Failure(_localizer["Error deleting customer"]);
+        _logger.LogError(ex, "Error deleting widget {Id}", id);
+        return Result.Failure(_localizer["Error deleting widget"]);
     }
 }
 
 // CORRECT - Consuming the Result pattern in components
-var result = await _customerService.GetByIdAsync(id);
+var result = await _widgetService.GetByIdAsync(id);
 if (result.IsSuccess)
 {
-    var customer = result.Value;
+    var widget = result.Value;
     _snackbar.Add(L["Success"], Severity.Success);
 }
 else
@@ -246,7 +224,7 @@ else
 @inject IStringLocalizer<ComponentName> L
 
 <MudButton>@L["Save"]</MudButton>
-<MudTextField Label="@L["Customer Name"]"
+<MudTextField Label="@L["Name"]"
               RequiredError="@L["Name is required"]" />
 ```
 
@@ -260,20 +238,20 @@ else
 Follow this structure for all service implementations:
 
 ```csharp
-public class CustomerService : ICustomerService
+public class WidgetService : IWidgetService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly IMapper _mapper;
-    private readonly ILogger<CustomerService> _logger;
-    private readonly IStringLocalizer<CustomerService> _localizer;
+    private readonly ILogger<WidgetService> _logger;
+    private readonly IStringLocalizer<WidgetService> _localizer;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTimeService;
 
-    public CustomerService(
+    public WidgetService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
         IMapper mapper,
-        ILogger<CustomerService> logger,
-        IStringLocalizer<CustomerService> localizer,
+        ILogger<WidgetService> logger,
+        IStringLocalizer<WidgetService> localizer,
         ICurrentUserService currentUserService,
         IDateTime dateTimeService)
     {
@@ -285,32 +263,32 @@ public class CustomerService : ICustomerService
         _dateTimeService = dateTimeService;
     }
 
-    public async Task<Result<CustomerDto>> CreateAsync(CreateCustomerDto dto)
+    public async Task<Result<WidgetDto>> CreateAsync(CreateWidgetDto dto)
     {
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var entity = _mapper.Map<Customer>(dto);
+            var entity = _mapper.Map<Widget>(dto);
 
             // Set audit fields
-            var currentUser = _currentUserService.UserId ?? "System";
+            var currentUser = await _currentUserService.GetUserIdAsync();
             var currentTime = _dateTimeService.Now;
             entity.CreatedBy = currentUser;
             entity.CreatedAt = currentTime;
             entity.ModifiedBy = currentUser;
             entity.ModifiedAt = currentTime;
 
-            context.Customers.Add(entity);
+            context.Widgets.Add(entity);
             await context.SaveChangesAsync();
 
-            var resultDto = _mapper.Map<CustomerDto>(entity);
-            return Result<CustomerDto>.Success(resultDto);
+            var resultDto = _mapper.Map<WidgetDto>(entity);
+            return Result<WidgetDto>.Success(resultDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating customer");
-            return Result<CustomerDto>.Failure(_localizer["Error creating customer"]);
+            _logger.LogError(ex, "Error creating widget");
+            return Result<WidgetDto>.Failure(_localizer["Error creating widget"]);
         }
     }
 }
@@ -325,15 +303,6 @@ public class CustomerService : ICustomerService
 - Use Result pattern for all return types
 - Log errors with structured logging before returning Result.Failure()
 
-### Tax Calculation Pattern
-**NEVER hardcode tax rates.** Always use `ITaxRateService` to retrieve configured tax rates from `stg_tax_rates` table.
-
-**Key Points:**
-- Inject `ITaxRateService` and `ICompanySettingsService` in all services that calculate taxes
-- Use `GetEffectiveRateAsync(countryCode)` to get the current tax rate
-- Tax rates are configurable per country/region in the Settings module
-- This applies to Sales and any financial calculations
-
 ### Blazor Component Pattern
 Standard structure for Blazor components:
 
@@ -346,7 +315,7 @@ Standard structure for Blazor components:
 @code {
     #region Parameters
     [Parameter]
-    public CustomerDto Customer { get; set; } = new();
+    public WidgetDto Widget { get; set; } = new();
 
     [CascadingParameter]
     IMudDialogInstance? MudDialog { get; set; }
@@ -360,7 +329,7 @@ Standard structure for Blazor components:
     #region Methods
     private async Task HandleSubmit()
     {
-        var result = await _service.CreateAsync(Customer);
+        var result = await _service.CreateAsync(Widget);
         if (result.IsSuccess)
         {
             _snackbar.Add(L["Created successfully"], Severity.Success);
@@ -493,8 +462,7 @@ MudBlazor uses a **4px base unit**. Utility classes: `pa-0` → `pa-4` (0–16px
 **Common icons used in this codebase:**
 ```
 Icons.Material.Filled.Dashboard             → Dashboard
-Icons.Material.Filled.Store                 → Shop/Sales
-Icons.Material.Filled.People                → Customers
+Icons.Material.Filled.People                → Users
 Icons.Material.Filled.AdminPanelSettings    → Admin
 Icons.Material.Filled.Add                   → Create
 Icons.Material.Filled.Edit                  → Edit

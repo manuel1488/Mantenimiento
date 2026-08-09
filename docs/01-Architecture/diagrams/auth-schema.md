@@ -1,6 +1,6 @@
 # Esquema de Autenticación y Autorización
 
-Este documento describe el sistema de autenticación y autorización implementado en el proyecto DA.
+Este documento describe el sistema de autenticación y autorización implementado en el AppBase.
 
 ## Diagrama de Entidad-Relación
 

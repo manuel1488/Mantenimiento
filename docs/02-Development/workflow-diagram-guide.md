@@ -1,7 +1,7 @@
 # Workflow Diagram Guide
 
 Patrón para visualizar flujos de estados en cualquier módulo.
-**Implementación de referencia**: `src/App.Web/Components/Shop/Quotations/QuotationWorkflowDialog.razor`
+**Nota**: patrón extraído del proyecto de negocio del que se derivó esta plantilla; no hay implementación de referencia en este repo base — aplica el patrón al primer módulo con estados que agregues.
 
 ---
 

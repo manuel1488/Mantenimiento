@@ -1,4 +1,4 @@
-# Cleeny
+# AppBase
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/9.0)
 [![EF Core](https://img.shields.io/badge/EF%20Core-9.0-purple)](https://docs.microsoft.com/ef/core)
@@ -6,32 +6,28 @@
 [![Blazor](https://img.shields.io/badge/Blazor-Server-512BD4)](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor)
 [![Docker](https://img.shields.io/badge/Docker-20.10%2B-2496ED)](https://www.docker.com/)
 
-Sistema de gestión de ventas e inventario para tienda de productos de limpieza, construido con .NET 9.
+Plantilla base genérica y reutilizable para nuevos proyectos .NET 9 Blazor Server, con N-Layer architecture y MySQL/EF Core.
 
-## Estado del Proyecto
+## Qué incluye
 
-Este proyecto representa la fase inicial de implementación con una arquitectura N-Layer. La estructura actual sirve como base para una futura migración hacia Clean Architecture.
+- **Identity**: usuarios, roles, permisos granulares (claims-based authorization)
+- **Soft delete**: `ISoftDelete` + query filters globales
+- **Auditoría**: `AuditLogInterceptor` (bitácora de cambios) + `[SensitiveData]` (redacción de campos sensibles) + visor admin en `/admin/audit-log`
+- **Fecha/hora**: `IDateTime`/`DateTimeService`, todo en UTC internamente
+- **Current user**: `ICurrentUserService` para acceso async al usuario autenticado
+- **Branding / white-label**: perfil de marca (`Branding/{profile}.json`, variable `BRANDING_PROFILE`) — nombre, logo, colores por variable de entorno
+- **Email**: envío (MailKit) + gestión de plantillas HTML/CSS editables desde UI, con presets (classic/compact/modern)
+- **PDF**: generación genérica HTML/Razor View → PDF vía PuppeteerSharp
+- **Manejo de archivos/imágenes**: upload, thumbnails, `IImageService`
+- **Result<T> pattern** para todos los métodos de servicio
+- **DbContext factory pattern** con interceptors de auditoría
 
-## Características Planificadas
-
-- **Gestión de Tienda** (`/tienda`)
-  - Control de inventario de productos de limpieza
-  - Catálogo de productos (detergentes, desinfectantes, jabones, etc.)
-  - Ventas y facturación
-  - Facturación electrónica (CFDI)
-
-- **Características Base**
-  - Sistema de autenticación y autorización
-  - Auditoría y soft delete
-  - Gestión de archivos
-  - Configuración flexible
-  - Multi-idioma (i18n)
-  - Temas personalizables
+Ver [`CLAUDE.md`](CLAUDE.md) para convenciones de código y patrones detallados.
 
 ## Estructura del Proyecto
 
 ```
-Cleeny/
+AppBase/
 ├── src/
 │   ├── App.Core/              # Contratos base e interfaces
 │   ├── App.Models/            # Entidades y modelos
@@ -39,12 +35,11 @@ Cleeny/
 │   ├── App.Services/          # Lógica de negocio
 │   ├── App.Shared/            # Utilidades compartidas
 │   └── App.Web/               # Aplicación Blazor
-├── mysql/
-│   └── init/
-│       └── 01-init.sql        # Script de inicialización
+├── tests/
+│   └── App.Services.Tests/    # Tests de servicios (NUnit)
 ├── docs/
-│   ├── architecture/          # Documentación de arquitectura
-│   └── guides/                # Guías de usuario y desarrollo
+│   ├── 01-Architecture/       # ADRs y diagramas
+│   └── 02-Development/        # Guías de desarrollo
 ├── .dockerfile                # Dockerfile principal
 ├── docker-compose.yml         # Configuración de servicios
 ├── .env.development.example   # Template variables desarrollo
@@ -105,84 +100,6 @@ nano .env.production     # Linux/Mac
 > - Cambiar todas las contraseñas por defecto
 > - En producción, usar valores seguros y únicos para todas las variables
 
-### Inicialización de MySQL
-
-El archivo `mysql/init/01-init.sql` se ejecuta automáticamente cuando el contenedor de MySQL se inicia por primera vez.
-
-**Notas importantes:**
-- El script solo se ejecuta en la primera inicialización del volumen
-- Si se elimina el volumen (`docker compose down -v`), el script se ejecutará nuevamente
-- Las credenciales en el script deben coincidir con las variables de entorno
-- Para múltiples scripts, se ejecutan en orden alfabético (01-, 02-, etc.)
-
-### Configuración del Servidor (VPS Neubox con CSF Firewall)
-
-El servidor de producción usa **CSF (ConfigServer Security Firewall)** que administra iptables y puede interferir con Docker. Para que la app funcione correctamente se requieren dos configuraciones en el servidor:
-
-#### 1. Habilitar soporte Docker en CSF
-
-En `/etc/csf/csf.conf` cambiar (por defecto viene en `0`):
-
-```
-DOCKER = "1"
-DOCKER_DEVICE = "docker0"
-DOCKER_NETWORK4 = "172.17.0.0/16"
-```
-
-#### 2. Configurar Docker daemon
-
-Crear o editar `/etc/docker/daemon.json`:
-
-```json
-{
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
-  },
-  "bip": "172.26.0.1/16",
-  "default-address-pools": [
-    {"base": "172.17.0.0/16", "size": 24}
-  ],
-  "userland-proxy": false
-}
-```
-
-**Por qué cada opción:**
-
-| Opción | Razón |
-|--------|-------|
-| `bip` | Mueve la red interna de `docker0` a `172.26.0.0/16`, liberando `172.17.0.0/16` para user-defined networks |
-| `default-address-pools` | Fuerza que `app-network` use subnets dentro de `172.17.0.0/16`, rango que CSF tiene permitido en `DOCKER_NETWORK4` |
-| `userland-proxy: false` | Sin esto, CSF bloquea el proceso `docker-proxy` en la cadena OUTPUT causando 502. Con `false`, el tráfico usa iptables directamente |
-
-Después de aplicar la configuración, reiniciar ambos servicios:
-
-```bash
-systemctl restart docker
-csf -r
-```
-
-#### 3. Contexto Docker Remoto (SSH)
-
-Para desplegar desde tu máquina local sin conectarse manualmente al servidor:
-
-```bash
-# Crear el contexto una sola vez
-docker context create cleeny --docker "host=ssh://user@servidor"
-
-# Construir imagen en el servidor remoto
-docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
-
-# Desplegar
-docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
-
-# Ver logs
-docker --context cleeny compose --profile production logs -f
-```
-
-> `MYSQL_ROOT_PASSWORD` vive en `.env.production.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
-
 ### Ambientes y Comandos
 
 #### Desarrollo
@@ -199,9 +116,6 @@ docker compose --profile development logs -f
 
 # Detener servicios
 docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets down
-
-# Limpiar volúmenes (borra datos)
-docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets down -v
 ```
 
 > `MYSQL_ROOT_PASSWORD` vive en `.env.development.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
@@ -209,17 +123,10 @@ docker compose --profile development --env-file .\.env.development --env-file .\
 #### Producción
 
 ```bash
-# Construir imágenes (en servidor remoto vía SSH context)
-docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
-
-# Iniciar servicios
-docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
-
-# Ver logs
-docker --context cleeny compose --profile production logs -f
-
-# Detener servicios
-docker --context cleeny compose --profile production --env-file .env.production --env-file .env.production.secrets down
+docker compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
+docker compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
+docker compose --profile production logs -f
+docker compose --profile production --env-file .env.production --env-file .env.production.secrets down
 ```
 
 > `MYSQL_ROOT_PASSWORD` vive en `.env.production.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
@@ -233,152 +140,78 @@ docker --context cleeny compose --profile production --env-file .env.production 
 
 > *MySQL solo se incluye para desarrollo y pruebas. En producción, se recomienda usar un servicio de base de datos administrado (AWS RDS, Azure Database for MySQL, Google Cloud SQL, etc.).
 
-### Volúmenes
-
-- **mysql-data:** Base de datos
-  - Ubicación: `/var/lib/mysql`
-  - Persistente entre reinicios
-
-- **app-logs:** Logs de aplicación
-  - Desarrollo: `app-logs`
-  - Producción: `app-logs-prod`
-
 ### Healthchecks
 
-- **WebApp:** `/health`
-  - Intervalo: 30s
-  - Timeout: 30s
-  - Retries: 3
+- **WebApp:** `/health` — intervalo 30s, timeout 30s, 3 reintentos
+- **MySQL:** `mysqladmin ping` — intervalo 10s, timeout 5s, 5 reintentos
 
-- **MySQL:**
-  - Test: `mysqladmin ping`
-  - Intervalo: 10s
-  - Timeout: 5s
-  - Retries: 5
+### Servidor con CSF Firewall (despliegue en VPS)
+
+Si despliegas en un VPS con **CSF (ConfigServer Security Firewall)**, este administra iptables y puede interferir con Docker:
+
+1. En `/etc/csf/csf.conf`: `DOCKER = "1"`, `DOCKER_DEVICE = "docker0"`, `DOCKER_NETWORK4 = "172.17.0.0/16"`.
+2. En `/etc/docker/daemon.json`, ajustar `bip`/`default-address-pools` para que las redes de Docker Compose caigan dentro del rango permitido en CSF, y `"userland-proxy": false` (sin esto CSF bloquea `docker-proxy` en OUTPUT, causando 502).
+3. Reiniciar: `systemctl restart docker && csf -r`.
+4. Para desplegar sin conectarte manualmente por SSH cada vez, usa un contexto Docker remoto: `docker context create <nombre> --docker "host=ssh://user@servidor"`, y antepón `docker --context <nombre>` a los comandos de compose.
 
 ## Base de Datos
 
-La base de datos utiliza schemas separados para organizar la información:
-- `identity`: Usuarios y permisos
-- `shop`: Inventario, productos, ventas y operaciones de tienda
-- `shared`: Datos compartidos
-
 ### Migrations
 
-Las migraciones se manejan usando Entity Framework Core:
-
-#### Crear una Nueva Migración
-
 ```bash
-# Comando básico
+# Crear una nueva migración
 dotnet ef migrations add MigrationName --project src/App.Models.Data --startup-project src/App.Web
 
-# Comando completo con contexto y configuración específica
-dotnet ef migrations add MigrationName ^
-    --context ApplicationDbContext ^
-    --startup-project ./src/App.Web/App.Web.csproj ^
-    --project ./src/App.Models.Data ^
-    --configuration Release ^
-    -- --environment Development
-```
-
-#### Aplicar Migraciones
-
-```bash
-# Comando básico
+# Aplicar migraciones
 dotnet ef database update --project src/App.Models.Data --startup-project src/App.Web
-
-# Comando completo con contexto y configuración específica
-dotnet ef database update ^
-    --context ApplicationDbContext ^
-    --startup-project ./src/App.Web/App.Web.csproj ^
-    --project ./src/App.Models.Data ^
-    --configuration Release ^
-    -- --environment Development
 ```
 
-> **Notas:**
-> - Asegúrate de tener las herramientas de EF Core instaladas: `dotnet tool install --global dotnet-ef`
-> - Verifica que las variables de entorno y cadenas de conexión estén configuradas correctamente
-> - En Windows, usa `^` en lugar de `\` para dividir comandos largos en múltiples líneas
+> Requiere `dotnet tool install --global dotnet-ef` y una cadena de conexión válida en `appsettings.Development.json`.
 
 ## Inicio Rápido
 
 ### Desarrollo con Docker
 
-1. Clonar repositorio:
 ```bash
-git clone https://github.com/yourusername/Cleeny.git
-cd Cleeny
-```
-
-2. Configurar variables de entorno:
-```bash
+git clone <tu-nuevo-repo>
+cd AppBase
 cp .env.development.example .env.development
 cp .env.development.secrets.example .env.development.secrets
 # Editar ambos archivos con tus valores (.secrets nunca se commitea)
-```
-
-3. Ejecutar con Docker:
-```bash
 docker compose --profile development --env-file .\.env.development --env-file .\.env.development.secrets up -d
 ```
 
-4. Acceder a:
-- WebApp: http://localhost:8080
+Acceder a http://localhost:8080. Usuario sembrado por defecto: `admin` / `Admin123!` (rol `SuperAdmin`).
 
 ### Desarrollo sin Docker
 
-1. Configurar `appsettings.Development.json`:
-```json
-{
-  "Database": {
-    "ConnectionString": "Server=localhost;Database=Cleeny;User=root;Password=your_password;"
-  }
-}
-```
-
-2. Crear base de datos local:
-```sql
-CREATE DATABASE Cleeny CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-3. Ejecutar:
-```bash
-dotnet run --project src/App.Web
-```
+1. Configurar `appsettings.Development.json` con tu cadena de conexión a MySQL.
+2. Crear base de datos local: `CREATE DATABASE AppBase CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+3. `dotnet run --project src/App.Web`
 
 ### Manejo de Zonas Horarias
 
 - Todas las fechas y horas se almacenan en **UTC** en la base de datos
-- Los timestamps de auditoría (created_at, modified_at) siempre están en UTC
-- La interfaz de usuario muestra las fechas/horas en la zona horaria del cliente
+- Los timestamps de auditoría (`CreatedAt`, `ModifiedAt`) siempre están en UTC
 - Los contenedores Docker usan `TZ=UTC` por defecto
 
 ## Seguridad
 
 - Autenticación Identity Framework
-- Autorización basada en roles
+- Autorización basada en roles y claims granulares
 - Auditoría automática
 - Soft delete
-- Logging comprehensivo
+- Logging comprehensivo (Serilog)
 - HTTPS forzado en producción
 
-## Planes Futuros
+## Cómo empezar un proyecto nuevo desde esta base
 
-- Migración a Clean Architecture
-- Implementación de CQRS
-- Tests unitarios y de integración
-- Pipeline de CI/CD
-
-## Contribuir
-
-1. Fork el repositorio
-2. Crear rama de feature (`git checkout -b feature/NuevaCaracteristica`)
-3. Commit cambios (`git commit -m 'Agrega nueva característica'`)
-4. Push a la rama (`git push origin feature/NuevaCaracteristica`)
-5. Crear Pull Request
+1. Clona este repo con un nombre nuevo.
+2. Renombra el proyecto/solución si aplica (`App.sln` → `TuApp.sln`, namespaces si quieres cambiarlos).
+3. Reemplaza `Branding/default.json` con el nombre/colores/logo de tu proyecto.
+4. Agrega tus propios módulos de dominio (entidades en `App.Models`, DTOs en `App.Core`, servicios en `App.Services`, páginas en `App.Web`).
+5. Corre `dotnet ef migrations add YourFirstFeature` una vez que agregues tus propias entidades.
 
 ## Licencia
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+Uso interno / privado.

@@ -8,7 +8,7 @@ namespace App.Models.Settings;
 [Table("stg_email_template_settings")]
 public class EmailTemplateSettings : BaseEntity<int>, IAuditTracked
 {
-    /// <summary>Template name, e.g. "invoice-cfdi"</summary>
+    /// <summary>Template name, e.g. "default", "welcome"</summary>
     [Required]
     [StringLength(100)]
     public string Name { get; set; } = null!;

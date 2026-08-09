@@ -34,7 +34,7 @@ public class EmailTemplateSeeder : IEmailTemplateSeeder
             var now = DateTime.UtcNow;
             context.EmailTemplateSettings.Add(new EmailTemplateSettings
             {
-                Name = "invoice-cfdi",
+                Name = "default",
                 HtmlContent = DefaultEmailTemplates.ClassicHtml,
                 CssContent = DefaultEmailTemplates.ClassicCss,
                 CreatedBy = SystemUser,
@@ -44,7 +44,7 @@ public class EmailTemplateSeeder : IEmailTemplateSeeder
             });
 
             await context.SaveChangesAsync();
-            _logger.LogInformation("Email template 'invoice-cfdi' seeded successfully");
+            _logger.LogInformation("Email template 'default' seeded successfully");
         }
         catch (Exception ex)
         {
