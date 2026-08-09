@@ -11,7 +11,7 @@
 var authState = _authenticationStateProvider.GetAuthenticationStateAsync().Result;
 ```
 
-Este patrón (sync-over-async) causó un deadlock real en producción el 2026-07-23 (ver [incident-log.md](../../02-Development/incident-log.md)): en Blazor Server, cada circuito serializa su trabajo en un único `RendererSynchronizationContext`. Si la tarea asíncrona interna aún no había resuelto en el instante en que se leía la propiedad, y su continuación necesitaba reanudarse en ese mismo contexto, el hilo bloqueado por `.Result` nunca podía liberarse para atenderla — deadlock permanente, sin excepción ni entrada de log.
+Este patrón (sync-over-async) causó un deadlock real en producción el 2026-07-23: en Blazor Server, cada circuito serializa su trabajo en un único `RendererSynchronizationContext`. Si la tarea asíncrona interna aún no había resuelto en el instante en que se leía la propiedad, y su continuación necesitaba reanudarse en ese mismo contexto, el hilo bloqueado por `.Result` nunca podía liberarse para atenderla — deadlock permanente, sin excepción ni entrada de log.
 
 El bug era preexistente (desde el commit `22ae5bb`) pero probabilístico: solo se manifestaba si la tarea seguía en vuelo en el momento exacto de la lectura — algo mucho más probable justo después del login (cuando el estado de autenticación todavía se está resolviendo) o justo después de un reinicio del contenedor (cachés en frío). Por eso pasó desapercibido tanto tiempo y apareció de forma aparentemente aleatoria, afectando primero a un flujo específico (apertura de caja) y a usuarios no-admin.
 
@@ -23,7 +23,7 @@ El bug era preexistente (desde el commit `22ae5bb`) pero probabilístico: solo s
    ```
    Esto es una **mitigación aceptada**, no el patrón preferido — evita el deadlock, pero sigue bloqueando un hilo y no debe usarse en código nuevo.
 
-2. **Código nuevo que necesite el usuario actual debe usar las APIs async.** `ICurrentUserService` migró `UserId`, `UserName`, `IsGlobalAccess`, `FullName` y `ActiveLocationId` de propiedades síncronas a métodos `Task<...>` (`GetUserIdAsync()`, `GetUserNameAsync()`, `GetFullNameAsync()`, `GetIsGlobalAccessAsync()`, `GetActiveLocationIdAsync()`), commit `226d322`, actualizando los 45 consumidores existentes en `App.Services`, `App.Web` y los tests. Ya no queda ningún `.Result`/`.GetAwaiter().GetResult()`/`Task.Run(...)` en `CurrentUserService.cs` — la mitigación del punto 1 queda como referencia para código nuevo que no pueda evitar una API síncrona, no como el estado actual de este servicio.
+2. **Código nuevo que necesite el usuario actual debe usar las APIs async.** `ICurrentUserService` expone `UserId`, `UserName` y `FullName` únicamente como métodos `Task<...>` (`GetUserIdAsync()`, `GetUserNameAsync()`, `GetFullNameAsync()`) — nunca como propiedades síncronas. Ya no queda ningún `.Result`/`.GetAwaiter().GetResult()`/`Task.Run(...)` en `CurrentUserService.cs` — la mitigación del punto 1 queda como referencia para código nuevo que no pueda evitar una API síncrona, no como el estado actual de este servicio.
 
 3. **Cualquier servicio o componente que dependa de `IAuthenticationStateProvider`/`ICurrentUserService` dentro de un manejador de evento de Blazor Server debe asumir que el estado de autenticación puede no estar resuelto todavía** — especialmente en las primeras interacciones tras el login o tras un reinicio de la app. No asumir que la lectura es "instantánea porque ya se resolvió antes".
 

@@ -10,16 +10,16 @@ Esta guía documenta cómo desplegar el mismo código base para múltiples clien
 
 No es multi-tenant de esquema compartido (no hay `TenantId` en las tablas) — es la misma app, desplegada N veces, cada una aislada en su propia BD.
 
-## Cómo operar el VDS de tiendas remotamente
+## Cómo operar el VDS multi-tenant remotamente
 
 En vez de entrar por SSH y clonar el repo en cada servidor, se usa un **Docker context** apuntando al daemon remoto — los comandos de `docker`/`docker compose` se corren desde tu máquina, parado en este repo local, y el build/ejecución ocurre en el servidor remoto:
 
 ```bash
 # Una sola vez: crear el context (usa la llave SSH que ya tengas configurada para ese host)
-docker context create tr --docker "host=ssh://usuario@ip-del-vds"
+docker context create mi-vds --docker "host=ssh://usuario@ip-del-vds"
 
 # Cada vez que quieras operar ese servidor:
-docker context use tr
+docker context use mi-vds
 docker compose ...   # todo corre remoto, el .env y el docker-compose.yml se leen de tu carpeta local
 
 # Para volver a tu Docker local:
@@ -32,28 +32,28 @@ sudo usermod -aG docker <usuario>
 # cerrar y volver a abrir la sesión SSH para que el grupo tome efecto
 ```
 
-Con esto, no hace falta `git clone` ni `scp` del `.env.{tienda}` al servidor — todo se lee localmente y se envía sobre la conexión SSH del context.
+Con esto, no hace falta `git clone` ni `scp` del `.env.{tenant}` al servidor — todo se lee localmente y se envía sobre la conexión SSH del context.
 
 ### Perfiles de Compose — por qué son obligatorios, no opcionales
 
 El servicio `db` **tiene** `profiles: [development, production, shared-db]` asignados a propósito (antes no tenía ninguno). Un servicio sin `profiles:` en Compose se incluye **siempre**, sin importar qué `--profile` se use — así que si `db` no tuviera perfil, cualquier `up` con `--profile tenant` lo arrastraría también, y como corre bajo un `-p` (nombre de proyecto) distinto al que lo levantó originalmente, Compose intentaría crear **una segunda copia** de `app-network` con el mismo subnet y fallaría con `Pool overlaps`.
 
-Por eso, en el VDS de tiendas, **siempre hay que pasar el `--profile` correcto** (nunca correr `up -d` a secas):
+Por eso, en el VDS multi-tenant, **siempre hay que pasar el `--profile` correcto** (nunca correr `up -d` a secas):
 
 ```bash
 # Bootstrap del MySQL de este VDS (solo la primera vez) — MYSQL_ROOT_PASSWORD vive en
-# .env.{tienda}.secrets (secreto de infraestructura de BD, independiente de la app)
-docker compose --profile shared-db --env-file .env.{tienda} --env-file .env.{tienda}.secrets up -d
+# .env.{tenant}.secrets (secreto de infraestructura de BD, independiente de la app)
+docker compose --profile shared-db --env-file .env.{tenant} --env-file .env.{tenant}.secrets up -d
 
-# Levantar la app de una tienda (no necesita el .secrets — no toca MYSQL_ROOT_PASSWORD)
-docker compose -p {tienda} --profile tenant --env-file .env.{tienda} up -d --build
+# Levantar la app de un tenant (no necesita el .secrets — no toca MYSQL_ROOT_PASSWORD)
+docker compose -p {tenant} --profile tenant --env-file .env.{tenant} up -d --build
 ```
 
 ## Dónde vive cada dato de marca
 
 | Dato | Fuente | Editable en caliente | Notas |
 |---|---|---|---|
-| **Nombre de la tienda** | BD — `CompanySettings.CompanyName` | Sí, desde Ajustes → General | Sembrado una sola vez desde `Branding/{profile}.json` al primer arranque (`CompanyBrandingSeeder`). Sin fallback al JSON en lecturas posteriores — o está en BD, o se muestra vacío. |
+| **Nombre del tenant** | BD — `CompanySettings.CompanyName` | Sí, desde Ajustes → General | Sembrado una sola vez desde `Branding/{profile}.json` al primer arranque (`CompanyBrandingSeeder`). Sin fallback al JSON en lecturas posteriores — o está en BD, o se muestra vacío. |
 | **Logo principal** (NavMenu, Login, PDFs) | BD — `CompanySettings.LogoBase64` | Sí, desde Ajustes → General | Usado por NavMenu, Login/ForgotPassword/ResetPassword, y por cualquier PDF generado. Si no se ha subido nada, cae al archivo estático de `Branding/{profile}.json`. |
 | **Colores del tema** (`PrimaryColor`/`SecondaryColor`) | `Branding/{profile}.json` | No — requiere redeploy | Fijos por deployment; `CurrentThemeService` es singleton y arma el `MudTheme` una sola vez al arrancar. |
 | **Favicon** | `Branding/{profile}.json` → `FaviconPath` | No — requiere redeploy | Estático, leído por `AppRoot.razor` (`<link rel="icon">`). Archivo debe existir bajo `wwwroot`. |

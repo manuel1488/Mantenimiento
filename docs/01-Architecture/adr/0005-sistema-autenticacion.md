@@ -58,7 +58,7 @@ public static class ApplicationClaims
 
 **Estructura de Archivos:**
 ```plaintext
-DA.Core/
+App.Core/
 ├── Constants/
 │   ├── ApplicationRoles.cs
 │   └── ApplicationClaims.cs
@@ -67,7 +67,7 @@ DA.Core/
 │       ├── IIdentityService.cs
 │       └── IRoleService.cs
 
-DA.Services/Identity/
+App.Services/Identity/
 ├── IdentityService.cs
 ├── RoleService.cs
 └── IdentitySeeder.cs
