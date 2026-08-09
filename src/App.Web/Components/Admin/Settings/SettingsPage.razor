@@ -1,25 +1,8 @@
-﻿@page "/admin/settings"
+@page "/admin/settings"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Localization
-@using App.Web.Components.Admin.Settings.Locations
 @using App.Web.Components.Admin.Settings.General
-@using App.Web.Components.Admin.Settings.Fiscal
-@using App.Web.Components.Admin.Settings.UnitMeasure
 @using App.Web.Components.Admin.Settings.Email
-@using App.Web.Components.Admin.Settings.TaxRate
-@using App.Web.Components.Admin.Settings.Discount
-@using App.Web.Components.Admin.Settings.Ticket
-@using App.Web.Components.Admin.Settings.PartialSaleFractions
-@using App.Web.Components.Admin.Settings.WholesaleTiers
-@using App.Web.Components.Admin.Settings.Wholesale
-@using App.Web.Components.Admin.Settings.Rounding
-@using App.Web.Components.Admin.Settings.PaymentMethods
-@using App.Web.Components.Admin.Settings.CashRegister
-@using App.Web.Components.Admin.Settings.Billing
-@using App.Web.Components.Admin.Settings.Pac
-@using App.Web.Components.Admin.Settings.Labels
-@using App.Web.Components.Admin.Settings.Quotation
-@using App.Web.Components.Admin.Settings.Inventory
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -33,7 +16,7 @@
                 <MudText Typo="Typo.h5">@L["Company Settings"]</MudText>
             </CardHeaderContent>
         </MudCardHeader>
-        
+
         <MudCardContent Class="pt-0">
             <MudTabs Elevation="0"
                      Color="Color.Primary"
@@ -44,109 +27,12 @@
                         <GeneralSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewFiscalSettings">
-                    <MudTabPanel Text="@L["Fiscal"]" Icon="@Icons.Material.Filled.Receipt">
-                        <FiscalSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewDisccounts">
-                    <MudTabPanel Text="@L["Discounts"]" Icon="@Icons.Material.Filled.Discount">
-                        <DiscountSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBranchSettings">
-                    <MudTabPanel Text="@L["Locations"]" Icon="@Icons.Material.Filled.LocationOn">
-                        <LocationsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUnitMeasures">
-                    <MudTabPanel Text="@L["Unit Measures"]" Icon="@Icons.Material.Filled.Scale">
-                        <UnitMeasureTab />
-                    </MudTabPanel>
-                </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewEmailSettings">
                     <MudTabPanel Text="@L["Email"]" Icon="@Icons.Material.Filled.Email">
                         <EmailSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewTaxRates">
-                    <MudTabPanel Text="@L["Tax Rates"]" Icon="@Icons.Material.Filled.Percent">
-                        <TaxRatesTab />
-                    </MudTabPanel>
-                </AuthorizeView>   
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewTicketSettings">
-                    <MudTabPanel Text="@L["Ticket Settings"]" Icon="@Icons.Material.Filled.ReceiptLong">
-                        <TicketConfigurationTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Partial Fractions"]" Icon="@Icons.Material.Filled.PieChart">
-                        <PartialSaleFractionsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Wholesale Tiers"]" Icon="@Icons.Material.Filled.Layers">
-                        <WholesaleTiersTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Wholesale Settings"]" Icon="@Icons.Material.Filled.ShoppingCart">
-                        <WholesaleSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Rounding"]" Icon="@Icons.Material.Filled.RoundedCorner">
-                        <RoundingSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Payment Methods"]" Icon="@Icons.Material.Filled.Payments">
-                        <PaymentMethodsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Cash Register"]" Icon="@Icons.Material.Filled.PointOfSale">
-                        <CashRegisterSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewBillingSettings">
-                    <MudTabPanel Text="@L["Billing"]" Icon="@Icons.Material.Filled.Receipt">
-                        <BillingSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewFiscalSettings">
-                    <MudTabPanel Text="@L["PAC Billing"]" Icon="@Icons.Material.Filled.ReceiptLong">
-                        <PacSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Labels"]" Icon="@Icons.Material.Filled.Label">
-                        <LabelSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ManageEmailSettings">
-                    <MudTabPanel Text="@L["Invoice Template"]" Icon="@Icons.Material.Filled.MarkEmailRead">
-                        <InvoiceEmailTemplateTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Quotation"]" Icon="@Icons.Material.Filled.RequestQuote">
-                        <QuotationSettingsTab />
-                    </MudTabPanel>
-                </AuthorizeView>
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
-                    <MudTabPanel Text="@L["Inventory"]" Icon="@Icons.Material.Filled.Inventory">
-                        <InventorySettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>
         </MudCardContent>
     </MudCard>
 </MudContainer>
-
-@code {
-    protected override void OnInitialized()
-    {
-        // TODO: Implement authorization logic
-    }
-}

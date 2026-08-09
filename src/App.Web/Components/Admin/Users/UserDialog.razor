@@ -4,13 +4,10 @@
 @using MudBlazor.Services
 @using App.Core.Constants
 
-@using App.Core.DTOs.Location
 @using App.Core.Interfaces
 @inject IStringLocalizer<UserDialog> L
 @inject IIdentityService IdentityService
 @inject IRoleService RoleService
-@inject ILocationService LocationService
-@inject IUserLocationService UserLocationService
 @inject IDialogService DialogService
 @inject RoleTranslationService RoleTranslationService
 
@@ -141,16 +138,6 @@
                                  Label="@L["Active"]" />
                     </MudItem>
 
-                    <!-- Global Location Access -->
-                    <MudItem xs="12" Class="mt-3">
-                        <MudSwitch T="bool" @bind-Value="Model.HasGlobalLocationAccess"
-                                 Color="Color.Primary"
-                                 Label="@L["Access to all locations"]" />
-                        <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary">
-                            @L["The user will be able to view and operate on all locations without needing individual assignment."]
-                        </MudText>
-                    </MudItem>
-
                     <!-- Mensaje de advertencia sobre permisos -->
                     @if (_roleChanged && !IsNew)
                     {
@@ -166,27 +153,6 @@
                                     </div>
                                 </div>
                             </MudAlert>
-                        </MudItem>
-                    }
-
-                    <!-- Location Assignment -->
-                    @if (_locations.Any() && !Model.HasGlobalLocationAccess)
-                    {
-                        <MudItem xs="12" Class="mt-3">
-                            <MudSelect T="int" Label="@L["Assigned Locations"]"
-                                      MultiSelection="true"
-                                      @bind-SelectedValues="Model.LocationIds"
-                                      MultiSelectionTextFunc="@(new Func<List<string>, string>(GetLocationSelectionText))"
-                                      AnchorOrigin="Origin.BottomCenter"
-                                      AdornmentIcon="@Icons.Material.Filled.LocationOn">
-                                @foreach (var location in _locations)
-                                {
-                                    <MudSelectItem T="int" Value="@location.Id">@location.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary">
-                                @L["Select the locations this user can access. Leave empty for no location restriction."]
-                            </MudText>
                         </MudItem>
                     }
                 </MudGrid>
@@ -213,8 +179,7 @@
     private string _originalRole = string.Empty;
     private bool _roleChanged = false;
     private Dictionary<string, IEnumerable<string>> _rolePermissions = new();
-    private IList<LocationDto> _locations = new List<LocationDto>();
-    
+
     // Password visibility variables
     private bool _passwordVisible = false;
     private InputType _passwordInputType = InputType.Password;
@@ -227,9 +192,6 @@
 
         // Cargar los permisos por rol para referencia
         await LoadRolePermissionsAsync();
-
-        // Cargar ubicaciones activas
-        _locations = await LocationService.GetActiveLocationsAsync();
 
         // Guardar el rol original para comparación
         _originalRole = Model.Role;
@@ -268,17 +230,6 @@
                 Model.Permissions = rolePermissions.ToList();
             }
         }
-    }
-
-    private string GetLocationSelectionText(List<string> selectedValues)
-    {
-        if (!selectedValues.Any())
-            return L["No locations assigned"];
-
-        var names = selectedValues
-            .Select(v => int.TryParse(v, out var id) ? _locations.FirstOrDefault(l => l.Id == id)?.Name : null)
-            .Where(n => n != null);
-        return string.Join(", ", names);
     }
 
     private void Cancel()

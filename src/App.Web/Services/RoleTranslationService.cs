@@ -21,8 +21,6 @@ public class RoleTranslationService
     {
         ApplicationRoles.SuperAdmin => L["Role.SuperAdmin"],
         ApplicationRoles.Admin => L["Role.Admin"],
-        ApplicationRoles.ShopManager => L["Role.ShopManager"],
-        ApplicationRoles.ShopEmployee => L["Role.ShopEmployee"],
         _ => roleName
     };
 
@@ -35,8 +33,6 @@ public class RoleTranslationService
     {
         ApplicationRoles.SuperAdmin => L["Role.SuperAdmin.Description"],
         ApplicationRoles.Admin => L["Role.Admin.Description"],
-        ApplicationRoles.ShopManager => L["Role.ShopManager.Description"],
-        ApplicationRoles.ShopEmployee => L["Role.ShopEmployee.Description"],
         _ => L["Role.NoDescription"]
     };
 }

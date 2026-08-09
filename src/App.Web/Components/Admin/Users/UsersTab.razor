@@ -18,7 +18,6 @@
 @inject IRoleService RoleService
 @inject ILogger<UsersTab> Logger
 @inject RoleTranslationService RoleTranslationService
-@inject IUserLocationService UserLocationService
 
 
 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewUsers">
@@ -237,8 +236,7 @@
                         Password = model.Password!,
                         FullName = model.FullName,
                         Email = model.Email,
-                        Role = model.Role,
-                        HasGlobalLocationAccess = model.HasGlobalLocationAccess
+                        Role = model.Role
                     };
 
                 var (identityResult, userId) = await IdentityService.CreateUserAsync(createDto);
@@ -253,12 +251,6 @@
 
                         // Actualizar los permisos del usuario con los del rol
                         await IdentityService.UpdateUserPermissionsAsync(userId, rolePermissions);
-                    }
-
-                    // Asignar ubicaciones
-                    if (model.LocationIds.Any())
-                    {
-                        await UserLocationService.AssignLocationsToUserAsync(userId, model.LocationIds.ToList());
                     }
 
                     Snackbar.Add(L["User created successfully"], Severity.Success);
@@ -298,12 +290,6 @@
             // Actualizar con la información más reciente
             var userInfo = userResult.Value;
 
-            // Obtener ubicaciones asignadas
-            var userLocationsResult = await UserLocationService.GetUserLocationsAsync(user.Id);
-            var userLocationIds = userLocationsResult.IsSuccess
-                ? userLocationsResult.Value!.Select(l => l.Id).ToList()
-                : new List<int>();
-
             var parameters = new DialogParameters<UserDialog>
             {
                 { x => x.IsNew, false },
@@ -314,9 +300,7 @@
                         Email = userInfo.Email,
                         FullName = userInfo.FullName,
                         IsActive = userInfo.IsActive,
-                        HasGlobalLocationAccess = userInfo.HasGlobalLocationAccess,
-                        Role = currentRole,
-                        LocationIds = userLocationIds
+                        Role = currentRole
                     }
                 }
             };
@@ -334,8 +318,7 @@
                         FullName = model.FullName,
                         Email = model.Email,
                         Role = model.Role,
-                        IsActive = model.IsActive,
-                        HasGlobalLocationAccess = model.HasGlobalLocationAccess
+                        IsActive = model.IsActive
                     };
 
                     var identityResult = await IdentityService.UpdateUserAsync(model.Id!, updateDto);
@@ -351,9 +334,6 @@
                             // Actualizar permisos del usuario
                             await IdentityService.UpdateUserPermissionsAsync(model.Id!, rolePermissions);
                         }
-
-                        // Actualizar ubicaciones asignadas
-                        await UserLocationService.AssignLocationsToUserAsync(model.Id!, model.LocationIds.ToList());
 
                         Snackbar.Add(L["User updated successfully"], Severity.Success);
                         await _table.ReloadServerData();

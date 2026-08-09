@@ -12,7 +12,7 @@ namespace App.Services.Seeders;
 public class CompanyBrandingSeeder : ICompanyBrandingSeeder
 {
     private const string SystemUser = "System";
-    private const string DefaultTimeZoneId = "America/Mexico_City";
+    private const string DefaultTimeZoneId = "UTC";
 
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ApplicationOptions _applicationOptions;
@@ -31,8 +31,7 @@ public class CompanyBrandingSeeder : ICompanyBrandingSeeder
     // Ensures CompanySettings.CompanyName is always populated from the deployment's brand
     // profile (Branding/{profile}.json via ApplicationOptions.Name), so every document/report
     // has a single source of truth (the DB) with no runtime fallback to config. Only touches
-    // CompanyName — Initial Setup owns the rest (country/currency/timezone) and this seeder
-    // must not overwrite whatever the admin has already configured there.
+    // CompanyName on later runs — it must not overwrite whatever an admin has already configured.
     public async Task SeedAsync()
     {
         try
@@ -50,8 +49,6 @@ public class CompanyBrandingSeeder : ICompanyBrandingSeeder
                 context.CompanySettings.Add(new CompanySettings
                 {
                     CompanyName = _applicationOptions.Name,
-                    CountryCode = "MX",
-                    CurrencyCode = "MXN",
                     TimeZoneId = DefaultTimeZoneId,
                     TimeZoneDisplayName = ResolveTimeZoneDisplayName(DefaultTimeZoneId),
                     CreatedBy = SystemUser,

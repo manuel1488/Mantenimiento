@@ -3,8 +3,8 @@ using System.Text.Json;
 using App.Core.Enums.Shared;
 using App.Models.Data.Contexts;
 using App.Models.Data.Interceptors;
+using App.Models.Identity;
 using App.Models.Settings;
-using App.Models.Shop;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -50,15 +50,10 @@ public class AuditLogInterceptorTests
 
     private ApplicationDbContext NewContext() => new(_dbOptions);
 
-    private static Product NewProduct() => new()
+    private static CompanySettings NewCompanySettings() => new()
     {
-        Code = "P-001",
-        Name = "Test Product",
-        Brand = "ACME",
-        UnitMeasureId = 1,
-        Cost = 5m,
-        Price = 10m,
-        IsActive = true,
+        CompanyName = "Test Company",
+        TimeZoneId = "UTC",
         CreatedBy = "alice",
         CreatedAt = _fixedNow
     };
@@ -68,13 +63,13 @@ public class AuditLogInterceptorTests
     [Test]
     public async Task Insert_TrackedEntity_WritesInsertLogWithResolvedKey()
     {
-        long productId;
+        int settingsId;
         await using (var ctx = NewContext())
         {
-            var product = NewProduct();
-            ctx.Products.Add(product);
+            var settings = NewCompanySettings();
+            ctx.CompanySettings.Add(settings);
             await ctx.SaveChangesAsync();
-            productId = product.Id;
+            settingsId = settings.Id;
         }
 
         await using var verify = NewContext();
@@ -82,11 +77,11 @@ public class AuditLogInterceptorTests
 
         Assert.That(logs, Has.Count.EqualTo(1));
         Assert.That(logs[0].Action, Is.EqualTo(AuditAction.Insert));
-        Assert.That(logs[0].EntityType, Is.EqualTo(nameof(Product)));
+        Assert.That(logs[0].EntityType, Is.EqualTo(nameof(CompanySettings)));
         // InMemory has no relational table mapping, so GetTableName() falls back to the
-        // CLR name; on MySQL this resolves to "sh_products".
+        // CLR name; on MySQL this resolves to "stg_settings".
         Assert.That(logs[0].TableName, Is.Not.Empty);
-        Assert.That(logs[0].EntityId, Is.EqualTo(productId.ToString()));
+        Assert.That(logs[0].EntityId, Is.EqualTo(settingsId.ToString()));
         Assert.That(logs[0].UserName, Is.EqualTo("alice"));
         Assert.That(logs[0].Timestamp, Is.EqualTo(_fixedNow));
     }
@@ -94,21 +89,21 @@ public class AuditLogInterceptorTests
     [Test]
     public async Task Update_TrackedEntity_RecordsOnlyChangedPropertiesAsOldNew()
     {
-        long productId;
+        int settingsId;
         await using (var ctx = NewContext())
         {
-            var product = NewProduct();
-            ctx.Products.Add(product);
+            var settings = NewCompanySettings();
+            ctx.CompanySettings.Add(settings);
             await ctx.SaveChangesAsync();
-            productId = product.Id;
+            settingsId = settings.Id;
         }
 
         await using (var ctx = NewContext())
         {
-            var product = await ctx.Products.FirstAsync(p => p.Id == productId);
-            product.Price = 12.5m;
-            product.ModifiedBy = "bob";
-            product.ModifiedAt = _fixedNow;
+            var settings = await ctx.CompanySettings.FirstAsync(p => p.Id == settingsId);
+            settings.CompanyName = "Renamed Company";
+            settings.ModifiedBy = "bob";
+            settings.ModifiedAt = _fixedNow;
             await ctx.SaveChangesAsync();
         }
 
@@ -118,31 +113,31 @@ public class AuditLogInterceptorTests
         Assert.That(update.UserName, Is.EqualTo("bob"));
 
         var changes = JsonSerializer.Deserialize<List<PropertyChangeDto>>(update.Changes!)!;
-        Assert.That(changes, Has.Count.EqualTo(1), "Only the changed Price should be recorded");
-        Assert.That(changes[0].Property, Is.EqualTo(nameof(Product.Price)));
-        Assert.That(changes[0].Old, Is.EqualTo("10"));
-        Assert.That(changes[0].New, Is.EqualTo("12.5"));
+        Assert.That(changes, Has.Count.EqualTo(1), "Only the changed CompanyName should be recorded");
+        Assert.That(changes[0].Property, Is.EqualTo(nameof(CompanySettings.CompanyName)));
+        Assert.That(changes[0].Old, Is.EqualTo("Test Company"));
+        Assert.That(changes[0].New, Is.EqualTo("Renamed Company"));
     }
 
     [Test]
     public async Task Update_NoMeaningfulChange_DoesNotWriteLog()
     {
-        long productId;
+        int settingsId;
         await using (var ctx = NewContext())
         {
-            var product = NewProduct();
-            ctx.Products.Add(product);
+            var settings = NewCompanySettings();
+            ctx.CompanySettings.Add(settings);
             await ctx.SaveChangesAsync();
-            productId = product.Id;
+            settingsId = settings.Id;
         }
 
         await using (var ctx = NewContext())
         {
-            var product = await ctx.Products.FirstAsync(p => p.Id == productId);
+            var settings = await ctx.CompanySettings.FirstAsync(p => p.Id == settingsId);
             // Only audit-metadata changes — no business property changed.
-            product.ModifiedBy = "bob";
-            product.ModifiedAt = _fixedNow;
-            ctx.Entry(product).Property(p => p.Price).IsModified = true; // same value
+            settings.ModifiedBy = "bob";
+            settings.ModifiedAt = _fixedNow;
+            ctx.Entry(settings).Property(p => p.CompanyName).IsModified = true; // same value
             await ctx.SaveChangesAsync();
         }
 
@@ -191,30 +186,30 @@ public class AuditLogInterceptorTests
     [Test]
     public async Task SoftDelete_ClassifiedAsDelete()
     {
-        long productId;
+        int settingsId;
         await using (var ctx = NewContext())
         {
-            var product = NewProduct();
-            ctx.Products.Add(product);
+            var settings = NewCompanySettings();
+            ctx.CompanySettings.Add(settings);
             await ctx.SaveChangesAsync();
-            productId = product.Id;
+            settingsId = settings.Id;
         }
 
         await using (var ctx = NewContext())
         {
-            var product = await ctx.Products.FirstAsync(p => p.Id == productId);
+            var settings = await ctx.CompanySettings.FirstAsync(p => p.Id == settingsId);
             // Emulate what AuditableEntityInterceptor leaves for a soft-delete:
             // state Modified, IsDeleted bumped 0 -> N, DeletedBy set.
-            product.IsDeleted = 1;
-            product.DeletedBy = "carol";
-            product.DeletedAt = _fixedNow;
+            settings.IsDeleted = 1;
+            settings.DeletedBy = "carol";
+            settings.DeletedAt = _fixedNow;
             await ctx.SaveChangesAsync();
         }
 
         await using var verify = NewContext();
         var del = await verify.AuditLogs.SingleAsync(l => l.Action == AuditAction.Delete);
 
-        Assert.That(del.EntityId, Is.EqualTo(productId.ToString()));
+        Assert.That(del.EntityId, Is.EqualTo(settingsId.ToString()));
         Assert.That(del.UserName, Is.EqualTo("carol"));
         Assert.That(del.Changes, Is.Null, "Delete records no property diff");
     }
@@ -224,11 +219,10 @@ public class AuditLogInterceptorTests
     {
         await using (var ctx = NewContext())
         {
-            ctx.Sales.Add(new Sale
+            ctx.Users.Add(new ApplicationUser
             {
-                CustomerId = 1,
-                SaleDate = _fixedNow,
-                Total = 100m,
+                UserName = "nottracked",
+                FullName = "Not Tracked",
                 CreatedBy = "alice",
                 CreatedAt = _fixedNow
             });

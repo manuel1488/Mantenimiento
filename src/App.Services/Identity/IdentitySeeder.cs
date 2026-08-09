@@ -154,19 +154,6 @@ public class IdentitySeeder : IIdentitySeeder
                 c.StartsWith("Admin.") ||
                 c.StartsWith("Shared.")),
 
-            ApplicationRoles.ShopManager => allClaims.Where(c =>
-                c.StartsWith("Shop.") ||
-                c.StartsWith("Shared.")),
-
-            ApplicationRoles.ShopEmployee => allClaims.Where(c =>
-                (c.StartsWith("Shop.") && 
-                !c.Contains(".Delete") && 
-                !c.Contains(".Cancel") &&
-                !c.EndsWith(".Manage")) ||
-                (c.StartsWith("Shared.") && 
-                !c.Contains(".Delete") && 
-                !c.EndsWith(".Manage"))),
-
             _ => Enumerable.Empty<string>()
         };
     }

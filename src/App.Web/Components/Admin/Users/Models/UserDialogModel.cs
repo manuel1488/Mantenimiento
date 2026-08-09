@@ -10,7 +10,5 @@ public class UserDialogModel
     public string? ConfirmPassword { get; set; }
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-    public bool HasGlobalLocationAccess { get; set; }
     public List<string> Permissions { get; set; } = new List<string>();
-    public IEnumerable<int> LocationIds { get; set; } = new List<int>();
 }

@@ -10,7 +10,6 @@ public class UserDto
     public string FullName { get; set; } = null!;
     public string? Email { get; set; }
     public bool IsActive { get; set; }
-    public bool HasGlobalLocationAccess { get; set; }
     public DateTime? LastLogin { get; set; }
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = null!;
