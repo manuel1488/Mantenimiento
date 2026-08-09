@@ -1,0 +1,11 @@
+{
+  "Application": {
+    "Name": "AppBase"
+  },
+  "Branding": {
+    "LogoPath": "/images/logo.webp",
+    "FaviconPath": "/favicon.ico",
+    "PrimaryColor": "#1A6868",
+    "SecondaryColor": "#7B3FA0"
+  }
+}
