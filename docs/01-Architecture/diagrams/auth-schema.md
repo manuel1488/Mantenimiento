@@ -137,15 +137,14 @@ public interface ISoftDelete
 ### Verificación de Permisos
 ```csharp
 // 1. Mediante atributo
-[Permission("Permissions.Shop.ViewProducts")]
-public class ProductController : Controller
+[Authorize(Policy = ApplicationClaims.Admin.ManageSettings)]
+public class SettingsController : Controller
 {
     // ... implementación
 }
 
 // 2. Verificación programática
-if (await _permissionService.HasPermissionAsync(
-    userId, "Permissions.Shop.ManageProducts"))
+if (await _permissionCheckService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings))
 {
     // ... lógica de negocio
 }

@@ -34,10 +34,9 @@ Implementar un sistema basado en Identity Framework con las siguientes caracter√
 ```csharp
 public static class ApplicationClaims
 {
-    public static class Shop { ... }
-    public static class Workshop { ... }
     public static class Admin { ... }
     public static class Shared { ... }
+    // Agrega una clase anidada por cada m√≥dulo de dominio que agregues
 }
 ```
 

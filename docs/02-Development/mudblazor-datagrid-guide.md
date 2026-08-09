@@ -72,7 +72,7 @@ Use `HeaderStyle` on columns to set widths. Columns without `HeaderStyle` expand
 ### Numeric/Currency Columns
 - Use `CellStyle="text-align: right; white-space: nowrap;"` for currency/number columns
 - Use `HeaderStyle="text-align: right; width: 90px;"` to right-align header and set compact width
-- Columns without explicit width will absorb remaining space (ideal for text like Customer, Name, Description)
+- Columns without explicit width will absorb remaining space (ideal for text like Name, Description)
 
 ### Action Columns
 ```razor
@@ -119,7 +119,7 @@ Use `HorizontalScrollbar="true"` to enable native horizontal scroll when columns
 
 - Works **without** setting `Height` — grid expands vertically and scrolls horizontally when needed
 - Setting `Height` adds vertical scroll too (both axes); only use if you need a fixed-height table
-- Combine with `CellStyle="white-space:nowrap"` on columns that must not wrap (e.g. quotation numbers, dates)
+- Combine with `CellStyle="white-space:nowrap"` on columns that must not wrap (e.g. reference numbers, dates)
 
 ## Tables with Many Columns (10+)
 

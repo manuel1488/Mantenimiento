@@ -97,8 +97,8 @@ private async Task OpenWorkflowDialog(MyStatus? status)
                 <!-- Nodos de estado: pill (rx = height/2) -->
                 @DrawNode(MyStatus.Draft, "#9E9E9E", 190, 17, 140, 36)
 
-                <!-- Nodos outcome (Sale, Remision): rect redondeado (rx=8) -->
-                @DrawOutcome(L["Sale"].Value, "#1565C0", 80, 325, 120, 36)
+                <!-- Nodos outcome (estado terminal fuera del ciclo principal): rect redondeado (rx=8) -->
+                @DrawOutcome(L["Completed"].Value, "#1565C0", 80, 325, 120, 36)
             </svg>
         </div>
 
@@ -191,14 +191,4 @@ Control points típicos: misma Y que el origen para salir horizontal, luego desc
 | Accepted  | #4CAF50  | Color.Success |
 | Rejected  | #F44336  | Color.Error   |
 | Expired   | #FF9800  | Color.Warning |
-| Sale      | #1565C0  | —             |
-| Remission | #E65100  | —             |
-
----
-
-## Módulos candidatos
-
-| Módulo | Enum | Transiciones |
-|---|---|---|
-| Remisiones | `RemissionStatus` | Pending → Consolidated / Cancelled |
-| Facturas CFDI | — | Draft → Stamped → Cancelled |
+| Completed (outcome) | #1565C0 | —      |

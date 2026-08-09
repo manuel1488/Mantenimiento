@@ -63,7 +63,7 @@ La migración a Mapperly no es urgente dado el riesgo bajo evaluado, pero debe r
 3. Reemplazar las inyecciones de `IMapper` por las interfaces específicas de Mapperly.
 4. Eliminar `AutoMapper` y `AutoMapper.Extensions.Microsoft.DependencyInjection` de todos los proyectos.
 
-Los perfiles actuales están en `App.Services/Mappings/`. La migración puede hacerse de forma incremental por dominio (Shop → Admin → Billing).
+Los perfiles actuales están en `App.Services/Mappings/`. La migración puede hacerse de forma incremental, un dominio a la vez.
 
 ---
 

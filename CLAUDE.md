@@ -519,7 +519,7 @@ Icons.Material.Filled.CheckCircle           → Success confirm
 | Asset Type | Location | Format | Notes |
 |-----------|---------|--------|-------|
 | Application logo | `wwwroot/images/logo.webp` | WebP | 7.9 KB |
-| Product images | `wwwroot/uploads/` | JPEG/PNG/WebP | Max 5 MB, 75% JPEG quality |
+| Uploaded images | `wwwroot/uploads/` | JPEG/PNG/WebP | Max 5 MB, 75% JPEG quality |
 | Thumbnails | `wwwroot/uploads/thumb_*` | JPEG | Max 300×300 px |
 | Favicon | `wwwroot/favicon.ico` / `.png` | ICO/PNG | |
 | Email templates | `wwwroot/EmailTemplates/` | HTML | Runtime generated |
