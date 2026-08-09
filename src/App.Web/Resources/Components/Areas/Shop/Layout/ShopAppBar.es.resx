@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<root>
-    <data name="Shop" xml:space="preserve">
-        <value>Tienda</value>
-    </data>
-    <data name="Quick search" xml:space="preserve">
-        <value>Búsqueda rápida</value>
-    </data>
-</root>

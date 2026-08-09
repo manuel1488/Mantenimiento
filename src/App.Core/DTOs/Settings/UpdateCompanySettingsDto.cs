@@ -8,20 +8,9 @@ public class UpdateCompanySettingsDto
     [StringLength(100)]
     public string CompanyName { get; set; } = null!;
 
-
-    [Required]
-    [StringLength(3)]
-    public string CountryCode { get; set; } = null!;
-
-    [Required]
-    [StringLength(3)]
-    public string CurrencyCode { get; set; } = null!;
-
     [Required]
     [StringLength(100)]
     public string TimeZoneId { get; set; } = null!;
-
-    public bool ShowPricesWithTax { get; set; } = false;
 
     public string? LogoBase64 { get; set; }
 }
