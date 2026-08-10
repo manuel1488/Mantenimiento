@@ -30,6 +30,11 @@ public static class ApplicationClaims
         // Permisos
         public const string ViewPermissions = "Admin.Permissions.View";
         public const string ManagePermissions = "Admin.Permissions.Manage";
+
+        // Servicios (catálogo)
+        public const string ViewServicios = "Admin.Servicios.View";
+        public const string ManageServicios = "Admin.Servicios.Manage";
+        public const string DeleteServicios = "Admin.Servicios.Delete";
     }
 
     public static class Shared

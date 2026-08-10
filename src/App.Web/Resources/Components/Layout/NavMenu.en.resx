@@ -102,4 +102,7 @@
   <data name="Audit Log" xml:space="preserve">
     <value>Audit Log</value>
   </data>
+  <data name="Services" xml:space="preserve">
+    <value>Services</value>
+  </data>
 </root>

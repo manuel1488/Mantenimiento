@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Services" xml:space="preserve">
+    <value>Servicios</value>
+  </data>
+  <data name="Search services" xml:space="preserve">
+    <value>Buscar servicios</value>
+  </data>
+  <data name="New Service" xml:space="preserve">
+    <value>Nuevo Servicio</value>
+  </data>
+  <data name="Edit Service" xml:space="preserve">
+    <value>Editar Servicio</value>
+  </data>
+  <data name="Delete Service" xml:space="preserve">
+    <value>Eliminar Servicio</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Unit of Measure" xml:space="preserve">
+    <value>Unidad de Medida</value>
+  </data>
+  <data name="Unit Price" xml:space="preserve">
+    <value>Precio Unitario</value>
+  </data>
+  <data name="Days per Unit" xml:space="preserve">
+    <value>Días por Unidad</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="No services found" xml:space="preserve">
+    <value>No se encontraron servicios</value>
+  </data>
+  <data name="You don't have permission to view services." xml:space="preserve">
+    <value>No tienes permiso para ver los servicios.</value>
+  </data>
+  <data name="Error loading services" xml:space="preserve">
+    <value>Error al cargar los servicios</value>
+  </data>
+  <data name="Service created successfully" xml:space="preserve">
+    <value>Servicio creado exitosamente</value>
+  </data>
+  <data name="Service updated successfully" xml:space="preserve">
+    <value>Servicio actualizado exitosamente</value>
+  </data>
+  <data name="Service deleted successfully" xml:space="preserve">
+    <value>Servicio eliminado exitosamente</value>
+  </data>
+  <data name="Delete Service Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Servicio</value>
+  </data>
+  <data name="Are you sure you want to delete service:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar el servicio:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+</root>

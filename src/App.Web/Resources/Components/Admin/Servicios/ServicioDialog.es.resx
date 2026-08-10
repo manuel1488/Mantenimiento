@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New Service" xml:space="preserve">
+    <value>Nuevo Servicio</value>
+  </data>
+  <data name="Edit Service" xml:space="preserve">
+    <value>Editar Servicio</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Unit of Measure" xml:space="preserve">
+    <value>Unidad de Medida</value>
+  </data>
+  <data name="Unit of measure is required" xml:space="preserve">
+    <value>La unidad de medida es requerida</value>
+  </data>
+  <data name="Unit Price" xml:space="preserve">
+    <value>Precio Unitario</value>
+  </data>
+  <data name="Unit price is required" xml:space="preserve">
+    <value>El precio unitario es requerido</value>
+  </data>
+  <data name="Days per Unit" xml:space="preserve">
+    <value>Días por Unidad</value>
+  </data>
+  <data name="Days per unit is required" xml:space="preserve">
+    <value>Los días por unidad son requeridos</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+</root>

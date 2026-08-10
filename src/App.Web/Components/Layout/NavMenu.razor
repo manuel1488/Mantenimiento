@@ -49,6 +49,12 @@
                     </Authorized>
                 </AuthorizeView>
 
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewServicios">
+                    <Authorized Context="serviciosAuth">
+                        <MudNavLink Href="/admin/servicios">@L["Services"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

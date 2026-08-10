@@ -1,0 +1,260 @@
+@page "/admin/servicios"
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewServicios)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Servicios
+@using App.Core.Interfaces
+@using App.Web.Components.Admin.Servicios.Models
+@using App.Web.Components.Shared.Dialogs
+@using MudBlazor
+
+@inject IStringLocalizer<ServiciosPage> L
+@inject IServicioService ServicioService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<ServiciosPage> Logger
+
+<PageTitle>@L["Services"]</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewServicios">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+            <MudText Typo="Typo.h4" GutterBottom="true">@L["Services"]</MudText>
+
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-4" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudTextField T="string" ValueChanged="@(s => OnSearch(s))"
+                                  Placeholder="@L["Search services"]"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Class="flex-1" />
+
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageServicios">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Add"
+                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                @L["New Service"]
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudStack>
+
+                <MudDataGrid T="ServicioDto" Items="@_filteredServicios" Loading="_loading"
+                             SortMode="SortMode.Multiple" Filterable="false"
+                             Dense="true" Hover="true" RowsPerPage="10">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Nombre" Title="@L["Name"]" />
+                            <PropertyColumn Property="x => x.Descripcion" Title="@L["Description"]" />
+                            <PropertyColumn Property="x => x.UnidadMedida" Title="@L["Unit of Measure"]"
+                                            HeaderStyle="width: 140px;" />
+                            <TemplateColumn Title="@L["Unit Price"]" HeaderStyle="text-align: right; width: 120px;"
+                                            CellStyle="text-align: right; white-space: nowrap;">
+                                <CellTemplate>@context.Item.PrecioUnitario.ToString("C2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Days per Unit"]" HeaderStyle="text-align: right; width: 130px;"
+                                            CellStyle="text-align: right; white-space: nowrap;">
+                                <CellTemplate>@context.Item.RendimientoDiasPorUnidad.ToString("F2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
+                                            CellClass="d-flex justify-end">
+                                <CellTemplate>
+                                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageServicios">
+                                        <Authorized Context="authContext">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => OpenEditDialog(context.Item))"
+                                                           title="@L["Edit Service"]" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                    <AuthorizeView Policy="@ApplicationClaims.Admin.DeleteServicios">
+                                        <Authorized Context="authContext">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           OnClick="@(() => OpenDeleteDialog(context.Item))"
+                                                           title="@L["Delete Service"]" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <NoRecordsContent>
+                            <MudText>@L["No services found"]</MudText>
+                        </NoRecordsContent>
+                        <PagerContent>
+                            <MudDataGridPager T="ServicioDto" />
+                        </PagerContent>
+                    </MudDataGrid>
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view services."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading;
+    private List<ServicioDto> _servicios = new();
+    private List<ServicioDto> _filteredServicios = new();
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await ServicioService.GetAllAsync();
+            if (result.IsSuccess)
+            {
+                _servicios = result.Value!;
+                ApplyFilter();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading servicios");
+            Snackbar.Add(L["Error loading services"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredServicios = string.IsNullOrWhiteSpace(_searchString)
+            ? _servicios
+            : _servicios.Where(s => s.Nombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void OnSearch(string value)
+    {
+        _searchString = value;
+        ApplyFilter();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters<ServicioDialog>
+        {
+            { x => x.IsNew, true },
+            { x => x.Model, new ServicioDialogModel() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ServicioDialog>(L["New Service"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ServicioDialogModel model)
+        {
+            var createDto = new CreateServicioDto
+            {
+                Nombre = model.Nombre,
+                Descripcion = model.Descripcion,
+                UnidadMedida = model.UnidadMedida,
+                PrecioUnitario = model.PrecioUnitario,
+                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad
+            };
+
+            var createResult = await ServicioService.CreateAsync(createDto);
+            if (createResult.IsSuccess)
+            {
+                Snackbar.Add(L["Service created successfully"], Severity.Success);
+                await LoadDataAsync();
+            }
+            else
+            {
+                Snackbar.Add(createResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenEditDialog(ServicioDto servicio)
+    {
+        var parameters = new DialogParameters<ServicioDialog>
+        {
+            { x => x.IsNew, false },
+            { x => x.Model, new ServicioDialogModel
+                {
+                    Id = servicio.Id,
+                    Nombre = servicio.Nombre,
+                    Descripcion = servicio.Descripcion,
+                    UnidadMedida = servicio.UnidadMedida,
+                    PrecioUnitario = servicio.PrecioUnitario,
+                    RendimientoDiasPorUnidad = servicio.RendimientoDiasPorUnidad
+                }
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<ServicioDialog>(L["Edit Service"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ServicioDialogModel model)
+        {
+            var updateDto = new UpdateServicioDto
+            {
+                Nombre = model.Nombre,
+                Descripcion = model.Descripcion,
+                UnidadMedida = model.UnidadMedida,
+                PrecioUnitario = model.PrecioUnitario,
+                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad
+            };
+
+            var updateResult = await ServicioService.UpdateAsync(model.Id, updateDto);
+            if (updateResult.IsSuccess)
+            {
+                Snackbar.Add(L["Service updated successfully"], Severity.Success);
+                await LoadDataAsync();
+            }
+            else
+            {
+                Snackbar.Add(updateResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenDeleteDialog(ServicioDto servicio)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Service Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete service:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), servicio.Nombre },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Service"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await ServicioService.DeleteAsync(servicio.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Service deleted successfully"], Severity.Success);
+            await LoadDataAsync();
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+}

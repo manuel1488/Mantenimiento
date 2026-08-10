@@ -1,0 +1,81 @@
+@using App.Web.Components.Admin.Servicios.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ServicioDialog> L
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(IsNew ? L["New Service"] : L["Edit Service"])
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Nombre"
+                                  Label="@L["Name"]"
+                                  Required="true"
+                                  RequiredError="@L["Name is required"]" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Descripcion"
+                                  Label="@L["Description"]"
+                                  Lines="2" />
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudTextField @bind-Value="Model.UnidadMedida"
+                                  Label="@L["Unit of Measure"]"
+                                  Required="true"
+                                  RequiredError="@L["Unit of measure is required"]" />
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudNumericField @bind-Value="Model.PrecioUnitario"
+                                      Label="@L["Unit Price"]"
+                                      Format="F2"
+                                      Min="0"
+                                      Required="true"
+                                      RequiredError="@L["Unit price is required"]" />
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudNumericField @bind-Value="Model.RendimientoDiasPorUnidad"
+                                      Label="@L["Days per Unit"]"
+                                      Format="F2"
+                                      Min="0"
+                                      Required="true"
+                                      RequiredError="@L["Days per unit is required"]" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit"
+                   Class="da-button-rounded" Variant="Variant.Filled">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ServicioDialogModel Model { get; set; } = new();
+    [Parameter] public bool IsNew { get; set; }
+
+    private MudForm _form = null!;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+    }
+}

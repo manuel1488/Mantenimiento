@@ -15,6 +15,7 @@ using App.Services.Images;
 using App.Services.Mappings;
 using App.Services.Reports;
 using App.Services.Seeders;
+using App.Services.Servicios;
 using App.Services.Settings;
 using App.Services.Shared;
 using App.Shared.Services;
@@ -230,6 +231,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
         options.AddPolicy(ApplicationClaims.Admin.ViewPermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewPermissions));
         options.AddPolicy(ApplicationClaims.Admin.ManagePermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ManagePermissions));
+
+        options.AddPolicy(ApplicationClaims.Admin.ViewServicios, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewServicios));
+        options.AddPolicy(ApplicationClaims.Admin.ManageServicios, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageServicios));
+        options.AddPolicy(ApplicationClaims.Admin.DeleteServicios, policy => policy.RequireClaim(ApplicationClaims.Admin.DeleteServicios));
 
         // Shared policies
         options.AddPolicy(ApplicationClaims.Shared.ViewDashboard, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewDashboard));
@@ -475,6 +480,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IRoleService, RoleService>();
     services.AddScoped<IImageService, ImageService>();
     services.AddScoped<ICompanySettingsService, CompanySettingsService>();
+    services.AddScoped<IServicioService, ServicioService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();

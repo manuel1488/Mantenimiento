@@ -102,4 +102,7 @@
   <data name="Audit Log" xml:space="preserve">
     <value>Bitácora de Auditoría</value>
   </data>
+  <data name="Services" xml:space="preserve">
+    <value>Servicios</value>
+  </data>
 </root>
