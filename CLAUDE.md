@@ -6,6 +6,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 
 | Folder | Contents |
 |---|---|
+| [`docs/00-Requirements/`](docs/00-Requirements/) | Requerimientos, casos de uso, reglas de negocio |
 | [`docs/01-Architecture/`](docs/01-Architecture/) | ADRs, system diagrams, architecture decisions |
 | [`docs/02-Development/`](docs/02-Development/) | Development guides and patterns |
 
