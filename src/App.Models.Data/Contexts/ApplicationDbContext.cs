@@ -1,8 +1,15 @@
 using App.Core.Interfaces;
+using App.Models.Clientes;
+using App.Models.Cotizaciones;
 using App.Models.Data.Extensions;
+using App.Models.Facturas;
 using App.Models.Identity;
+using App.Models.Obras;
+using App.Models.Servicios;
 using App.Models.Settings;
 using App.Models.Shared;
+using App.Models.Subcontratistas;
+using App.Models.Tecnicos;
 
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -30,6 +37,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
 
     #region Shared
     public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+    #endregion
+
+    #region Mantenimiento
+    public DbSet<Cliente> Clientes { get; set; } = null!;
+    public DbSet<Servicio> Servicios { get; set; } = null!;
+    public DbSet<Tecnico> Tecnicos { get; set; } = null!;
+    public DbSet<Subcontratista> Subcontratistas { get; set; } = null!;
+    public DbSet<Obra> Obras { get; set; } = null!;
+    public DbSet<Actividad> Actividades { get; set; } = null!;
+    public DbSet<ActividadEvidenciaFoto> ActividadEvidenciaFotos { get; set; } = null!;
+    public DbSet<ActividadReasignacion> ActividadReasignaciones { get; set; } = null!;
+    public DbSet<Cotizacion> Cotizaciones { get; set; } = null!;
+    public DbSet<CotizacionLinea> CotizacionLineas { get; set; } = null!;
+    public DbSet<Factura> Facturas { get; set; } = null!;
     #endregion
 
     protected override void OnModelCreating(ModelBuilder builder)
