@@ -1,0 +1,126 @@
+@using App.Web.Components.Admin.Clientes.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ClienteDialog> L
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(IsNew ? L["New Client"] : L["Edit Client"])
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-width: 900px;">
+            <MudForm Model="@Model" @ref="@_form">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Commercial Information"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="Model.Nombre" Label="@L["Name"]"
+                                      Required="true" RequiredError="@L["Name is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="Model.NombreComercial" Label="@L["Trade Name"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Pais" Label="@L["Country"]"
+                                      Required="true" RequiredError="@L["Country is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Telefono" Label="@L["Phone"]"
+                                      Required="true" RequiredError="@L["Phone is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Correo" Label="@L["Email"]" InputType="InputType.Email"
+                                      Required="true" RequiredError="@L["Email is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="Model.NombreContacto" Label="@L["Contact Name"]"
+                                      Required="true" RequiredError="@L["Contact name is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="Model.Calle" Label="@L["Street"]"
+                                      Required="true" RequiredError="@L["Street is required"]" />
+                    </MudItem>
+                    <MudItem xs="6" md="3">
+                        <MudTextField @bind-Value="Model.NumeroExterior" Label="@L["Ext. Number"]"
+                                      Required="true" RequiredError="@L["Exterior number is required"]" />
+                    </MudItem>
+                    <MudItem xs="6" md="3">
+                        <MudTextField @bind-Value="Model.NumeroInterior" Label="@L["Int. Number"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Colonia" Label="@L["Neighborhood"]"
+                                      Required="true" RequiredError="@L["Neighborhood is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Ciudad" Label="@L["City"]"
+                                      Required="true" RequiredError="@L["City is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Estado" Label="@L["State"]"
+                                      Required="true" RequiredError="@L["State is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.CodigoPostal" Label="@L["Zip Code"]"
+                                      Required="true" RequiredError="@L["Zip code is required"]" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">@L["Tax Information"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.Rfc" Label="@L["RFC"]"
+                                      Required="true" RequiredError="@L["RFC is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="8">
+                        <MudTextField @bind-Value="Model.RazonSocial" Label="@L["Legal Name"]"
+                                      Required="true" RequiredError="@L["Legal name is required"]" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.RegimenFiscal" Label="@L["Tax Regime"]"
+                                      Required="true" RequiredError="@L["Tax regime is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.CodigoPostalFiscal" Label="@L["Tax Zip Code"]"
+                                      Required="true" RequiredError="@L["Tax zip code is required"]" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField @bind-Value="Model.UsoCfdi" Label="@L["CFDI Use"]"
+                                      Required="true" RequiredError="@L["CFDI use is required"]" />
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit"
+                   Class="da-button-rounded" Variant="Variant.Filled">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ClienteDialogModel Model { get; set; } = new();
+    [Parameter] public bool IsNew { get; set; }
+
+    private MudForm _form = null!;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+    }
+}

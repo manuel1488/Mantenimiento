@@ -27,41 +27,41 @@ docker exec -i <container> mysql -uroot -p<password> App < tools/db/create-super
 
 ## Respaldo de base de datos de producción
 
-Si MySQL en producción no expone puerto al host (solo accesible dentro de la red interna de
-Docker), el respaldo se hace con `mysqldump` ejecutado dentro del contenedor vía `docker exec`,
-opcionalmente sobre un [contexto Docker remoto](../../README.md#servidor-con-csf-firewall-despliegue-en-vps) si despliegas por SSH.
+Producción usa un MySQL **externo**, administrado por el DBA (no hay contenedor `db` local
+en el perfil `production` — ver `docker-compose.yml`). El respaldo se hace con `mysqldump`
+directo contra ese servidor, con las credenciales de aplicación que te dé el DBA (no root;
+pídele al DBA un usuario con privilegios de respaldo si `mysqldump` requiere más permisos
+que el usuario de la app).
 
-### 1. Verificar nombre del contenedor
+### 1. Obtener los datos de conexión
 
-```bash
-docker ps --format "table {{.Names}}\t{{.Status}}"
-```
+Están en `DATABASE_CONNECTION_STRING` dentro de `.env.production` (host, puerto, base, usuario).
 
-El nombre sigue el patrón `<CONTAINER_PREFIX>-mysql` (valor en `.env.production`).
-
-### 2. Generar el dump localmente
+### 2. Generar el dump
 
 ```bash
-docker exec <CONTAINER_PREFIX>-mysql \
-  mysqldump -u root -p<MYSQL_ROOT_PASSWORD> <MYSQL_DATABASE> \
+mysqldump -h <host> -P <puerto> -u <usuario> -p<password> <base_de_datos> \
   > backup_$(date +%Y%m%d).sql
 ```
 
 ### 3. Restaurar en entorno local (para pruebas)
 
 ```bash
-docker exec -i <CONTAINER_PREFIX>-mysql \
-  mysql -u root -p<MYSQL_ROOT_PASSWORD> <MYSQL_DATABASE> \
+mysql -h 127.0.0.1 -P 3306 -u root -p<MYSQL_ROOT_PASSWORD_LOCAL> <base_de_datos> \
   < backup_<fecha>.sql
 ```
 
-### 4. Respaldo automático en el servidor (cron)
+### 4. Respaldo automático (cron, desde donde tengas acceso de red al servidor externo)
 
 ```bash
-0 3 * * * docker exec <CONTAINER_PREFIX>-mysql \
-  mysqldump -u root -p<MYSQL_ROOT_PASSWORD> <MYSQL_DATABASE> \
+0 3 * * * mysqldump -h <host> -P <puerto> -u <usuario> -p<password> <base_de_datos> \
   | gzip > /backups/backup_$(date +\%Y\%m\%d).sql.gz
 ```
+
+> Si en cambio estás en un despliegue **self-hosted** white-label (perfiles `shared-db`/`tenant`,
+> ver `docs/02-Development/white-label-deployment-guide.md`), el respaldo sí se hace vía
+> `docker exec <CONTAINER_PREFIX>-mysql mysqldump -u root -p<MYSQL_ROOT_PASSWORD> <base>`,
+> igual que en desarrollo — ese caso sí tiene el contenedor `db` local.
 
 ---
 
@@ -70,9 +70,9 @@ docker exec -i <CONTAINER_PREFIX>-mysql \
 Las credenciales están en el archivo de entorno del proyecto:
 
 ```bash
-# Desarrollo
+# Desarrollo (contenedor db local)
 cat .env.development | grep -E "MYSQL_USER|MYSQL_PASSWORD|MYSQL_DATABASE|CONTAINER_PREFIX"
 
-# Producción
-cat .env.production | grep -E "MYSQL_ROOT_PASSWORD|MYSQL_DATABASE|CONTAINER_PREFIX"
+# Producción (BD externa administrada por el DBA)
+cat .env.production | grep "DATABASE_CONNECTION_STRING"
 ```

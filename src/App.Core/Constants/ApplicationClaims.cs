@@ -30,11 +30,6 @@ public static class ApplicationClaims
         // Permisos
         public const string ViewPermissions = "Admin.Permissions.View";
         public const string ManagePermissions = "Admin.Permissions.Manage";
-
-        // Servicios (catálogo)
-        public const string ViewServicios = "Admin.Servicios.View";
-        public const string ManageServicios = "Admin.Servicios.Manage";
-        public const string DeleteServicios = "Admin.Servicios.Delete";
     }
 
     public static class Shared
@@ -43,6 +38,16 @@ public static class ApplicationClaims
 
         // Dashboard
         public const string ViewDashboard = "Shared.Dashboard.View";
+
+        // Servicios (catálogo)
+        public const string ViewServicios = "Shared.Servicios.View";
+        public const string ManageServicios = "Shared.Servicios.Manage";
+        public const string DeleteServicios = "Shared.Servicios.Delete";
+
+        // Clientes
+        public const string ViewClientes = "Shared.Clientes.View";
+        public const string ManageClientes = "Shared.Clientes.Manage";
+        public const string DeleteClientes = "Shared.Clientes.Delete";
     }
 
     public static IEnumerable<string> GetAllClaims()

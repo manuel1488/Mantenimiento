@@ -123,13 +123,15 @@ docker compose --profile development --env-file .\.env.development --env-file .\
 #### Producción
 
 ```bash
-docker compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
-docker compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
+docker compose --profile production --env-file .env.production build --no-cache
+docker compose --profile production --env-file .env.production up -d
 docker compose --profile production logs -f
-docker compose --profile production --env-file .env.production --env-file .env.production.secrets down
+docker compose --profile production --env-file .env.production down
 ```
 
-> `MYSQL_ROOT_PASSWORD` vive en `.env.production.secrets` (nunca en git) — pasa siempre ambos `--env-file` juntos.
+> Producción usa una BD MySQL externa administrada por el DBA — no hay contenedor `db` local
+> ni `.env.production.secrets` que pasar. Solo configura `DATABASE_CONNECTION_STRING` en `.env.production`
+> con los datos que te entregue el DBA.
 
 ### Servicios y Puertos
 

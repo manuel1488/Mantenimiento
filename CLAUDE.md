@@ -70,18 +70,20 @@ dotnet ef database update \
 ```
 
 ### Docker Development
-`MYSQL_ROOT_PASSWORD` lives in a companion `.env.{environment}.secrets` file (gitignored,
-DB infra secret independent of the app) — always pass both `--env-file` flags together.
+Development runs a local MySQL container — `MYSQL_ROOT_PASSWORD` lives in a companion
+`.env.development.secrets` file (gitignored, DB infra secret independent of the app) —
+always pass both `--env-file` flags together for development.
 ```bash
 # Development environment
 docker compose --profile development --env-file .env.development --env-file .env.development.secrets up -d
 docker compose --profile development --env-file .env.development --env-file .env.development.secrets build --no-cache
 docker compose --profile development --env-file .env.development --env-file .env.development.secrets down
 
-# Production environment
-docker compose --profile production --env-file .env.production --env-file .env.production.secrets up -d
-docker compose --profile production --env-file .env.production --env-file .env.production.secrets build --no-cache
-docker compose --profile production --env-file .env.production --env-file .env.production.secrets down
+# Production environment — external MySQL managed by the DBA, no local `db` container,
+# no .secrets file needed. Just set DATABASE_CONNECTION_STRING in .env.production.
+docker compose --profile production --env-file .env.production up -d
+docker compose --profile production --env-file .env.production build --no-cache
+docker compose --profile production --env-file .env.production down
 ```
 
 ## Architecture Overview

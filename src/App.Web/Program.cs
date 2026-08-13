@@ -14,6 +14,7 @@ using App.Services.Identity;
 using App.Services.Images;
 using App.Services.Mappings;
 using App.Services.Reports;
+using App.Services.Clientes;
 using App.Services.Seeders;
 using App.Services.Servicios;
 using App.Services.Settings;
@@ -232,12 +233,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Admin.ViewPermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewPermissions));
         options.AddPolicy(ApplicationClaims.Admin.ManagePermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ManagePermissions));
 
-        options.AddPolicy(ApplicationClaims.Admin.ViewServicios, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewServicios));
-        options.AddPolicy(ApplicationClaims.Admin.ManageServicios, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageServicios));
-        options.AddPolicy(ApplicationClaims.Admin.DeleteServicios, policy => policy.RequireClaim(ApplicationClaims.Admin.DeleteServicios));
-
         // Shared policies
         options.AddPolicy(ApplicationClaims.Shared.ViewDashboard, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewDashboard));
+
+        options.AddPolicy(ApplicationClaims.Shared.ViewServicios, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewServicios));
+        options.AddPolicy(ApplicationClaims.Shared.ManageServicios, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageServicios));
+        options.AddPolicy(ApplicationClaims.Shared.DeleteServicios, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteServicios));
+
+        options.AddPolicy(ApplicationClaims.Shared.ViewClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewClientes));
+        options.AddPolicy(ApplicationClaims.Shared.ManageClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageClientes));
+        options.AddPolicy(ApplicationClaims.Shared.DeleteClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteClientes));
 
         // Políticas compuestas para verificar acceso a módulos completos
         options.AddPolicy(ApplicationClaims.Admin.AdminAccess, policy =>
@@ -481,6 +486,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IImageService, ImageService>();
     services.AddScoped<ICompanySettingsService, CompanySettingsService>();
     services.AddScoped<IServicioService, ServicioService>();
+    services.AddScoped<IClienteService, ClienteService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();

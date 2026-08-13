@@ -105,4 +105,7 @@
   <data name="Services" xml:space="preserve">
     <value>Servicios</value>
   </data>
+  <data name="Clients" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
 </root>

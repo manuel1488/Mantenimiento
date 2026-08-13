@@ -1,0 +1,299 @@
+@page "/gestion/clientes"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewClientes)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Clientes
+@using App.Core.Interfaces
+@using App.Web.Components.Admin.Clientes.Models
+@using App.Web.Components.Shared.Dialogs
+@using MudBlazor
+
+@inject IStringLocalizer<ClientesPage> L
+@inject IClienteService ClienteService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<ClientesPage> Logger
+
+<PageTitle>@L["Clients"]</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewClientes">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+            <MudText Typo="Typo.h4" GutterBottom="true">@L["Clients"]</MudText>
+
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-4" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudTextField T="string" ValueChanged="@(s => OnSearch(s))"
+                                  Placeholder="@L["Search clients"]"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Class="flex-1" />
+
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageClientes">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Add"
+                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                @L["New Client"]
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudStack>
+
+                <MudDataGrid T="ClienteDto" Items="@_filteredClientes" Loading="_loading"
+                             SortMode="SortMode.Multiple" Filterable="false"
+                             Dense="true" Hover="true" RowsPerPage="10">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Nombre" Title="@L["Name"]" />
+                        <PropertyColumn Property="x => x.RazonSocial" Title="@L["Legal Name"]" />
+                        <PropertyColumn Property="x => x.Rfc" Title="@L["RFC"]" HeaderStyle="width: 120px;" />
+                        <PropertyColumn Property="x => x.Telefono" Title="@L["Phone"]" HeaderStyle="width: 130px;" />
+                        <PropertyColumn Property="x => x.Correo" Title="@L["Email"]" />
+                        <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
+                                        CellClass="d-flex justify-end">
+                            <CellTemplate>
+                                <AuthorizeView Policy="@ApplicationClaims.Shared.ManageClientes">
+                                    <Authorized Context="authContext">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => OpenEditDialog(context.Item))"
+                                                       title="@L["Edit Client"]" />
+                                    </Authorized>
+                                </AuthorizeView>
+                                <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteClientes">
+                                    <Authorized Context="authContext">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Size="Size.Small"
+                                                       Color="Color.Error"
+                                                       OnClick="@(() => OpenDeleteDialog(context.Item))"
+                                                       title="@L["Delete Client"]" />
+                                    </Authorized>
+                                </AuthorizeView>
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <NoRecordsContent>
+                        <MudText>@L["No clients found"]</MudText>
+                    </NoRecordsContent>
+                    <PagerContent>
+                        <MudDataGridPager T="ClienteDto" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view clients."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading;
+    private List<ClienteDto> _clientes = new();
+    private List<ClienteDto> _filteredClientes = new();
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await ClienteService.GetAllAsync();
+            if (result.IsSuccess)
+            {
+                _clientes = result.Value!;
+                ApplyFilter();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading clientes");
+            Snackbar.Add(L["Error loading clients"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredClientes = string.IsNullOrWhiteSpace(_searchString)
+            ? _clientes
+            : _clientes.Where(c =>
+                c.Nombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                c.RazonSocial.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                c.Rfc.Contains(_searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void OnSearch(string value)
+    {
+        _searchString = value;
+        ApplyFilter();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters<ClienteDialog>
+        {
+            { x => x.IsNew, true },
+            { x => x.Model, new ClienteDialogModel() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ClienteDialog>(L["New Client"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ClienteDialogModel model)
+        {
+            var createDto = MapToCreateDto(model);
+
+            var createResult = await ClienteService.CreateAsync(createDto);
+            if (createResult.IsSuccess)
+            {
+                Snackbar.Add(L["Client created successfully"], Severity.Success);
+                await LoadDataAsync();
+            }
+            else
+            {
+                Snackbar.Add(createResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenEditDialog(ClienteDto cliente)
+    {
+        var parameters = new DialogParameters<ClienteDialog>
+        {
+            { x => x.IsNew, false },
+            { x => x.Model, new ClienteDialogModel
+                {
+                    Id = cliente.Id,
+                    Nombre = cliente.Nombre,
+                    NombreComercial = cliente.NombreComercial,
+                    Pais = cliente.Pais,
+                    Telefono = cliente.Telefono,
+                    NombreContacto = cliente.NombreContacto,
+                    Correo = cliente.Correo,
+                    Calle = cliente.Calle,
+                    NumeroExterior = cliente.NumeroExterior,
+                    NumeroInterior = cliente.NumeroInterior,
+                    Colonia = cliente.Colonia,
+                    Ciudad = cliente.Ciudad,
+                    Estado = cliente.Estado,
+                    CodigoPostal = cliente.CodigoPostal,
+                    Rfc = cliente.Rfc,
+                    RazonSocial = cliente.RazonSocial,
+                    RegimenFiscal = cliente.RegimenFiscal,
+                    CodigoPostalFiscal = cliente.CodigoPostalFiscal,
+                    UsoCfdi = cliente.UsoCfdi
+                }
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<ClienteDialog>(L["Edit Client"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ClienteDialogModel model)
+        {
+            var updateDto = MapToUpdateDto(model);
+
+            var updateResult = await ClienteService.UpdateAsync(model.Id, updateDto);
+            if (updateResult.IsSuccess)
+            {
+                Snackbar.Add(L["Client updated successfully"], Severity.Success);
+                await LoadDataAsync();
+            }
+            else
+            {
+                Snackbar.Add(updateResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenDeleteDialog(ClienteDto cliente)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Client Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete client:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), cliente.Nombre },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Client"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await ClienteService.DeleteAsync(cliente.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Client deleted successfully"], Severity.Success);
+            await LoadDataAsync();
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+
+    private static CreateClienteDto MapToCreateDto(ClienteDialogModel model) => new()
+    {
+        Nombre = model.Nombre,
+        NombreComercial = model.NombreComercial,
+        Pais = model.Pais,
+        Telefono = model.Telefono,
+        NombreContacto = model.NombreContacto,
+        Correo = model.Correo,
+        Calle = model.Calle,
+        NumeroExterior = model.NumeroExterior,
+        NumeroInterior = model.NumeroInterior,
+        Colonia = model.Colonia,
+        Ciudad = model.Ciudad,
+        Estado = model.Estado,
+        CodigoPostal = model.CodigoPostal,
+        Rfc = model.Rfc,
+        RazonSocial = model.RazonSocial,
+        RegimenFiscal = model.RegimenFiscal,
+        CodigoPostalFiscal = model.CodigoPostalFiscal,
+        UsoCfdi = model.UsoCfdi
+    };
+
+    private static UpdateClienteDto MapToUpdateDto(ClienteDialogModel model) => new()
+    {
+        Nombre = model.Nombre,
+        NombreComercial = model.NombreComercial,
+        Pais = model.Pais,
+        Telefono = model.Telefono,
+        NombreContacto = model.NombreContacto,
+        Correo = model.Correo,
+        Calle = model.Calle,
+        NumeroExterior = model.NumeroExterior,
+        NumeroInterior = model.NumeroInterior,
+        Colonia = model.Colonia,
+        Ciudad = model.Ciudad,
+        Estado = model.Estado,
+        CodigoPostal = model.CodigoPostal,
+        Rfc = model.Rfc,
+        RazonSocial = model.RazonSocial,
+        RegimenFiscal = model.RegimenFiscal,
+        CodigoPostalFiscal = model.CodigoPostalFiscal,
+        UsoCfdi = model.UsoCfdi
+    };
+}

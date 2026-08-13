@@ -25,6 +25,27 @@
         </Authorized>
     </AuthorizeView>
 
+    <!-- Sección Management (Gestión) -->
+    <AuthorizeView Policy="@ApplicationClaims.Shared.SharedAccess">
+        <Authorized Context="gestionAuth">
+            <MudNavGroup Title="@L["Management"]"
+                        Icon="@Icons.Material.Filled.People"
+                        Expanded="true">
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewClientes">
+                    <Authorized Context="clientesAuth">
+                        <MudNavLink Href="/gestion/clientes">@L["Clients"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewServicios">
+                    <Authorized Context="serviciosAuth">
+                        <MudNavLink Href="/gestion/servicios">@L["Services"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
     <!-- Sección Administration (Administración) -->
     <AuthorizeView Policy="@ApplicationClaims.Admin.AdminAccess">
         <Authorized Context="adminAuth">
@@ -48,13 +69,6 @@
                         <MudNavLink Href="/admin/audit-log" Icon="@Icons.Material.Filled.History">@L["Audit Log"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
-
-                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewServicios">
-                    <Authorized Context="serviciosAuth">
-                        <MudNavLink Href="/admin/servicios">@L["Services"]</MudNavLink>
-                    </Authorized>
-                </AuthorizeView>
-
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

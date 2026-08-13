@@ -68,8 +68,10 @@ services:
       - Application__BaseUrl=${Application__BaseUrl}
       # Brand identity — selects which Branding/{profile}.json to load (app name, logo, theme colors)
       - BRANDING_PROFILE=${BRANDING_PROFILE}
+    # Solo app-shared-network — ahí vive el MySQL externo compartido (tr-prod-mysql).
+    # Sin db local en el perfil production, una red propia aislada no aporta nada.
     networks:
-      - app-network
+      - app-shared-network
     volumes:
       - app-logs-prod:/app/logs
       - uploads-prod:/app/wwwroot/uploads
@@ -81,11 +83,9 @@ services:
         reservations:
           cpus: ${CPU_RESERVATION}
           memory: ${MEMORY_RESERVATION}
-    # Espera a que MySQL esté healthy antes de iniciar la app.
-    # Sin esto, la app crashea al intentar conectarse durante ServerVersion.AutoDetect.
-    depends_on:
-      db:
-        condition: service_healthy
+    # Producción usa una BD externa administrada por el DBA (fuera del alcance de este
+    # compose) — sin depends_on:db ni perfil compartido con el servicio `db` local.
+    # Database__ConnectionString apunta directo al servidor externo vía DATABASE_CONNECTION_STRING.
     profiles:
       - production
 
@@ -150,15 +150,20 @@ services:
     # cuando el binary logging está activo, y el usuario de la app (no root) lo rechaza.
     command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
     restart: unless-stopped
+    # Los ${VAR:-default} de este servicio son necesarios porque el perfil "production"
+    # (BD externa) no define ninguna variable MYSQL_*/DB_* en su .env — sin un default,
+    # `docker compose config`/`up` fallaría al interpolar este bloque aunque `db` no
+    # llegue a arrancar bajo ese perfil (Compose interpola todo el archivo, no solo los
+    # servicios del perfil activo).
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-}
+      - MYSQL_USER=${MYSQL_USER:-}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-}
     # Puerto NO expuesto intencionalmente — MySQL solo es accesible dentro de app-network.
     # Descomentar solo para debugging local temporal.
     ports:
-      - "127.0.0.1:${MYSQL_PORT}:3306"
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
@@ -167,27 +172,26 @@ services:
     deploy:
       resources:
         limits:
-          cpus: ${DB_CPU_LIMIT}
-          memory: ${DB_MEMORY_LIMIT}
+          cpus: ${DB_CPU_LIMIT:-1.0}
+          memory: ${DB_MEMORY_LIMIT:-1G}
         reservations:
-          cpus: ${DB_CPU_RESERVATION}
-          memory: ${DB_MEMORY_RESERVATION}
+          cpus: ${DB_CPU_RESERVATION:-0.5}
+          memory: ${DB_MEMORY_RESERVATION:-512M}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
     # "shared-db" es el perfil a usar cuando este `db` sirve tiendas nuevas en un VDS
-    # dedicado (docker compose --profile shared-db up -d, sin nombrar servicio). Se
-    # incluyen también development/production para no cambiar el comportamiento actual
-    # de AppBase (donde db siempre acompaña a webapp/webapp-prod). Antes db no tenía
+    # dedicado (docker compose --profile shared-db up -d, sin nombrar servicio).
+    # "production" (single-tenant) NO incluye este servicio — usa una BD externa
+    # administrada por el DBA (ver webapp-prod más arriba). Antes db no tenía
     # profiles: asignado, así que Compose lo incluía SIEMPRE sin importar el --profile
     # usado — eso causaba que `up -d --profile tenant` (sin nombrar el servicio)
     # arrastrara a `db` también, creando una segunda copia de app-network y chocando
     # con la ya existente. Con perfiles explícitos ya no hace falta nombrar servicios.
     profiles:
       - development
-      - production
       - shared-db
 
 networks:
@@ -199,32 +203,14 @@ networks:
     name: app-shared-network
     external: true
 
+  # Sin ipam.config explícito — Docker asigna automáticamente un subnet libre,
+  # igual que en el resto de los proyectos de este mismo patrón (DA, Facturacion,
+  # Inventario, TRD). Un subnet fijo aquí solo tiene sentido si un VPS específico
+  # lo requiere (p. ej. por reglas de un firewall como CSF que exige un rango
+  # conocido) — en ese caso, agrega `ipam.config` con `APP_NETWORK_SUBNET`/
+  # `APP_NETWORK_GATEWAY` parametrizados solo para ese despliegue, no como default global.
   app-network:
     driver: bridge
-    ipam:
-      config:
-        # Subnet parametrizada — el valor por defecto (172.17.100.0/24) es específico
-        # del VPS de AppBase (Neubox), para compatibilidad con CSF Firewall
-        # (DOCKER_NETWORK4 = "172.17.0.0/16" en /etc/csf/csf.conf).
-        #
-        # REQUISITO EN ESE SERVIDOR — /etc/docker/daemon.json debe contener:
-        #   {
-        #     "bip": "172.26.0.1/16",
-        #       <- mueve docker0 fuera de 172.17.x.x para liberar ese rango
-        #     "default-address-pools": [{"base": "172.17.0.0/16", "size": 24}],
-        #       <- user-defined networks usan subnets /24 dentro de 172.17.0.0/16
-        #     "userland-proxy": false
-        #       <- requerido para que el tráfico use iptables directamente;
-        #          sin esto, CSF bloquea docker-proxy en la cadena OUTPUT
-        #   }
-        # Si se omite esta config ahí, la app devuelve 502 Bad Gateway detrás de nginx.
-        #
-        # En cualquier OTRO servidor (p. ej. un VDS de tienda nueva), sobreescribe
-        # APP_NETWORK_SUBNET/APP_NETWORK_GATEWAY en su .env con un rango libre —
-        # revisa antes con `docker network inspect bridge` para no chocar con el
-        # rango que Docker ya esté usando por defecto en ese host.
-        - subnet: ${APP_NETWORK_SUBNET:-172.17.100.0/24}
-          gateway: ${APP_NETWORK_GATEWAY:-172.17.100.1}
 
 volumes:
   mysql-data:

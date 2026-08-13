@@ -1,5 +1,5 @@
-@page "/admin/servicios"
-@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewServicios)]
+@page "/gestion/servicios"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewServicios)]
 
 @using Microsoft.AspNetCore.Authorization
 @using App.Core.Constants
@@ -17,7 +17,7 @@
 
 <PageTitle>@L["Services"]</PageTitle>
 
-<AuthorizeView Policy="@ApplicationClaims.Admin.ViewServicios">
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewServicios">
     <Authorized Context="pageAuth">
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
             <MudText Typo="Typo.h4" GutterBottom="true">@L["Services"]</MudText>
@@ -30,7 +30,7 @@
                                   AdornmentIcon="@Icons.Material.Filled.Search"
                                   Class="flex-1" />
 
-                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageServicios">
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Add"
@@ -60,7 +60,7 @@
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
                                             CellClass="d-flex justify-end">
                                 <CellTemplate>
-                                    <AuthorizeView Policy="@ApplicationClaims.Admin.ManageServicios">
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                            Size="Size.Small"
@@ -68,7 +68,7 @@
                                                            title="@L["Edit Service"]" />
                                         </Authorized>
                                     </AuthorizeView>
-                                    <AuthorizeView Policy="@ApplicationClaims.Admin.DeleteServicios">
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteServicios">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                            Size="Size.Small"

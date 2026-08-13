@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Clients" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="Search clients" xml:space="preserve">
+    <value>Buscar clientes</value>
+  </data>
+  <data name="New Client" xml:space="preserve">
+    <value>Nuevo Cliente</value>
+  </data>
+  <data name="Edit Client" xml:space="preserve">
+    <value>Editar Cliente</value>
+  </data>
+  <data name="Delete Client" xml:space="preserve">
+    <value>Eliminar Cliente</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Razón Social</value>
+  </data>
+  <data name="RFC" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="No clients found" xml:space="preserve">
+    <value>No se encontraron clientes</value>
+  </data>
+  <data name="You don't have permission to view clients." xml:space="preserve">
+    <value>No tienes permiso para ver los clientes.</value>
+  </data>
+  <data name="Error loading clients" xml:space="preserve">
+    <value>Error al cargar los clientes</value>
+  </data>
+  <data name="Client created successfully" xml:space="preserve">
+    <value>Cliente creado exitosamente</value>
+  </data>
+  <data name="Client updated successfully" xml:space="preserve">
+    <value>Cliente actualizado exitosamente</value>
+  </data>
+  <data name="Client deleted successfully" xml:space="preserve">
+    <value>Cliente eliminado exitosamente</value>
+  </data>
+  <data name="Delete Client Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Cliente</value>
+  </data>
+  <data name="Are you sure you want to delete client:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar el cliente:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+</root>
