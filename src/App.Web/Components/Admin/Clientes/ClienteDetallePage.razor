@@ -6,11 +6,14 @@
 @using App.Core.DTOs.Clientes
 @using App.Core.DTOs.Fiscal
 @using App.Core.Interfaces
+@using App.Web.Components.Admin.Clientes.Models
+@using App.Web.Components.Shared.Dialogs
 @using MudBlazor
 
 @inject IStringLocalizer<ClienteDialog> L
 @inject IClienteService ClienteService
 @inject IFiscalCatalogService FiscalCatalogService
+@inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject ILogger<ClienteDetallePage> Logger
@@ -19,154 +22,132 @@
 
 <AuthorizeView Policy="@ApplicationClaims.Shared.ViewClientes">
     <Authorized Context="pageAuth">
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="2">
-                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="@(() => NavigationManager.NavigateTo("/gestion/clientes"))" />
-                <MudText Typo="Typo.h4">@(_cliente is null ? L["Client Details"] : (_cliente.NombreComercial ?? _cliente.Nombre))</MudText>
-            </MudStack>
-
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
             @if (_loading)
             {
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <div class="d-flex justify-center pa-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
             }
             else if (_cliente is null)
             {
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-2"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/clientes"))" />
                 <MudAlert Severity="Severity.Warning">@L["Client not found"]</MudAlert>
             }
             else
             {
-                <MudPaper Elevation="2" Class="pa-4">
-                    <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-                        <MudTabPanel Text="@L["Commercial Information"]" Icon="@Icons.Material.Filled.Storefront">
-                            <MudGrid>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Name / Trade Name"]</MudText>
-                                    <MudText Typo="Typo.body1">@_cliente.Nombre</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Contact Name"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.NombreContacto)</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Country"]</MudText>
-                                    <MudText Typo="Typo.body1">@_cliente.Pais</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Email"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.Correo)</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Phone"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.Telefono)</MudText>
-                                </MudItem>
+                @* ── Header card ─────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-4 pa-sm-6 mb-4" Elevation="2">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/clientes"))" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Clients"]</MudText>
+                    </MudStack>
 
-                                <MudItem xs="12">
-                                    <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Business Address"]</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Street"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.Calle)</MudText>
-                                </MudItem>
-                                <MudItem xs="6" md="3">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Ext. Number"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.NumeroExterior)</MudText>
-                                </MudItem>
-                                <MudItem xs="6" md="3">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Int. Number"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.NumeroInterior)</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Neighborhood"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.Colonia)</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["City"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.Ciudad)</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["State"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.Estado)</MudText>
-                                </MudItem>
-                                <MudItem xs="12" md="6">
-                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Zip Code"]</MudText>
-                                    <MudText Typo="Typo.body1">@Display(_cliente.CodigoPostal)</MudText>
-                                </MudItem>
-                            </MudGrid>
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="4">
+                        <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center" Class="flex-1" Style="min-width: 0;">
+                            <MudAvatar Color="Color.Primary" Size="Size.Large" Style="flex-shrink: 0;">
+                                @Iniciales(_cliente.NombreComercial ?? _cliente.Nombre)
+                            </MudAvatar>
+                            <div style="min-width: 0;">
+                                <MudText Typo="Typo.h5" Class="text-truncate" Style="font-weight: 600;">
+                                    @(_cliente.NombreComercial ?? _cliente.Nombre)
+                                </MudText>
+                                @if (!string.IsNullOrWhiteSpace(_cliente.NombreComercial) && _cliente.NombreComercial != _cliente.Nombre)
+                                {
+                                    <MudText Typo="Typo.body2" Class="mud-text-secondary text-truncate">@_cliente.Nombre</MudText>
+                                }
+                                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-2">
+                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Public" Variant="Variant.Outlined">
+                                        @_cliente.Pais
+                                    </MudChip>
+                                    <MudChip T="string" Size="Size.Small"
+                                             Icon="@(_cliente.TieneDatosFiscales ? Icons.Material.Filled.Receipt : Icons.Material.Filled.ReceiptLong)"
+                                             Color="@(_cliente.TieneDatosFiscales ? Color.Success : Color.Default)"
+                                             Variant="Variant.Filled">
+                                        @(_cliente.TieneDatosFiscales ? L["Has fiscal data"] : L["No fiscal data"])
+                                    </MudChip>
+                                    @if (_cliente.FacturacionAutomatica)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Bolt"
+                                                 Color="Color.Info" Variant="Variant.Outlined">
+                                            @L["Automatic Invoicing"]
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            </div>
+                        </MudStack>
+
+                        <MudStack Row="true" Spacing="2" Class="flex-shrink-0">
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.ManageClientes">
+                                <Authorized Context="authContext">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Edit"
+                                               Class="da-button-rounded" FullWidth="false"
+                                               OnClick="OpenEditDialog">
+                                        @L["Edit Client"]
+                                    </MudButton>
+                                </Authorized>
+                            </AuthorizeView>
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteClientes">
+                                <Authorized Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                                   Variant="Variant.Outlined" OnClick="OpenDeleteDialog"
+                                                   title="@L["Delete Client"]" />
+                                </Authorized>
+                            </AuthorizeView>
+                        </MudStack>
+                    </MudStack>
+
+                    @{
+                        var contactItems = new List<(string Icon, string Text)>();
+                        if (!string.IsNullOrWhiteSpace(_cliente.Telefono)) contactItems.Add((Icons.Material.Filled.Phone, _cliente.Telefono!));
+                        if (!string.IsNullOrWhiteSpace(_cliente.Correo)) contactItems.Add((Icons.Material.Filled.Email, _cliente.Correo!));
+                        if (!string.IsNullOrWhiteSpace(_cliente.NombreContacto)) contactItems.Add((Icons.Material.Filled.Person, _cliente.NombreContacto!));
+                    }
+                    @if (contactItems.Count > 0)
+                    {
+                        <MudDivider Class="my-3" />
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="4">
+                            @foreach (var item in contactItems)
+                            {
+                                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@item.Icon" Size="Size.Small" Class="mud-text-secondary" />
+                                    <MudText Typo="Typo.body2">@item.Text</MudText>
+                                </MudStack>
+                            }
+                        </MudStack>
+                    }
+                </MudPaper>
+
+                @* ── Detail tabs ──────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-2 pa-sm-4" Elevation="2">
+                    <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pt-4">
+                        <MudTabPanel Text="@L["Commercial Information"]" Icon="@Icons.Material.Filled.Storefront">
+                            <ClienteCamposGrid Campos="@CamposComerciales()" />
+
+                            <ClienteSeccionTitulo Icon="@Icons.Material.Filled.Home" Titulo="@L["Business Address"].ToString()" />
+                            <ClienteCamposGrid Campos="@CamposDireccionComercial()" />
                         </MudTabPanel>
 
                         <MudTabPanel Text="@L["Tax Information"]" Icon="@Icons.Material.Filled.Receipt">
                             @if (_cliente.TieneDatosFiscales)
                             {
-                                <MudGrid>
-                                    <MudItem xs="12" md="4">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["RFC/Tax ID"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.Rfc)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="8">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Legal Name"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.RazonSocial)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Fiscal Email"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.CorreoFiscal)</MudText>
-                                    </MudItem>
+                                <ClienteCamposGrid Campos="@CamposFiscales()" />
 
-                                    <MudItem xs="12">
-                                        <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Fiscal Address"]</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Street"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.CalleFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="6" md="3">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Ext. Number"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.NumeroExteriorFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="6" md="3">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Int. Number"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.NumeroInteriorFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Neighborhood"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.ColoniaFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["City"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.CiudadFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["State"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.EstadoFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Zip Code"]</MudText>
-                                        <MudText Typo="Typo.body1">@Display(_cliente.CodigoPostalFiscal)</MudText>
-                                    </MudItem>
+                                <ClienteSeccionTitulo Icon="@Icons.Material.Filled.Home" Titulo="@L["Fiscal Address"].ToString()" />
+                                <ClienteCamposGrid Campos="@CamposDireccionFiscal()" />
 
-                                    <MudItem xs="12">
-                                        <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Mexico Billing Preferences"]</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Tax Regime"]</MudText>
-                                        <MudText Typo="Typo.body1">@DisplayRegimen(_cliente.RegimenFiscal)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Default CFDI Use"]</MudText>
-                                        <MudText Typo="Typo.body1">@DisplayUsoCfdi(_cliente.UsoCfdi)</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Automatic Invoicing"]</MudText>
-                                        <MudText Typo="Typo.body1">@(_cliente.FacturacionAutomatica ? L["Yes"] : L["No"])</MudText>
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Send Invoice Email"]</MudText>
-                                        <MudText Typo="Typo.body1">@(_cliente.EnviarCorreoFactura ? L["Yes"] : L["No"])</MudText>
-                                    </MudItem>
-                                </MudGrid>
+                                <ClienteSeccionTitulo Icon="@Icons.Material.Filled.Payments" Titulo="@L["Mexico Billing Preferences"].ToString()" />
+                                <ClienteCamposGrid Campos="@CamposPreferenciasFacturacion()" />
                             }
                             else
                             {
-                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["This client has no fiscal data"]</MudText>
+                                <MudStack AlignItems="AlignItems.Center" Class="pa-8" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Large" Class="mud-text-secondary" />
+                                    <MudText Typo="Typo.body1" Class="mud-text-secondary">@L["This client has no fiscal data"]</MudText>
+                                </MudStack>
                             }
                         </MudTabPanel>
                     </MudTabs>
@@ -190,6 +171,11 @@
     private IList<UsoCfdiCatalogoDto> _usosCfdi = [];
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadClienteAsync();
+    }
+
+    private async Task LoadClienteAsync()
     {
         _loading = true;
         try
@@ -216,19 +202,141 @@
         }
     }
 
-    private static string Display(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+    // ── Field definitions ─────────────────────────────────────────────────
+
+    private List<ClienteCampoDetalle> CamposComerciales() =>
+    [
+        new(Icons.Material.Filled.Badge, L["Name / Trade Name"], _cliente!.Nombre),
+        new(Icons.Material.Filled.Person, L["Contact Name"], _cliente.NombreContacto),
+        new(Icons.Material.Filled.Public, L["Country"], _cliente.Pais),
+        new(Icons.Material.Filled.Email, L["Email"], _cliente.Correo),
+        new(Icons.Material.Filled.Phone, L["Phone"], _cliente.Telefono)
+    ];
+
+    private List<ClienteCampoDetalle> CamposDireccionComercial() =>
+    [
+        new(Icons.Material.Filled.Signpost, L["Street"], _cliente!.Calle),
+        new(Icons.Material.Filled.Pin, L["Ext. Number"], _cliente.NumeroExterior),
+        new(Icons.Material.Filled.Pin, L["Int. Number"], _cliente.NumeroInterior),
+        new(Icons.Material.Filled.Cottage, L["Neighborhood"], _cliente.Colonia),
+        new(Icons.Material.Filled.LocationCity, L["City"], _cliente.Ciudad),
+        new(Icons.Material.Filled.Map, L["State"], _cliente.Estado),
+        new(Icons.Material.Filled.MarkunreadMailbox, L["Zip Code"], _cliente.CodigoPostal)
+    ];
+
+    private List<ClienteCampoDetalle> CamposFiscales() =>
+    [
+        new(Icons.Material.Filled.Badge, L["RFC/Tax ID"], _cliente!.Rfc),
+        new(Icons.Material.Filled.Business, L["Legal Name"], _cliente.RazonSocial),
+        new(Icons.Material.Filled.Email, L["Fiscal Email"], _cliente.CorreoFiscal)
+    ];
+
+    private List<ClienteCampoDetalle> CamposDireccionFiscal() =>
+    [
+        new(Icons.Material.Filled.Signpost, L["Street"], _cliente!.CalleFiscal),
+        new(Icons.Material.Filled.Pin, L["Ext. Number"], _cliente.NumeroExteriorFiscal),
+        new(Icons.Material.Filled.Pin, L["Int. Number"], _cliente.NumeroInteriorFiscal),
+        new(Icons.Material.Filled.Cottage, L["Neighborhood"], _cliente.ColoniaFiscal),
+        new(Icons.Material.Filled.LocationCity, L["City"], _cliente.CiudadFiscal),
+        new(Icons.Material.Filled.Map, L["State"], _cliente.EstadoFiscal),
+        new(Icons.Material.Filled.MarkunreadMailbox, L["Zip Code"], _cliente.CodigoPostalFiscal)
+    ];
+
+    private List<ClienteCampoDetalle> CamposPreferenciasFacturacion() =>
+    [
+        new(Icons.Material.Filled.AccountBalance, L["Tax Regime"], DisplayRegimen(_cliente!.RegimenFiscal)),
+        new(Icons.Material.Filled.ReceiptLong, L["Default CFDI Use"], DisplayUsoCfdi(_cliente.UsoCfdi)),
+        new(Icons.Material.Filled.Bolt, L["Automatic Invoicing"], _cliente.FacturacionAutomatica ? L["Yes"] : L["No"]),
+        new(Icons.Material.Filled.MarkEmailRead, L["Send Invoice Email"], _cliente.EnviarCorreoFactura ? L["Yes"] : L["No"])
+    ];
+
+    // ── Rendering helpers ─────────────────────────────────────────────────
+
+    private static string Iniciales(string nombre)
+    {
+        var partes = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return partes.Length switch
+        {
+            0 => "?",
+            1 => partes[0][..1].ToUpperInvariant(),
+            _ => $"{partes[0][..1]}{partes[^1][..1]}".ToUpperInvariant()
+        };
+    }
 
     private string DisplayRegimen(string? codigo)
     {
-        if (string.IsNullOrWhiteSpace(codigo)) return "-";
+        if (string.IsNullOrWhiteSpace(codigo)) return string.Empty;
         var regimen = _regimenesFiscales.FirstOrDefault(r => r.Codigo == codigo);
         return regimen is null ? codigo : $"{regimen.Codigo} - {regimen.Descripcion}";
     }
 
     private string DisplayUsoCfdi(string? codigo)
     {
-        if (string.IsNullOrWhiteSpace(codigo)) return "-";
+        if (string.IsNullOrWhiteSpace(codigo)) return string.Empty;
         var uso = _usosCfdi.FirstOrDefault(u => u.Codigo == codigo);
         return uso is null ? codigo : $"{uso.Codigo} - {uso.Descripcion}";
+    }
+
+    // ── Actions ───────────────────────────────────────────────────────────
+
+    private async Task OpenEditDialog()
+    {
+        if (_cliente is null) return;
+
+        var parameters = new DialogParameters<ClienteDialog>
+        {
+            { x => x.IsNew, false },
+            { x => x.Model, ClienteDialogMapper.ToDialogModel(_cliente) }
+        };
+
+        var dialog = await DialogService.ShowAsync<ClienteDialog>(L["Edit Client"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ClienteDialogModel model)
+        {
+            var updateResult = await ClienteService.UpdateAsync(model.Id, ClienteDialogMapper.ToUpdateDto(model));
+            if (updateResult.IsSuccess)
+            {
+                Snackbar.Add(L["Client updated successfully"], Severity.Success);
+                await LoadClienteAsync();
+            }
+            else
+            {
+                Snackbar.Add(updateResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenDeleteDialog()
+    {
+        if (_cliente is null) return;
+
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Client Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete client:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), _cliente.Nombre },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Client"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await ClienteService.DeleteAsync(_cliente.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Client deleted successfully"], Severity.Success);
+            NavigationManager.NavigateTo("/gestion/clientes");
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
     }
 }

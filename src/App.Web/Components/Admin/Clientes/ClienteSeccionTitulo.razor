@@ -1,0 +1,12 @@
+@using MudBlazor
+
+<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mt-6 mb-2">
+    <MudIcon Icon="@Icon" Size="Size.Small" Color="Color.Primary" />
+    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@Titulo</MudText>
+</MudStack>
+<MudDivider Class="mb-3" />
+
+@code {
+    [Parameter, EditorRequired] public string Icon { get; set; } = null!;
+    [Parameter, EditorRequired] public string Titulo { get; set; } = null!;
+}

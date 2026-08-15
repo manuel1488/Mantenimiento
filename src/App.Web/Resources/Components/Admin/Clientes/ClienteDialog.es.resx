@@ -12,6 +12,39 @@
   <data name="Error loading client" xml:space="preserve">
     <value>Error al cargar el cliente</value>
   </data>
+  <data name="Clients" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="Client updated successfully" xml:space="preserve">
+    <value>Cliente actualizado exitosamente</value>
+  </data>
+  <data name="Client deleted successfully" xml:space="preserve">
+    <value>Cliente eliminado exitosamente</value>
+  </data>
+  <data name="Delete Client" xml:space="preserve">
+    <value>Eliminar Cliente</value>
+  </data>
+  <data name="Delete Client Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Cliente</value>
+  </data>
+  <data name="Are you sure you want to delete client:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar el cliente:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Has fiscal data" xml:space="preserve">
+    <value>Con datos fiscales</value>
+  </data>
+  <data name="No fiscal data" xml:space="preserve">
+    <value>Sin datos fiscales</value>
+  </data>
+  <data name="Not specified" xml:space="preserve">
+    <value>No especificado</value>
+  </data>
   <data name="You don't have permission to view clients." xml:space="preserve">
     <value>No tienes permiso para ver los clientes.</value>
   </data>
