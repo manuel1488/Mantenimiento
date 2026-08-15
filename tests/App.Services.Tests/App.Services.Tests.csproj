@@ -17,6 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\src\App.Web\Data\FiscalCatalogs\*.csv" Link="Data\FiscalCatalogs\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\App.Services\App.Services.csproj" />
     <ProjectReference Include="..\..\src\App.Core\App.Core.csproj" />
     <ProjectReference Include="..\..\src\App.Models\App.Models.csproj" />
