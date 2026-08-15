@@ -20,7 +20,7 @@ public class ClienteDialogModel
     public string? CodigoPostal { get; set; }
 
     // Datos fiscales
-    public bool TieneDatosFiscales { get; set; } = true;
+    public bool TieneDatosFiscales { get; set; }
     public string? Rfc { get; set; }
     public string? RazonSocial { get; set; }
     public string? CorreoFiscal { get; set; }

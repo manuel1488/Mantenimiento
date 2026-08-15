@@ -3,6 +3,18 @@
   <data name="New Client" xml:space="preserve">
     <value>New Client</value>
   </data>
+  <data name="Client Details" xml:space="preserve">
+    <value>Client Details</value>
+  </data>
+  <data name="Client not found" xml:space="preserve">
+    <value>Client not found</value>
+  </data>
+  <data name="Error loading client" xml:space="preserve">
+    <value>Error loading client</value>
+  </data>
+  <data name="You don't have permission to view clients." xml:space="preserve">
+    <value>You don't have permission to view clients.</value>
+  </data>
   <data name="Edit Client" xml:space="preserve">
     <value>Edit Client</value>
   </data>
