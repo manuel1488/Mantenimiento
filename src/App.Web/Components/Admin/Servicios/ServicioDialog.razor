@@ -29,15 +29,21 @@
                 </MudItem>
 
                 <MudItem xs="12" md="4">
-                    <MudSelect T="int" @bind-Value="Model.UnidadMedidaId"
-                               Label="@L["Unit of Measure"]"
-                               Required="true"
-                               RequiredError="@L["Unit of measure is required"]">
-                        @foreach (var unidad in _unidadesMedida)
-                        {
-                            <MudSelectItem T="int" Value="@unidad.Id">@unidad.Nombre</MudSelectItem>
-                        }
-                    </MudSelect>
+                    <MudAutocomplete T="UnidadMedidaDto"
+                                     Label="@L["Unit of Measure"]"
+                                     Required="true"
+                                     RequiredError="@L["Unit of measure is required"]"
+                                     SearchFunc="@SearchUnidadesMedida"
+                                     ToStringFunc="@(u => u == null ? string.Empty : u.Nombre)"
+                                     Value="_selectedUnidadMedida"
+                                     ValueChanged="OnUnidadMedidaSelected"
+                                     MaxItems="null"
+                                     CoerceText="false"
+                                     ResetValueOnEmptyText="true"
+                                     Clearable="true"
+                                     Immediate="true"
+                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                     Adornment="Adornment.Start" />
                 </MudItem>
 
                 <MudItem xs="12" md="4">
@@ -76,6 +82,7 @@
 
     private MudForm _form = null!;
     private List<UnidadMedidaDto> _unidadesMedida = new();
+    private UnidadMedidaDto? _selectedUnidadMedida;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,6 +91,27 @@
         {
             _unidadesMedida = result.Value!;
         }
+
+        if (Model.UnidadMedidaId != 0)
+        {
+            _selectedUnidadMedida = _unidadesMedida.FirstOrDefault(u => u.Id == Model.UnidadMedidaId);
+        }
+    }
+
+    private Task<IEnumerable<UnidadMedidaDto>> SearchUnidadesMedida(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_unidadesMedida.AsEnumerable());
+
+        return Task.FromResult(_unidadesMedida.Where(u =>
+            u.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            u.Codigo.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void OnUnidadMedidaSelected(UnidadMedidaDto? value)
+    {
+        _selectedUnidadMedida = value;
+        Model.UnidadMedidaId = value?.Id ?? 0;
     }
 
     private void Cancel() => MudDialog.Cancel();

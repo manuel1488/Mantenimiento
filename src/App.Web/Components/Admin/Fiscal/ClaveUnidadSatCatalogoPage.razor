@@ -1,0 +1,86 @@
+@page "/admin/catalogos/claves-unidad-sat"
+@attribute [Authorize(Policy = ApplicationClaims.Admin.ViewCatalogoSat)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Fiscal
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<ClaveUnidadSatCatalogoPage> L
+@inject IFiscalCatalogService FiscalCatalogService
+@inject ISnackbar Snackbar
+@inject ILogger<ClaveUnidadSatCatalogoPage> Logger
+
+<PageTitle>@L["SAT Unit Codes Catalog"]</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewCatalogoSat">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+            <MudText Typo="Typo.h4" GutterBottom="true">@L["SAT Unit Codes Catalog"]</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                @L["Official SAT c_ClaveUnidad catalog, used for CFDI invoicing. Read-only — to correct an entry, update the source CSV file and reseed."]
+            </MudText>
+
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudTextField T="string" ValueChanged="@(s => OnSearch(s))"
+                              Placeholder="@L["Search by code or name"]"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              Class="mb-4" />
+
+                <MudDataGrid T="ClaveUnidadSatCatalogoDto" @ref="_dataGrid" ServerData="@LoadServerData"
+                             SortMode="SortMode.None" Filterable="false"
+                             Dense="true" Hover="true" RowsPerPage="25">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Codigo" Title="@L["Code"]" HeaderStyle="width: 120px;" />
+                        <PropertyColumn Property="x => x.Nombre" Title="@L["Name"]" />
+                        <PropertyColumn Property="x => x.Simbolo" Title="@L["Symbol"]" HeaderStyle="width: 120px;" />
+                    </Columns>
+                    <NoRecordsContent>
+                        <MudText>@L["No unit codes found"]</MudText>
+                    </NoRecordsContent>
+                    <PagerContent>
+                        <MudDataGridPager T="ClaveUnidadSatCatalogoDto" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this catalog."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudDataGrid<ClaveUnidadSatCatalogoDto> _dataGrid = null!;
+    private string _searchString = "";
+
+    private async Task<GridData<ClaveUnidadSatCatalogoDto>> LoadServerData(GridState<ClaveUnidadSatCatalogoDto> state)
+    {
+        try
+        {
+            var (totalCount, items) = await FiscalCatalogService.SearchClavesUnidadSatAsync(
+                searchText: _searchString,
+                page: state.Page + 1,
+                pageSize: state.PageSize);
+
+            return new GridData<ClaveUnidadSatCatalogoDto> { TotalItems = totalCount, Items = items };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading SAT unit codes catalog");
+            Snackbar.Add(L["Error loading catalog"], Severity.Error);
+            return new GridData<ClaveUnidadSatCatalogoDto> { TotalItems = 0, Items = Array.Empty<ClaveUnidadSatCatalogoDto>() };
+        }
+    }
+
+    private async Task OnSearch(string value)
+    {
+        _searchString = value;
+        await _dataGrid.ReloadServerData();
+    }
+}

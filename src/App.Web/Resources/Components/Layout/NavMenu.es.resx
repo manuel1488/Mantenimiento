@@ -105,8 +105,14 @@
   <data name="Services" xml:space="preserve">
     <value>Servicios</value>
   </data>
+  <data name="Catalogs" xml:space="preserve">
+    <value>Catálogos</value>
+  </data>
   <data name="Unit Measures" xml:space="preserve">
     <value>Unidades de Medida</value>
+  </data>
+  <data name="SAT Unit Codes Catalog" xml:space="preserve">
+    <value>Catálogo de Claves de Unidad SAT</value>
   </data>
   <data name="Clients" xml:space="preserve">
     <value>Clientes</value>

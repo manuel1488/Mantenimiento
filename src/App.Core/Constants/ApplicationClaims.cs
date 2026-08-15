@@ -30,6 +30,9 @@ public static class ApplicationClaims
         // Permisos
         public const string ViewPermissions = "Admin.Permissions.View";
         public const string ManagePermissions = "Admin.Permissions.Manage";
+
+        // Catálogo de Claves de Unidad SAT (solo lectura, catálogo oficial CFDI)
+        public const string ViewCatalogoSat = "Admin.CatalogoSat.View";
     }
 
     public static class Shared

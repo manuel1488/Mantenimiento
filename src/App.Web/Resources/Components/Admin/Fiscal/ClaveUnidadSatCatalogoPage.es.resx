@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="SAT Unit Codes Catalog" xml:space="preserve">
+    <value>Catálogo de Claves de Unidad SAT</value>
+  </data>
+  <data name="Official SAT c_ClaveUnidad catalog, used for CFDI invoicing. Read-only — to correct an entry, update the source CSV file and reseed." xml:space="preserve">
+    <value>Catálogo oficial c_ClaveUnidad del SAT, usado para facturación CFDI. Solo lectura — para corregir una entrada, actualiza el archivo CSV origen y vuelve a sembrar.</value>
+  </data>
+  <data name="Search by code or name" xml:space="preserve">
+    <value>Buscar por código o nombre</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Symbol" xml:space="preserve">
+    <value>Símbolo</value>
+  </data>
+  <data name="No unit codes found" xml:space="preserve">
+    <value>No se encontraron claves</value>
+  </data>
+  <data name="Error loading catalog" xml:space="preserve">
+    <value>Error al cargar el catálogo</value>
+  </data>
+  <data name="You don't have permission to view this catalog." xml:space="preserve">
+    <value>No tienes permiso para ver este catálogo.</value>
+  </data>
+</root>

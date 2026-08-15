@@ -235,6 +235,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Admin.ViewPermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewPermissions));
         options.AddPolicy(ApplicationClaims.Admin.ManagePermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ManagePermissions));
 
+        options.AddPolicy(ApplicationClaims.Admin.ViewCatalogoSat, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewCatalogoSat));
+
         // Shared policies
         options.AddPolicy(ApplicationClaims.Shared.ViewDashboard, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewDashboard));
 
@@ -516,6 +518,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
             sp.GetRequiredService<ILogger<CsvFiscalCatalogReader>>());
     });
     services.AddScoped<IFiscalCatalogSeeder, FiscalCatalogSeeder>();
+    services.AddScoped<IUnidadMedidaSatLinker, UnidadMedidaSatLinker>();
 
     services.AddSingleton<IFileProvider>(new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
@@ -574,12 +577,14 @@ async Task InitializeDatabase(WebApplication app)
     var emailTemplateSeeder = scope.ServiceProvider.GetRequiredService<IEmailTemplateSeeder>();
     var companyBrandingSeeder = scope.ServiceProvider.GetRequiredService<ICompanyBrandingSeeder>();
     var fiscalCatalogSeeder = scope.ServiceProvider.GetRequiredService<IFiscalCatalogSeeder>();
+    var unidadMedidaSatLinker = scope.ServiceProvider.GetRequiredService<IUnidadMedidaSatLinker>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
     await emailTemplateSeeder.SeedAsync();
     await companyBrandingSeeder.SeedAsync();
     await fiscalCatalogSeeder.SeedAsync();
+    await unidadMedidaSatLinker.LinkAsync();
 }
 
 #endregion
