@@ -22,65 +22,78 @@ public class Cliente : BaseEntity<int>, IAuditTracked
     [StringLength(100)]
     public string Pais { get; set; } = null!;
 
-    [Required]
     [StringLength(30)]
-    public string Telefono { get; set; } = null!;
+    public string? Telefono { get; set; }
 
-    [Required]
     [StringLength(150)]
-    public string NombreContacto { get; set; } = null!;
+    public string? NombreContacto { get; set; }
 
-    [Required]
     [StringLength(150)]
-    public string Correo { get; set; } = null!;
+    public string? Correo { get; set; }
 
-    [Required]
     [StringLength(150)]
-    public string Calle { get; set; } = null!;
+    public string? Calle { get; set; }
 
-    [Required]
     [StringLength(20)]
-    public string NumeroExterior { get; set; } = null!;
+    public string? NumeroExterior { get; set; }
 
     [StringLength(20)]
     public string? NumeroInterior { get; set; }
 
-    [Required]
     [StringLength(100)]
-    public string Colonia { get; set; } = null!;
+    public string? Colonia { get; set; }
 
-    [Required]
     [StringLength(100)]
-    public string Ciudad { get; set; } = null!;
+    public string? Ciudad { get; set; }
 
-    [Required]
     [StringLength(100)]
-    public string Estado { get; set; } = null!;
+    public string? Estado { get; set; }
 
-    [Required]
     [StringLength(10)]
-    public string CodigoPostal { get; set; } = null!;
+    public string? CodigoPostal { get; set; }
 
     // Datos fiscales
-    [Required]
+    public bool TieneDatosFiscales { get; set; }
+
     [StringLength(13)]
-    public string Rfc { get; set; } = null!;
+    public string? Rfc { get; set; }
 
-    [Required]
     [StringLength(150)]
-    public string RazonSocial { get; set; } = null!;
+    public string? RazonSocial { get; set; }
 
-    [Required]
-    [StringLength(10)]
-    public string RegimenFiscal { get; set; } = null!;
+    [StringLength(150)]
+    public string? CorreoFiscal { get; set; }
 
-    [Required]
-    [StringLength(10)]
-    public string CodigoPostalFiscal { get; set; } = null!;
+    [StringLength(150)]
+    public string? CalleFiscal { get; set; }
 
-    [Required]
+    [StringLength(20)]
+    public string? NumeroExteriorFiscal { get; set; }
+
+    [StringLength(20)]
+    public string? NumeroInteriorFiscal { get; set; }
+
+    [StringLength(100)]
+    public string? ColoniaFiscal { get; set; }
+
+    [StringLength(100)]
+    public string? CiudadFiscal { get; set; }
+
+    [StringLength(100)]
+    public string? EstadoFiscal { get; set; }
+
     [StringLength(10)]
-    public string UsoCfdi { get; set; } = null!;
+    public string? RegimenFiscal { get; set; }
+
+    [StringLength(10)]
+    public string? CodigoPostalFiscal { get; set; }
+
+    [StringLength(10)]
+    public string? UsoCfdi { get; set; }
+
+    // Preferencias de facturación México
+    public bool FacturacionAutomatica { get; set; }
+    public bool EnviarCorreoFactura { get; set; }
 
     public ICollection<Obra> Obras { get; set; } = new List<Obra>();
 }

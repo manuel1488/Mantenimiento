@@ -12,14 +12,11 @@
   <data name="Tax Information" xml:space="preserve">
     <value>Tax Information</value>
   </data>
-  <data name="Name" xml:space="preserve">
-    <value>Name</value>
+  <data name="Name / Trade Name" xml:space="preserve">
+    <value>Name / Trade Name</value>
   </data>
   <data name="Name is required" xml:space="preserve">
     <value>Name is required</value>
-  </data>
-  <data name="Trade Name" xml:space="preserve">
-    <value>Trade Name</value>
   </data>
   <data name="Country" xml:space="preserve">
     <value>Country</value>
@@ -30,32 +27,20 @@
   <data name="Phone" xml:space="preserve">
     <value>Phone</value>
   </data>
-  <data name="Phone is required" xml:space="preserve">
-    <value>Phone is required</value>
-  </data>
   <data name="Email" xml:space="preserve">
     <value>Email</value>
-  </data>
-  <data name="Email is required" xml:space="preserve">
-    <value>Email is required</value>
   </data>
   <data name="Contact Name" xml:space="preserve">
     <value>Contact Name</value>
   </data>
-  <data name="Contact name is required" xml:space="preserve">
-    <value>Contact name is required</value>
+  <data name="Business Address" xml:space="preserve">
+    <value>Business Address</value>
   </data>
   <data name="Street" xml:space="preserve">
     <value>Street</value>
   </data>
-  <data name="Street is required" xml:space="preserve">
-    <value>Street is required</value>
-  </data>
   <data name="Ext. Number" xml:space="preserve">
     <value>Ext. Number</value>
-  </data>
-  <data name="Exterior number is required" xml:space="preserve">
-    <value>Exterior number is required</value>
   </data>
   <data name="Int. Number" xml:space="preserve">
     <value>Int. Number</value>
@@ -63,32 +48,23 @@
   <data name="Neighborhood" xml:space="preserve">
     <value>Neighborhood</value>
   </data>
-  <data name="Neighborhood is required" xml:space="preserve">
-    <value>Neighborhood is required</value>
-  </data>
   <data name="City" xml:space="preserve">
     <value>City</value>
-  </data>
-  <data name="City is required" xml:space="preserve">
-    <value>City is required</value>
   </data>
   <data name="State" xml:space="preserve">
     <value>State</value>
   </data>
-  <data name="State is required" xml:space="preserve">
-    <value>State is required</value>
-  </data>
   <data name="Zip Code" xml:space="preserve">
     <value>Zip Code</value>
   </data>
-  <data name="Zip code is required" xml:space="preserve">
-    <value>Zip code is required</value>
+  <data name="This client has fiscal data" xml:space="preserve">
+    <value>This client has fiscal data</value>
   </data>
-  <data name="RFC" xml:space="preserve">
-    <value>RFC</value>
+  <data name="This client has no fiscal data" xml:space="preserve">
+    <value>This client has no fiscal data</value>
   </data>
-  <data name="RFC is required" xml:space="preserve">
-    <value>RFC is required</value>
+  <data name="RFC/Tax ID" xml:space="preserve">
+    <value>RFC/NIT</value>
   </data>
   <data name="Legal Name" xml:space="preserve">
     <value>Legal Name</value>
@@ -96,23 +72,44 @@
   <data name="Legal name is required" xml:space="preserve">
     <value>Legal name is required</value>
   </data>
+  <data name="Fiscal Email" xml:space="preserve">
+    <value>Fiscal Email</value>
+  </data>
+  <data name="For invoice delivery. Leave empty to use the commercial email." xml:space="preserve">
+    <value>For invoice delivery. Leave empty to use the commercial email.</value>
+  </data>
+  <data name="Fiscal Address" xml:space="preserve">
+    <value>Fiscal Address</value>
+  </data>
+  <data name="Required for CFDI stamping (Mexico)" xml:space="preserve">
+    <value>Required for CFDI stamping (Mexico)</value>
+  </data>
+  <data name="Mexico Billing Preferences" xml:space="preserve">
+    <value>Mexico Billing Preferences</value>
+  </data>
   <data name="Tax Regime" xml:space="preserve">
     <value>Tax Regime</value>
   </data>
-  <data name="Tax regime is required" xml:space="preserve">
-    <value>Tax regime is required</value>
+  <data name="Default CFDI Use" xml:space="preserve">
+    <value>Default CFDI Use</value>
   </data>
-  <data name="Tax Zip Code" xml:space="preserve">
-    <value>Tax Zip Code</value>
+  <data name="Automatic Invoicing" xml:space="preserve">
+    <value>Automatic Invoicing</value>
   </data>
-  <data name="Tax zip code is required" xml:space="preserve">
-    <value>Tax zip code is required</value>
+  <data name="Generate an invoice automatically after each sale" xml:space="preserve">
+    <value>Generate an invoice automatically after each sale</value>
   </data>
-  <data name="CFDI Use" xml:space="preserve">
-    <value>CFDI Use</value>
+  <data name="Send Invoice Email" xml:space="preserve">
+    <value>Send Invoice Email</value>
   </data>
-  <data name="CFDI use is required" xml:space="preserve">
-    <value>CFDI use is required</value>
+  <data name="Automatically send the invoice email when it's generated" xml:space="preserve">
+    <value>Automatically send the invoice email when it's generated</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>

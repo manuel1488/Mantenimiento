@@ -1,7 +1,10 @@
+@using App.Core.DTOs.Fiscal
+@using App.Core.Interfaces
 @using App.Web.Components.Admin.Clientes.Models
 @using MudBlazor
 
 @inject IStringLocalizer<ClienteDialog> L
+@inject IFiscalCatalogService FiscalCatalogService
 
 <MudDialog>
     <TitleContent>
@@ -12,88 +15,152 @@
     <DialogContent>
         <MudContainer Style="max-width: 900px;">
             <MudForm Model="@Model" @ref="@_form">
-                <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Commercial Information"]</MudText>
-                <MudGrid>
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="Model.Nombre" Label="@L["Name"]"
-                                      Required="true" RequiredError="@L["Name is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="Model.NombreComercial" Label="@L["Trade Name"]" />
-                    </MudItem>
+                <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                    <MudTabPanel Text="@L["Commercial Information"]" Icon="@Icons.Material.Filled.Storefront">
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Nombre" Label="@L["Name / Trade Name"]"
+                                              Required="true" RequiredError="@L["Name is required"]" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.NombreContacto" Label="@L["Contact Name"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Pais" Label="@L["Country"]"
-                                      Required="true" RequiredError="@L["Country is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Telefono" Label="@L["Phone"]"
-                                      Required="true" RequiredError="@L["Phone is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Correo" Label="@L["Email"]" InputType="InputType.Email"
-                                      Required="true" RequiredError="@L["Email is required"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="string" @bind-Value="Model.Pais" Label="@L["Country"]"
+                                           Required="true" RequiredError="@L["Country is required"]">
+                                    @foreach (var country in Countries)
+                                    {
+                                        <MudSelectItem T="string" Value="@country">@country</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Correo" Label="@L["Email"]" InputType="InputType.Email" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="Model.NombreContacto" Label="@L["Contact Name"]"
-                                      Required="true" RequiredError="@L["Contact name is required"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Telefono" Label="@L["Phone"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="6">
-                        <MudTextField @bind-Value="Model.Calle" Label="@L["Street"]"
-                                      Required="true" RequiredError="@L["Street is required"]" />
-                    </MudItem>
-                    <MudItem xs="6" md="3">
-                        <MudTextField @bind-Value="Model.NumeroExterior" Label="@L["Ext. Number"]"
-                                      Required="true" RequiredError="@L["Exterior number is required"]" />
-                    </MudItem>
-                    <MudItem xs="6" md="3">
-                        <MudTextField @bind-Value="Model.NumeroInterior" Label="@L["Int. Number"]" />
-                    </MudItem>
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Business Address"]</MudText>
+                            </MudItem>
 
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Colonia" Label="@L["Neighborhood"]"
-                                      Required="true" RequiredError="@L["Neighborhood is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Ciudad" Label="@L["City"]"
-                                      Required="true" RequiredError="@L["City is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Estado" Label="@L["State"]"
-                                      Required="true" RequiredError="@L["State is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.CodigoPostal" Label="@L["Zip Code"]"
-                                      Required="true" RequiredError="@L["Zip code is required"]" />
-                    </MudItem>
-                </MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Calle" Label="@L["Street"]" />
+                            </MudItem>
+                            <MudItem xs="6" md="3">
+                                <MudTextField @bind-Value="Model.NumeroExterior" Label="@L["Ext. Number"]" />
+                            </MudItem>
+                            <MudItem xs="6" md="3">
+                                <MudTextField @bind-Value="Model.NumeroInterior" Label="@L["Int. Number"]" />
+                            </MudItem>
 
-                <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">@L["Tax Information"]</MudText>
-                <MudGrid>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.Rfc" Label="@L["RFC"]"
-                                      Required="true" RequiredError="@L["RFC is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="8">
-                        <MudTextField @bind-Value="Model.RazonSocial" Label="@L["Legal Name"]"
-                                      Required="true" RequiredError="@L["Legal name is required"]" />
-                    </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Colonia" Label="@L["Neighborhood"]" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Ciudad" Label="@L["City"]" />
+                            </MudItem>
 
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.RegimenFiscal" Label="@L["Tax Regime"]"
-                                      Required="true" RequiredError="@L["Tax regime is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.CodigoPostalFiscal" Label="@L["Tax Zip Code"]"
-                                      Required="true" RequiredError="@L["Tax zip code is required"]" />
-                    </MudItem>
-                    <MudItem xs="12" md="4">
-                        <MudTextField @bind-Value="Model.UsoCfdi" Label="@L["CFDI Use"]"
-                                      Required="true" RequiredError="@L["CFDI use is required"]" />
-                    </MudItem>
-                </MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.Estado" Label="@L["State"]" />
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudTextField @bind-Value="Model.CodigoPostal" Label="@L["Zip Code"]" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="@L["Tax Information"]" Icon="@Icons.Material.Filled.Receipt">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudSwitch T="bool" @bind-Value="Model.TieneDatosFiscales" Color="Color.Success"
+                                           Label="@L["This client has fiscal data"]" />
+                            </MudItem>
+
+                            @if (Model.TieneDatosFiscales)
+                            {
+                                <MudItem xs="12" md="4">
+                                    <MudTextField @bind-Value="Model.Rfc" Label="@L["RFC/Tax ID"]" />
+                                </MudItem>
+                                <MudItem xs="12" md="8">
+                                    <MudTextField @bind-Value="Model.RazonSocial" Label="@L["Legal Name"]"
+                                                  Required="true" RequiredError="@L["Legal name is required"]" />
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="Model.CorreoFiscal" Label="@L["Fiscal Email"]"
+                                                  InputType="InputType.Email"
+                                                  HelperText="@L["For invoice delivery. Leave empty to use the commercial email."]" />
+                                </MudItem>
+
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Fiscal Address"]</MudText>
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="Model.CalleFiscal" Label="@L["Street"]" />
+                                </MudItem>
+                                <MudItem xs="6" md="3">
+                                    <MudTextField @bind-Value="Model.NumeroExteriorFiscal" Label="@L["Ext. Number"]" />
+                                </MudItem>
+                                <MudItem xs="6" md="3">
+                                    <MudTextField @bind-Value="Model.NumeroInteriorFiscal" Label="@L["Int. Number"]" />
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="Model.ColoniaFiscal" Label="@L["Neighborhood"]" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="Model.CiudadFiscal" Label="@L["City"]" />
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="Model.EstadoFiscal" Label="@L["State"]" />
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudTextField @bind-Value="Model.CodigoPostalFiscal" Label="@L["Zip Code"]"
+                                                  HelperText="@L["Required for CFDI stamping (Mexico)"]" />
+                                </MudItem>
+
+                                <MudItem xs="12">
+                                    <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Mexico Billing Preferences"]</MudText>
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudSelect T="string" Value="@Model.RegimenFiscal" ValueChanged="@OnRegimenFiscalChanged"
+                                               Label="@L["Tax Regime"]">
+                                        @foreach (var regimen in _regimenesFiscales)
+                                        {
+                                            <MudSelectItem T="string" Value="@regimen.Codigo">@regimen.Codigo - @regimen.Descripcion</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudSelect T="string" @bind-Value="Model.UsoCfdi" Label="@L["Default CFDI Use"]">
+                                        @foreach (var uso in _usosCfdiDisponibles)
+                                        {
+                                            <MudSelectItem T="string" Value="@uso.Codigo">@uso.Codigo - @uso.Descripcion</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </MudItem>
+
+                                <MudItem xs="12" md="6">
+                                    <MudSwitch T="bool" @bind-Value="Model.FacturacionAutomatica" Color="Color.Success"
+                                               Label="@L["Automatic Invoicing"]" />
+                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Generate an invoice automatically after each sale"]</MudText>
+                                </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudSwitch T="bool" @bind-Value="Model.EnviarCorreoFactura" Color="Color.Success"
+                                               Label="@L["Send Invoice Email"]" />
+                                    <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Automatically send the invoice email when it's generated"]</MudText>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </MudTabPanel>
+                </MudTabs>
             </MudForm>
         </MudContainer>
     </DialogContent>
@@ -107,11 +174,52 @@
 </MudDialog>
 
 @code {
+    private static readonly string[] Countries =
+    [
+        "Mexico",
+        "Estados Unidos",
+        "Canada",
+        "Guatemala",
+        "Belice",
+        "Honduras",
+        "El Salvador",
+        "Nicaragua",
+        "Costa Rica",
+        "Panama",
+        "Colombia",
+        "España"
+    ];
+
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public ClienteDialogModel Model { get; set; } = new();
     [Parameter] public bool IsNew { get; set; }
 
     private MudForm _form = null!;
+    private IList<RegimenFiscalCatalogoDto> _regimenesFiscales = [];
+    private IList<UsoCfdiCatalogoDto> _usosCfdiDisponibles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _regimenesFiscales = await FiscalCatalogService.GetRegimenesFiscalesAsync();
+
+        _usosCfdiDisponibles = string.IsNullOrWhiteSpace(Model.RegimenFiscal)
+            ? await FiscalCatalogService.GetUsosCfdiAsync()
+            : await FiscalCatalogService.GetUsosCfdiPorRegimenAsync(Model.RegimenFiscal);
+    }
+
+    private async Task OnRegimenFiscalChanged(string? codigoRegimen)
+    {
+        Model.RegimenFiscal = codigoRegimen;
+
+        _usosCfdiDisponibles = string.IsNullOrWhiteSpace(codigoRegimen)
+            ? await FiscalCatalogService.GetUsosCfdiAsync()
+            : await FiscalCatalogService.GetUsosCfdiPorRegimenAsync(codigoRegimen);
+
+        if (Model.UsoCfdi != null && _usosCfdiDisponibles.All(u => u.Codigo != Model.UsoCfdi))
+        {
+            Model.UsoCfdi = null;
+        }
+    }
 
     private void Cancel() => MudDialog.Cancel();
 

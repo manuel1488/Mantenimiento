@@ -11,14 +11,12 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
     {
         builder.Property(e => e.Rfc)
             .HasMaxLength(13)
-            .IsRequired()
             .IsUnicode(false);
 
         builder.HasIndex(e => e.Rfc)
             .IsUnique();
 
         builder.Property(e => e.Correo)
-            .HasMaxLength(150)
-            .IsRequired();
+            .HasMaxLength(150);
     }
 }

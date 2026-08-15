@@ -1,0 +1,188 @@
+@using App.Core.DTOs.Clientes
+@using App.Core.DTOs.Fiscal
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<ClienteDialog> L
+@inject IFiscalCatalogService FiscalCatalogService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(Cliente.NombreComercial ?? Cliente.Nombre)</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-width: 900px;">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                <MudTabPanel Text="@L["Commercial Information"]" Icon="@Icons.Material.Filled.Storefront">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Name / Trade Name"]</MudText>
+                            <MudText Typo="Typo.body1">@Cliente.Nombre</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Contact Name"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.NombreContacto)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Country"]</MudText>
+                            <MudText Typo="Typo.body1">@Cliente.Pais</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Email"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.Correo)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Phone"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.Telefono)</MudText>
+                        </MudItem>
+
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Business Address"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Street"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.Calle)</MudText>
+                        </MudItem>
+                        <MudItem xs="6" md="3">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Ext. Number"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.NumeroExterior)</MudText>
+                        </MudItem>
+                        <MudItem xs="6" md="3">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Int. Number"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.NumeroInterior)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Neighborhood"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.Colonia)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["City"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.Ciudad)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["State"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.Estado)</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Zip Code"]</MudText>
+                            <MudText Typo="Typo.body1">@Display(Cliente.CodigoPostal)</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="@L["Tax Information"]" Icon="@Icons.Material.Filled.Receipt">
+                    @if (Cliente.TieneDatosFiscales)
+                    {
+                        <MudGrid>
+                            <MudItem xs="12" md="4">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["RFC/Tax ID"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.Rfc)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="8">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Legal Name"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.RazonSocial)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Fiscal Email"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.CorreoFiscal)</MudText>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Fiscal Address"]</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Street"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.CalleFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="6" md="3">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Ext. Number"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.NumeroExteriorFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="6" md="3">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Int. Number"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.NumeroInteriorFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Neighborhood"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.ColoniaFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["City"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.CiudadFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["State"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.EstadoFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Zip Code"]</MudText>
+                                <MudText Typo="Typo.body1">@Display(Cliente.CodigoPostalFiscal)</MudText>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-2">@L["Mexico Billing Preferences"]</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Tax Regime"]</MudText>
+                                <MudText Typo="Typo.body1">@DisplayRegimen(Cliente.RegimenFiscal)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Default CFDI Use"]</MudText>
+                                <MudText Typo="Typo.body1">@DisplayUsoCfdi(Cliente.UsoCfdi)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Automatic Invoicing"]</MudText>
+                                <MudText Typo="Typo.body1">@(Cliente.FacturacionAutomatica ? L["Yes"] : L["No"])</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Send Invoice Email"]</MudText>
+                                <MudText Typo="Typo.body1">@(Cliente.EnviarCorreoFactura ? L["Yes"] : L["No"])</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["This client has no fiscal data"]</MudText>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Class="da-button-rounded">@L["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ClienteDto Cliente { get; set; } = null!;
+
+    private IList<RegimenFiscalCatalogoDto> _regimenesFiscales = [];
+    private IList<UsoCfdiCatalogoDto> _usosCfdi = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Cliente.TieneDatosFiscales) return;
+
+        _regimenesFiscales = await FiscalCatalogService.GetRegimenesFiscalesAsync();
+        _usosCfdi = await FiscalCatalogService.GetUsosCfdiAsync();
+    }
+
+    private void Close() => MudDialog.Cancel();
+
+    private static string Display(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private string DisplayRegimen(string? codigo)
+    {
+        if (string.IsNullOrWhiteSpace(codigo)) return "-";
+        var regimen = _regimenesFiscales.FirstOrDefault(r => r.Codigo == codigo);
+        return regimen is null ? codigo : $"{regimen.Codigo} - {regimen.Descripcion}";
+    }
+
+    private string DisplayUsoCfdi(string? codigo)
+    {
+        if (string.IsNullOrWhiteSpace(codigo)) return "-";
+        var uso = _usosCfdi.FirstOrDefault(u => u.Codigo == codigo);
+        return uso is null ? codigo : $"{uso.Codigo} - {uso.Descripcion}";
+    }
+}

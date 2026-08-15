@@ -3,6 +3,7 @@ using App.Models.Clientes;
 using App.Models.Cotizaciones;
 using App.Models.Data.Extensions;
 using App.Models.Facturas;
+using App.Models.Fiscal;
 using App.Models.Identity;
 using App.Models.Obras;
 using App.Models.Servicios;
@@ -51,6 +52,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<Cotizacion> Cotizaciones { get; set; } = null!;
     public DbSet<CotizacionLinea> CotizacionLineas { get; set; } = null!;
     public DbSet<Factura> Facturas { get; set; } = null!;
+    #endregion
+
+    #region Fiscal Catalogs
+    public DbSet<RegimenFiscalCatalogo> RegimenesFiscalesCatalogo { get; set; } = null!;
+    public DbSet<UsoCfdiCatalogo> UsosCfdiCatalogo { get; set; } = null!;
     #endregion
 
     protected override void OnModelCreating(ModelBuilder builder)

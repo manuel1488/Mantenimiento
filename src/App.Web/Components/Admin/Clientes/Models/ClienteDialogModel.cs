@@ -7,22 +7,34 @@ public class ClienteDialogModel
     // Datos comerciales
     public string Nombre { get; set; } = string.Empty;
     public string? NombreComercial { get; set; }
-    public string Pais { get; set; } = string.Empty;
-    public string Telefono { get; set; } = string.Empty;
-    public string NombreContacto { get; set; } = string.Empty;
-    public string Correo { get; set; } = string.Empty;
-    public string Calle { get; set; } = string.Empty;
-    public string NumeroExterior { get; set; } = string.Empty;
+    public string Pais { get; set; } = "Mexico";
+    public string? Telefono { get; set; }
+    public string? NombreContacto { get; set; }
+    public string? Correo { get; set; }
+    public string? Calle { get; set; }
+    public string? NumeroExterior { get; set; }
     public string? NumeroInterior { get; set; }
-    public string Colonia { get; set; } = string.Empty;
-    public string Ciudad { get; set; } = string.Empty;
-    public string Estado { get; set; } = string.Empty;
-    public string CodigoPostal { get; set; } = string.Empty;
+    public string? Colonia { get; set; }
+    public string? Ciudad { get; set; }
+    public string? Estado { get; set; }
+    public string? CodigoPostal { get; set; }
 
     // Datos fiscales
-    public string Rfc { get; set; } = string.Empty;
-    public string RazonSocial { get; set; } = string.Empty;
-    public string RegimenFiscal { get; set; } = string.Empty;
-    public string CodigoPostalFiscal { get; set; } = string.Empty;
-    public string UsoCfdi { get; set; } = string.Empty;
+    public bool TieneDatosFiscales { get; set; } = true;
+    public string? Rfc { get; set; }
+    public string? RazonSocial { get; set; }
+    public string? CorreoFiscal { get; set; }
+    public string? CalleFiscal { get; set; }
+    public string? NumeroExteriorFiscal { get; set; }
+    public string? NumeroInteriorFiscal { get; set; }
+    public string? ColoniaFiscal { get; set; }
+    public string? CiudadFiscal { get; set; }
+    public string? EstadoFiscal { get; set; }
+    public string? RegimenFiscal { get; set; }
+    public string? CodigoPostalFiscal { get; set; }
+    public string? UsoCfdi { get; set; }
+
+    // Preferencias de facturación México
+    public bool FacturacionAutomatica { get; set; }
+    public bool EnviarCorreoFactura { get; set; }
 }

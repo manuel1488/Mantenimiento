@@ -9,26 +9,26 @@
   <data name="New Client" xml:space="preserve">
     <value>Nuevo Cliente</value>
   </data>
+  <data name="View Client" xml:space="preserve">
+    <value>Ver Cliente</value>
+  </data>
   <data name="Edit Client" xml:space="preserve">
     <value>Editar Cliente</value>
   </data>
   <data name="Delete Client" xml:space="preserve">
     <value>Eliminar Cliente</value>
   </data>
-  <data name="Name" xml:space="preserve">
-    <value>Nombre</value>
+  <data name="Trade Name" xml:space="preserve">
+    <value>Nombre Comercial</value>
   </data>
-  <data name="Legal Name" xml:space="preserve">
-    <value>Razón Social</value>
+  <data name="Contact Name" xml:space="preserve">
+    <value>Nombre de Contacto</value>
   </data>
-  <data name="RFC" xml:space="preserve">
-    <value>RFC</value>
+  <data name="Country" xml:space="preserve">
+    <value>País</value>
   </data>
   <data name="Phone" xml:space="preserve">
     <value>Teléfono</value>
-  </data>
-  <data name="Email" xml:space="preserve">
-    <value>Correo</value>
   </data>
   <data name="Actions" xml:space="preserve">
     <value>Acciones</value>

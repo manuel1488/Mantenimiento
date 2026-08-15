@@ -45,14 +45,17 @@
                              SortMode="SortMode.Multiple" Filterable="false"
                              Dense="true" Hover="true" RowsPerPage="10">
                     <Columns>
-                        <PropertyColumn Property="x => x.Nombre" Title="@L["Name"]" />
-                        <PropertyColumn Property="x => x.RazonSocial" Title="@L["Legal Name"]" />
-                        <PropertyColumn Property="x => x.Rfc" Title="@L["RFC"]" HeaderStyle="width: 120px;" />
+                        <PropertyColumn Property="x => x.NombreComercial ?? x.Nombre" Title="@L["Trade Name"]" />
+                        <PropertyColumn Property="x => x.NombreContacto" Title="@L["Contact Name"]" />
                         <PropertyColumn Property="x => x.Telefono" Title="@L["Phone"]" HeaderStyle="width: 130px;" />
-                        <PropertyColumn Property="x => x.Correo" Title="@L["Email"]" />
+                        <PropertyColumn Property="x => x.Pais" Title="@L["Country"]" HeaderStyle="width: 130px;" />
                         <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
                                         CellClass="d-flex justify-end">
                             <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OpenViewDialog(context.Item))"
+                                               title="@L["View Client"]" />
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageClientes">
                                     <Authorized Context="authContext">
                                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
@@ -134,14 +137,25 @@
             ? _clientes
             : _clientes.Where(c =>
                 c.Nombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                c.RazonSocial.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                c.Rfc.Contains(_searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+                (c.NombreComercial?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (c.RazonSocial?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (c.Rfc?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
     }
 
     private void OnSearch(string value)
     {
         _searchString = value;
         ApplyFilter();
+    }
+
+    private async Task OpenViewDialog(ClienteDto cliente)
+    {
+        var parameters = new DialogParameters<ClienteViewDialog>
+        {
+            { x => x.Cliente, cliente }
+        };
+
+        await DialogService.ShowAsync<ClienteViewDialog>(L["View Client"], parameters);
     }
 
     private async Task OpenCreateDialog()
@@ -193,11 +207,21 @@
                     Ciudad = cliente.Ciudad,
                     Estado = cliente.Estado,
                     CodigoPostal = cliente.CodigoPostal,
+                    TieneDatosFiscales = cliente.TieneDatosFiscales,
                     Rfc = cliente.Rfc,
                     RazonSocial = cliente.RazonSocial,
+                    CorreoFiscal = cliente.CorreoFiscal,
+                    CalleFiscal = cliente.CalleFiscal,
+                    NumeroExteriorFiscal = cliente.NumeroExteriorFiscal,
+                    NumeroInteriorFiscal = cliente.NumeroInteriorFiscal,
+                    ColoniaFiscal = cliente.ColoniaFiscal,
+                    CiudadFiscal = cliente.CiudadFiscal,
+                    EstadoFiscal = cliente.EstadoFiscal,
                     RegimenFiscal = cliente.RegimenFiscal,
                     CodigoPostalFiscal = cliente.CodigoPostalFiscal,
-                    UsoCfdi = cliente.UsoCfdi
+                    UsoCfdi = cliente.UsoCfdi,
+                    FacturacionAutomatica = cliente.FacturacionAutomatica,
+                    EnviarCorreoFactura = cliente.EnviarCorreoFactura
                 }
             }
         };
@@ -268,11 +292,21 @@
         Ciudad = model.Ciudad,
         Estado = model.Estado,
         CodigoPostal = model.CodigoPostal,
+        TieneDatosFiscales = model.TieneDatosFiscales,
         Rfc = model.Rfc,
         RazonSocial = model.RazonSocial,
+        CorreoFiscal = model.CorreoFiscal,
+        CalleFiscal = model.CalleFiscal,
+        NumeroExteriorFiscal = model.NumeroExteriorFiscal,
+        NumeroInteriorFiscal = model.NumeroInteriorFiscal,
+        ColoniaFiscal = model.ColoniaFiscal,
+        CiudadFiscal = model.CiudadFiscal,
+        EstadoFiscal = model.EstadoFiscal,
         RegimenFiscal = model.RegimenFiscal,
         CodigoPostalFiscal = model.CodigoPostalFiscal,
-        UsoCfdi = model.UsoCfdi
+        UsoCfdi = model.UsoCfdi,
+        FacturacionAutomatica = model.FacturacionAutomatica,
+        EnviarCorreoFactura = model.EnviarCorreoFactura
     };
 
     private static UpdateClienteDto MapToUpdateDto(ClienteDialogModel model) => new()
@@ -290,10 +324,20 @@
         Ciudad = model.Ciudad,
         Estado = model.Estado,
         CodigoPostal = model.CodigoPostal,
+        TieneDatosFiscales = model.TieneDatosFiscales,
         Rfc = model.Rfc,
         RazonSocial = model.RazonSocial,
+        CorreoFiscal = model.CorreoFiscal,
+        CalleFiscal = model.CalleFiscal,
+        NumeroExteriorFiscal = model.NumeroExteriorFiscal,
+        NumeroInteriorFiscal = model.NumeroInteriorFiscal,
+        ColoniaFiscal = model.ColoniaFiscal,
+        CiudadFiscal = model.CiudadFiscal,
+        EstadoFiscal = model.EstadoFiscal,
         RegimenFiscal = model.RegimenFiscal,
         CodigoPostalFiscal = model.CodigoPostalFiscal,
-        UsoCfdi = model.UsoCfdi
+        UsoCfdi = model.UsoCfdi,
+        FacturacionAutomatica = model.FacturacionAutomatica,
+        EnviarCorreoFactura = model.EnviarCorreoFactura
     };
 }

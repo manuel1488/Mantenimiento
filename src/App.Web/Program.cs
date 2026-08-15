@@ -15,6 +15,8 @@ using App.Services.Images;
 using App.Services.Mappings;
 using App.Services.Reports;
 using App.Services.Clientes;
+using App.Services.Data;
+using App.Services.Fiscal;
 using App.Services.Seeders;
 using App.Services.Servicios;
 using App.Services.Settings;
@@ -498,6 +500,18 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
         sp.GetRequiredService<ILogger<EmailTemplateSeeder>>()));
     services.AddScoped<ICompanyBrandingSeeder, CompanyBrandingSeeder>();
 
+    services.AddScoped<IFiscalCatalogService, FiscalCatalogService>();
+    services.AddScoped<IFiscalCatalogDataReader>(sp =>
+    {
+        var dataPath = configuration["FiscalCatalogs:DataPath"]
+            ?? throw new ArgumentNullException("FiscalCatalogs:DataPath", "FiscalCatalogs:DataPath configuration is required");
+
+        return new CsvFiscalCatalogReader(
+            dataPath,
+            sp.GetRequiredService<ILogger<CsvFiscalCatalogReader>>());
+    });
+    services.AddScoped<IFiscalCatalogSeeder, FiscalCatalogSeeder>();
+
     services.AddSingleton<IFileProvider>(new PhysicalFileProvider(
         Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
 
@@ -554,11 +568,13 @@ async Task InitializeDatabase(WebApplication app)
     var seeder = scope.ServiceProvider.GetRequiredService<IIdentitySeeder>();
     var emailTemplateSeeder = scope.ServiceProvider.GetRequiredService<IEmailTemplateSeeder>();
     var companyBrandingSeeder = scope.ServiceProvider.GetRequiredService<ICompanyBrandingSeeder>();
+    var fiscalCatalogSeeder = scope.ServiceProvider.GetRequiredService<IFiscalCatalogSeeder>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
     await emailTemplateSeeder.SeedAsync();
     await companyBrandingSeeder.SeedAsync();
+    await fiscalCatalogSeeder.SeedAsync();
 }
 
 #endregion

@@ -81,6 +81,9 @@ public class ClienteService : IClienteService
 
     public async Task<Result<ClienteDto>> CreateAsync(CreateClienteDto dto)
     {
+        if (dto.TieneDatosFiscales && string.IsNullOrWhiteSpace(dto.RazonSocial))
+            return Result<ClienteDto>.Failure(_localizer["Legal name is required when the client has fiscal data"]);
+
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -91,7 +94,8 @@ public class ClienteService : IClienteService
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
-                    if (await context.Clientes.AnyAsync(c => c.Rfc == dto.Rfc))
+                    if (!string.IsNullOrWhiteSpace(dto.Rfc) &&
+                        await context.Clientes.AnyAsync(c => c.Rfc == dto.Rfc))
                     {
                         await transaction.RollbackAsync();
                         return Result<ClienteDto>.Failure(_localizer["A client with this RFC already exists"]);
@@ -128,6 +132,9 @@ public class ClienteService : IClienteService
 
     public async Task<Result<ClienteDto>> UpdateAsync(int id, UpdateClienteDto dto)
     {
+        if (dto.TieneDatosFiscales && string.IsNullOrWhiteSpace(dto.RazonSocial))
+            return Result<ClienteDto>.Failure(_localizer["Legal name is required when the client has fiscal data"]);
+
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -145,7 +152,8 @@ public class ClienteService : IClienteService
                         return Result<ClienteDto>.Failure(_localizer["Cliente not found"]);
                     }
 
-                    if (await context.Clientes.AnyAsync(c => c.Rfc == dto.Rfc && c.Id != id))
+                    if (!string.IsNullOrWhiteSpace(dto.Rfc) &&
+                        await context.Clientes.AnyAsync(c => c.Rfc == dto.Rfc && c.Id != id))
                     {
                         await transaction.RollbackAsync();
                         return Result<ClienteDto>.Failure(_localizer["A client with this RFC already exists"]);
