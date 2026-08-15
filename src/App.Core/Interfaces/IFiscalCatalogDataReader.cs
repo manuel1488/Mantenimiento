@@ -9,4 +9,5 @@ public interface IFiscalCatalogDataReader
 {
     Task<IEnumerable<CreateRegimenFiscalCatalogoDto>> GetRegimenesFiscalesAsync();
     Task<IEnumerable<CreateUsoCfdiCatalogoDto>> GetUsosCfdiAsync();
+    Task<IEnumerable<CreateClaveUnidadSatCatalogoDto>> GetClavesUnidadSatAsync();
 }

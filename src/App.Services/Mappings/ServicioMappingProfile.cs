@@ -9,7 +9,11 @@ public class ServicioMappingProfile : Profile
 {
     public ServicioMappingProfile()
     {
-        CreateMap<Servicio, ServicioDto>();
+        CreateMap<Servicio, ServicioDto>()
+            .ForMember(dest => dest.UnidadMedidaCodigo,
+                opt => opt.MapFrom(src => src.UnidadMedida.Codigo))
+            .ForMember(dest => dest.UnidadMedidaNombre,
+                opt => opt.MapFrom(src => src.UnidadMedida.Nombre));
 
         CreateMap<CreateServicioDto, Servicio>();
 

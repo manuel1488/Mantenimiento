@@ -14,20 +14,20 @@ using Microsoft.Extensions.Logging;
 
 namespace App.Services.Servicios;
 
-public class ServicioService : IServicioService
+public class UnidadMedidaService : IUnidadMedidaService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly IMapper _mapper;
-    private readonly ILogger<ServicioService> _logger;
-    private readonly IStringLocalizer<ServicioService> _localizer;
+    private readonly ILogger<UnidadMedidaService> _logger;
+    private readonly IStringLocalizer<UnidadMedidaService> _localizer;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTimeService;
 
-    public ServicioService(
+    public UnidadMedidaService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
         IMapper mapper,
-        ILogger<ServicioService> logger,
-        IStringLocalizer<ServicioService> localizer,
+        ILogger<UnidadMedidaService> logger,
+        IStringLocalizer<UnidadMedidaService> localizer,
         ICurrentUserService currentUserService,
         IDateTime dateTimeService)
     {
@@ -39,52 +39,52 @@ public class ServicioService : IServicioService
         _dateTimeService = dateTimeService;
     }
 
-    public async Task<Result<List<ServicioDto>>> GetAllAsync()
+    public async Task<Result<List<UnidadMedidaDto>>> GetAllAsync()
     {
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var servicios = await context.Servicios
+            var unidades = await context.UnidadesMedida
                 .AsNoTracking()
-                .OrderBy(s => s.Nombre)
-                .ProjectTo<ServicioDto>(_mapper.ConfigurationProvider)
+                .OrderBy(u => u.Nombre)
+                .ProjectTo<UnidadMedidaDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return Result<List<ServicioDto>>.Success(servicios);
+            return Result<List<UnidadMedidaDto>>.Success(unidades);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving servicios");
-            return Result<List<ServicioDto>>.Failure(_localizer["Error retrieving servicios"]);
+            _logger.LogError(ex, "Error retrieving unidades de medida");
+            return Result<List<UnidadMedidaDto>>.Failure(_localizer["Error retrieving unit measures"]);
         }
     }
 
-    public async Task<Result<ServicioDto>> GetByIdAsync(int id)
+    public async Task<Result<UnidadMedidaDto>> GetByIdAsync(int id)
     {
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var servicio = await context.Servicios
+            var unidad = await context.UnidadesMedida
                 .AsNoTracking()
-                .Where(s => s.Id == id)
-                .ProjectTo<ServicioDto>(_mapper.ConfigurationProvider)
+                .Where(u => u.Id == id)
+                .ProjectTo<UnidadMedidaDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 
-            if (servicio == null)
-                return Result<ServicioDto>.Failure(_localizer["Servicio not found"]);
+            if (unidad == null)
+                return Result<UnidadMedidaDto>.Failure(_localizer["Unit measure not found"]);
 
-            return Result<ServicioDto>.Success(servicio);
+            return Result<UnidadMedidaDto>.Success(unidad);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving servicio {Id}", id);
-            return Result<ServicioDto>.Failure(_localizer["Error retrieving servicio"]);
+            _logger.LogError(ex, "Error retrieving unidad de medida {Id}", id);
+            return Result<UnidadMedidaDto>.Failure(_localizer["Error retrieving unit measure"]);
         }
     }
 
-    public async Task<Result<ServicioDto>> CreateAsync(CreateServicioDto dto)
+    public async Task<Result<UnidadMedidaDto>> CreateAsync(CreateUnidadMedidaDto dto)
     {
         try
         {
@@ -96,7 +96,15 @@ public class ServicioService : IServicioService
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
-                    var entity = _mapper.Map<Servicio>(dto);
+                    var codeExists = await context.UnidadesMedida
+                        .AnyAsync(u => u.Codigo == dto.Codigo);
+                    if (codeExists)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<UnidadMedidaDto>.Failure(_localizer["A unit measure with this code already exists"]);
+                    }
+
+                    var entity = _mapper.Map<UnidadMedida>(dto);
 
                     var currentUser = await _currentUserService.GetUserIdAsync();
                     var currentTime = _dateTimeService.Now;
@@ -105,11 +113,12 @@ public class ServicioService : IServicioService
                     entity.ModifiedBy = currentUser;
                     entity.ModifiedAt = currentTime;
 
-                    context.Servicios.Add(entity);
+                    context.UnidadesMedida.Add(entity);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return await GetByIdAsync(entity.Id);
+                    var created = await GetByIdAsync(entity.Id);
+                    return created;
                 }
                 catch
                 {
@@ -120,12 +129,12 @@ public class ServicioService : IServicioService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating servicio");
-            return Result<ServicioDto>.Failure(_localizer["Error creating servicio"]);
+            _logger.LogError(ex, "Error creating unidad de medida");
+            return Result<UnidadMedidaDto>.Failure(_localizer["Error creating unit measure"]);
         }
     }
 
-    public async Task<Result<ServicioDto>> UpdateAsync(int id, UpdateServicioDto dto)
+    public async Task<Result<UnidadMedidaDto>> UpdateAsync(int id, UpdateUnidadMedidaDto dto)
     {
         try
         {
@@ -137,11 +146,19 @@ public class ServicioService : IServicioService
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
-                    var entity = await context.Servicios.FindAsync(id);
+                    var entity = await context.UnidadesMedida.FindAsync(id);
                     if (entity == null)
                     {
                         await transaction.RollbackAsync();
-                        return Result<ServicioDto>.Failure(_localizer["Servicio not found"]);
+                        return Result<UnidadMedidaDto>.Failure(_localizer["Unit measure not found"]);
+                    }
+
+                    var codeExists = await context.UnidadesMedida
+                        .AnyAsync(u => u.Id != id && u.Codigo == dto.Codigo);
+                    if (codeExists)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<UnidadMedidaDto>.Failure(_localizer["A unit measure with this code already exists"]);
                     }
 
                     _mapper.Map(dto, entity);
@@ -163,8 +180,8 @@ public class ServicioService : IServicioService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating servicio {Id}", id);
-            return Result<ServicioDto>.Failure(_localizer["Error updating servicio"]);
+            _logger.LogError(ex, "Error updating unidad de medida {Id}", id);
+            return Result<UnidadMedidaDto>.Failure(_localizer["Error updating unit measure"]);
         }
     }
 
@@ -180,16 +197,23 @@ public class ServicioService : IServicioService
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
-                    var entity = await context.Servicios.FindAsync(id);
+                    var entity = await context.UnidadesMedida.FindAsync(id);
                     if (entity == null)
                     {
                         await transaction.RollbackAsync();
-                        return Result.Failure(_localizer["Servicio not found"]);
+                        return Result.Failure(_localizer["Unit measure not found"]);
+                    }
+
+                    var inUse = await context.Servicios.AnyAsync(s => s.UnidadMedidaId == id);
+                    if (inUse)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result.Failure(_localizer["Cannot delete a unit measure that is being used by a service"]);
                     }
 
                     entity.DeletedBy = await _currentUserService.GetUserIdAsync();
 
-                    context.Servicios.Remove(entity);
+                    context.UnidadesMedida.Remove(entity);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
@@ -204,8 +228,8 @@ public class ServicioService : IServicioService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting servicio {Id}", id);
-            return Result.Failure(_localizer["Error deleting servicio"]);
+            _logger.LogError(ex, "Error deleting unidad de medida {Id}", id);
+            return Result.Failure(_localizer["Error deleting unit measure"]);
         }
     }
 }

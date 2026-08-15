@@ -16,12 +16,11 @@ public class Servicio : BaseEntity<int>, IAuditTracked
     [StringLength(500)]
     public string? Descripcion { get; set; }
 
-    /// <summary>
-    /// Unidad de medida fija del catálogo (m², m³, pieza, etc.), texto libre sin catálogo propio.
-    /// </summary>
     [Required]
-    [StringLength(20)]
-    public string UnidadMedida { get; set; } = null!;
+    public int UnidadMedidaId { get; set; }
+
+    [ForeignKey(nameof(UnidadMedidaId))]
+    public virtual UnidadMedida UnidadMedida { get; set; } = null!;
 
     [Required]
     [Column(TypeName = "decimal(18,2)")]

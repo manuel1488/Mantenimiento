@@ -4,6 +4,7 @@ using App.Models.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260815182556_AddUnidadMedidaCatalog")]
+    partial class AddUnidadMedidaCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -981,143 +984,6 @@ namespace App.Models.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("srv_unidades_medida");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Codigo = "PZA",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Pieza"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Codigo = "SRV",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Servicio"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Codigo = "KIT",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Kit"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Codigo = "M",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Metro"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Codigo = "M2",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Metro Cuadrado"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Codigo = "M3",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Metro Cúbico"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Codigo = "KM",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Kilómetro"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Codigo = "KG",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Kilogramo"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Codigo = "TON",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Tonelada"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Codigo = "L",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Litro"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Codigo = "HR",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Hora"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Codigo = "DIA",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Día"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            Codigo = "MES",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Mes"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            Codigo = "JGO",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Juego"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            Codigo = "VIS",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = 0u,
-                            Nombre = "Visita"
-                        });
                 });
 
             modelBuilder.Entity("App.Models.Settings.CompanySettings", b =>

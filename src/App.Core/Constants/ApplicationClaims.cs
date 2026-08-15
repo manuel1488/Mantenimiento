@@ -44,6 +44,11 @@ public static class ApplicationClaims
         public const string ManageServicios = "Shared.Servicios.Manage";
         public const string DeleteServicios = "Shared.Servicios.Delete";
 
+        // Unidades de Medida (catálogo)
+        public const string ViewUnidadesMedida = "Shared.UnidadesMedida.View";
+        public const string ManageUnidadesMedida = "Shared.UnidadesMedida.Manage";
+        public const string DeleteUnidadesMedida = "Shared.UnidadesMedida.Delete";
+
         // Clientes
         public const string ViewClientes = "Shared.Clientes.View";
         public const string ManageClientes = "Shared.Clientes.Manage";

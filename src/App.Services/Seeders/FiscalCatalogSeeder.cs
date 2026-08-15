@@ -34,6 +34,7 @@ public class FiscalCatalogSeeder : IFiscalCatalogSeeder
         {
             await SeedRegimenesFiscalesAsync();
             await SeedUsosCfdiAsync();
+            await SeedClavesUnidadSatAsync();
         }
         catch (Exception ex)
         {
@@ -89,5 +90,30 @@ public class FiscalCatalogSeeder : IFiscalCatalogSeeder
         await context.SaveChangesAsync();
 
         _logger.LogInformation("CFDI uses catalog seeded successfully");
+    }
+
+    private async Task SeedClavesUnidadSatAsync()
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+
+        if (await context.Set<ClaveUnidadSatCatalogo>().AsNoTracking().AnyAsync())
+            return;
+
+        var dtos = await _dataReader.GetClavesUnidadSatAsync();
+        var now = _dateTimeService.Now;
+
+        var entities = dtos.Select(dto => new ClaveUnidadSatCatalogo
+        {
+            Codigo = dto.Codigo,
+            Nombre = dto.Nombre,
+            Simbolo = dto.Simbolo,
+            CreatedBy = SystemUser,
+            CreatedAt = now
+        });
+
+        await context.Set<ClaveUnidadSatCatalogo>().AddRangeAsync(entities);
+        await context.SaveChangesAsync();
+
+        _logger.LogInformation("SAT unit codes catalog seeded successfully");
     }
 }

@@ -13,9 +13,9 @@ public class ServicioConfiguration : IEntityTypeConfiguration<Servicio>
             .HasMaxLength(150)
             .IsRequired();
 
-        builder.Property(e => e.UnidadMedida)
-            .HasMaxLength(20)
-            .IsRequired()
-            .IsUnicode(false);
+        builder.HasOne(e => e.UnidadMedida)
+            .WithMany()
+            .HasForeignKey(e => e.UnidadMedidaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

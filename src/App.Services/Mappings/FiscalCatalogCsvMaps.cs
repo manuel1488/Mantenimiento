@@ -22,3 +22,13 @@ public sealed class UsoCfdiCatalogoCsvMap : ClassMap<CreateUsoCfdiCatalogoDto>
         Map(m => m.CodigosRegimenFiscal).Name("fiscal_regime_codes").Optional();
     }
 }
+
+public sealed class ClaveUnidadSatCatalogoCsvMap : ClassMap<CreateClaveUnidadSatCatalogoDto>
+{
+    public ClaveUnidadSatCatalogoCsvMap()
+    {
+        Map(m => m.Codigo).Name("Code");
+        Map(m => m.Nombre).Name("Name");
+        Map(m => m.Simbolo).Name("Symbol").Optional();
+    }
+}

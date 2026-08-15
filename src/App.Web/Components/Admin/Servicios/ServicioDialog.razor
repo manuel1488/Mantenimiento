@@ -1,7 +1,10 @@
+@using App.Core.DTOs.Servicios
+@using App.Core.Interfaces
 @using App.Web.Components.Admin.Servicios.Models
 @using MudBlazor
 
 @inject IStringLocalizer<ServicioDialog> L
+@inject IUnidadMedidaService UnidadMedidaService
 
 <MudDialog>
     <TitleContent>
@@ -26,10 +29,15 @@
                 </MudItem>
 
                 <MudItem xs="12" md="4">
-                    <MudTextField @bind-Value="Model.UnidadMedida"
-                                  Label="@L["Unit of Measure"]"
-                                  Required="true"
-                                  RequiredError="@L["Unit of measure is required"]" />
+                    <MudSelect T="int" @bind-Value="Model.UnidadMedidaId"
+                               Label="@L["Unit of Measure"]"
+                               Required="true"
+                               RequiredError="@L["Unit of measure is required"]">
+                        @foreach (var unidad in _unidadesMedida)
+                        {
+                            <MudSelectItem T="int" Value="@unidad.Id">@unidad.Nombre</MudSelectItem>
+                        }
+                    </MudSelect>
                 </MudItem>
 
                 <MudItem xs="12" md="4">
@@ -67,6 +75,16 @@
     [Parameter] public bool IsNew { get; set; }
 
     private MudForm _form = null!;
+    private List<UnidadMedidaDto> _unidadesMedida = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await UnidadMedidaService.GetAllAsync();
+        if (result.IsSuccess)
+        {
+            _unidadesMedida = result.Value!;
+        }
+    }
 
     private void Cancel() => MudDialog.Cancel();
 

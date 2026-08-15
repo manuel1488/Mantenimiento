@@ -12,8 +12,7 @@ public class CreateServicioDto
     public string? Descripcion { get; set; }
 
     [Required]
-    [StringLength(20)]
-    public string UnidadMedida { get; set; } = null!;
+    public int UnidadMedidaId { get; set; }
 
     [Required]
     [Range(0, double.MaxValue)]

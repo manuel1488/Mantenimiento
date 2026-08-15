@@ -57,6 +57,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     #region Fiscal Catalogs
     public DbSet<RegimenFiscalCatalogo> RegimenesFiscalesCatalogo { get; set; } = null!;
     public DbSet<UsoCfdiCatalogo> UsosCfdiCatalogo { get; set; } = null!;
+    public DbSet<ClaveUnidadSatCatalogo> ClavesUnidadSatCatalogo { get; set; } = null!;
+    #endregion
+
+    #region Servicios Catalogs
+    public DbSet<UnidadMedida> UnidadesMedida { get; set; } = null!;
     #endregion
 
     protected override void OnModelCreating(ModelBuilder builder)

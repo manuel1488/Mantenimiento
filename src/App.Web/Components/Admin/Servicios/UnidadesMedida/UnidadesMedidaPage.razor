@@ -1,90 +1,89 @@
-@page "/gestion/servicios"
-@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewServicios)]
+@page "/gestion/unidades-medida"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewUnidadesMedida)]
 
 @using Microsoft.AspNetCore.Authorization
 @using App.Core.Constants
 @using App.Core.DTOs.Servicios
 @using App.Core.Interfaces
-@using App.Web.Components.Admin.Servicios.Models
+@using App.Web.Components.Admin.Servicios.UnidadesMedida.Models
 @using App.Web.Components.Shared.Dialogs
 @using MudBlazor
 
-@inject IStringLocalizer<ServiciosPage> L
-@inject IServicioService ServicioService
+@inject IStringLocalizer<UnidadesMedidaPage> L
+@inject IUnidadMedidaService UnidadMedidaService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
-@inject ILogger<ServiciosPage> Logger
+@inject ILogger<UnidadesMedidaPage> Logger
 
-<PageTitle>@L["Services"]</PageTitle>
+<PageTitle>@L["Unit Measures"]</PageTitle>
 
-<AuthorizeView Policy="@ApplicationClaims.Shared.ViewServicios">
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewUnidadesMedida">
     <Authorized Context="pageAuth">
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-            <MudText Typo="Typo.h4" GutterBottom="true">@L["Services"]</MudText>
+            <MudText Typo="Typo.h4" GutterBottom="true">@L["Unit Measures"]</MudText>
 
             <MudPaper Class="pa-4" Elevation="2">
                 <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-4" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                     <MudTextField T="string" ValueChanged="@(s => OnSearch(s))"
-                                  Placeholder="@L["Search services"]"
+                                  Placeholder="@L["Search unit measures"]"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
                                   Class="flex-1" />
 
-                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageUnidadesMedida">
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Add"
                                        OnClick="OpenCreateDialog" Class="da-button-rounded">
-                                @L["New Service"]
+                                @L["New Unit Measure"]
                             </MudButton>
                         </Authorized>
                     </AuthorizeView>
                 </MudStack>
 
-                <MudDataGrid T="ServicioDto" Items="@_filteredServicios" Loading="_loading"
+                <MudDataGrid T="UnidadMedidaDto" Items="@_filteredUnidades" Loading="_loading"
                              SortMode="SortMode.Multiple" Filterable="false"
                              Dense="true" Hover="true" RowsPerPage="10">
                         <Columns>
+                            <PropertyColumn Property="x => x.Codigo" Title="@L["Code"]" HeaderStyle="width: 120px;" />
                             <PropertyColumn Property="x => x.Nombre" Title="@L["Name"]" />
                             <PropertyColumn Property="x => x.Descripcion" Title="@L["Description"]" />
-                            <PropertyColumn Property="x => x.UnidadMedidaNombre" Title="@L["Unit of Measure"]"
-                                            HeaderStyle="width: 140px;" />
-                            <TemplateColumn Title="@L["Unit Price"]" HeaderStyle="text-align: right; width: 120px;"
-                                            CellStyle="text-align: right; white-space: nowrap;">
-                                <CellTemplate>@context.Item.PrecioUnitario.ToString("C2")</CellTemplate>
-                            </TemplateColumn>
-                            <TemplateColumn Title="@L["Days per Unit"]" HeaderStyle="text-align: right; width: 130px;"
-                                            CellStyle="text-align: right; white-space: nowrap;">
-                                <CellTemplate>@context.Item.RendimientoDiasPorUnidad.ToString("F2")</CellTemplate>
+                            <TemplateColumn Title="@L["SAT Unit Code"]" HeaderStyle="width: 220px;">
+                                <CellTemplate>
+                                    @if (context.Item.ClaveUnidadSatId.HasValue)
+                                    {
+                                        @($"{context.Item.ClaveUnidadSatNombre} ({context.Item.ClaveUnidadSatCodigo})")
+                                    }
+                                </CellTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
                                             CellClass="d-flex justify-end">
                                 <CellTemplate>
-                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageUnidadesMedida">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                            Size="Size.Small"
                                                            OnClick="@(() => OpenEditDialog(context.Item))"
-                                                           title="@L["Edit Service"]" />
+                                                           title="@L["Edit Unit Measure"]" />
                                         </Authorized>
                                     </AuthorizeView>
-                                    <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteServicios">
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteUnidadesMedida">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                            Size="Size.Small"
                                                            Color="Color.Error"
                                                            OnClick="@(() => OpenDeleteDialog(context.Item))"
-                                                           title="@L["Delete Service"]" />
+                                                           title="@L["Delete Unit Measure"]" />
                                         </Authorized>
                                     </AuthorizeView>
                                 </CellTemplate>
                             </TemplateColumn>
                         </Columns>
                         <NoRecordsContent>
-                            <MudText>@L["No services found"]</MudText>
+                            <MudText>@L["No unit measures found"]</MudText>
                         </NoRecordsContent>
                         <PagerContent>
-                            <MudDataGridPager T="ServicioDto" />
+                            <MudDataGridPager T="UnidadMedidaDto" />
                         </PagerContent>
                     </MudDataGrid>
             </MudPaper>
@@ -92,15 +91,15 @@
     </Authorized>
     <NotAuthorized>
         <MudAlert Severity="Severity.Warning" Class="my-4">
-            @L["You don't have permission to view services."]
+            @L["You don't have permission to view unit measures."]
         </MudAlert>
     </NotAuthorized>
 </AuthorizeView>
 
 @code {
     private bool _loading;
-    private List<ServicioDto> _servicios = new();
-    private List<ServicioDto> _filteredServicios = new();
+    private List<UnidadMedidaDto> _unidades = new();
+    private List<UnidadMedidaDto> _filteredUnidades = new();
     private string _searchString = "";
 
     protected override async Task OnInitializedAsync()
@@ -113,10 +112,10 @@
         _loading = true;
         try
         {
-            var result = await ServicioService.GetAllAsync();
+            var result = await UnidadMedidaService.GetAllAsync();
             if (result.IsSuccess)
             {
-                _servicios = result.Value!;
+                _unidades = result.Value!;
                 ApplyFilter();
             }
             else
@@ -126,8 +125,8 @@
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading servicios");
-            Snackbar.Add(L["Error loading services"], Severity.Error);
+            Logger.LogError(ex, "Error loading unidades de medida");
+            Snackbar.Add(L["Error loading unit measures"], Severity.Error);
         }
         finally
         {
@@ -137,9 +136,10 @@
 
     private void ApplyFilter()
     {
-        _filteredServicios = string.IsNullOrWhiteSpace(_searchString)
-            ? _servicios
-            : _servicios.Where(s => s.Nombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+        _filteredUnidades = string.IsNullOrWhiteSpace(_searchString)
+            ? _unidades
+            : _unidades.Where(u => u.Nombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+                                    || u.Codigo.Contains(_searchString, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     private void OnSearch(string value)
@@ -150,30 +150,29 @@
 
     private async Task OpenCreateDialog()
     {
-        var parameters = new DialogParameters<ServicioDialog>
+        var parameters = new DialogParameters<UnidadMedidaDialog>
         {
             { x => x.IsNew, true },
-            { x => x.Model, new ServicioDialogModel() }
+            { x => x.Model, new UnidadMedidaDialogModel() }
         };
 
-        var dialog = await DialogService.ShowAsync<ServicioDialog>(L["New Service"], parameters);
+        var dialog = await DialogService.ShowAsync<UnidadMedidaDialog>(L["New Unit Measure"], parameters);
         var result = await dialog.Result;
 
-        if (result != null && !result.Canceled && result.Data is ServicioDialogModel model)
+        if (result != null && !result.Canceled && result.Data is UnidadMedidaDialogModel model)
         {
-            var createDto = new CreateServicioDto
+            var createDto = new CreateUnidadMedidaDto
             {
+                Codigo = model.Codigo,
                 Nombre = model.Nombre,
                 Descripcion = model.Descripcion,
-                UnidadMedidaId = model.UnidadMedidaId,
-                PrecioUnitario = model.PrecioUnitario,
-                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad
+                ClaveUnidadSatId = model.ClaveUnidadSatId
             };
 
-            var createResult = await ServicioService.CreateAsync(createDto);
+            var createResult = await UnidadMedidaService.CreateAsync(createDto);
             if (createResult.IsSuccess)
             {
-                Snackbar.Add(L["Service created successfully"], Severity.Success);
+                Snackbar.Add(L["Unit measure created successfully"], Severity.Success);
                 await LoadDataAsync();
             }
             else
@@ -183,41 +182,41 @@
         }
     }
 
-    private async Task OpenEditDialog(ServicioDto servicio)
+    private async Task OpenEditDialog(UnidadMedidaDto unidad)
     {
-        var parameters = new DialogParameters<ServicioDialog>
+        var parameters = new DialogParameters<UnidadMedidaDialog>
         {
             { x => x.IsNew, false },
-            { x => x.Model, new ServicioDialogModel
+            { x => x.Model, new UnidadMedidaDialogModel
                 {
-                    Id = servicio.Id,
-                    Nombre = servicio.Nombre,
-                    Descripcion = servicio.Descripcion,
-                    UnidadMedidaId = servicio.UnidadMedidaId,
-                    PrecioUnitario = servicio.PrecioUnitario,
-                    RendimientoDiasPorUnidad = servicio.RendimientoDiasPorUnidad
+                    Id = unidad.Id,
+                    Codigo = unidad.Codigo,
+                    Nombre = unidad.Nombre,
+                    Descripcion = unidad.Descripcion,
+                    ClaveUnidadSatId = unidad.ClaveUnidadSatId,
+                    ClaveUnidadSatCodigo = unidad.ClaveUnidadSatCodigo,
+                    ClaveUnidadSatNombre = unidad.ClaveUnidadSatNombre
                 }
             }
         };
 
-        var dialog = await DialogService.ShowAsync<ServicioDialog>(L["Edit Service"], parameters);
+        var dialog = await DialogService.ShowAsync<UnidadMedidaDialog>(L["Edit Unit Measure"], parameters);
         var result = await dialog.Result;
 
-        if (result != null && !result.Canceled && result.Data is ServicioDialogModel model)
+        if (result != null && !result.Canceled && result.Data is UnidadMedidaDialogModel model)
         {
-            var updateDto = new UpdateServicioDto
+            var updateDto = new UpdateUnidadMedidaDto
             {
+                Codigo = model.Codigo,
                 Nombre = model.Nombre,
                 Descripcion = model.Descripcion,
-                UnidadMedidaId = model.UnidadMedidaId,
-                PrecioUnitario = model.PrecioUnitario,
-                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad
+                ClaveUnidadSatId = model.ClaveUnidadSatId
             };
 
-            var updateResult = await ServicioService.UpdateAsync(model.Id, updateDto);
+            var updateResult = await UnidadMedidaService.UpdateAsync(model.Id, updateDto);
             if (updateResult.IsSuccess)
             {
-                Snackbar.Add(L["Service updated successfully"], Severity.Success);
+                Snackbar.Add(L["Unit measure updated successfully"], Severity.Success);
                 await LoadDataAsync();
             }
             else
@@ -227,13 +226,13 @@
         }
     }
 
-    private async Task OpenDeleteDialog(ServicioDto servicio)
+    private async Task OpenDeleteDialog(UnidadMedidaDto unidad)
     {
         var parameters = new DialogParameters
         {
-            { nameof(ConfirmDialog.Title), L["Delete Service Confirmation"].ToString() },
-            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete service:"].ToString() },
-            { nameof(ConfirmDialog.HighlightedText), servicio.Nombre },
+            { nameof(ConfirmDialog.Title), L["Delete Unit Measure Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete unit measure:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), unidad.Nombre },
             { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
             { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
             { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
@@ -241,15 +240,15 @@
             { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
         };
 
-        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Service"], parameters);
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Unit Measure"], parameters);
         var result = await dialog.Result;
 
         if (result is null || result.Canceled) return;
 
-        var deleteResult = await ServicioService.DeleteAsync(servicio.Id);
+        var deleteResult = await UnidadMedidaService.DeleteAsync(unidad.Id);
         if (deleteResult.IsSuccess)
         {
-            Snackbar.Add(L["Service deleted successfully"], Severity.Success);
+            Snackbar.Add(L["Unit measure deleted successfully"], Severity.Success);
             await LoadDataAsync();
         }
         else

@@ -42,6 +42,12 @@
                         <MudNavLink Href="/gestion/servicios">@L["Services"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewUnidadesMedida">
+                    <Authorized Context="unidadesMedidaAuth">
+                        <MudNavLink Href="/gestion/unidades-medida">@L["Unit Measures"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

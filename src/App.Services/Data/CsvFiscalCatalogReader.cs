@@ -77,4 +77,9 @@ public class CsvFiscalCatalogReader : IFiscalCatalogDataReader
     {
         return await ReadCsvFileAsync<CreateUsoCfdiCatalogoDto, UsoCfdiCatalogoCsvMap>("usos_cfdi.csv");
     }
+
+    public async Task<IEnumerable<CreateClaveUnidadSatCatalogoDto>> GetClavesUnidadSatAsync()
+    {
+        return await ReadCsvFileAsync<CreateClaveUnidadSatCatalogoDto, ClaveUnidadSatCatalogoCsvMap>("claves_unidad_sat.csv");
+    }
 }

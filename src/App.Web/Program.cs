@@ -242,6 +242,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shared.ManageServicios, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageServicios));
         options.AddPolicy(ApplicationClaims.Shared.DeleteServicios, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteServicios));
 
+        options.AddPolicy(ApplicationClaims.Shared.ViewUnidadesMedida, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewUnidadesMedida));
+        options.AddPolicy(ApplicationClaims.Shared.ManageUnidadesMedida, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageUnidadesMedida));
+        options.AddPolicy(ApplicationClaims.Shared.DeleteUnidadesMedida, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteUnidadesMedida));
+
         options.AddPolicy(ApplicationClaims.Shared.ViewClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewClientes));
         options.AddPolicy(ApplicationClaims.Shared.ManageClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageClientes));
         options.AddPolicy(ApplicationClaims.Shared.DeleteClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteClientes));
@@ -488,6 +492,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IImageService, ImageService>();
     services.AddScoped<ICompanySettingsService, CompanySettingsService>();
     services.AddScoped<IServicioService, ServicioService>();
+    services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();
     services.AddScoped<IClienteService, ClienteService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 

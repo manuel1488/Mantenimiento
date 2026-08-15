@@ -82,4 +82,40 @@ public class FiscalCatalogService : IFiscalCatalogService
             throw;
         }
     }
+
+    public async Task<(int TotalCount, IList<ClaveUnidadSatCatalogoDto> Items)> SearchClavesUnidadSatAsync(
+        string? searchText = null,
+        int page = 1,
+        int pageSize = 50)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.ClavesUnidadSatCatalogo.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query = query.Where(x =>
+                    x.Codigo.Contains(searchText) ||
+                    x.Nombre.Contains(searchText));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.Codigo)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ClaveUnidadSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return (totalCount, items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching SAT unit codes catalog");
+            throw;
+        }
+    }
 }

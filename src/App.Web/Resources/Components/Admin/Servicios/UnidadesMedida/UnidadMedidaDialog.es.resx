@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New Unit Measure" xml:space="preserve">
+    <value>Nueva Unidad de Medida</value>
+  </data>
+  <data name="Edit Unit Measure" xml:space="preserve">
+    <value>Editar Unidad de Medida</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Código</value>
+  </data>
+  <data name="Code is required" xml:space="preserve">
+    <value>El código es requerido</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="SAT Unit Code" xml:space="preserve">
+    <value>Clave de Unidad SAT</value>
+  </data>
+  <data name="SAT unit code for CFDI invoicing (c_ClaveUnidad)" xml:space="preserve">
+    <value>Clave de unidad SAT para facturación CFDI (c_ClaveUnidad)</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+</root>
