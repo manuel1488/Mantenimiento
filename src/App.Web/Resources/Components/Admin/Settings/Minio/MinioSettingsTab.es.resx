@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Photo Storage (MinIO)" xml:space="preserve">
+    <value>Almacenamiento de Fotos (MinIO)</value>
+  </data>
+  <data name="Connection settings for the external MinIO/S3-compatible instance used to store evidence photos." xml:space="preserve">
+    <value>Configuración de conexión para la instancia externa de MinIO/S3 usada para almacenar las fotos de evidencia.</value>
+  </data>
+  <data name="Endpoint" xml:space="preserve">
+    <value>Endpoint</value>
+  </data>
+  <data name="Endpoint is required" xml:space="preserve">
+    <value>El endpoint es obligatorio</value>
+  </data>
+  <data name="Bucket Name" xml:space="preserve">
+    <value>Nombre del Bucket</value>
+  </data>
+  <data name="Bucket name is required" xml:space="preserve">
+    <value>El nombre del bucket es obligatorio</value>
+  </data>
+  <data name="Access Key" xml:space="preserve">
+    <value>Access Key</value>
+  </data>
+  <data name="Access key is required" xml:space="preserve">
+    <value>El access key es obligatorio</value>
+  </data>
+  <data name="Secret Key" xml:space="preserve">
+    <value>Secret Key</value>
+  </data>
+  <data name="Secret key is required" xml:space="preserve">
+    <value>El secret key es obligatorio</value>
+  </data>
+  <data name="Use SSL/HTTPS" xml:space="preserve">
+    <value>Usar SSL/HTTPS</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="Presigned URL Expiry (hours)" xml:space="preserve">
+    <value>Expiración de URL Prefirmada (horas)</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error al cargar la configuración</value>
+  </data>
+  <data name="Settings updated successfully" xml:space="preserve">
+    <value>Configuración actualizada exitosamente</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+</root>

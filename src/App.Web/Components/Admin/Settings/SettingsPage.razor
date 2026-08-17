@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.Localization
 @using App.Web.Components.Admin.Settings.General
 @using App.Web.Components.Admin.Settings.Email
+@using App.Web.Components.Admin.Settings.Minio
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -30,6 +31,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewEmailSettings">
                     <MudTabPanel Text="@L["Email"]" Icon="@Icons.Material.Filled.Email">
                         <EmailSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Photo Storage"]" Icon="@Icons.Material.Filled.CloudUpload">
+                        <MinioSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

@@ -91,4 +91,8 @@
     <value>Inventory</value>
     <comment>Inventory settings tab</comment>
   </data>
+  <data name="Photo Storage" xml:space="preserve">
+    <value>Photo Storage</value>
+    <comment>MinIO settings tab</comment>
+  </data>
 </root>

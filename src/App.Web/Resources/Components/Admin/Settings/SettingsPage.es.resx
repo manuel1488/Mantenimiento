@@ -90,4 +90,8 @@
   <data name="Inventory" xml:space="preserve">
     <value>Inventario</value>
   </data>
+  <data name="Photo Storage" xml:space="preserve">
+    <value>Almacenamiento de Fotos</value>
+    <comment>MinIO settings tab</comment>
+  </data>
 </root>

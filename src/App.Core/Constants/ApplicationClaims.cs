@@ -56,6 +56,15 @@ public static class ApplicationClaims
         public const string ViewClientes = "Shared.Clientes.View";
         public const string ManageClientes = "Shared.Clientes.Manage";
         public const string DeleteClientes = "Shared.Clientes.Delete";
+
+        // Obras
+        public const string ViewObras = "Shared.Obras.View";
+        public const string ManageObras = "Shared.Obras.Manage";
+        public const string DeleteObras = "Shared.Obras.Delete";
+
+        // Cotizaciones
+        public const string ViewCotizaciones = "Shared.Cotizaciones.View";
+        public const string ManageCotizaciones = "Shared.Cotizaciones.Manage";
     }
 
     public static IEnumerable<string> GetAllClaims()

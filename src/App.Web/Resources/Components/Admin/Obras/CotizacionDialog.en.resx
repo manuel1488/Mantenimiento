@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Cotización" xml:space="preserve">
+    <value>Cotización</value>
+  </data>
+  <data name="No cotización has been generated for this obra yet." xml:space="preserve">
+    <value>No cotización has been generated for this obra yet.</value>
+  </data>
+  <data name="Generate Cotización" xml:space="preserve">
+    <value>Generate Cotización</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Unit Price" xml:space="preserve">
+    <value>Unit Price</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Approval" xml:space="preserve">
+    <value>Approval</value>
+  </data>
+  <data name="Approved By" xml:space="preserve">
+    <value>Approved By</value>
+  </data>
+  <data name="Approval Method" xml:space="preserve">
+    <value>Approval Method</value>
+  </data>
+  <data name="Reject" xml:space="preserve">
+    <value>Reject</value>
+  </data>
+  <data name="Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Error loading cotización" xml:space="preserve">
+    <value>Error loading cotización</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Cotización generated successfully" xml:space="preserve">
+    <value>Cotización generated successfully</value>
+  </data>
+  <data name="Approved By and Approval Method are required" xml:space="preserve">
+    <value>Approved By and Approval Method are required</value>
+  </data>
+  <data name="Cotización approved successfully" xml:space="preserve">
+    <value>Cotización approved successfully</value>
+  </data>
+  <data name="Cotización rejected successfully" xml:space="preserve">
+    <value>Cotización rejected successfully</value>
+  </data>
+</root>

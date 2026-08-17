@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New Obra" xml:space="preserve">
+    <value>Nueva Obra</value>
+  </data>
+  <data name="Edit Obra" xml:space="preserve">
+    <value>Editar Obra</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Client is required" xml:space="preserve">
+    <value>El cliente es obligatorio</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Address is required" xml:space="preserve">
+    <value>La dirección es obligatoria</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Urgente</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+</root>

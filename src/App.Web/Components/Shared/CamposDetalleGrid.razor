@@ -1,7 +1,7 @@
-@using App.Web.Components.Admin.Clientes.Models
+@using App.Web.Components.Shared.Models
 @using MudBlazor
 
-@inject IStringLocalizer<ClienteDialog> L
+@inject IStringLocalizer<CamposDetalleGrid> L
 
 <MudGrid Spacing="2">
     @foreach (var campo in Campos)
@@ -30,5 +30,5 @@
 </MudGrid>
 
 @code {
-    [Parameter, EditorRequired] public List<ClienteCampoDetalle> Campos { get; set; } = [];
+    [Parameter, EditorRequired] public List<CampoDetalle> Campos { get; set; } = [];
 }

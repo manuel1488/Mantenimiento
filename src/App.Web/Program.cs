@@ -15,12 +15,15 @@ using App.Services.Images;
 using App.Services.Mappings;
 using App.Services.Reports;
 using App.Services.Clientes;
+using App.Services.Cotizaciones;
 using App.Services.Data;
 using App.Services.Fiscal;
+using App.Services.Obras;
 using App.Services.Seeders;
 using App.Services.Servicios;
 using App.Services.Settings;
 using App.Services.Shared;
+using App.Services.Storage;
 using App.Shared.Services;
 using App.Shared.Services.Implementation;
 using App.Web.Components;
@@ -252,6 +255,13 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Shared.ManageClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageClientes));
         options.AddPolicy(ApplicationClaims.Shared.DeleteClientes, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteClientes));
 
+        options.AddPolicy(ApplicationClaims.Shared.ViewObras, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewObras));
+        options.AddPolicy(ApplicationClaims.Shared.ManageObras, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageObras));
+        options.AddPolicy(ApplicationClaims.Shared.DeleteObras, policy => policy.RequireClaim(ApplicationClaims.Shared.DeleteObras));
+
+        options.AddPolicy(ApplicationClaims.Shared.ViewCotizaciones, policy => policy.RequireClaim(ApplicationClaims.Shared.ViewCotizaciones));
+        options.AddPolicy(ApplicationClaims.Shared.ManageCotizaciones, policy => policy.RequireClaim(ApplicationClaims.Shared.ManageCotizaciones));
+
         // Políticas compuestas para verificar acceso a módulos completos
         options.AddPolicy(ApplicationClaims.Admin.AdminAccess, policy =>
             policy.RequireAssertion(context =>
@@ -274,6 +284,11 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.TempPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "temp");
         Directory.CreateDirectory(options.TempPath);
     });
+
+    // MinIO (evidence photo storage) — configuration is DB-stored (see IMinioConfiguracionService), not appsettings
+    services.AddScoped<IMinioConfiguracionService, MinioConfiguracionService>();
+    services.AddScoped<IFileStorageService, MinioFileStorageService>();
+    services.AddScoped<MinioBucketInitializer>();
 }
 
 /// <summary>
@@ -496,6 +511,9 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IServicioService, ServicioService>();
     services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();
     services.AddScoped<IClienteService, ClienteService>();
+    services.AddScoped<IObraService, ObraService>();
+    services.AddScoped<IActividadService, ActividadService>();
+    services.AddScoped<ICotizacionService, CotizacionService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();
@@ -578,6 +596,7 @@ async Task InitializeDatabase(WebApplication app)
     var companyBrandingSeeder = scope.ServiceProvider.GetRequiredService<ICompanyBrandingSeeder>();
     var fiscalCatalogSeeder = scope.ServiceProvider.GetRequiredService<IFiscalCatalogSeeder>();
     var unidadMedidaSatLinker = scope.ServiceProvider.GetRequiredService<IUnidadMedidaSatLinker>();
+    var minioBucketInitializer = scope.ServiceProvider.GetRequiredService<MinioBucketInitializer>();
 
     await context.Database.MigrateAsync();
     await seeder.SeedAsync();
@@ -585,6 +604,16 @@ async Task InitializeDatabase(WebApplication app)
     await companyBrandingSeeder.SeedAsync();
     await fiscalCatalogSeeder.SeedAsync();
     await unidadMedidaSatLinker.LinkAsync();
+
+    try
+    {
+        await minioBucketInitializer.EnsureBucketExistsAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Could not verify/create the MinIO bucket at startup — evidence photo uploads may fail until MinIO is reachable");
+    }
 }
 
 #endregion

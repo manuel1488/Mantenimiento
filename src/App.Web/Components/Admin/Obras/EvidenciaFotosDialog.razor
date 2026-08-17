@@ -1,0 +1,131 @@
+@using App.Core.DTOs.Obras
+@using App.Core.Enums.Obras
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<EvidenciaFotosDialog> L
+@inject IActividadService ActividadService
+@inject ISnackbar Snackbar
+@inject ILogger<EvidenciaFotosDialog> Logger
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Evidence Photos"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-width: 700px;">
+            @if (_loading)
+            {
+                <div class="d-flex justify-center pa-6">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else
+            {
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Before"]</MudText>
+                        @if (_antes.Count == 0)
+                        {
+                            <MudText Class="mud-text-secondary" Typo="Typo.body2">@L["No photos"]</MudText>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-column gap-2">
+                                @foreach (var foto in _antes)
+                                {
+                                    <div class="d-flex align-center gap-2">
+                                        <img src="@foto.PresignedUrl" style="max-width: 160px; max-height: 120px; border-radius: 8px; object-fit: cover;" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                       OnClick="@(() => DeleteFotoAsync(foto.Id))" title="@L["Delete Photo"]" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">@L["After"]</MudText>
+                        @if (_despues.Count == 0)
+                        {
+                            <MudText Class="mud-text-secondary" Typo="Typo.body2">@L["No photos"]</MudText>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-column gap-2">
+                                @foreach (var foto in _despues)
+                                {
+                                    <div class="d-flex align-center gap-2">
+                                        <img src="@foto.PresignedUrl" style="max-width: 160px; max-height: 120px; border-radius: 8px; object-fit: cover;" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                       OnClick="@(() => DeleteFotoAsync(foto.Id))" title="@L["Delete Photo"]" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </MudItem>
+                </MudGrid>
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Class="da-button-rounded">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int ActividadId { get; set; }
+
+    private bool _loading = true;
+    private List<ActividadEvidenciaFotoDto> _antes = new();
+    private List<ActividadEvidenciaFotoDto> _despues = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await ActividadService.GetEvidenciasAsync(ActividadId);
+            if (result.IsSuccess)
+            {
+                var fotos = result.Value!;
+                _antes = fotos.Where(f => f.Tipo == TipoEvidencia.Antes).ToList();
+                _despues = fotos.Where(f => f.Tipo == TipoEvidencia.Despues).ToList();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading evidencias for actividad {Id}", ActividadId);
+            Snackbar.Add(L["Error loading evidence photos"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task DeleteFotoAsync(int evidenciaId)
+    {
+        var result = await ActividadService.DeleteEvidenciaAsync(evidenciaId);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Photo deleted successfully"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+}

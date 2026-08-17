@@ -7,7 +7,9 @@
 @using App.Core.DTOs.Fiscal
 @using App.Core.Interfaces
 @using App.Web.Components.Admin.Clientes.Models
+@using App.Web.Components.Shared
 @using App.Web.Components.Shared.Dialogs
+@using App.Web.Components.Shared.Models
 @using MudBlazor
 
 @inject IStringLocalizer<ClienteDialog> L
@@ -125,22 +127,22 @@
                 <MudPaper Class="da-card pa-2 pa-sm-4" Elevation="2">
                     <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pt-4">
                         <MudTabPanel Text="@L["Commercial Information"]" Icon="@Icons.Material.Filled.Storefront">
-                            <ClienteCamposGrid Campos="@CamposComerciales()" />
+                            <CamposDetalleGrid Campos="@CamposComerciales()" />
 
                             <ClienteSeccionTitulo Icon="@Icons.Material.Filled.Home" Titulo="@L["Business Address"].ToString()" />
-                            <ClienteCamposGrid Campos="@CamposDireccionComercial()" />
+                            <CamposDetalleGrid Campos="@CamposDireccionComercial()" />
                         </MudTabPanel>
 
                         <MudTabPanel Text="@L["Tax Information"]" Icon="@Icons.Material.Filled.Receipt">
                             @if (_cliente.TieneDatosFiscales)
                             {
-                                <ClienteCamposGrid Campos="@CamposFiscales()" />
+                                <CamposDetalleGrid Campos="@CamposFiscales()" />
 
                                 <ClienteSeccionTitulo Icon="@Icons.Material.Filled.Home" Titulo="@L["Fiscal Address"].ToString()" />
-                                <ClienteCamposGrid Campos="@CamposDireccionFiscal()" />
+                                <CamposDetalleGrid Campos="@CamposDireccionFiscal()" />
 
                                 <ClienteSeccionTitulo Icon="@Icons.Material.Filled.Payments" Titulo="@L["Mexico Billing Preferences"].ToString()" />
-                                <ClienteCamposGrid Campos="@CamposPreferenciasFacturacion()" />
+                                <CamposDetalleGrid Campos="@CamposPreferenciasFacturacion()" />
                             }
                             else
                             {
@@ -204,7 +206,7 @@
 
     // ── Field definitions ─────────────────────────────────────────────────
 
-    private List<ClienteCampoDetalle> CamposComerciales() =>
+    private List<CampoDetalle> CamposComerciales() =>
     [
         new(Icons.Material.Filled.Badge, L["Name / Trade Name"], _cliente!.Nombre),
         new(Icons.Material.Filled.Person, L["Contact Name"], _cliente.NombreContacto),
@@ -213,7 +215,7 @@
         new(Icons.Material.Filled.Phone, L["Phone"], _cliente.Telefono)
     ];
 
-    private List<ClienteCampoDetalle> CamposDireccionComercial() =>
+    private List<CampoDetalle> CamposDireccionComercial() =>
     [
         new(Icons.Material.Filled.Signpost, L["Street"], _cliente!.Calle),
         new(Icons.Material.Filled.Pin, L["Ext. Number"], _cliente.NumeroExterior),
@@ -224,14 +226,14 @@
         new(Icons.Material.Filled.MarkunreadMailbox, L["Zip Code"], _cliente.CodigoPostal)
     ];
 
-    private List<ClienteCampoDetalle> CamposFiscales() =>
+    private List<CampoDetalle> CamposFiscales() =>
     [
         new(Icons.Material.Filled.Badge, L["RFC/Tax ID"], _cliente!.Rfc),
         new(Icons.Material.Filled.Business, L["Legal Name"], _cliente.RazonSocial),
         new(Icons.Material.Filled.Email, L["Fiscal Email"], _cliente.CorreoFiscal)
     ];
 
-    private List<ClienteCampoDetalle> CamposDireccionFiscal() =>
+    private List<CampoDetalle> CamposDireccionFiscal() =>
     [
         new(Icons.Material.Filled.Signpost, L["Street"], _cliente!.CalleFiscal),
         new(Icons.Material.Filled.Pin, L["Ext. Number"], _cliente.NumeroExteriorFiscal),
@@ -242,7 +244,7 @@
         new(Icons.Material.Filled.MarkunreadMailbox, L["Zip Code"], _cliente.CodigoPostalFiscal)
     ];
 
-    private List<ClienteCampoDetalle> CamposPreferenciasFacturacion() =>
+    private List<CampoDetalle> CamposPreferenciasFacturacion() =>
     [
         new(Icons.Material.Filled.AccountBalance, L["Tax Regime"], DisplayRegimen(_cliente!.RegimenFiscal)),
         new(Icons.Material.Filled.ReceiptLong, L["Default CFDI Use"], DisplayUsoCfdi(_cliente.UsoCfdi)),

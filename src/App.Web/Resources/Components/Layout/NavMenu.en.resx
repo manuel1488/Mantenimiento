@@ -117,4 +117,7 @@
   <data name="Clients" xml:space="preserve">
     <value>Clients</value>
   </data>
+  <data name="Works" xml:space="preserve">
+    <value>Works</value>
+  </data>
 </root>

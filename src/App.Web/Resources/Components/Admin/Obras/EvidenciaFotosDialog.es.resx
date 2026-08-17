@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Evidence Photos" xml:space="preserve">
+    <value>Fotos de Evidencia</value>
+  </data>
+  <data name="Before" xml:space="preserve">
+    <value>Antes</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>Después</value>
+  </data>
+  <data name="No photos" xml:space="preserve">
+    <value>Sin fotos</value>
+  </data>
+  <data name="Delete Photo" xml:space="preserve">
+    <value>Eliminar Foto</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Error loading evidence photos" xml:space="preserve">
+    <value>Error al cargar las fotos de evidencia</value>
+  </data>
+  <data name="Photo deleted successfully" xml:space="preserve">
+    <value>Foto eliminada exitosamente</value>
+  </data>
+</root>

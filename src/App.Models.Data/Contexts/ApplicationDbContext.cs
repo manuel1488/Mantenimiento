@@ -31,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
 
     #region Settings
     public DbSet<CompanySettings> CompanySettings { get; set; } = null!;
+    public DbSet<MinioConfiguracion> MinioConfiguraciones { get; set; } = null!;
     public DbSet<LocalizationSettings> LocalizationSettings { get; set; } = null!;
     public DbSet<EmailSettings> EmailSettings { get; set; } = null!;
     public DbSet<EmailTemplateSettings> EmailTemplateSettings { get; set; } = null!;

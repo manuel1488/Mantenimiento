@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Obra Details" xml:space="preserve">
+    <value>Detalle de Obra</value>
+  </data>
+  <data name="Obra not found" xml:space="preserve">
+    <value>Obra no encontrada</value>
+  </data>
+  <data name="Works" xml:space="preserve">
+    <value>Obras</value>
+  </data>
+  <data name="Edit Obra" xml:space="preserve">
+    <value>Editar Obra</value>
+  </data>
+  <data name="Delete Obra" xml:space="preserve">
+    <value>Eliminar Obra</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Add Actividad" xml:space="preserve">
+    <value>Agregar Actividad</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Servicio</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Before" xml:space="preserve">
+    <value>Antes</value>
+  </data>
+  <data name="Selected" xml:space="preserve">
+    <value>Seleccionada</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>Después</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Agregar</value>
+  </data>
+  <data name="Actividades" xml:space="preserve">
+    <value>Actividades</value>
+  </data>
+  <data name="Estimated Time (days)" xml:space="preserve">
+    <value>Tiempo Estimado (días)</value>
+  </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Costo</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="View Evidence" xml:space="preserve">
+    <value>Ver Evidencia</value>
+  </data>
+  <data name="Edit Actividad" xml:space="preserve">
+    <value>Editar Actividad</value>
+  </data>
+  <data name="Delete Actividad" xml:space="preserve">
+    <value>Eliminar Actividad</value>
+  </data>
+  <data name="No actividades yet" xml:space="preserve">
+    <value>Aún no hay actividades</value>
+  </data>
+  <data name="Cotización" xml:space="preserve">
+    <value>Cotización</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finalizar</value>
+  </data>
+  <data name="You don't have permission to view works." xml:space="preserve">
+    <value>No tienes permiso para ver obras.</value>
+  </data>
+  <data name="Error loading obra" xml:space="preserve">
+    <value>Error al cargar la obra</value>
+  </data>
+  <data name="Error loading actividades" xml:space="preserve">
+    <value>Error al cargar las actividades</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Solicitada</value>
+  </data>
+  <data name="Quoted" xml:space="preserve">
+    <value>Cotizada</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rechazada</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Aprobada</value>
+  </data>
+  <data name="In Progress" xml:space="preserve">
+    <value>En Proceso</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finalizada</value>
+  </data>
+  <data name="Invoiced" xml:space="preserve">
+    <value>Facturada</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Urgente</value>
+  </data>
+  <data name="Request Date" xml:space="preserve">
+    <value>Fecha de Solicitud</value>
+  </data>
+  <data name="File is too large (max 5MB)" xml:space="preserve">
+    <value>El archivo es demasiado grande (máx. 5MB)</value>
+  </data>
+  <data name="Only image files are allowed" xml:space="preserve">
+    <value>Solo se permiten archivos de imagen</value>
+  </data>
+  <data name="Error processing photo file" xml:space="preserve">
+    <value>Error al procesar el archivo de foto</value>
+  </data>
+  <data name="Actividad added successfully" xml:space="preserve">
+    <value>Actividad agregada exitosamente</value>
+  </data>
+  <data name="Actividad updated successfully" xml:space="preserve">
+    <value>Actividad actualizada exitosamente</value>
+  </data>
+  <data name="Delete Actividad Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Actividad</value>
+  </data>
+  <data name="Are you sure you want to delete this actividad:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar esta actividad:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Actividad deleted successfully" xml:space="preserve">
+    <value>Actividad eliminada exitosamente</value>
+  </data>
+  <data name="Evidence Photos" xml:space="preserve">
+    <value>Fotos de Evidencia</value>
+  </data>
+  <data name="Obra updated successfully" xml:space="preserve">
+    <value>Obra actualizada exitosamente</value>
+  </data>
+  <data name="Delete Obra Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Obra</value>
+  </data>
+  <data name="Are you sure you want to delete this obra:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar esta obra:</value>
+  </data>
+  <data name="Obra deleted successfully" xml:space="preserve">
+    <value>Obra eliminada exitosamente</value>
+  </data>
+  <data name="Obra finished successfully" xml:space="preserve">
+    <value>Obra finalizada exitosamente</value>
+  </data>
+</root>

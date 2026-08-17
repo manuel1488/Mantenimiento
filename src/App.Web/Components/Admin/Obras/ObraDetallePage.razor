@@ -1,0 +1,620 @@
+@page "/gestion/obras/{Id:int}"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewObras)]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using App.Core.Constants
+@using App.Core.DTOs.Clientes
+@using App.Core.DTOs.Obras
+@using App.Core.DTOs.Servicios
+@using App.Core.Enums.Obras
+@using App.Core.Interfaces
+@using App.Web.Components.Admin.Obras.Models
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Components.Shared.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ObraDetallePage> L
+@inject IObraService ObraService
+@inject IActividadService ActividadService
+@inject IClienteService ClienteService
+@inject IServicioService ServicioService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject ILogger<ObraDetallePage> Logger
+
+<PageTitle>@(_obra is null ? L["Obra Details"] : _obra.Direccion)</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewObras">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+            @if (_loading)
+            {
+                <div class="d-flex justify-center pa-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (_obra is null)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-2"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/obras"))" />
+                <MudAlert Severity="Severity.Warning">@L["Obra not found"]</MudAlert>
+            }
+            else
+            {
+                @* ── Header card ─────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-4 pa-sm-6 mb-4" Elevation="2">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/obras"))" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Works"]</MudText>
+                    </MudStack>
+
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="4">
+                        <div style="min-width: 0;">
+                            <MudText Typo="Typo.h5" Style="font-weight: 600;">@_obra.ClienteNombre</MudText>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@_obra.Direccion</MudText>
+                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-2">
+                                <MudChip T="string" Size="Size.Small" Color="@ObrasPage.EstadoColor(_obra.Estado)" Variant="Variant.Filled">
+                                    @EstadoLabel(_obra.Estado)
+                                </MudChip>
+                                @if (_obra.Urgente)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.PriorityHigh"
+                                             Color="Color.Error" Variant="Variant.Outlined">
+                                        @L["Urgent"]
+                                    </MudChip>
+                                }
+                            </MudStack>
+                        </div>
+
+                        <MudStack Row="true" Spacing="2" Class="flex-shrink-0">
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                <Authorized Context="authContext">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Edit"
+                                               Class="da-button-rounded" OnClick="OpenEditDialog">
+                                        @L["Edit Obra"]
+                                    </MudButton>
+                                </Authorized>
+                            </AuthorizeView>
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteObras">
+                                <Authorized Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                                   Variant="Variant.Outlined" OnClick="OpenDeleteDialog"
+                                                   title="@L["Delete Obra"]" />
+                                </Authorized>
+                            </AuthorizeView>
+                        </MudStack>
+                    </MudStack>
+
+                    <MudDivider Class="my-3" />
+                    <CamposDetalleGrid Campos="@CamposObra()" />
+                </MudPaper>
+
+                @* ── Agregar Actividad ────────────────────────────────────── *@
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                    <Authorized Context="manageAuth">
+                        <MudPaper Class="da-card pa-4 mb-4" Elevation="2">
+                            <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Add Actividad"]</MudText>
+                            <MudGrid>
+                                <MudItem xs="12" md="4">
+                                    <MudAutocomplete T="ServicioDto"
+                                                     Label="@L["Service"]"
+                                                     SearchFunc="@SearchServicios"
+                                                     ToStringFunc="@(s => s == null ? string.Empty : s.Nombre)"
+                                                     Value="_selectedServicio"
+                                                     ValueChanged="OnServicioSelected"
+                                                     MaxItems="null"
+                                                     CoerceText="false"
+                                                     ResetValueOnEmptyText="true"
+                                                     Clearable="true"
+                                                     Immediate="true"
+                                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                                     Adornment="Adornment.Start" />
+                                </MudItem>
+                                <MudItem xs="12" md="3">
+                                    <MudNumericField @bind-Value="_cantidad"
+                                                      Label="@CantidadLabel"
+                                                      Format="F3" Min="0.001m" />
+                                </MudItem>
+                                <MudItem xs="12" md="2">
+                                    <InputFile id="evidenciaAntesInput" OnChange="@(e => HandleFileSelected(e, isAntes: true))" accept="image/*" class="d-none" />
+                                    <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
+                                               StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaAntesInput" FullWidth="true">
+                                        @(_antesData is null ? L["Before"] : L["Selected"])
+                                    </MudButton>
+                                </MudItem>
+                                <MudItem xs="12" md="2">
+                                    <InputFile id="evidenciaDespuesInput" OnChange="@(e => HandleFileSelected(e, isAntes: false))" accept="image/*" class="d-none" />
+                                    <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
+                                               StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaDespuesInput" FullWidth="true">
+                                        @(_despuesData is null ? L["After"] : L["Selected"])
+                                    </MudButton>
+                                </MudItem>
+                                <MudItem xs="12" md="1" Class="d-flex align-center">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled"
+                                                   Disabled="@(_selectedServicio is null || _cantidad <= 0 || _addingActividad)"
+                                                   OnClick="AgregarActividadAsync" title="@L["Add"]" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </Authorized>
+                </AuthorizeView>
+
+                @* ── Actividades grid ─────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-2 pa-sm-4 mb-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle1" Class="pa-2">@L["Actividades"]</MudText>
+                    <MudDataGrid T="ActividadDto" Items="@_actividades" Loading="_loadingActividades"
+                                 Dense="true" Hover="true" RowsPerPage="10">
+                        <Columns>
+                            <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
+                            <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                                <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedidaNombre</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Estimated Time (days)"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                                <CellTemplate>@context.Item.TiempoEstimadoDias.ToString("F2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Cost"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                                <CellTemplate>@context.Item.Costo.ToString("C2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false" CellClass="d-flex justify-end">
+                                <CellTemplate>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small"
+                                                   OnClick="@(() => OpenEvidenciasDialog(context.Item.Id))"
+                                                   title="@L["View Evidence"]" />
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                        <Authorized Context="authContext">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                                           OnClick="@(() => OpenEditActividadDialog(context.Item))"
+                                                           title="@L["Edit Actividad"]" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                        <Authorized Context="authContext">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                           OnClick="@(() => DeleteActividadAsync(context.Item))"
+                                                           title="@L["Delete Actividad"]" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <NoRecordsContent>
+                            <MudText>@L["No actividades yet"]</MudText>
+                        </NoRecordsContent>
+                        <PagerContent>
+                            <MudDataGridPager T="ActividadDto" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudPaper>
+
+                @* ── Footer actions ───────────────────────────────────────── *@
+                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                       StartIcon="@Icons.Material.Filled.RequestQuote"
+                                       OnClick="OpenCotizacionDialog" Class="da-button-rounded">
+                                @L["Cotización"]
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                       OnClick="OpenEditDialog" Class="da-button-rounded">
+                                @L["Save"]
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                       StartIcon="@Icons.Material.Filled.CheckCircle"
+                                       Disabled="@(!CanFinalizar)"
+                                       OnClick="FinalizarAsync" Class="da-button-rounded">
+                                @L["Finish"]
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudStack>
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view works."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private bool _loadingActividades;
+    private bool _addingActividad;
+    private ObraDto? _obra;
+    private List<ActividadDto> _actividades = new();
+
+    private List<ServicioDto> _servicios = new();
+    private ServicioDto? _selectedServicio;
+    private decimal _cantidad;
+    private byte[]? _antesData;
+    private string? _antesContentType;
+    private string? _antesFileName;
+    private byte[]? _despuesData;
+    private string? _despuesContentType;
+    private string? _despuesFileName;
+
+    private string CantidadLabel => _selectedServicio is null
+        ? L["Quantity"].ToString()
+        : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaNombre})";
+
+    private bool CanFinalizar => _obra is not null &&
+        (_obra.Estado == ObraEstado.Aprobada || _obra.Estado == ObraEstado.EnProceso);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var servicioResult = await ServicioService.GetAllAsync();
+        if (servicioResult.IsSuccess)
+        {
+            _servicios = servicioResult.Value!;
+        }
+
+        await LoadObraAsync();
+        await LoadActividadesAsync();
+    }
+
+    private async Task LoadObraAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await ObraService.GetByIdAsync(Id);
+            _obra = result.IsSuccess ? result.Value : null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading obra {Id}", Id);
+            Snackbar.Add(L["Error loading obra"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task LoadActividadesAsync()
+    {
+        _loadingActividades = true;
+        try
+        {
+            var result = await ActividadService.GetByObraIdAsync(Id);
+            if (result.IsSuccess)
+            {
+                _actividades = result.Value!;
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading actividades for obra {Id}", Id);
+            Snackbar.Add(L["Error loading actividades"], Severity.Error);
+        }
+        finally
+        {
+            _loadingActividades = false;
+        }
+    }
+
+    private List<CampoDetalle> CamposObra() =>
+    [
+        new(Icons.Material.Filled.Business, L["Client"], _obra!.ClienteNombre),
+        new(Icons.Material.Filled.Home, L["Address"], _obra.Direccion),
+        new(Icons.Material.Filled.Event, L["Request Date"], _obra.FechaSolicitud.ToString("dd/MM/yyyy"))
+    ];
+
+    private string EstadoLabel(ObraEstado estado) => estado switch
+    {
+        ObraEstado.Solicitada => L["Requested"],
+        ObraEstado.Cotizada => L["Quoted"],
+        ObraEstado.Rechazada => L["Rejected"],
+        ObraEstado.Aprobada => L["Approved"],
+        ObraEstado.EnProceso => L["In Progress"],
+        ObraEstado.Finalizada => L["Finished"],
+        ObraEstado.Facturada => L["Invoiced"],
+        _ => estado.ToString()
+    };
+
+    private Task<IEnumerable<ServicioDto>> SearchServicios(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_servicios.AsEnumerable());
+
+        return Task.FromResult(_servicios.Where(s => s.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void OnServicioSelected(ServicioDto? value)
+    {
+        _selectedServicio = value;
+    }
+
+    private const long MaxEvidenciaFileSize = 5 * 1024 * 1024;
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e, bool isAntes)
+    {
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            if (file.Size > MaxEvidenciaFileSize)
+            {
+                Snackbar.Add(L["File is too large (max 5MB)"], Severity.Warning);
+                return;
+            }
+
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
+                return;
+            }
+
+            using var stream = file.OpenReadStream(MaxEvidenciaFileSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var data = memoryStream.ToArray();
+
+            if (isAntes)
+            {
+                _antesData = data;
+                _antesContentType = file.ContentType;
+                _antesFileName = file.Name;
+            }
+            else
+            {
+                _despuesData = data;
+                _despuesContentType = file.ContentType;
+                _despuesFileName = file.Name;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing evidencia file");
+            Snackbar.Add(L["Error processing photo file"], Severity.Error);
+        }
+    }
+
+    private async Task AgregarActividadAsync()
+    {
+        if (_selectedServicio is null || _cantidad <= 0) return;
+
+        _addingActividad = true;
+        try
+        {
+            var createDto = new CreateActividadDto
+            {
+                ObraId = Id,
+                ServicioId = _selectedServicio.Id,
+                Cantidad = _cantidad
+            };
+
+            var result = await ActividadService.CreateAsync(createDto);
+            if (!result.IsSuccess)
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+                return;
+            }
+
+            var actividadId = result.Value!.Id;
+
+            if (_antesData is not null)
+            {
+                var uploadResult = await ActividadService.UploadEvidenciaAsync(
+                    actividadId, TipoEvidencia.Antes, _antesData, _antesContentType!, _antesFileName!);
+                if (!uploadResult.IsSuccess)
+                    Snackbar.Add(uploadResult.Error, Severity.Warning);
+            }
+
+            if (_despuesData is not null)
+            {
+                var uploadResult = await ActividadService.UploadEvidenciaAsync(
+                    actividadId, TipoEvidencia.Despues, _despuesData, _despuesContentType!, _despuesFileName!);
+                if (!uploadResult.IsSuccess)
+                    Snackbar.Add(uploadResult.Error, Severity.Warning);
+            }
+
+            Snackbar.Add(L["Actividad added successfully"], Severity.Success);
+
+            _selectedServicio = null;
+            _cantidad = 0;
+            _antesData = null;
+            _antesContentType = null;
+            _antesFileName = null;
+            _despuesData = null;
+            _despuesContentType = null;
+            _despuesFileName = null;
+
+            await LoadActividadesAsync();
+        }
+        finally
+        {
+            _addingActividad = false;
+        }
+    }
+
+    private async Task OpenEditActividadDialog(ActividadDto actividad)
+    {
+        var parameters = new DialogParameters<ActividadEditDialog>
+        {
+            { x => x.Model, new ActividadEditDialogModel
+                {
+                    Id = actividad.Id,
+                    ServicioNombre = actividad.ServicioNombre,
+                    UnidadMedidaNombre = actividad.UnidadMedidaNombre,
+                    Cantidad = actividad.Cantidad
+                }
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<ActividadEditDialog>(L["Edit Actividad"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ActividadEditDialogModel model)
+        {
+            var updateDto = new UpdateActividadDto
+            {
+                Id = model.Id,
+                Cantidad = model.Cantidad,
+                PrecioUnitarioOverride = model.PrecioUnitarioOverride,
+                RendimientoDiasPorUnidadOverride = model.RendimientoDiasPorUnidadOverride
+            };
+
+            var updateResult = await ActividadService.UpdateAsync(updateDto);
+            if (updateResult.IsSuccess)
+            {
+                Snackbar.Add(L["Actividad updated successfully"], Severity.Success);
+                await LoadActividadesAsync();
+            }
+            else
+            {
+                Snackbar.Add(updateResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteActividadAsync(ActividadDto actividad)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Actividad Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete this actividad:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), actividad.ServicioNombre },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Actividad"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await ActividadService.DeleteAsync(actividad.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Actividad deleted successfully"], Severity.Success);
+            await LoadActividadesAsync();
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+
+    private async Task OpenEvidenciasDialog(int actividadId)
+    {
+        var parameters = new DialogParameters<EvidenciaFotosDialog>
+        {
+            { x => x.ActividadId, actividadId }
+        };
+
+        await DialogService.ShowAsync<EvidenciaFotosDialog>(L["Evidence Photos"], parameters);
+    }
+
+    private async Task OpenCotizacionDialog()
+    {
+        var parameters = new DialogParameters<CotizacionDialog>
+        {
+            { x => x.ObraId, Id }
+        };
+
+        var dialog = await DialogService.ShowAsync<CotizacionDialog>(L["Cotización"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is true)
+        {
+            await LoadObraAsync();
+        }
+    }
+
+    private async Task OpenEditDialog()
+    {
+        if (_obra is null) return;
+
+        var parameters = new DialogParameters<ObraDialog>
+        {
+            { x => x.IsNew, false },
+            { x => x.Model, ObraDialogMapper.ToDialogModel(_obra) }
+        };
+
+        var dialog = await DialogService.ShowAsync<ObraDialog>(L["Edit Obra"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ObraDialogModel model)
+        {
+            var updateResult = await ObraService.UpdateAsync(ObraDialogMapper.ToUpdateDto(model));
+            if (updateResult.IsSuccess)
+            {
+                Snackbar.Add(L["Obra updated successfully"], Severity.Success);
+                await LoadObraAsync();
+            }
+            else
+            {
+                Snackbar.Add(updateResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenDeleteDialog()
+    {
+        if (_obra is null) return;
+
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Obra Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete this obra:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), _obra.Direccion },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Obra"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await ObraService.DeleteAsync(_obra.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Obra deleted successfully"], Severity.Success);
+            NavigationManager.NavigateTo("/gestion/obras");
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+
+    private async Task FinalizarAsync()
+    {
+        var result = await ObraService.FinalizarAsync(Id);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Obra finished successfully"], Severity.Success);
+            await LoadObraAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+}

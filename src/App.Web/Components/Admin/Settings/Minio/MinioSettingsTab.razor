@@ -1,0 +1,156 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Core.Constants
+@using App.Web.Services
+
+@inject IMinioConfiguracionService MinioConfiguracionService
+@inject IPermissionCheckService PermissionService
+@inject IStringLocalizer<MinioSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<MinioSettingsTab> Logger
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6" Class="mb-4">@L["Photo Storage (MinIO)"]</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                        @L["Connection settings for the external MinIO/S3-compatible instance used to store evidence photos."]
+                    </MudText>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_model.Endpoint" Label="@L["Endpoint"]"
+                                  Required="@_hasWriteAccess" RequiredError="@L["Endpoint is required"]"
+                                  ReadOnly="@(!_hasWriteAccess)" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_model.BucketName" Label="@L["Bucket Name"]"
+                                  Required="@_hasWriteAccess" RequiredError="@L["Bucket name is required"]"
+                                  ReadOnly="@(!_hasWriteAccess)" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_model.AccessKey" Label="@L["Access Key"]"
+                                  Required="@_hasWriteAccess" RequiredError="@L["Access key is required"]"
+                                  ReadOnly="@(!_hasWriteAccess)" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_model.SecretKey" Label="@L["Secret Key"]"
+                                  InputType="@(_showSecret ? InputType.Text : InputType.Password)"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@(_showSecret ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                  OnAdornmentClick="@(() => _showSecret = !_showSecret)"
+                                  Required="@_hasWriteAccess" RequiredError="@L["Secret key is required"]"
+                                  ReadOnly="@(!_hasWriteAccess)" />
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudSwitch T="bool" @bind-Value="_model.UseSsl" Color="Color.Success" Label="@L["Use SSL/HTTPS"]"
+                               Disabled="@(!_hasWriteAccess)" />
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudTextField @bind-Value="_model.Region" Label="@L["Region"]" ReadOnly="@(!_hasWriteAccess)" />
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudNumericField @bind-Value="_model.PresignedUrlExpiryHours" Label="@L["Presigned URL Expiry (hours)"]"
+                                      Min="1" ReadOnly="@(!_hasWriteAccess)" />
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex justify-end">
+                    @if (_hasWriteAccess)
+                    {
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="SaveChangesAsync"
+                                   Disabled="@_processing"
+                                   Class="da-button-rounded">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">@L["Saving"]</MudText>
+                            }
+                            else
+                            {
+                                @L["Save Changes"]
+                            }
+                        </MudButton>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _hasWriteAccess;
+    private bool _showSecret;
+    private UpdateMinioConfiguracionDto _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageSettings);
+        await LoadConfigAsync();
+    }
+
+    private async Task LoadConfigAsync()
+    {
+        try
+        {
+            var config = await MinioConfiguracionService.GetConfigAsync();
+            if (config != null)
+            {
+                _model = new UpdateMinioConfiguracionDto
+                {
+                    Endpoint = config.Endpoint,
+                    BucketName = config.BucketName,
+                    AccessKey = config.AccessKey,
+                    SecretKey = config.SecretKey,
+                    UseSsl = config.UseSsl,
+                    Region = config.Region,
+                    PresignedUrlExpiryHours = config.PresignedUrlExpiryHours
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading MinIO configuration");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            _processing = true;
+            StateHasChanged();
+
+            try
+            {
+                await MinioConfiguracionService.UpdateConfigAsync(_model);
+                Snackbar.Add(L["Settings updated successfully"], Severity.Success);
+                await LoadConfigAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error saving MinIO configuration");
+                Snackbar.Add(L["Error saving settings"], Severity.Error);
+            }
+            finally
+            {
+                _processing = false;
+                StateHasChanged();
+            }
+        }
+    }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Edit Actividad" xml:space="preserve">
+    <value>Edit Actividad</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Quantity is required" xml:space="preserve">
+    <value>Quantity is required</value>
+  </data>
+  <data name="Unit Price Override" xml:space="preserve">
+    <value>Unit Price Override</value>
+  </data>
+  <data name="Leave empty to keep the Servicio's catalog price" xml:space="preserve">
+    <value>Leave empty to keep the Servicio's catalog price</value>
+  </data>
+  <data name="Days per Unit Override" xml:space="preserve">
+    <value>Days per Unit Override</value>
+  </data>
+  <data name="Leave empty to keep the Servicio's catalog yield" xml:space="preserve">
+    <value>Leave empty to keep the Servicio's catalog yield</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+</root>

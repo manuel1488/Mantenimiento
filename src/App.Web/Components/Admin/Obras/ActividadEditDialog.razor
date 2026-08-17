@@ -1,0 +1,62 @@
+@using App.Web.Components.Admin.Obras.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ActividadEditDialog> L
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Edit Actividad"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Value="@Model.ServicioNombre" Label="@L["Service"]" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField @bind-Value="Model.Cantidad"
+                                      Label="@($"{L["Quantity"]} ({Model.UnidadMedidaNombre})")"
+                                      Format="F3" Min="0.001m"
+                                      Required="true" RequiredError="@L["Quantity is required"]" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField @bind-Value="Model.PrecioUnitarioOverride"
+                                      Label="@L["Unit Price Override"]"
+                                      Format="F2" Min="0"
+                                      HelperText="@L["Leave empty to keep the Servicio's catalog price"]" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField @bind-Value="Model.RendimientoDiasPorUnidadOverride"
+                                      Label="@L["Days per Unit Override"]"
+                                      Format="F2" Min="0"
+                                      HelperText="@L["Leave empty to keep the Servicio's catalog yield"]" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit"
+                   Class="da-button-rounded" Variant="Variant.Filled">
+            @L["Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public ActividadEditDialogModel Model { get; set; } = new();
+
+    private MudForm _form = null!;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+    }
+}

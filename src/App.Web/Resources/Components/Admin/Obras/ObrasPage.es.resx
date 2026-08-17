@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Works" xml:space="preserve">
+    <value>Obras</value>
+  </data>
+  <data name="Search works" xml:space="preserve">
+    <value>Buscar obras</value>
+  </data>
+  <data name="New Obra" xml:space="preserve">
+    <value>Nueva Obra</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Urgente</value>
+  </data>
+  <data name="Request Date" xml:space="preserve">
+    <value>Fecha de Solicitud</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="View Obra" xml:space="preserve">
+    <value>Ver Obra</value>
+  </data>
+  <data name="Edit Obra" xml:space="preserve">
+    <value>Editar Obra</value>
+  </data>
+  <data name="Delete Obra" xml:space="preserve">
+    <value>Eliminar Obra</value>
+  </data>
+  <data name="No works found" xml:space="preserve">
+    <value>No se encontraron obras</value>
+  </data>
+  <data name="You don't have permission to view works." xml:space="preserve">
+    <value>No tienes permiso para ver obras.</value>
+  </data>
+  <data name="Error loading works" xml:space="preserve">
+    <value>Error al cargar las obras</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Solicitada</value>
+  </data>
+  <data name="Quoted" xml:space="preserve">
+    <value>Cotizada</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rechazada</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Aprobada</value>
+  </data>
+  <data name="In Progress" xml:space="preserve">
+    <value>En Proceso</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finalizada</value>
+  </data>
+  <data name="Invoiced" xml:space="preserve">
+    <value>Facturada</value>
+  </data>
+  <data name="Obra created successfully" xml:space="preserve">
+    <value>Obra creada exitosamente</value>
+  </data>
+  <data name="Obra updated successfully" xml:space="preserve">
+    <value>Obra actualizada exitosamente</value>
+  </data>
+  <data name="Delete Obra Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Obra</value>
+  </data>
+  <data name="Are you sure you want to delete this obra:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar esta obra:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Obra deleted successfully" xml:space="preserve">
+    <value>Obra eliminada exitosamente</value>
+  </data>
+</root>

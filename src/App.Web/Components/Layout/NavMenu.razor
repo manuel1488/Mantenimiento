@@ -42,26 +42,15 @@
                         <MudNavLink Href="/gestion/servicios">@L["Services"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewObras">
+                    <Authorized Context="obrasAuth">
+                        <MudNavLink Href="/gestion/obras">@L["Works"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>
-
-    <!-- Sección Catálogos -->
-    <MudNavGroup Title="@L["Catalogs"]"
-                Icon="@Icons.Material.Filled.MenuBook"
-                Expanded="true">
-        <AuthorizeView Policy="@ApplicationClaims.Shared.ViewUnidadesMedida">
-            <Authorized Context="unidadesMedidaAuth">
-                <MudNavLink Href="/gestion/unidades-medida">@L["Unit Measures"]</MudNavLink>
-            </Authorized>
-        </AuthorizeView>
-
-        <AuthorizeView Policy="@ApplicationClaims.Admin.ViewCatalogoSat">
-            <Authorized>
-                <MudNavLink Href="/admin/catalogos/claves-unidad-sat">@L["SAT Unit Codes Catalog"]</MudNavLink>
-            </Authorized>
-        </AuthorizeView>
-    </MudNavGroup>
 
     <!-- Sección Administration (Administración) -->
     <AuthorizeView Policy="@ApplicationClaims.Admin.AdminAccess">
@@ -80,6 +69,20 @@
                         <MudNavLink Href="/admin/settings">@L["Settings"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
+
+                <MudNavGroup Title="@L["Catalogs"]" Icon="@Icons.Material.Filled.MenuBook">
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ViewUnidadesMedida">
+                        <Authorized Context="unidadesMedidaAuth">
+                            <MudNavLink Href="/gestion/unidades-medida">@L["Unit Measures"]</MudNavLink>
+                        </Authorized>
+                    </AuthorizeView>
+
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ViewCatalogoSat">
+                        <Authorized>
+                            <MudNavLink Href="/admin/catalogos/claves-unidad-sat">@L["SAT Unit Codes Catalog"]</MudNavLink>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudNavGroup>
 
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewAudit">
                     <Authorized>
