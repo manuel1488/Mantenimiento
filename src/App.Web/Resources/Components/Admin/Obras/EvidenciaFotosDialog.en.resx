@@ -24,4 +24,22 @@
   <data name="Photo deleted successfully" xml:space="preserve">
     <value>Photo deleted successfully</value>
   </data>
+  <data name="Upload Before Photo" xml:space="preserve">
+    <value>Upload Before Photo</value>
+  </data>
+  <data name="Upload After Photo" xml:space="preserve">
+    <value>Upload After Photo</value>
+  </data>
+  <data name="File is too large (max 5MB)" xml:space="preserve">
+    <value>File is too large (max 5MB)</value>
+  </data>
+  <data name="Only image files are allowed" xml:space="preserve">
+    <value>Only image files are allowed</value>
+  </data>
+  <data name="Error processing photo file" xml:space="preserve">
+    <value>Error processing photo file</value>
+  </data>
+  <data name="Photo uploaded successfully" xml:space="preserve">
+    <value>Photo uploaded successfully</value>
+  </data>
 </root>

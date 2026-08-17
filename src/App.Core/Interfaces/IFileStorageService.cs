@@ -17,4 +17,17 @@ public interface IFileStorageService
     Task<Result<string>> GetPresignedUrlAsync(string key, CancellationToken cancellationToken = default);
 
     Task<Result> DeleteAsync(string key, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Prueba la conectividad contra un endpoint MinIO/S3 con las credenciales dadas
+    /// (no necesariamente las ya guardadas), verificando que el bucket exista y sea accesible.
+    /// </summary>
+    Task<Result> TestConnectionAsync(
+        string endpoint,
+        string bucketName,
+        string accessKey,
+        string secretKey,
+        bool useSsl,
+        string region,
+        CancellationToken cancellationToken = default);
 }

@@ -57,4 +57,16 @@
   <data name="Error saving settings" xml:space="preserve">
     <value>Error al guardar la configuración</value>
   </data>
+  <data name="Test Connection" xml:space="preserve">
+    <value>Probar Conexión</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Probando</value>
+  </data>
+  <data name="Connection successful" xml:space="preserve">
+    <value>Conexión exitosa</value>
+  </data>
+  <data name="Error testing connection" xml:space="preserve">
+    <value>Error al probar la conexión</value>
+  </data>
 </root>

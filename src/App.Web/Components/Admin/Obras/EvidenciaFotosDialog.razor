@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Forms
 @using App.Core.DTOs.Obras
 @using App.Core.Enums.Obras
 @using App.Core.Interfaces
@@ -31,7 +32,7 @@
                         }
                         else
                         {
-                            <div class="d-flex flex-column gap-2">
+                            <div class="d-flex flex-column gap-2 mb-3">
                                 @foreach (var foto in _antes)
                                 {
                                     <div class="d-flex align-center gap-2">
@@ -42,6 +43,12 @@
                                 }
                             </div>
                         }
+                        <InputFile id="evidenciaAntesUpload" OnChange="@(e => UploadFotoAsync(e, TipoEvidencia.Antes))" accept="image/*" class="d-none" />
+                        <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaAntesUpload"
+                                   Disabled="@_uploading" FullWidth="true">
+                            @L["Upload Before Photo"]
+                        </MudButton>
                     </MudItem>
                     <MudItem xs="12" md="6">
                         <MudText Typo="Typo.subtitle2" Class="mb-2">@L["After"]</MudText>
@@ -51,7 +58,7 @@
                         }
                         else
                         {
-                            <div class="d-flex flex-column gap-2">
+                            <div class="d-flex flex-column gap-2 mb-3">
                                 @foreach (var foto in _despues)
                                 {
                                     <div class="d-flex align-center gap-2">
@@ -62,6 +69,12 @@
                                 }
                             </div>
                         }
+                        <InputFile id="evidenciaDespuesUpload" OnChange="@(e => UploadFotoAsync(e, TipoEvidencia.Despues))" accept="image/*" class="d-none" />
+                        <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaDespuesUpload"
+                                   Disabled="@_uploading" FullWidth="true">
+                            @L["Upload After Photo"]
+                        </MudButton>
                     </MudItem>
                 </MudGrid>
             }
@@ -77,8 +90,11 @@
     [Parameter] public int ActividadId { get; set; }
 
     private bool _loading = true;
+    private bool _uploading;
     private List<ActividadEvidenciaFotoDto> _antes = new();
     private List<ActividadEvidenciaFotoDto> _despues = new();
+
+    private const long MaxEvidenciaFileSize = 5 * 1024 * 1024;
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,6 +126,56 @@
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task UploadFotoAsync(InputFileChangeEventArgs e, TipoEvidencia tipo)
+    {
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            if (file.Size > MaxEvidenciaFileSize)
+            {
+                Snackbar.Add(L["File is too large (max 5MB)"], Severity.Warning);
+                return;
+            }
+
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
+                return;
+            }
+
+            _uploading = true;
+
+            using var stream = file.OpenReadStream(MaxEvidenciaFileSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var data = memoryStream.ToArray();
+
+            var uploadResult = await ActividadService.UploadEvidenciaAsync(
+                ActividadId, tipo, data, file.ContentType, file.Name);
+
+            if (uploadResult.IsSuccess)
+            {
+                Snackbar.Add(L["Photo uploaded successfully"], Severity.Success);
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add(uploadResult.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error uploading evidencia file for actividad {Id}", ActividadId);
+            Snackbar.Add(L["Error processing photo file"], Severity.Error);
+        }
+        finally
+        {
+            _uploading = false;
         }
     }
 

@@ -29,8 +29,13 @@ public class MinioBucketInitializer
             return;
         }
 
+        var endpoint = config.Endpoint
+            .Replace("https://", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("http://", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .TrimEnd('/');
+
         var client = new MinioClient()
-            .WithEndpoint(config.Endpoint)
+            .WithEndpoint(endpoint)
             .WithCredentials(config.AccessKey, config.SecretKey)
             .WithRegion(config.Region)
             .WithSSL(config.UseSsl)

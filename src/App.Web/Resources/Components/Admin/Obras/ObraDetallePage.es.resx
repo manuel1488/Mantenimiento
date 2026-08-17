@@ -162,4 +162,7 @@
   <data name="Obra finished successfully" xml:space="preserve">
     <value>Obra finalizada exitosamente</value>
   </data>
+  <data name="Evidence photos (before/after) can be added from the Actividades list once created." xml:space="preserve">
+    <value>Las fotos de evidencia (antes/después) se agregan desde la lista de Actividades una vez creadas.</value>
+  </data>
 </root>

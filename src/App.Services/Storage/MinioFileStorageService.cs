@@ -22,9 +22,19 @@ public class MinioFileStorageService : IFileStorageService
         _logger = logger;
     }
 
+    /// <summary>
+    /// El SDK de MinIO espera solo el host (sin esquema) en WithEndpoint — el esquema se controla
+    /// aparte con WithSSL. Si el usuario captura "https://host" en la configuración, se lo quitamos aquí.
+    /// </summary>
+    private static string NormalizeEndpoint(string endpoint) =>
+        endpoint
+            .Replace("https://", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("http://", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .TrimEnd('/');
+
     private static IMinioClient BuildClient(MinioConfiguracionDto config) =>
         new MinioClient()
-            .WithEndpoint(config.Endpoint)
+            .WithEndpoint(NormalizeEndpoint(config.Endpoint))
             .WithCredentials(config.AccessKey, config.SecretKey)
             .WithRegion(config.Region)
             .WithSSL(config.UseSsl)
@@ -108,6 +118,38 @@ public class MinioFileStorageService : IFileStorageService
         {
             _logger.LogError(ex, "Error deleting object with key {Key}", key);
             return Result.Failure("Error al eliminar el archivo del almacenamiento");
+        }
+    }
+
+    public async Task<Result> TestConnectionAsync(
+        string endpoint,
+        string bucketName,
+        string accessKey,
+        string secretKey,
+        bool useSsl,
+        string region,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var client = new MinioClient()
+                .WithEndpoint(NormalizeEndpoint(endpoint))
+                .WithCredentials(accessKey, secretKey)
+                .WithRegion(region)
+                .WithSSL(useSsl)
+                .Build();
+
+            var exists = await client.BucketExistsAsync(new BucketExistsArgs()
+                .WithBucket(bucketName), cancellationToken);
+
+            return exists
+                ? Result.Success()
+                : Result.Failure("Conexión exitosa, pero el bucket no existe.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "MinIO connection test failed for endpoint {Endpoint}", endpoint);
+            return Result.Failure($"No se pudo conectar: {ex.Message}");
         }
     }
 }

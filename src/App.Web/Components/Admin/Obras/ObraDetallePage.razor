@@ -100,7 +100,7 @@
                         <MudPaper Class="da-card pa-4 mb-4" Elevation="2">
                             <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Add Actividad"]</MudText>
                             <MudGrid>
-                                <MudItem xs="12" md="4">
+                                <MudItem xs="12" md="6">
                                     <MudAutocomplete T="ServicioDto"
                                                      Label="@L["Service"]"
                                                      SearchFunc="@SearchServicios"
@@ -115,24 +115,10 @@
                                                      AdornmentIcon="@Icons.Material.Filled.Search"
                                                      Adornment="Adornment.Start" />
                                 </MudItem>
-                                <MudItem xs="12" md="3">
+                                <MudItem xs="12" md="5">
                                     <MudNumericField @bind-Value="_cantidad"
                                                       Label="@CantidadLabel"
                                                       Format="F3" Min="0.001m" />
-                                </MudItem>
-                                <MudItem xs="12" md="2">
-                                    <InputFile id="evidenciaAntesInput" OnChange="@(e => HandleFileSelected(e, isAntes: true))" accept="image/*" class="d-none" />
-                                    <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
-                                               StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaAntesInput" FullWidth="true">
-                                        @(_antesData is null ? L["Before"] : L["Selected"])
-                                    </MudButton>
-                                </MudItem>
-                                <MudItem xs="12" md="2">
-                                    <InputFile id="evidenciaDespuesInput" OnChange="@(e => HandleFileSelected(e, isAntes: false))" accept="image/*" class="d-none" />
-                                    <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
-                                               StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaDespuesInput" FullWidth="true">
-                                        @(_despuesData is null ? L["After"] : L["Selected"])
-                                    </MudButton>
                                 </MudItem>
                                 <MudItem xs="12" md="1" Class="d-flex align-center">
                                     <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled"
@@ -140,6 +126,9 @@
                                                    OnClick="AgregarActividadAsync" title="@L["Add"]" />
                                 </MudItem>
                             </MudGrid>
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary mt-2">
+                                @L["Evidence photos (before/after) can be added from the Actividades list once created."]
+                            </MudText>
                         </MudPaper>
                     </Authorized>
                 </AuthorizeView>
@@ -239,12 +228,6 @@
     private List<ServicioDto> _servicios = new();
     private ServicioDto? _selectedServicio;
     private decimal _cantidad;
-    private byte[]? _antesData;
-    private string? _antesContentType;
-    private string? _antesFileName;
-    private byte[]? _despuesData;
-    private string? _despuesContentType;
-    private string? _despuesFileName;
 
     private string CantidadLabel => _selectedServicio is null
         ? L["Quantity"].ToString()
@@ -342,52 +325,6 @@
         _selectedServicio = value;
     }
 
-    private const long MaxEvidenciaFileSize = 5 * 1024 * 1024;
-
-    private async Task HandleFileSelected(InputFileChangeEventArgs e, bool isAntes)
-    {
-        try
-        {
-            var file = e.File;
-            if (file == null) return;
-
-            if (file.Size > MaxEvidenciaFileSize)
-            {
-                Snackbar.Add(L["File is too large (max 5MB)"], Severity.Warning);
-                return;
-            }
-
-            if (!file.ContentType.StartsWith("image/"))
-            {
-                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
-                return;
-            }
-
-            using var stream = file.OpenReadStream(MaxEvidenciaFileSize);
-            using var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
-            var data = memoryStream.ToArray();
-
-            if (isAntes)
-            {
-                _antesData = data;
-                _antesContentType = file.ContentType;
-                _antesFileName = file.Name;
-            }
-            else
-            {
-                _despuesData = data;
-                _despuesContentType = file.ContentType;
-                _despuesFileName = file.Name;
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error processing evidencia file");
-            Snackbar.Add(L["Error processing photo file"], Severity.Error);
-        }
-    }
-
     private async Task AgregarActividadAsync()
     {
         if (_selectedServicio is null || _cantidad <= 0) return;
@@ -409,34 +346,10 @@
                 return;
             }
 
-            var actividadId = result.Value!.Id;
-
-            if (_antesData is not null)
-            {
-                var uploadResult = await ActividadService.UploadEvidenciaAsync(
-                    actividadId, TipoEvidencia.Antes, _antesData, _antesContentType!, _antesFileName!);
-                if (!uploadResult.IsSuccess)
-                    Snackbar.Add(uploadResult.Error, Severity.Warning);
-            }
-
-            if (_despuesData is not null)
-            {
-                var uploadResult = await ActividadService.UploadEvidenciaAsync(
-                    actividadId, TipoEvidencia.Despues, _despuesData, _despuesContentType!, _despuesFileName!);
-                if (!uploadResult.IsSuccess)
-                    Snackbar.Add(uploadResult.Error, Severity.Warning);
-            }
-
             Snackbar.Add(L["Actividad added successfully"], Severity.Success);
 
             _selectedServicio = null;
             _cantidad = 0;
-            _antesData = null;
-            _antesContentType = null;
-            _antesFileName = null;
-            _despuesData = null;
-            _despuesContentType = null;
-            _despuesFileName = null;
 
             await LoadActividadesAsync();
         }

@@ -4,6 +4,7 @@
 @using App.Web.Services
 
 @inject IMinioConfiguracionService MinioConfiguracionService
+@inject IFileStorageService FileStorageService
 @inject IPermissionCheckService PermissionService
 @inject IStringLocalizer<MinioSettingsTab> L
 @inject ISnackbar Snackbar
@@ -58,13 +59,29 @@
                                       Min="1" ReadOnly="@(!_hasWriteAccess)" />
                 </MudItem>
 
-                <MudItem xs="12" Class="d-flex justify-end">
+                <MudItem xs="12" Class="d-flex justify-end gap-2">
                     @if (_hasWriteAccess)
                     {
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.Wifi"
+                                   OnClick="TestConnectionAsync"
+                                   Disabled="@(_testing || _processing)"
+                                   Class="da-button-rounded">
+                            @if (_testing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">@L["Testing"]</MudText>
+                            }
+                            else
+                            {
+                                @L["Test Connection"]
+                            }
+                        </MudButton>
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    OnClick="SaveChangesAsync"
-                                   Disabled="@_processing"
+                                   Disabled="@(_processing || _testing)"
                                    Class="da-button-rounded">
                             @if (_processing)
                             {
@@ -91,6 +108,7 @@
 @code {
     private MudForm _form = null!;
     private bool _processing;
+    private bool _testing;
     private bool _hasWriteAccess;
     private bool _showSecret;
     private UpdateMinioConfiguracionDto _model = new();
@@ -124,6 +142,37 @@
         {
             Logger.LogError(ex, "Error loading MinIO configuration");
             Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task TestConnectionAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _testing = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await FileStorageService.TestConnectionAsync(
+                _model.Endpoint, _model.BucketName, _model.AccessKey, _model.SecretKey,
+                _model.UseSsl, _model.Region);
+
+            if (result.IsSuccess)
+                Snackbar.Add(L["Connection successful"], Severity.Success);
+            else
+                Snackbar.Add(result.Error, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error testing MinIO connection");
+            Snackbar.Add(L["Error testing connection"], Severity.Error);
+        }
+        finally
+        {
+            _testing = false;
+            StateHasChanged();
         }
     }
 

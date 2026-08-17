@@ -57,4 +57,16 @@
   <data name="Error saving settings" xml:space="preserve">
     <value>Error saving settings</value>
   </data>
+  <data name="Test Connection" xml:space="preserve">
+    <value>Test Connection</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Testing</value>
+  </data>
+  <data name="Connection successful" xml:space="preserve">
+    <value>Connection successful</value>
+  </data>
+  <data name="Error testing connection" xml:space="preserve">
+    <value>Error testing connection</value>
+  </data>
 </root>
