@@ -1,3 +1,4 @@
+@using App.Core.DTOs.Fiscal
 @using App.Core.DTOs.Servicios
 @using App.Core.Interfaces
 @using App.Web.Components.Admin.Servicios.Models
@@ -5,6 +6,8 @@
 
 @inject IStringLocalizer<ServicioDialog> L
 @inject IUnidadMedidaService UnidadMedidaService
+@inject IFiscalCatalogService FiscalCatalogService
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -63,6 +66,30 @@
                                       Required="true"
                                       RequiredError="@L["Days per unit is required"]" />
                 </MudItem>
+
+                <MudItem xs="12">
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Start">
+                        <MudAutocomplete T="ClaveProdServSatCatalogoDto"
+                                         Label="@L["SAT Product/Service Code"]"
+                                         Placeholder="@L["Search by code or description"]"
+                                         SearchFunc="@SearchClavesProdServSat"
+                                         ToStringFunc="@(c => c == null ? string.Empty : $"{c.Codigo} - {c.Descripcion}")"
+                                         Value="_selectedClaveProdServSat"
+                                         ValueChanged="OnClaveProdServSatSelected"
+                                         MaxItems="null"
+                                         MinCharacters="3"
+                                         DebounceInterval="300"
+                                         CoerceText="false"
+                                         ResetValueOnEmptyText="true"
+                                         Clearable="true"
+                                         AdornmentIcon="@Icons.Material.Filled.Search"
+                                         Adornment="Adornment.Start"
+                                         Class="flex-grow-1" />
+                        <MudIconButton Icon="@Icons.Material.Filled.TravelExplore" Color="Color.Primary"
+                                       Variant="Variant.Outlined" Class="mt-2"
+                                       OnClick="OpenWizardAsync" title="@L["Find code by category"]" />
+                    </MudStack>
+                </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
@@ -83,6 +110,7 @@
     private MudForm _form = null!;
     private List<UnidadMedidaDto> _unidadesMedida = new();
     private UnidadMedidaDto? _selectedUnidadMedida;
+    private ClaveProdServSatCatalogoDto? _selectedClaveProdServSat;
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,6 +123,45 @@
         if (Model.UnidadMedidaId != 0)
         {
             _selectedUnidadMedida = _unidadesMedida.FirstOrDefault(u => u.Id == Model.UnidadMedidaId);
+        }
+
+        if (Model.ClaveProdServSatId is not null)
+        {
+            _selectedClaveProdServSat = new ClaveProdServSatCatalogoDto
+            {
+                Id = Model.ClaveProdServSatId.Value,
+                Codigo = Model.ClaveProdServSatCodigo ?? string.Empty,
+                Descripcion = Model.ClaveProdServSatDescripcion ?? string.Empty
+            };
+        }
+    }
+
+    private async Task<IEnumerable<ClaveProdServSatCatalogoDto>> SearchClavesProdServSat(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+            return [];
+
+        var (_, items) = await FiscalCatalogService.SearchClavesProdServSatAsync(value, page: 1, pageSize: 20);
+        return items;
+    }
+
+    private void OnClaveProdServSatSelected(ClaveProdServSatCatalogoDto? value)
+    {
+        _selectedClaveProdServSat = value;
+        Model.ClaveProdServSatId = value?.Id;
+        Model.ClaveProdServSatCodigo = value?.Codigo;
+        Model.ClaveProdServSatDescripcion = value?.Descripcion;
+    }
+
+    private async Task OpenWizardAsync()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ClaveProdServSatWizardDialog>(L["SAT Product/Service Code Assistant"], options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ClaveProdServSatCatalogoDto selected)
+        {
+            OnClaveProdServSatSelected(selected);
         }
     }
 

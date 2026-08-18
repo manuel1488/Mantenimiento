@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
 using App.Core.Interfaces;
+using App.Models.Fiscal;
 
 namespace App.Models.Servicios;
 
@@ -32,4 +33,12 @@ public class Servicio : BaseEntity<int>, IAuditTracked
     [Required]
     [Column(TypeName = "decimal(10,2)")]
     public decimal RendimientoDiasPorUnidad { get; set; }
+
+    /// <summary>
+    /// Clave de producto/servicio del catálogo SAT c_ClaveProdServ, usada al facturar (CFDI). Opcional.
+    /// </summary>
+    public int? ClaveProdServSatId { get; set; }
+
+    [ForeignKey(nameof(ClaveProdServSatId))]
+    public virtual ClaveProdServSatCatalogo? ClaveProdServSat { get; set; }
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="SAT Product/Service Codes Catalog" xml:space="preserve">
+    <value>SAT Product/Service Codes Catalog</value>
+  </data>
+  <data name="Official SAT c_ClaveProdServ catalog, used for CFDI invoicing. Read-only — to correct an entry, update the source CSV file and reseed." xml:space="preserve">
+    <value>Official SAT c_ClaveProdServ catalog, used for CFDI invoicing. Read-only — to correct an entry, update the source CSV file and reseed.</value>
+  </data>
+  <data name="Search by code or description" xml:space="preserve">
+    <value>Search by code or description</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="No product/service codes found" xml:space="preserve">
+    <value>No product/service codes found</value>
+  </data>
+  <data name="Error loading catalog" xml:space="preserve">
+    <value>Error loading catalog</value>
+  </data>
+  <data name="You don't have permission to view this catalog." xml:space="preserve">
+    <value>You don't have permission to view this catalog.</value>
+  </data>
+</root>

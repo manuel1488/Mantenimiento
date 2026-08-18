@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="SAT Product/Service Code Assistant" xml:space="preserve">
+    <value>Asistente de Clave de Producto/Servicio SAT</value>
+  </data>
+  <data name="Select Tipo, Segmento, Familia and Clase, then click Buscar to see the matching codes." xml:space="preserve">
+    <value>Selecciona Tipo, Segmento, Familia y Clase, luego da clic en Buscar para ver las claves correspondientes.</value>
+  </data>
+  <data name="Tipo" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Segmento" xml:space="preserve">
+    <value>Segmento</value>
+  </data>
+  <data name="Familia" xml:space="preserve">
+    <value>Familia</value>
+  </data>
+  <data name="Clase" xml:space="preserve">
+    <value>Clase</value>
+  </data>
+  <data name="Start over" xml:space="preserve">
+    <value>Empezar de nuevo</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Buscar</value>
+  </data>
+  <data name="No codes found in this category" xml:space="preserve">
+    <value>No se encontraron códigos en esta categoría</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Product/Service Code" xml:space="preserve">
+    <value>Clave de Producto/Servicio</value>
+  </data>
+</root>

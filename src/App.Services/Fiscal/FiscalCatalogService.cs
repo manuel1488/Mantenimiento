@@ -118,4 +118,196 @@ public class FiscalCatalogService : IFiscalCatalogService
             throw;
         }
     }
+
+    public async Task<(int TotalCount, IList<ClaveProdServSatCatalogoDto> Items)> SearchClavesProdServSatAsync(
+        string? searchText = null,
+        int page = 1,
+        int pageSize = 50)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.ClavesProdServSatCatalogo.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query = query.Where(x =>
+                    x.Codigo.Contains(searchText) ||
+                    x.Descripcion.Contains(searchText));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.Codigo)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ClaveProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return (totalCount, items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching SAT product/service codes catalog");
+            throw;
+        }
+    }
+
+    public async Task<(int TotalCount, IList<ClaveProdServSatCatalogoDto> Items)> SearchClasesProdServSatAsync(
+        string? searchText = null,
+        int page = 1,
+        int pageSize = 50)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.ClavesProdServSatCatalogo
+                .AsNoTracking()
+                .Where(x => x.Codigo.EndsWith("00"));
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query = query.Where(x =>
+                    x.Codigo.Contains(searchText) ||
+                    x.Descripcion.Contains(searchText));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.Codigo)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ClaveProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return (totalCount, items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching SAT product/service class catalog");
+            throw;
+        }
+    }
+
+    public async Task<(int TotalCount, IList<ClaveProdServSatCatalogoDto> Items)> GetProductosPorClaseAsync(
+        string claseCodigo,
+        string? searchText = null,
+        int page = 1,
+        int pageSize = 50)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var prefix = claseCodigo.Length >= 6 ? claseCodigo[..6] : claseCodigo;
+
+            var query = context.ClavesProdServSatCatalogo
+                .AsNoTracking()
+                .Where(x => x.Codigo.StartsWith(prefix) && x.Codigo != claseCodigo);
+
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                query = query.Where(x => x.Descripcion.Contains(searchText));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.Codigo)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ProjectTo<ClaveProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return (totalCount, items);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving SAT products for class {ClaseCodigo}", claseCodigo);
+            throw;
+        }
+    }
+
+    public async Task<IList<TipoProdServSatCatalogoDto>> GetTiposProdServSatAsync()
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.TiposProdServSatCatalogo
+                .AsNoTracking()
+                .OrderBy(x => x.Codigo)
+                .ProjectTo<TipoProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving SAT product/service 'Tipo' catalog");
+            throw;
+        }
+    }
+
+    public async Task<IList<SegmentoProdServSatCatalogoDto>> GetSegmentosProdServSatAsync(string tipoCodigo)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.SegmentosProdServSatCatalogo
+                .AsNoTracking()
+                .Where(x => x.TipoCodigo == tipoCodigo)
+                .OrderBy(x => x.Codigo)
+                .ProjectTo<SegmentoProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving SAT product/service 'Segmento' catalog for tipo {TipoCodigo}", tipoCodigo);
+            throw;
+        }
+    }
+
+    public async Task<IList<FamiliaProdServSatCatalogoDto>> GetFamiliasProdServSatAsync(string segmentoCodigo)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.FamiliasProdServSatCatalogo
+                .AsNoTracking()
+                .Where(x => x.SegmentoCodigo == segmentoCodigo)
+                .OrderBy(x => x.Codigo)
+                .ProjectTo<FamiliaProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving SAT product/service 'Familia' catalog for segmento {SegmentoCodigo}", segmentoCodigo);
+            throw;
+        }
+    }
+
+    public async Task<IList<ClaveProdServSatCatalogoDto>> GetClasesPorFamiliaAsync(string familiaCodigo)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.ClavesProdServSatCatalogo
+                .AsNoTracking()
+                .Where(x => x.Codigo.StartsWith(familiaCodigo) && x.Codigo.EndsWith("00"))
+                .OrderBy(x => x.Codigo)
+                .ProjectTo<ClaveProdServSatCatalogoDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving SAT product/service classes for familia {FamiliaCodigo}", familiaCodigo);
+            throw;
+        }
+    }
 }

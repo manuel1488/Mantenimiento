@@ -57,6 +57,9 @@
   <data name="View Evidence" xml:space="preserve">
     <value>Ver Evidencia</value>
   </data>
+  <data name="Evidence Photos (view/upload)" xml:space="preserve">
+    <value>Fotos de Evidencia (ver/subir)</value>
+  </data>
   <data name="Edit Actividad" xml:space="preserve">
     <value>Editar Actividad</value>
   </data>

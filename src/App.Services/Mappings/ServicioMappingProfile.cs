@@ -13,7 +13,11 @@ public class ServicioMappingProfile : Profile
             .ForMember(dest => dest.UnidadMedidaCodigo,
                 opt => opt.MapFrom(src => src.UnidadMedida.Codigo))
             .ForMember(dest => dest.UnidadMedidaNombre,
-                opt => opt.MapFrom(src => src.UnidadMedida.Nombre));
+                opt => opt.MapFrom(src => src.UnidadMedida.Nombre))
+            .ForMember(dest => dest.ClaveProdServSatCodigo,
+                opt => opt.MapFrom(src => src.ClaveProdServSat != null ? src.ClaveProdServSat.Codigo : null))
+            .ForMember(dest => dest.ClaveProdServSatDescripcion,
+                opt => opt.MapFrom(src => src.ClaveProdServSat != null ? src.ClaveProdServSat.Descripcion : null));
 
         CreateMap<CreateServicioDto, Servicio>();
 

@@ -21,4 +21,6 @@ public class CreateServicioDto
     [Required]
     [Range(0, double.MaxValue)]
     public decimal RendimientoDiasPorUnidad { get; set; }
+
+    public int? ClaveProdServSatId { get; set; }
 }

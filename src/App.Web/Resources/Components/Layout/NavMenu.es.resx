@@ -114,6 +114,9 @@
   <data name="SAT Unit Codes Catalog" xml:space="preserve">
     <value>Catálogo de Claves de Unidad SAT</value>
   </data>
+  <data name="SAT Product/Service Codes Catalog" xml:space="preserve">
+    <value>Catálogo de Claves de Producto/Servicio SAT</value>
+  </data>
   <data name="Clients" xml:space="preserve">
     <value>Clientes</value>
   </data>

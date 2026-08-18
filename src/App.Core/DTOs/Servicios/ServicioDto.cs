@@ -10,4 +10,7 @@ public class ServicioDto
     public string UnidadMedidaNombre { get; set; } = null!;
     public decimal PrecioUnitario { get; set; }
     public decimal RendimientoDiasPorUnidad { get; set; }
+    public int? ClaveProdServSatId { get; set; }
+    public string? ClaveProdServSatCodigo { get; set; }
+    public string? ClaveProdServSatDescripcion { get; set; }
 }

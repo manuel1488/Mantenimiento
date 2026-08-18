@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="SAT Product/Service Code Assistant" xml:space="preserve">
+    <value>SAT Product/Service Code Assistant</value>
+  </data>
+  <data name="Select Tipo, Segmento, Familia and Clase, then click Buscar to see the matching codes." xml:space="preserve">
+    <value>Select Tipo, Segmento, Familia and Clase, then click Buscar to see the matching codes.</value>
+  </data>
+  <data name="Tipo" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Segmento" xml:space="preserve">
+    <value>Segmento</value>
+  </data>
+  <data name="Familia" xml:space="preserve">
+    <value>Familia</value>
+  </data>
+  <data name="Clase" xml:space="preserve">
+    <value>Clase</value>
+  </data>
+  <data name="Start over" xml:space="preserve">
+    <value>Start over</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="No codes found in this category" xml:space="preserve">
+    <value>No codes found in this category</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Product/Service Code" xml:space="preserve">
+    <value>Product/Service Code</value>
+  </data>
+</root>

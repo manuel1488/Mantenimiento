@@ -33,10 +33,22 @@
   <data name="Days per unit is required" xml:space="preserve">
     <value>Days per unit is required</value>
   </data>
+  <data name="SAT Product/Service Code" xml:space="preserve">
+    <value>SAT Product/Service Code</value>
+  </data>
+  <data name="Search by code or description" xml:space="preserve">
+    <value>Search by code or description (min. 3 characters)</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
+  </data>
+  <data name="Find code by category" xml:space="preserve">
+    <value>Find code by category</value>
+  </data>
+  <data name="SAT Product/Service Code Assistant" xml:space="preserve">
+    <value>SAT Product/Service Code Assistant</value>
   </data>
 </root>

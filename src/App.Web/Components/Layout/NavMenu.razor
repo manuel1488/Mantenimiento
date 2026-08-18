@@ -82,6 +82,12 @@
                             <MudNavLink Href="/admin/catalogos/claves-unidad-sat">@L["SAT Unit Codes Catalog"]</MudNavLink>
                         </Authorized>
                     </AuthorizeView>
+
+                    <AuthorizeView Policy="@ApplicationClaims.Admin.ViewCatalogoSat">
+                        <Authorized>
+                            <MudNavLink Href="/admin/catalogos/claves-prod-serv-sat">@L["SAT Product/Service Codes Catalog"]</MudNavLink>
+                        </Authorized>
+                    </AuthorizeView>
                 </MudNavGroup>
 
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewAudit">

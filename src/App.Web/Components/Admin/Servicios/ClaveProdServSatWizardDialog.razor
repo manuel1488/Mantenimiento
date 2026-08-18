@@ -1,0 +1,190 @@
+@using App.Core.DTOs.Fiscal
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<ClaveProdServSatWizardDialog> L
+@inject IFiscalCatalogService FiscalCatalogService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["SAT Product/Service Code Assistant"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Class="pa-0">
+            <MudText Typo="Typo.body2" Class="mb-3">
+                @L["Select Tipo, Segmento, Familia and Clase, then click Buscar to see the matching codes."]
+            </MudText>
+
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="@L["Tipo"]" Value="_tipoCodigo" ValueChanged="OnTipoChangedAsync">
+                        @foreach (var tipo in _tipos)
+                        {
+                            <MudSelectItem Value="@tipo.Codigo">@tipo.Codigo - @tipo.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="@L["Segmento"]" Value="_segmentoCodigo" ValueChanged="OnSegmentoChangedAsync"
+                               Disabled="@(_tipoCodigo is null)">
+                        @foreach (var segmento in _segmentos)
+                        {
+                            <MudSelectItem Value="@segmento.Codigo">@segmento.Codigo - @segmento.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="@L["Familia"]" Value="_familiaCodigo" ValueChanged="OnFamiliaChangedAsync"
+                               Disabled="@(_segmentoCodigo is null)">
+                        @foreach (var familia in _familias)
+                        {
+                            <MudSelectItem Value="@familia.Codigo">@familia.Codigo - @familia.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" Label="@L["Clase"]" @bind-Value="_claseCodigo"
+                               Disabled="@(_familiaCodigo is null)">
+                        @foreach (var clase in _clases)
+                        {
+                            <MudSelectItem Value="@clase.Codigo">@clase.Codigo - @clase.Descripcion</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mt-3 mb-3">
+                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.RestartAlt" OnClick="Reset">
+                    @L["Start over"]
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Search"
+                           Disabled="@(_claseCodigo is null || _searching)"
+                           OnClick="BuscarAsync">
+                    @L["Search"]
+                </MudButton>
+            </MudStack>
+
+            @if (_searching)
+            {
+                <div class="d-flex justify-center pa-6">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (_searched)
+            {
+                @if (_productos.Count == 0)
+                {
+                    <MudText Class="mud-text-secondary" Typo="Typo.body2">@L["No codes found in this category"]</MudText>
+                }
+                else
+                {
+                    <MudDataGrid T="ClaveProdServSatCatalogoDto" Items="@_productos"
+                                 Dense="true" Hover="true" Height="45vh"
+                                 RowClick="@(row => SelectProducto(row.Item))">
+                        <Columns>
+                            <TemplateColumn Title="@L["Product/Service Code"]">
+                                <CellTemplate>
+                                    <MudText Typo="Typo.body2">
+                                        <b>@context.Item.Codigo</b> — @context.Item.Descripcion
+                                    </MudText>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                    </MudDataGrid>
+                }
+            }
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private bool _searching;
+    private bool _searched;
+
+    private string? _tipoCodigo;
+    private string? _segmentoCodigo;
+    private string? _familiaCodigo;
+    private string? _claseCodigo;
+
+    private List<TipoProdServSatCatalogoDto> _tipos = new();
+    private List<SegmentoProdServSatCatalogoDto> _segmentos = new();
+    private List<FamiliaProdServSatCatalogoDto> _familias = new();
+    private List<ClaveProdServSatCatalogoDto> _clases = new();
+    private List<ClaveProdServSatCatalogoDto> _productos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tipos = (await FiscalCatalogService.GetTiposProdServSatAsync()).ToList();
+    }
+
+    private async Task OnTipoChangedAsync(string value)
+    {
+        _tipoCodigo = value;
+        _segmentoCodigo = null;
+        _familiaCodigo = null;
+        _claseCodigo = null;
+        _familias.Clear();
+        _clases.Clear();
+        _searched = false;
+
+        _segmentos = (await FiscalCatalogService.GetSegmentosProdServSatAsync(value)).ToList();
+    }
+
+    private async Task OnSegmentoChangedAsync(string value)
+    {
+        _segmentoCodigo = value;
+        _familiaCodigo = null;
+        _claseCodigo = null;
+        _clases.Clear();
+        _searched = false;
+
+        _familias = (await FiscalCatalogService.GetFamiliasProdServSatAsync(value)).ToList();
+    }
+
+    private async Task OnFamiliaChangedAsync(string value)
+    {
+        _familiaCodigo = value;
+        _claseCodigo = null;
+        _searched = false;
+
+        _clases = (await FiscalCatalogService.GetClasesPorFamiliaAsync(value)).ToList();
+    }
+
+    private async Task BuscarAsync()
+    {
+        if (_claseCodigo is null) return;
+
+        _searching = true;
+        _searched = false;
+        StateHasChanged();
+
+        var (_, items) = await FiscalCatalogService.GetProductosPorClaseAsync(_claseCodigo, searchText: null, page: 1, pageSize: 100);
+        _productos = items.ToList();
+
+        _searching = false;
+        _searched = true;
+    }
+
+    private void Reset()
+    {
+        _tipoCodigo = null;
+        _segmentoCodigo = null;
+        _familiaCodigo = null;
+        _claseCodigo = null;
+        _segmentos.Clear();
+        _familias.Clear();
+        _clases.Clear();
+        _productos.Clear();
+        _searched = false;
+    }
+
+    private void SelectProducto(ClaveProdServSatCatalogoDto producto) => MudDialog.Close(DialogResult.Ok(producto));
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -14,6 +14,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG
 - [White-Label Deployment Guide](docs/02-Development/white-label-deployment-guide.md) — Desplegar la app con otra marca: perfil de marca (`Branding/{profile}.json`), logo/nombre en BD, checklist de onboarding
+- [SAT Clave Producto/Servicio Classification Guide](docs/02-Development/sat-clave-prodserv-classification-guide.md) — Cómo clasificar un Servicio contra el catálogo `c_ClaveProdServ`, estructura del código, y cómo actualizar los CSV del catálogo si el SAT publica cambios
 
 ### ADRs
 Índice completo: [docs/01-Architecture/README.md](docs/01-Architecture/README.md)

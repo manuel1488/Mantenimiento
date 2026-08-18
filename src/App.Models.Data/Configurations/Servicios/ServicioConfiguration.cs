@@ -17,5 +17,10 @@ public class ServicioConfiguration : IEntityTypeConfiguration<Servicio>
             .WithMany()
             .HasForeignKey(e => e.UnidadMedidaId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.ClaveProdServSat)
+            .WithMany()
+            .HasForeignKey(e => e.ClaveProdServSatId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -82,4 +82,24 @@ public class CsvFiscalCatalogReader : IFiscalCatalogDataReader
     {
         return await ReadCsvFileAsync<CreateClaveUnidadSatCatalogoDto, ClaveUnidadSatCatalogoCsvMap>("claves_unidad_sat.csv");
     }
+
+    public async Task<IEnumerable<CreateClaveProdServSatCatalogoDto>> GetClavesProdServSatAsync()
+    {
+        return await ReadCsvFileAsync<CreateClaveProdServSatCatalogoDto, ClaveProdServSatCatalogoCsvMap>("claves_prod_serv_sat.csv");
+    }
+
+    public async Task<IEnumerable<CreateTipoProdServSatCatalogoDto>> GetTiposProdServSatAsync()
+    {
+        return await ReadCsvFileAsync<CreateTipoProdServSatCatalogoDto, TipoProdServSatCatalogoCsvMap>("tipos_prod_serv_sat.csv");
+    }
+
+    public async Task<IEnumerable<CreateSegmentoProdServSatCatalogoDto>> GetSegmentosProdServSatAsync()
+    {
+        return await ReadCsvFileAsync<CreateSegmentoProdServSatCatalogoDto, SegmentoProdServSatCatalogoCsvMap>("segmentos_prod_serv_sat.csv");
+    }
+
+    public async Task<IEnumerable<CreateFamiliaProdServSatCatalogoDto>> GetFamiliasProdServSatAsync()
+    {
+        return await ReadCsvFileAsync<CreateFamiliaProdServSatCatalogoDto, FamiliaProdServSatCatalogoCsvMap>("familias_prod_serv_sat.csv");
+    }
 }

@@ -12,5 +12,9 @@ public class FiscalCatalogMappingProfile : Profile
         CreateMap<RegimenFiscalCatalogo, RegimenFiscalCatalogoDto>();
         CreateMap<UsoCfdiCatalogo, UsoCfdiCatalogoDto>();
         CreateMap<ClaveUnidadSatCatalogo, ClaveUnidadSatCatalogoDto>();
+        CreateMap<ClaveProdServSatCatalogo, ClaveProdServSatCatalogoDto>();
+        CreateMap<TipoProdServSatCatalogo, TipoProdServSatCatalogoDto>();
+        CreateMap<SegmentoProdServSatCatalogo, SegmentoProdServSatCatalogoDto>();
+        CreateMap<FamiliaProdServSatCatalogo, FamiliaProdServSatCatalogoDto>();
     }
 }

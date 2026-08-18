@@ -114,6 +114,9 @@
   <data name="SAT Unit Codes Catalog" xml:space="preserve">
     <value>SAT Unit Codes Catalog</value>
   </data>
+  <data name="SAT Product/Service Codes Catalog" xml:space="preserve">
+    <value>SAT Product/Service Codes Catalog</value>
+  </data>
   <data name="Clients" xml:space="preserve">
     <value>Clients</value>
   </data>

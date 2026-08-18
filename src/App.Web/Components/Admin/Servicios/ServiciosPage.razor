@@ -167,7 +167,8 @@
                 Descripcion = model.Descripcion,
                 UnidadMedidaId = model.UnidadMedidaId,
                 PrecioUnitario = model.PrecioUnitario,
-                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad
+                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad,
+                ClaveProdServSatId = model.ClaveProdServSatId
             };
 
             var createResult = await ServicioService.CreateAsync(createDto);
@@ -195,7 +196,10 @@
                     Descripcion = servicio.Descripcion,
                     UnidadMedidaId = servicio.UnidadMedidaId,
                     PrecioUnitario = servicio.PrecioUnitario,
-                    RendimientoDiasPorUnidad = servicio.RendimientoDiasPorUnidad
+                    RendimientoDiasPorUnidad = servicio.RendimientoDiasPorUnidad,
+                    ClaveProdServSatId = servicio.ClaveProdServSatId,
+                    ClaveProdServSatCodigo = servicio.ClaveProdServSatCodigo,
+                    ClaveProdServSatDescripcion = servicio.ClaveProdServSatDescripcion
                 }
             }
         };
@@ -211,7 +215,8 @@
                 Descripcion = model.Descripcion,
                 UnidadMedidaId = model.UnidadMedidaId,
                 PrecioUnitario = model.PrecioUnitario,
-                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad
+                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad,
+                ClaveProdServSatId = model.ClaveProdServSatId
             };
 
             var updateResult = await ServicioService.UpdateAsync(model.Id, updateDto);

@@ -59,6 +59,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<RegimenFiscalCatalogo> RegimenesFiscalesCatalogo { get; set; } = null!;
     public DbSet<UsoCfdiCatalogo> UsosCfdiCatalogo { get; set; } = null!;
     public DbSet<ClaveUnidadSatCatalogo> ClavesUnidadSatCatalogo { get; set; } = null!;
+    public DbSet<ClaveProdServSatCatalogo> ClavesProdServSatCatalogo { get; set; } = null!;
+    public DbSet<TipoProdServSatCatalogo> TiposProdServSatCatalogo { get; set; } = null!;
+    public DbSet<SegmentoProdServSatCatalogo> SegmentosProdServSatCatalogo { get; set; } = null!;
+    public DbSet<FamiliaProdServSatCatalogo> FamiliasProdServSatCatalogo { get; set; } = null!;
     #endregion
 
     #region Servicios Catalogs
