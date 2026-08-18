@@ -436,8 +436,9 @@
         {
             { x => x.ActividadId, actividadId }
         };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
-        await DialogService.ShowAsync<EvidenciaFotosDialog>(L["Evidence Photos"], parameters);
+        await DialogService.ShowAsync<EvidenciaFotosDialog>(L["Evidence Photos"], parameters, options);
     }
 
     private async Task OpenCotizacionDialog()

@@ -56,13 +56,13 @@ public interface IImageService
     /// Convierte una imagen de un formato a otro
     /// </summary>
     /// <param name="imageStream">Stream de la imagen original</param>
-    /// <param name="originalContentType">Tipo de contenido original</param>
+    /// <param name="fileName">Nombre del archivo original (usado para validar la extensión)</param>
     /// <param name="targetContentType">Tipo de contenido destino</param>
     /// <param name="cancellationToken">Token de cancelación</param>
     /// <returns>Datos de la imagen convertida</returns>
     Task<byte[]> ConvertFormatAsync(
         Stream imageStream,
-        string originalContentType,
+        string fileName,
         string targetContentType,
         CancellationToken cancellationToken = default);
 }

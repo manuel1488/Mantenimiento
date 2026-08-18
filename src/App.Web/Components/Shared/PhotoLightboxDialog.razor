@@ -1,0 +1,21 @@
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex justify-center align-center" style="min-height: 200px;">
+            <img src="@ImageUrl" style="max-width: 100%; max-height: 80vh; border-radius: 4px;" />
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Class="da-button-rounded">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter, EditorRequired] public string ImageUrl { get; set; } = null!;
+
+    [Inject] private IStringLocalizer<PhotoLightboxDialog> L { get; set; } = null!;
+
+    private void Close() => MudDialog.Close();
+}

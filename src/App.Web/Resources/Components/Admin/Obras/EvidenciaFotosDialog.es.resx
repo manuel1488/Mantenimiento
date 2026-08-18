@@ -30,12 +30,6 @@
   <data name="Upload After Photo" xml:space="preserve">
     <value>Subir Foto de Después</value>
   </data>
-  <data name="File is too large (max 5MB)" xml:space="preserve">
-    <value>El archivo es demasiado grande (máx. 5MB)</value>
-  </data>
-  <data name="Only image files are allowed" xml:space="preserve">
-    <value>Solo se permiten archivos de imagen</value>
-  </data>
   <data name="Error processing photo file" xml:space="preserve">
     <value>Error al procesar el archivo de foto</value>
   </data>

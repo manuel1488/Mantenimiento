@@ -236,6 +236,8 @@ public class ActividadService : IActividadService
                         return Result.Failure(_localizer["Cannot delete an Actividad that is part of a Cotizacion"]);
                     }
 
+                    entity.DeletedBy = await _currentUserService.GetUserIdAsync();
+
                     context.Actividades.Remove(entity);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -273,11 +275,12 @@ public class ActividadService : IActividadService
                 return Result<ActividadEvidenciaFotoDto>.Failure(_localizer["Actividad not found"]);
 
             byte[] processedData;
+            byte[] thumbnailData;
             string processedContentType;
             using (var stream = new MemoryStream(data))
             {
-                (processedData, processedContentType) = await _imageService.ProcessImageAsync(
-                    stream, fileName, contentType, cancellationToken);
+                (processedData, thumbnailData, processedContentType) = await _imageService.ProcessImageWithThumbnailAsync(
+                    stream, fileName, contentType, cancellationToken: cancellationToken);
             }
 
             var extension = processedContentType switch
@@ -287,15 +290,25 @@ public class ActividadService : IActividadService
                 _ => "jpg"
             };
 
+            var keyPrefix = $"evidencias/actividad-{actividadId}";
+
             var uploadResult = await _fileStorageService.UploadAsync(
-                processedData,
-                processedContentType,
-                $"evidencias/actividad-{actividadId}",
-                extension,
-                cancellationToken);
+                processedData, processedContentType, keyPrefix, extension, cancellationToken);
 
             if (!uploadResult.IsSuccess)
                 return Result<ActividadEvidenciaFotoDto>.Failure(uploadResult.Error!);
+
+            // The thumbnail is an optimization, not a hard requirement — if it fails to upload,
+            // log it and continue without one; the UI falls back to the full image for display.
+            var thumbnailUploadResult = await _fileStorageService.UploadAsync(
+                thumbnailData, processedContentType, $"{keyPrefix}/thumb", extension, cancellationToken);
+
+            if (!thumbnailUploadResult.IsSuccess)
+            {
+                _logger.LogWarning(
+                    "Failed to upload thumbnail for actividad {Id}, continuing with full image only: {Error}",
+                    actividadId, thumbnailUploadResult.Error);
+            }
 
             var strategy = context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
@@ -308,6 +321,7 @@ public class ActividadService : IActividadService
                         ActividadId = actividadId,
                         Tipo = tipo,
                         RutaArchivo = uploadResult.Value!,
+                        RutaArchivoThumbnail = thumbnailUploadResult.IsSuccess ? thumbnailUploadResult.Value : null,
                         FechaCarga = _dateTimeService.Now
                     };
 
@@ -323,20 +337,34 @@ public class ActividadService : IActividadService
                     await transaction.CommitAsync(cancellationToken);
 
                     var presignedResult = await _fileStorageService.GetPresignedUrlAsync(entity.RutaArchivo, cancellationToken);
+                    var thumbnailPresignedResult = entity.RutaArchivoThumbnail is not null
+                        ? await _fileStorageService.GetPresignedUrlAsync(entity.RutaArchivoThumbnail, cancellationToken)
+                        : null;
 
                     var resultDto = _mapper.Map<ActividadEvidenciaFotoDto>(entity);
                     resultDto.PresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+                    resultDto.ThumbnailPresignedUrl = thumbnailPresignedResult?.IsSuccess == true
+                        ? thumbnailPresignedResult.Value
+                        : resultDto.PresignedUrl;
 
                     return Result<ActividadEvidenciaFotoDto>.Success(resultDto);
                 }
                 catch
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    // Best effort cleanup of the orphaned blob since the DB write failed.
+                    // Best effort cleanup of the orphaned blob(s) since the DB write failed.
                     await _fileStorageService.DeleteAsync(uploadResult.Value!, cancellationToken);
+                    if (thumbnailUploadResult.IsSuccess)
+                        await _fileStorageService.DeleteAsync(thumbnailUploadResult.Value!, cancellationToken);
                     throw;
                 }
             });
+        }
+        catch (ArgumentException ex)
+        {
+            // Thrown by IImageService when the file fails validation (size/type) against
+            // the ImageOptions configured in appsettings — surface the specific reason to the user.
+            return Result<ActividadEvidenciaFotoDto>.Failure(ex.Message);
         }
         catch (Exception ex)
         {
@@ -356,6 +384,7 @@ public class ActividadService : IActividadService
                 return Result.Failure(_localizer["Evidencia not found"]);
 
             var key = entity.RutaArchivo;
+            var thumbnailKey = entity.RutaArchivoThumbnail;
 
             var strategy = context.Database.CreateExecutionStrategy();
             var deleteResult = await strategy.ExecuteAsync(async () =>
@@ -363,6 +392,7 @@ public class ActividadService : IActividadService
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
                 {
+                    entity.DeletedBy = await _currentUserService.GetUserIdAsync();
                     context.ActividadEvidenciaFotos.Remove(entity);
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -381,6 +411,13 @@ public class ActividadService : IActividadService
             var storageDeleteResult = await _fileStorageService.DeleteAsync(key);
             if (!storageDeleteResult.IsSuccess)
                 _logger.LogWarning("Failed to delete evidencia blob {Key} from storage: {Error}", key, storageDeleteResult.Error);
+
+            if (thumbnailKey is not null)
+            {
+                var thumbnailDeleteResult = await _fileStorageService.DeleteAsync(thumbnailKey);
+                if (!thumbnailDeleteResult.IsSuccess)
+                    _logger.LogWarning("Failed to delete evidencia thumbnail {Key} from storage: {Error}", thumbnailKey, thumbnailDeleteResult.Error);
+            }
 
             return Result.Success();
         }
@@ -409,6 +446,12 @@ public class ActividadService : IActividadService
                 var dto = _mapper.Map<ActividadEvidenciaFotoDto>(evidencia);
                 var presignedResult = await _fileStorageService.GetPresignedUrlAsync(evidencia.RutaArchivo);
                 dto.PresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+
+                var thumbnailResult = evidencia.RutaArchivoThumbnail is not null
+                    ? await _fileStorageService.GetPresignedUrlAsync(evidencia.RutaArchivoThumbnail)
+                    : null;
+                dto.ThumbnailPresignedUrl = thumbnailResult?.IsSuccess == true ? thumbnailResult.Value : dto.PresignedUrl;
+
                 dtos.Add(dto);
             }
 

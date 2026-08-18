@@ -15,13 +15,16 @@ public class ImageOptions
     public long MaxFileSize { get; set; } = 5 * 1024 * 1024;
 
     /// <summary>
-    /// Allowed file types
+    /// Allowed file extensions (with leading dot), the single source of truth for allowed image
+    /// formats — used both for server-side validation (against the uploaded file name) and to
+    /// build the native file picker's "accept" filter, so there's nothing to keep in sync.
     /// </summary>
-    public string[] AllowedTypes { get; set; } = new[] 
-    { 
-        "image/jpeg", 
-        "image/png", 
-        "image/webp" 
+    public string[] AllowedExtensions { get; set; } = new[]
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
     };
 
     /// <summary>

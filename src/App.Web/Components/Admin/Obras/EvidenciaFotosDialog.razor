@@ -1,11 +1,16 @@
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Options
 @using App.Core.DTOs.Obras
 @using App.Core.Enums.Obras
 @using App.Core.Interfaces
+@using App.Core.Options
+@using App.Web.Components.Shared
 @using MudBlazor
 
 @inject IStringLocalizer<EvidenciaFotosDialog> L
 @inject IActividadService ActividadService
+@inject IOptions<ImageOptions> ImageOptions
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<EvidenciaFotosDialog> Logger
 
@@ -14,7 +19,7 @@
         <MudText Typo="Typo.h6">@L["Evidence Photos"]</MudText>
     </TitleContent>
     <DialogContent>
-        <MudContainer Style="max-width: 700px;">
+        <MudContainer Class="pa-0">
             @if (_loading)
             {
                 <div class="d-flex justify-center pa-6">
@@ -32,18 +37,21 @@
                         }
                         else
                         {
-                            <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex flex-wrap gap-3 mb-3">
                                 @foreach (var foto in _antes)
                                 {
-                                    <div class="d-flex align-center gap-2">
-                                        <img src="@foto.PresignedUrl" style="max-width: 160px; max-height: 120px; border-radius: 8px; object-fit: cover;" />
+                                    <div style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
+                                        <img src="@(foto.ThumbnailPresignedUrl ?? foto.PresignedUrl)"
+                                             style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover; display: block; border: 1px solid var(--mud-palette-lines-default); cursor: pointer;"
+                                             @onclick="@(() => OpenLightbox(foto))" />
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                       Class="pa-1" Style="position: absolute; top: -10px; right: -10px; background-color: var(--mud-palette-surface); box-shadow: 0 1px 3px rgba(0,0,0,.4);"
                                                        OnClick="@(() => DeleteFotoAsync(foto.Id))" title="@L["Delete Photo"]" />
                                     </div>
                                 }
                             </div>
                         }
-                        <InputFile id="evidenciaAntesUpload" OnChange="@(e => UploadFotoAsync(e, TipoEvidencia.Antes))" accept="image/*" class="d-none" />
+                        <InputFile id="evidenciaAntesUpload" OnChange="@(e => UploadFotoAsync(e, TipoEvidencia.Antes))" accept="@_acceptedFileTypes" class="d-none" />
                         <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
                                    StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaAntesUpload"
                                    Disabled="@_uploading" FullWidth="true">
@@ -58,18 +66,21 @@
                         }
                         else
                         {
-                            <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex flex-wrap gap-3 mb-3">
                                 @foreach (var foto in _despues)
                                 {
-                                    <div class="d-flex align-center gap-2">
-                                        <img src="@foto.PresignedUrl" style="max-width: 160px; max-height: 120px; border-radius: 8px; object-fit: cover;" />
+                                    <div style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
+                                        <img src="@(foto.ThumbnailPresignedUrl ?? foto.PresignedUrl)"
+                                             style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover; display: block; border: 1px solid var(--mud-palette-lines-default); cursor: pointer;"
+                                             @onclick="@(() => OpenLightbox(foto))" />
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                       Class="pa-1" Style="position: absolute; top: -10px; right: -10px; background-color: var(--mud-palette-surface); box-shadow: 0 1px 3px rgba(0,0,0,.4);"
                                                        OnClick="@(() => DeleteFotoAsync(foto.Id))" title="@L["Delete Photo"]" />
                                     </div>
                                 }
                             </div>
                         }
-                        <InputFile id="evidenciaDespuesUpload" OnChange="@(e => UploadFotoAsync(e, TipoEvidencia.Despues))" accept="image/*" class="d-none" />
+                        <InputFile id="evidenciaDespuesUpload" OnChange="@(e => UploadFotoAsync(e, TipoEvidencia.Despues))" accept="@_acceptedFileTypes" class="d-none" />
                         <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
                                    StartIcon="@Icons.Material.Filled.CloudUpload" for="evidenciaDespuesUpload"
                                    Disabled="@_uploading" FullWidth="true">
@@ -91,10 +102,9 @@
 
     private bool _loading = true;
     private bool _uploading;
+    private string _acceptedFileTypes => string.Join(",", ImageOptions.Value.AllowedExtensions);
     private List<ActividadEvidenciaFotoDto> _antes = new();
     private List<ActividadEvidenciaFotoDto> _despues = new();
-
-    private const long MaxEvidenciaFileSize = 5 * 1024 * 1024;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,26 +141,18 @@
 
     private async Task UploadFotoAsync(InputFileChangeEventArgs e, TipoEvidencia tipo)
     {
+        // File type/size validation is the responsibility of IImageService (App.Services/Images/ImageService.cs),
+        // enforced against ImageOptions from appsettings — not duplicated here. We only cap the raw
+        // read at that same configured max so a too-large file fails fast with the service's specific message
+        // instead of loading the whole stream into memory first.
         try
         {
             var file = e.File;
             if (file == null) return;
 
-            if (file.Size > MaxEvidenciaFileSize)
-            {
-                Snackbar.Add(L["File is too large (max 5MB)"], Severity.Warning);
-                return;
-            }
-
-            if (!file.ContentType.StartsWith("image/"))
-            {
-                Snackbar.Add(L["Only image files are allowed"], Severity.Warning);
-                return;
-            }
-
             _uploading = true;
 
-            using var stream = file.OpenReadStream(MaxEvidenciaFileSize);
+            using var stream = file.OpenReadStream(ImageOptions.Value.MaxFileSize);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
             var data = memoryStream.ToArray();
@@ -177,6 +179,19 @@
         {
             _uploading = false;
         }
+    }
+
+    private async Task OpenLightbox(ActividadEvidenciaFotoDto foto)
+    {
+        if (foto.PresignedUrl is null) return;
+
+        var parameters = new DialogParameters<PhotoLightboxDialog>
+        {
+            { x => x.ImageUrl, foto.PresignedUrl }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<PhotoLightboxDialog>(null, parameters, options);
     }
 
     private async Task DeleteFotoAsync(int evidenciaId)

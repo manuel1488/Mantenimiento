@@ -32,10 +32,10 @@ public class ImageService : IImageService
     {
         try
         {
-            ValidateImage(imageStream, contentType);
+            ValidateImage(imageStream, fileName);
 
             using var image = await Image.LoadAsync(imageStream, cancellationToken);
-            
+
             // Apply basic optimization
             image.Mutate(x => x.AutoOrient());
 
@@ -61,10 +61,10 @@ public class ImageService : IImageService
     {
         try
         {
-            ValidateImage(imageStream, contentType);
+            ValidateImage(imageStream, fileName);
 
             using var image = await Image.LoadAsync(imageStream, cancellationToken);
-            
+
             // Calculate dimensions maintaining aspect ratio
             var (width, height) = CalculateDimensions(
                 image.Width, 
@@ -98,10 +98,10 @@ public class ImageService : IImageService
     {
         try
         {
-            ValidateImage(imageStream, contentType);
+            ValidateImage(imageStream, fileName);
 
             using var image = await Image.LoadAsync(imageStream, cancellationToken);
-            
+
             // Process main image
             var mainImage = image.Clone(ctx => { });
             mainImage.Mutate(x => x.AutoOrient());
@@ -131,47 +131,44 @@ public class ImageService : IImageService
 
     public async Task<byte[]> ConvertFormatAsync(
         Stream imageStream,
-        string originalContentType,
+        string fileName,
         string targetContentType,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            ValidateImage(imageStream, originalContentType);
-
-            if (!_options.AllowedTypes.Contains(targetContentType.ToLower()))
-            {
-                throw new ArgumentException($"Target format {targetContentType} is not allowed");
-            }
+            ValidateImage(imageStream, fileName);
 
             using var image = await Image.LoadAsync(imageStream, cancellationToken);
-            
+
             // Apply basic optimization
             image.Mutate(x => x.AutoOrient());
 
-            // Convert to target format
+            // Convert to target format — ConvertToByteArrayWithOptimalSettings itself rejects
+            // any format it doesn't have an encoder for.
             var convertedData = await ConvertToByteArrayWithOptimalSettings(image, targetContentType, cancellationToken);
 
             return convertedData;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error converting image format from {OriginalFormat} to {TargetFormat}", 
-                originalContentType, targetContentType);
+            _logger.LogError(ex, "Error converting image {FileName} to {TargetFormat}",
+                fileName, targetContentType);
             throw;
         }
     }
 
-    private void ValidateImage(Stream stream, string contentType)
+    private void ValidateImage(Stream stream, string fileName)
     {
         if (stream.Length > _options.MaxFileSize)
         {
             throw new ArgumentException($"File size exceeds maximum allowed ({_options.MaxFileSize} bytes)");
         }
 
-        if (!_options.AllowedTypes.Contains(contentType.ToLower()))
+        var extension = Path.GetExtension(fileName);
+        if (!_options.AllowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"File type {contentType} is not allowed");
+            throw new ArgumentException($"File extension {extension} is not allowed");
         }
     }
 
