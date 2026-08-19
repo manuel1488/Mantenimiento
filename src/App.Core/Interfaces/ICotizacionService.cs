@@ -9,4 +9,7 @@ public interface ICotizacionService
     Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto);
     Task<Result<CotizacionDto>> RechazarAsync(int cotizacionId);
     Task<Result<CotizacionDto?>> GetLatestByObraIdAsync(int obraId);
+
+    /// <summary>Renders the Cotización as a PDF using the effective (DB override or default) template.</summary>
+    Task<Result<byte[]>> GetCotizacionPdfAsync(int cotizacionId, CancellationToken cancellationToken = default);
 }

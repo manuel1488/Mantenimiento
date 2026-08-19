@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Cotización PDF Template" xml:space="preserve">
+    <value>Cotización PDF Template</value>
+  </data>
+  <data name="Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template." xml:space="preserve">
+    <value>Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template.</value>
+  </data>
+  <data name="HTML Body" xml:space="preserve">
+    <value>HTML Body</value>
+  </data>
+  <data name="HTML content is required" xml:space="preserve">
+    <value>HTML content is required</value>
+  </data>
+  <data name="CSS Styles" xml:space="preserve">
+    <value>CSS Styles</value>
+  </data>
+  <data name="Available Variables" xml:space="preserve">
+    <value>Available Variables</value>
+  </data>
+  <data name="Reset to Default" xml:space="preserve">
+    <value>Reset to Default</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Template saved successfully" xml:space="preserve">
+    <value>Template saved successfully</value>
+  </data>
+  <data name="Error saving template" xml:space="preserve">
+    <value>Error saving template</value>
+  </data>
+  <data name="Template reset to default" xml:space="preserve">
+    <value>Template reset to default</value>
+  </data>
+  <data name="Error resetting template" xml:space="preserve">
+    <value>Error resetting template</value>
+  </data>
+  <data name="Error rendering preview" xml:space="preserve">
+    <value>Error rendering preview</value>
+  </data>
+</root>

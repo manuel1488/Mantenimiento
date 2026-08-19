@@ -69,4 +69,7 @@
   <data name="Cotización rejected successfully" xml:space="preserve">
     <value>Cotización rejected successfully</value>
   </data>
+  <data name="Download PDF" xml:space="preserve">
+    <value>Download PDF</value>
+  </data>
 </root>

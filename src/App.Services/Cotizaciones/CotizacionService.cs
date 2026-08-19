@@ -5,6 +5,7 @@ using App.Core.DTOs.Cotizaciones;
 using App.Core.Enums.Cotizaciones;
 using App.Core.Enums.Obras;
 using App.Core.Interfaces;
+using App.Core.Options;
 using App.Models.Cotizaciones;
 using App.Models.Data.Contexts;
 using App.Shared.Services;
@@ -12,6 +13,7 @@ using App.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace App.Services.Cotizaciones;
 
@@ -23,6 +25,12 @@ public class CotizacionService : ICotizacionService
     private readonly IStringLocalizer<CotizacionService> _localizer;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTimeService;
+    private readonly IPdfService _pdfService;
+    private readonly ICotizacionTemplateSettingsService _templateSettingsService;
+    private readonly ICompanySettingsService _companySettingsService;
+    private readonly IEmailTemplateService _emailTemplateService;
+    private readonly IOptions<ApplicationOptions> _applicationOptions;
+    private readonly IOptions<BrandingOptions> _brandingOptions;
 
     public CotizacionService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -30,7 +38,13 @@ public class CotizacionService : ICotizacionService
         ILogger<CotizacionService> logger,
         IStringLocalizer<CotizacionService> localizer,
         ICurrentUserService currentUserService,
-        IDateTime dateTimeService)
+        IDateTime dateTimeService,
+        IPdfService pdfService,
+        ICotizacionTemplateSettingsService templateSettingsService,
+        ICompanySettingsService companySettingsService,
+        IEmailTemplateService emailTemplateService,
+        IOptions<ApplicationOptions> applicationOptions,
+        IOptions<BrandingOptions> brandingOptions)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -38,6 +52,12 @@ public class CotizacionService : ICotizacionService
         _localizer = localizer;
         _currentUserService = currentUserService;
         _dateTimeService = dateTimeService;
+        _pdfService = pdfService;
+        _templateSettingsService = templateSettingsService;
+        _companySettingsService = companySettingsService;
+        _emailTemplateService = emailTemplateService;
+        _applicationOptions = applicationOptions;
+        _brandingOptions = brandingOptions;
     }
 
     public async Task<Result<CotizacionDto>> GenerarAsync(int obraId)
@@ -295,6 +315,91 @@ public class CotizacionService : ICotizacionService
         {
             _logger.LogError(ex, "Error retrieving latest cotizacion for obra {Id}", obraId);
             return Result<CotizacionDto?>.Failure(_localizer["Error retrieving cotizacion"]);
+        }
+    }
+
+    public async Task<Result<byte[]>> GetCotizacionPdfAsync(int cotizacionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var cotizacion = await context.Cotizaciones
+                .AsNoTracking()
+                .Include(c => c.Lineas)
+                .Include(c => c.Obra).ThenInclude(o => o.Cliente)
+                .FirstOrDefaultAsync(c => c.Id == cotizacionId, cancellationToken);
+
+            if (cotizacion == null)
+                return Result<byte[]>.Failure(_localizer["Cotizacion not found"]);
+
+            var companySettings = await _companySettingsService.GetSettingsAsync();
+            var companyName = string.IsNullOrWhiteSpace(companySettings?.CompanyName)
+                ? _applicationOptions.Value.Name
+                : companySettings.CompanyName;
+
+            var logoBase64 = await _companySettingsService.GetLogoDataUriAsync()
+                ?? await _emailTemplateService.GetStaticFileBase64Async(_brandingOptions.Value.LogoPath);
+
+            var data = new
+            {
+                company_name = companyName,
+                logo_base64 = logoBase64,
+                has_logo = !string.IsNullOrEmpty(logoBase64),
+                primary_color = _brandingOptions.Value.PrimaryColor,
+                secondary_color = _brandingOptions.Value.SecondaryColor,
+                cotizacion_version = cotizacion.Version,
+                fecha_generacion = cotizacion.FechaGeneracion.ToString("dd/MM/yyyy"),
+                cliente_nombre = cotizacion.Obra.Cliente.Nombre,
+                obra_direccion = cotizacion.Obra.Direccion,
+                total = cotizacion.Total.ToString("C2"),
+                label_quotation = _localizer["Quotation"].Value,
+                label_version = _localizer["Version"].Value,
+                label_client = _localizer["Client"].Value,
+                label_address = _localizer["Address"].Value,
+                label_service = _localizer["Service"].Value,
+                label_quantity = _localizer["Quantity"].Value,
+                label_unit_price = _localizer["Unit Price"].Value,
+                label_subtotal = _localizer["Subtotal"].Value,
+                label_total = _localizer["Total"].Value,
+                lineas = cotizacion.Lineas.Select(l => new
+                {
+                    servicio_nombre = l.ServicioNombre,
+                    unidad_medida = l.UnidadMedida,
+                    cantidad = l.Cantidad.ToString("F2"),
+                    precio_unitario = l.PrecioUnitario.ToString("C2"),
+                    subtotal = l.Subtotal.ToString("C2")
+                }).ToList()
+            };
+
+            var (htmlBody, css) = await _templateSettingsService.GetEffectiveTemplateAsync();
+
+            var fullHtml = $"""
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                <meta charset="UTF-8">
+                <style>
+                {css}
+                </style>
+                </head>
+                <body>
+                {htmlBody}
+                </body>
+                </html>
+                """;
+
+            var template = Scriban.Template.Parse(fullHtml);
+            var renderedHtml = await template.RenderAsync(data);
+
+            var pdfBytes = await _pdfService.GeneratePdfFromHtmlAsync(renderedHtml, cancellationToken);
+
+            return Result<byte[]>.Success(pdfBytes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating PDF for cotizacion {Id}", cotizacionId);
+            return Result<byte[]>.Failure(_localizer["Error generating cotizacion PDF"]);
         }
     }
 }

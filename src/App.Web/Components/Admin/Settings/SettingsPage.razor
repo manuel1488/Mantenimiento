@@ -4,6 +4,7 @@
 @using App.Web.Components.Admin.Settings.General
 @using App.Web.Components.Admin.Settings.Email
 @using App.Web.Components.Admin.Settings.Minio
+@using App.Web.Components.Admin.Settings.Cotizacion
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -36,6 +37,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Photo Storage"]" Icon="@Icons.Material.Filled.CloudUpload">
                         <MinioSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Cotización"]" Icon="@Icons.Material.Filled.RequestQuote">
+                        <CotizacionSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

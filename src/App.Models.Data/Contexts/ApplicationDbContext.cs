@@ -35,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<LocalizationSettings> LocalizationSettings { get; set; } = null!;
     public DbSet<EmailSettings> EmailSettings { get; set; } = null!;
     public DbSet<EmailTemplateSettings> EmailTemplateSettings { get; set; } = null!;
+    public DbSet<CotizacionTemplateSettings> CotizacionTemplateSettings { get; set; } = null!;
     #endregion
 
     #region Shared

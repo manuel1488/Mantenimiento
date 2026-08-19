@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ label_quotation }} {{ cotizacion_version }}</title>
+<style>
+:root {
+    --primary-color: {{ primary_color }};
+    --secondary-color: {{ secondary_color }};
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: #212121;
+    margin: 0;
+    padding: 24px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid var(--primary-color);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.header .logo img {
+    max-height: 56px;
+    max-width: 220px;
+}
+
+.header .company-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.header .title-block {
+    text-align: right;
+}
+
+.header .title-block .title {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-transform: uppercase;
+}
+
+.header .title-block .version {
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
+.header .title-block .date {
+    font-size: 11px;
+    color: #616161;
+    margin-top: 4px;
+}
+
+.info-block {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.info-block .field-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--secondary-color);
+    letter-spacing: .04em;
+}
+
+.info-block .field-value {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+table.lineas {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+table.lineas thead th {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+table.lineas thead th.align-right {
+    text-align: right;
+}
+
+table.lineas tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 12px;
+}
+
+table.lineas tbody td.align-right {
+    text-align: right;
+}
+
+table.lineas tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.totals {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 32px;
+}
+
+.totals .total-box {
+    min-width: 220px;
+    border-top: 2px solid var(--primary-color);
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.footer {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 12px;
+    font-size: 10px;
+    color: #9e9e9e;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            {{ if has_logo }}
+            <div class="logo"><img src="{{ logo_base64 }}" alt="{{ company_name }}" /></div>
+            {{ end }}
+            <div class="company-name">{{ company_name }}</div>
+        </div>
+        <div class="title-block">
+            <div class="title">{{ label_quotation }}</div>
+            <div class="version">{{ label_version }} {{ cotizacion_version }}</div>
+            <div class="date">{{ fecha_generacion }}</div>
+        </div>
+    </div>
+
+    <div class="info-block">
+        <div>
+            <div class="field-label">{{ label_client }}</div>
+            <div class="field-value">{{ cliente_nombre }}</div>
+            <div class="field-label">{{ label_address }}</div>
+            <div class="field-value">{{ obra_direccion }}</div>
+        </div>
+    </div>
+
+    <table class="lineas">
+        <thead>
+            <tr>
+                <th>{{ label_service }}</th>
+                <th class="align-right">{{ label_quantity }}</th>
+                <th class="align-right">{{ label_unit_price }}</th>
+                <th class="align-right">{{ label_subtotal }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ for linea in lineas }}
+            <tr>
+                <td>{{ linea.servicio_nombre }}</td>
+                <td class="align-right">{{ linea.cantidad }} {{ linea.unidad_medida }}</td>
+                <td class="align-right">{{ linea.precio_unitario }}</td>
+                <td class="align-right">{{ linea.subtotal }}</td>
+            </tr>
+            {{ end }}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="total-box">
+            <span>{{ label_total }}</span>
+            <span>{{ total }}</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        {{ company_name }} — {{ label_quotation }} {{ cotizacion_version }}
+    </div>
+</body>
+</html>

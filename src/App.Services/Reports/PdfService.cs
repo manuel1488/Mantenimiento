@@ -81,6 +81,9 @@ public class PdfService : IPdfService
         }
     }
 
+    public Task WarmUpAsync(CancellationToken cancellationToken = default) =>
+        EnsureBrowserIsReadyAsync(cancellationToken);
+
     private async Task<IPage> CreatePageAsync(CancellationToken cancellationToken)
     {
         await EnsureBrowserIsReadyAsync(cancellationToken);

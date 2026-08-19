@@ -1,0 +1,195 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Services.Email
+@using MudBlazor
+@using App.Web.Components.Admin.Settings.Email
+
+@inject ICotizacionTemplateSettingsService TemplateSettingsService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IStringLocalizer<CotizacionSettingsTab> L
+
+<MudForm @ref="_form" @bind-IsValid="_isValid">
+    <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-1">@L["Cotización PDF Template"]</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                @L["Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template."]
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" md="8">
+            <MudText Typo="Typo.subtitle1" Class="mb-1">@L["HTML Body"]</MudText>
+            <MudTextField @bind-Value="_htmlContent"
+                          Lines="20"
+                          Variant="Variant.Outlined"
+                          Required="true"
+                          RequiredError="@L["HTML content is required"]"
+                          Style="font-family: monospace; font-size: 12px;"
+                          FullWidth="true" />
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudText Typo="Typo.subtitle1" Class="mb-1">@L["CSS Styles"]</MudText>
+            <MudTextField @bind-Value="_cssContent"
+                          Lines="20"
+                          Variant="Variant.Outlined"
+                          Style="font-family: monospace; font-size: 12px;"
+                          FullWidth="true" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudExpansionPanels Elevation="0">
+                <MudExpansionPanel Text="@L["Available Variables"]" Dense="true">
+                    <MudSimpleTable Dense="true" Style="max-height: 240px; overflow-y: auto;">
+                        <tbody>
+                            @foreach (var v in Variables)
+                            {
+                                <tr>
+                                    <td><code style="font-size:12px; color:#c0392b;">@("{{ " + v.Key + " }}")</code></td>
+                                    <td><MudText Typo="Typo.body2" Color="Color.Secondary">@v.Value</MudText></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudItem>
+
+        <MudItem xs="12" Class="d-flex justify-end gap-2">
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                       OnClick="ResetAsync"
+                       Disabled="@_resetting">
+                @L["Reset to Default"]
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.Preview"
+                       OnClick="PreviewAsync"
+                       Disabled="@(string.IsNullOrWhiteSpace(_htmlContent) || _previewing)">
+                @L["Preview"]
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="SaveAsync"
+                       Disabled="@(!_isValid || _saving)">
+                @L["Save"]
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudForm>
+
+@code {
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _saving;
+    private bool _previewing;
+    private bool _resetting;
+    private string _htmlContent = string.Empty;
+    private string _cssContent = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var (html, css) = await TemplateSettingsService.GetEffectiveTemplateAsync();
+        _htmlContent = html;
+        _cssContent = css;
+    }
+
+    private async Task SaveAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            await TemplateSettingsService.UpdateConfigAsync(new UpdateCotizacionTemplateSettingsDto
+            {
+                HtmlContent = _htmlContent,
+                CssContent = _cssContent
+            });
+            Snackbar.Add(L["Template saved successfully"], Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add(L["Error saving template"], Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task ResetAsync()
+    {
+        _resetting = true;
+        try
+        {
+            await TemplateSettingsService.ResetAsync();
+            await LoadAsync();
+            Snackbar.Add(L["Template reset to default"], Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add(L["Error resetting template"], Severity.Error);
+        }
+        finally
+        {
+            _resetting = false;
+        }
+    }
+
+    private async Task PreviewAsync()
+    {
+        _previewing = true;
+        try
+        {
+            var sampleData = CotizacionTemplateSampleData.GetSampleData();
+            var fullHtml = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><style>" +
+                           _cssContent + "</style></head><body>" + _htmlContent + "</body></html>";
+            var template = Scriban.Template.Parse(fullHtml);
+            var rendered = await template.RenderAsync(sampleData);
+
+            var options = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, CloseButton = true };
+            await DialogService.ShowAsync<EmailTemplatePreviewDialog>(L["Preview"],
+                new DialogParameters<EmailTemplatePreviewDialog>
+                {
+                    { x => x.HtmlContent, rendered },
+                    { x => x.PreviewUrl, null }
+                }, options);
+        }
+        catch
+        {
+            Snackbar.Add(L["Error rendering preview"], Severity.Error);
+        }
+        _previewing = false;
+    }
+
+    private static readonly Dictionary<string, string> Variables = new()
+    {
+        { "company_name",        "Nombre de la empresa" },
+        { "logo_base64",         "Logo en base64 (usar dentro de has_logo)" },
+        { "has_logo",            "true si hay logo configurado" },
+        { "primary_color",       "Color primario de marca (hex)" },
+        { "secondary_color",     "Color secundario de marca (hex)" },
+        { "cotizacion_version",  "Número de versión de la cotización" },
+        { "fecha_generacion",    "Fecha de generación (dd/MM/yyyy)" },
+        { "cliente_nombre",      "Nombre del cliente" },
+        { "obra_direccion",      "Dirección de la obra" },
+        { "total",               "Total formateado como moneda" },
+        { "lineas",              "Lista de líneas (loop: for linea in lineas)" },
+        { "linea.servicio_nombre", "Nombre del servicio" },
+        { "linea.unidad_medida", "Unidad de medida" },
+        { "linea.cantidad",      "Cantidad" },
+        { "linea.precio_unitario", "Precio unitario" },
+        { "linea.subtotal",      "Subtotal de la línea" },
+    };
+}

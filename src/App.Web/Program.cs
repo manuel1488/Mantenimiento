@@ -514,6 +514,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IObraService, ObraService>();
     services.AddScoped<IActividadService, ActividadService>();
     services.AddScoped<ICotizacionService, CotizacionService>();
+    services.AddScoped<ICotizacionTemplateSettingsService, CotizacionTemplateSettingsService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 
     services.AddScoped<IEmailSettingsService, EmailSettingsService>();
@@ -613,6 +614,19 @@ async Task InitializeDatabase(WebApplication app)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogWarning(ex, "Could not verify/create the MinIO bucket at startup — evidence photo uploads may fail until MinIO is reachable");
+    }
+
+    try
+    {
+        // Launch the headless browser now instead of on the first PDF request (Cotización, tickets,
+        // emails), which otherwise pays several seconds of Chromium cold-start latency.
+        var pdfService = scope.ServiceProvider.GetRequiredService<IPdfService>();
+        await pdfService.WarmUpAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Could not warm up the PDF-generation browser at startup — the first PDF request will be slower while it launches");
     }
 }
 
