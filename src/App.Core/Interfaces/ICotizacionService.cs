@@ -5,10 +5,13 @@ namespace App.Core.Interfaces;
 
 public interface ICotizacionService
 {
-    Task<Result<CotizacionDto>> GenerarAsync(int obraId);
+    Task<Result<List<CotizacionDto>>> GetAllAsync();
+    Task<Result<List<CotizacionDto>>> GetByClienteIdAsync(int clienteId);
+    Task<Result<CotizacionDto>> GetByIdAsync(int id);
+    Task<Result<CotizacionDto>> CreateAsync(CreateCotizacionDto dto);
     Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto);
     Task<Result<CotizacionDto>> RechazarAsync(int cotizacionId);
-    Task<Result<CotizacionDto?>> GetLatestByObraIdAsync(int obraId);
+    Task<Result> DeleteAsync(int cotizacionId);
 
     /// <summary>Renders the Cotización as a PDF using the effective (DB override or default) template.</summary>
     Task<Result<byte[]>> GetCotizacionPdfAsync(int cotizacionId, CancellationToken cancellationToken = default);

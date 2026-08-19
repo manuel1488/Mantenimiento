@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using App.Core.Base;
 using App.Core.Enums.Cotizaciones;
 using App.Core.Interfaces;
-using App.Models.Obras;
+using App.Models.Clientes;
 
 namespace App.Models.Cotizaciones;
 
@@ -12,14 +12,8 @@ namespace App.Models.Cotizaciones;
 public class Cotizacion : BaseEntity<int>, IAuditTracked
 {
     [Required]
-    public int ObraId { get; set; }
-    public Obra Obra { get; set; } = null!;
-
-    /// <summary>
-    /// Versión incremental por Obra (una Obra Rechazada puede regenerar una nueva Cotización, RN §4).
-    /// </summary>
-    [Required]
-    public int Version { get; set; }
+    public int ClienteId { get; set; }
+    public Cliente Cliente { get; set; } = null!;
 
     [Required]
     public DateTime FechaGeneracion { get; set; }

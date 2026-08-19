@@ -13,12 +13,9 @@ public class CotizacionConfiguration : IEntityTypeConfiguration<Cotizacion>
             .HasConversion<int>()
             .IsRequired();
 
-        builder.HasOne(e => e.Obra)
-            .WithMany(o => o.Cotizaciones)
-            .HasForeignKey(e => e.ObraId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasIndex(e => new { e.ObraId, e.Version })
-            .IsUnique();
+        builder.HasOne(e => e.Cliente)
+            .WithMany()
+            .HasForeignKey(e => e.ClienteId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

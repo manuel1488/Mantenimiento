@@ -72,7 +72,6 @@ public class ObraService : IObraService
                 .AsNoTracking()
                 .Include(o => o.Cliente)
                 .Include(o => o.Actividades).ThenInclude(a => a.Servicio).ThenInclude(s => s.UnidadMedida)
-                .Include(o => o.Cotizaciones).ThenInclude(c => c.Lineas)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (obra == null)
@@ -212,12 +211,6 @@ public class ObraService : IObraService
                     {
                         await transaction.RollbackAsync();
                         return Result.Failure(_localizer["Cannot delete an Obra with existing Actividades"]);
-                    }
-
-                    if (await context.Cotizaciones.AnyAsync(c => c.ObraId == id))
-                    {
-                        await transaction.RollbackAsync();
-                        return Result.Failure(_localizer["Cannot delete an Obra with existing Cotizaciones"]);
                     }
 
                     if (await context.Facturas.AnyAsync(f => f.ObraId == id))

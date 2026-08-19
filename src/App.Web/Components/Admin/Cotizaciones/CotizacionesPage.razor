@@ -1,0 +1,239 @@
+@page "/gestion/cotizaciones"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewCotizaciones)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Cotizaciones
+@using App.Core.Enums.Cotizaciones
+@using App.Core.Interfaces
+@using App.Web.Components.Shared.Dialogs
+@using MudBlazor
+
+@inject IStringLocalizer<CotizacionesPage> L
+@inject ICotizacionService CotizacionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<CotizacionesPage> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>@L["Cotizaciones"]</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+            <MudText Typo="Typo.h4" GutterBottom="true">@L["Cotizaciones"]</MudText>
+
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudStack Row="true" Wrap="Wrap.Wrap" Class="mb-4" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudTextField T="string" ValueChanged="@(s => OnSearch(s))"
+                                  Placeholder="@L["Search cotizaciones"]"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Class="flex-1" />
+
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+                        <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Add"
+                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                @L["New Cotización"]
+                            </MudButton>
+                        </Authorized>
+                    </AuthorizeView>
+                </MudStack>
+
+                <MudDataGrid T="CotizacionDto" Items="@_filteredCotizaciones" Loading="_loading"
+                             SortMode="SortMode.Multiple" Filterable="false"
+                             Dense="true" Hover="true" RowsPerPage="10">
+                    <Columns>
+                        <PropertyColumn Property="x => x.ClienteNombre" Title="@L["Client"]" />
+                        <PropertyColumn Property="x => x.FechaGeneracion" Title="@L["Date"]" Format="dd/MM/yyyy" HeaderStyle="width: 130px;" />
+                        <TemplateColumn Title="@L["Total"]" HeaderStyle="text-align: right; width: 130px;" CellStyle="text-align: right;">
+                            <CellTemplate>@context.Item.Total.ToString("C2")</CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="@L["Status"]" HeaderStyle="width: 130px;">
+                            <CellTemplate>
+                                <MudChip T="string" Size="Size.Small" Color="@EstadoColor(context.Item.Estado)" Variant="Variant.Filled">
+                                    @EstadoLabel(context.Item.Estado)
+                                </MudChip>
+                            </CellTemplate>
+                        </TemplateColumn>
+                        <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
+                                        CellClass="d-flex justify-end">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OpenManageDialog(context.Item.Id))"
+                                               title="@L["View Cotización"]" />
+                                <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DescargarPdf(context.Item.Id))"
+                                               title="@L["Download PDF"]" />
+                                @if (context.Item.Estado == CotizacionEstado.Pendiente)
+                                {
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+                                        <Authorized Context="authContext">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Size="Size.Small"
+                                                           Color="Color.Error"
+                                                           OnClick="@(() => OpenDeleteDialog(context.Item))"
+                                                           title="@L["Delete Cotización"]" />
+                                        </Authorized>
+                                    </AuthorizeView>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <NoRecordsContent>
+                        <MudText>@L["No cotizaciones found"]</MudText>
+                    </NoRecordsContent>
+                    <PagerContent>
+                        <MudDataGridPager T="CotizacionDto" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view cotizaciones."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading;
+    private List<CotizacionDto> _cotizaciones = new();
+    private List<CotizacionDto> _filteredCotizaciones = new();
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await CotizacionService.GetAllAsync();
+            if (result.IsSuccess)
+            {
+                _cotizaciones = result.Value!;
+                ApplyFilter();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading cotizaciones");
+            Snackbar.Add(L["Error loading cotizaciones"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredCotizaciones = string.IsNullOrWhiteSpace(_searchString)
+            ? _cotizaciones
+            : _cotizaciones.Where(c => c.ClienteNombre.Contains(_searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void OnSearch(string value)
+    {
+        _searchString = value;
+        ApplyFilter();
+    }
+
+    public static Color EstadoColor(CotizacionEstado estado) => estado switch
+    {
+        CotizacionEstado.Pendiente => Color.Warning,
+        CotizacionEstado.Aprobada => Color.Success,
+        CotizacionEstado.Rechazada => Color.Error,
+        _ => Color.Default
+    };
+
+    private string EstadoLabel(CotizacionEstado estado) => estado switch
+    {
+        CotizacionEstado.Pendiente => L["Pending"],
+        CotizacionEstado.Aprobada => L["Approved"],
+        CotizacionEstado.Rechazada => L["Rejected"],
+        _ => estado.ToString()
+    };
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters<CotizacionDialog>
+        {
+            { x => x.CotizacionId, null }
+        };
+
+        var dialog = await DialogService.ShowAsync<CotizacionDialog>(L["New Cotización"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is true)
+        {
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task OpenManageDialog(int id)
+    {
+        var parameters = new DialogParameters<CotizacionDialog>
+        {
+            { x => x.CotizacionId, id }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+
+        var dialog = await DialogService.ShowAsync<CotizacionDialog>(L["Cotización"], parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is true)
+        {
+            await LoadDataAsync();
+        }
+    }
+
+    private void DescargarPdf(int id)
+    {
+        NavigationManager.NavigateTo($"/api/cotizaciones/{id}/pdf", forceLoad: true);
+    }
+
+    private async Task OpenDeleteDialog(CotizacionDto cotizacion)
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Cotización Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete this cotización:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), cotizacion.ClienteNombre },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Cotización"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await CotizacionService.DeleteAsync(cotizacion.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Cotización deleted successfully"], Severity.Success);
+            await LoadDataAsync();
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+}

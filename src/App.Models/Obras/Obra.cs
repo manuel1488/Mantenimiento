@@ -5,7 +5,6 @@ using App.Core.Base;
 using App.Core.Enums.Obras;
 using App.Core.Interfaces;
 using App.Models.Clientes;
-using App.Models.Cotizaciones;
 using App.Models.Facturas;
 
 namespace App.Models.Obras;
@@ -33,6 +32,5 @@ public class Obra : BaseEntity<int>, IAuditTracked
     public DateTime FechaSolicitud { get; set; }
 
     public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();
-    public ICollection<Cotizacion> Cotizaciones { get; set; } = new List<Cotizacion>();
     public Factura? Factura { get; set; }
 }

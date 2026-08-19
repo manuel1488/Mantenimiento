@@ -208,6 +208,12 @@ public class ClienteService : IClienteService
                         return Result.Failure(_localizer["Cannot delete a client with existing Obras"]);
                     }
 
+                    if (await context.Cotizaciones.AnyAsync(c => c.ClienteId == id))
+                    {
+                        await transaction.RollbackAsync();
+                        return Result.Failure(_localizer["Cannot delete a client with existing Cotizaciones"]);
+                    }
+
                     entity.DeletedBy = await _currentUserService.GetUserIdAsync();
 
                     context.Clientes.Remove(entity);

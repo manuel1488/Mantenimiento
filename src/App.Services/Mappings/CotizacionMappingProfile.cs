@@ -9,7 +9,9 @@ public class CotizacionMappingProfile : Profile
 {
     public CotizacionMappingProfile()
     {
-        CreateMap<Cotizacion, CotizacionDto>();
+        CreateMap<Cotizacion, CotizacionDto>()
+            .ForMember(d => d.ClienteNombre, opt => opt.MapFrom(s => s.Cliente.Nombre));
+
         CreateMap<CotizacionLinea, CotizacionLineaDto>();
     }
 }

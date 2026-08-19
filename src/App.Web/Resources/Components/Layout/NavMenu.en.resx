@@ -123,4 +123,7 @@
   <data name="Works" xml:space="preserve">
     <value>Works</value>
   </data>
+  <data name="Quotations" xml:space="preserve">
+    <value>Quotations</value>
+  </data>
 </root>

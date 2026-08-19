@@ -3,20 +3,29 @@
   <data name="Cotización" xml:space="preserve">
     <value>Cotización</value>
   </data>
-  <data name="No cotización has been generated for this obra yet." xml:space="preserve">
-    <value>Aún no se ha generado una cotización para esta obra.</value>
+  <data name="New Cotización" xml:space="preserve">
+    <value>Nueva Cotización</value>
   </data>
-  <data name="Generate Cotización" xml:space="preserve">
-    <value>Generar Cotización</value>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
   </data>
-  <data name="Version" xml:space="preserve">
-    <value>Versión</value>
+  <data name="Client is required" xml:space="preserve">
+    <value>El cliente es obligatorio</value>
+  </data>
+  <data name="Add Linea" xml:space="preserve">
+    <value>Agregar Línea</value>
   </data>
   <data name="Service" xml:space="preserve">
     <value>Servicio</value>
   </data>
   <data name="Quantity" xml:space="preserve">
     <value>Cantidad</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Agregar</value>
+  </data>
+  <data name="No lineas added yet" xml:space="preserve">
+    <value>Aún no se han agregado líneas</value>
   </data>
   <data name="Unit Price" xml:space="preserve">
     <value>Precio Unitario</value>
@@ -26,6 +35,9 @@
   </data>
   <data name="Total" xml:space="preserve">
     <value>Total</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
   </data>
   <data name="Approval" xml:space="preserve">
     <value>Aprobación</value>
@@ -45,6 +57,12 @@
   <data name="Close" xml:space="preserve">
     <value>Cerrar</value>
   </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
   <data name="Error loading cotización" xml:space="preserve">
     <value>Error al cargar la cotización</value>
   </data>
@@ -57,8 +75,8 @@
   <data name="Rejected" xml:space="preserve">
     <value>Rechazada</value>
   </data>
-  <data name="Cotización generated successfully" xml:space="preserve">
-    <value>Cotización generada exitosamente</value>
+  <data name="Cotización created successfully" xml:space="preserve">
+    <value>Cotización creada exitosamente</value>
   </data>
   <data name="Approved By and Approval Method are required" xml:space="preserve">
     <value>Aprobado Por y Medio de Aprobación son obligatorios</value>

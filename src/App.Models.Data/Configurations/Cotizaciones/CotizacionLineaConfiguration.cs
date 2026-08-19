@@ -23,9 +23,9 @@ public class CotizacionLineaConfiguration : IEntityTypeConfiguration<CotizacionL
             .HasForeignKey(e => e.CotizacionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(e => e.Actividad)
+        builder.HasOne(e => e.Servicio)
             .WithMany()
-            .HasForeignKey(e => e.ActividadId)
+            .HasForeignKey(e => e.ServicioId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

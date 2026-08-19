@@ -48,6 +48,12 @@
                         <MudNavLink Href="/gestion/obras">@L["Works"]</MudNavLink>
                     </Authorized>
                 </AuthorizeView>
+
+                <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
+                    <Authorized Context="cotizacionesAuth">
+                        <MudNavLink Href="/gestion/cotizaciones">@L["Quotations"]</MudNavLink>
+                    </Authorized>
+                </AuthorizeView>
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

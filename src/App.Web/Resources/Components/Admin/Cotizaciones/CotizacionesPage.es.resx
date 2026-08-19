@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Cotizaciones" xml:space="preserve">
+    <value>Cotizaciones</value>
+  </data>
+  <data name="Search cotizaciones" xml:space="preserve">
+    <value>Buscar cotizaciones</value>
+  </data>
+  <data name="New Cotización" xml:space="preserve">
+    <value>Nueva Cotización</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="View Cotización" xml:space="preserve">
+    <value>Ver Cotización</value>
+  </data>
+  <data name="Download PDF" xml:space="preserve">
+    <value>Descargar PDF</value>
+  </data>
+  <data name="Delete Cotización" xml:space="preserve">
+    <value>Eliminar Cotización</value>
+  </data>
+  <data name="No cotizaciones found" xml:space="preserve">
+    <value>No se encontraron cotizaciones</value>
+  </data>
+  <data name="You don't have permission to view cotizaciones." xml:space="preserve">
+    <value>No tienes permiso para ver cotizaciones.</value>
+  </data>
+  <data name="Error loading cotizaciones" xml:space="preserve">
+    <value>Error al cargar las cotizaciones</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Aprobada</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rechazada</value>
+  </data>
+  <data name="Delete Cotización Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Cotización</value>
+  </data>
+  <data name="Are you sure you want to delete this cotización:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar esta cotización:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Cotización deleted successfully" xml:space="preserve">
+    <value>Cotización eliminada exitosamente</value>
+  </data>
+</root>

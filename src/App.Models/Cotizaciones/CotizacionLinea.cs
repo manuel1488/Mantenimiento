@@ -3,13 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using App.Core.Base;
 using App.Core.Interfaces;
-using App.Models.Obras;
+using App.Models.Servicios;
 
 namespace App.Models.Cotizaciones;
 
 /// <summary>
-/// Snapshot de una Actividad al momento de generar la Cotización: preserva el precio
-/// cotizado aunque el catálogo de Servicio cambie después.
+/// Línea independiente de una Cotización: Servicio + Cantidad capturados directamente,
+/// sin relación a ninguna Actividad. Snapshot de nombre/unidad/precio al momento de
+/// cotizar, para preservar el precio cotizado aunque el catálogo de Servicio cambie después.
 /// </summary>
 [Table("cot_cotizacion_lineas")]
 public class CotizacionLinea : BaseEntity<int>, IAuditTracked
@@ -19,8 +20,8 @@ public class CotizacionLinea : BaseEntity<int>, IAuditTracked
     public Cotizacion Cotizacion { get; set; } = null!;
 
     [Required]
-    public int ActividadId { get; set; }
-    public Actividad Actividad { get; set; } = null!;
+    public int ServicioId { get; set; }
+    public Servicio Servicio { get; set; } = null!;
 
     [Required]
     [StringLength(150)]

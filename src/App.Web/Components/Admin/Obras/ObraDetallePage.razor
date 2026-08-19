@@ -182,15 +182,6 @@
 
                 @* ── Footer actions ───────────────────────────────────────── *@
                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
-                    <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
-                        <Authorized Context="authContext">
-                            <MudButton Variant="Variant.Outlined" Color="Color.Info"
-                                       StartIcon="@Icons.Material.Filled.RequestQuote"
-                                       OnClick="OpenCotizacionDialog" Class="da-button-rounded">
-                                @L["Cotización"]
-                            </MudButton>
-                        </Authorized>
-                    </AuthorizeView>
                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Outlined" Color="Color.Primary"
@@ -439,22 +430,6 @@
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
         await DialogService.ShowAsync<EvidenciaFotosDialog>(L["Evidence Photos"], parameters, options);
-    }
-
-    private async Task OpenCotizacionDialog()
-    {
-        var parameters = new DialogParameters<CotizacionDialog>
-        {
-            { x => x.ObraId, Id }
-        };
-
-        var dialog = await DialogService.ShowAsync<CotizacionDialog>(L["Cotización"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is true)
-        {
-            await LoadObraAsync();
-        }
     }
 
     private async Task OpenEditDialog()

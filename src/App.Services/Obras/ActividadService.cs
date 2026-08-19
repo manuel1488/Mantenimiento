@@ -230,12 +230,6 @@ public class ActividadService : IActividadService
                         return Result.Failure(_localizer["Actividad not found"]);
                     }
 
-                    if (await context.CotizacionLineas.AnyAsync(l => l.ActividadId == id))
-                    {
-                        await transaction.RollbackAsync();
-                        return Result.Failure(_localizer["Cannot delete an Actividad that is part of a Cotizacion"]);
-                    }
-
                     entity.DeletedBy = await _currentUserService.GetUserIdAsync();
 
                     context.Actividades.Remove(entity);

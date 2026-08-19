@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ label_quotation }} {{ cotizacion_version }}</title>
+<title>{{ label_quotation }} #{{ cotizacion_id }}</title>
 <style>
 :root {
     --primary-color: {{ primary_color }};
@@ -149,8 +149,7 @@ table.lineas tbody tr:nth-child(even) {
             <div class="company-name">{{ company_name }}</div>
         </div>
         <div class="title-block">
-            <div class="title">{{ label_quotation }}</div>
-            <div class="version">{{ label_version }} {{ cotizacion_version }}</div>
+            <div class="title">{{ label_quotation }} #{{ cotizacion_id }}</div>
             <div class="date">{{ fecha_generacion }}</div>
         </div>
     </div>
@@ -159,8 +158,6 @@ table.lineas tbody tr:nth-child(even) {
         <div>
             <div class="field-label">{{ label_client }}</div>
             <div class="field-value">{{ cliente_nombre }}</div>
-            <div class="field-label">{{ label_address }}</div>
-            <div class="field-value">{{ obra_direccion }}</div>
         </div>
     </div>
 
@@ -193,7 +190,7 @@ table.lineas tbody tr:nth-child(even) {
     </div>
 
     <div class="footer">
-        {{ company_name }} — {{ label_quotation }} {{ cotizacion_version }}
+        {{ company_name }} — {{ label_quotation }} #{{ cotizacion_id }}
     </div>
 </body>
 </html>
