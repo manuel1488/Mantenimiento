@@ -11,6 +11,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 | [`docs/02-Development/`](docs/02-Development/) | Development guides and patterns |
 
 ### Key guides
+- [List / Detail / Form Page Pattern](docs/02-Development/list-detail-form-pattern-guide.md) — **Base design for any new business-domain screen.** List/Detail/Form page structure, icon conventions, actions column (MudMenu overflow), PDF view/download/email/WhatsApp sharing, responsive table→card fallback, status color/label helpers. Reference implementation: Cotizaciones.
 - [MudBlazor DataGrid Guide](docs/02-Development/mudblazor-datagrid-guide.md) — MudDataGrid vs MudTable, column sizing, ServerData
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG
 - [White-Label Deployment Guide](docs/02-Development/white-label-deployment-guide.md) — Desplegar la app con otra marca: perfil de marca (`Branding/{profile}.json`), logo/nombre en BD, checklist de onboarding

@@ -95,7 +95,10 @@
                 @* ── Líneas ────────────────────────────────────────────────── *@
                 <MudPaper Class="da-card pa-2 pa-sm-4 mb-4" Elevation="2">
                     <MudText Typo="Typo.subtitle1" Class="pa-2">@L["Lineas"]</MudText>
-                    <MudSimpleTable Dense="true" Hover="true">
+
+                    @* Desktop/tablet: regular table. Hidden below sm — a 4-column table with long
+                       service names forces horizontal scroll and wrapped headers on phones. *@
+                    <MudSimpleTable Dense="true" Hover="true" Class="d-none d-sm-block">
                         <thead>
                             <tr>
                                 <th>@L["Service"]</th>
@@ -116,6 +119,28 @@
                             }
                         </tbody>
                     </MudSimpleTable>
+
+                    @* Mobile: one stacked card per línea instead of a cramped table. *@
+                    <div class="d-sm-none">
+                        @foreach (var linea in _cotizacion.Lineas)
+                        {
+                            <MudPaper Class="pa-3 mb-2" Outlined="true">
+                                <MudText Typo="Typo.subtitle2" Class="mb-1">@linea.ServicioNombre</MudText>
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Quantity"]</MudText>
+                                    <MudText Typo="Typo.body2">@linea.Cantidad.ToString("F2") @linea.UnidadMedida</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Unit Price"]</MudText>
+                                    <MudText Typo="Typo.body2">@linea.PrecioUnitario.ToString("C2")</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.body2" Class="mud-text-secondary" Style="font-weight: 600;">@L["Subtotal"]</MudText>
+                                    <MudText Typo="Typo.body2" Style="font-weight: 600;">@linea.Subtotal.ToString("C2")</MudText>
+                                </MudStack>
+                            </MudPaper>
+                        }
+                    </div>
 
                     <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-2 mt-2">
                         <MudText Typo="Typo.h6">@L["Total"]: @_cotizacion.Total.ToString("C2")</MudText>
