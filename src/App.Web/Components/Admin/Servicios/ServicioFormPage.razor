@@ -72,7 +72,8 @@
                                                  ResetValueOnEmptyText="true"
                                                  Clearable="true"
                                                  Immediate="true"
-                                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                                 AdornmentIcon="@(_selectedUnidadMedida == null ? Icons.Material.Filled.Search : Icons.Material.Filled.CheckCircle)"
+                                                 AdornmentColor="@(_selectedUnidadMedida == null ? Color.Default : Color.Success)"
                                                  Adornment="Adornment.Start" />
                             </MudItem>
 
@@ -109,7 +110,8 @@
                                                      CoerceText="false"
                                                      ResetValueOnEmptyText="true"
                                                      Clearable="true"
-                                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                                     AdornmentIcon="@(_selectedClaveProdServSat == null ? Icons.Material.Filled.Search : Icons.Material.Filled.CheckCircle)"
+                                                     AdornmentColor="@(_selectedClaveProdServSat == null ? Color.Default : Color.Success)"
                                                      Adornment="Adornment.Start"
                                                      Class="flex-grow-1" />
                                     <MudIconButton Icon="@Icons.Material.Filled.TravelExplore" Color="Color.Primary"

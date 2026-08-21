@@ -51,7 +51,8 @@
                                      Clearable="true"
                                      Immediate="true"
                                      Dense="true"
-                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                     AdornmentIcon="@(_selectedClaveSat == null ? Icons.Material.Filled.Search : Icons.Material.Filled.CheckCircle)"
+                                     AdornmentColor="@(_selectedClaveSat == null ? Color.Default : Color.Success)"
                                      Adornment="Adornment.Start" />
                 </MudItem>
             </MudGrid>

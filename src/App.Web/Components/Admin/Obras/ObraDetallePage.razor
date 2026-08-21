@@ -113,7 +113,8 @@
                                                      ResetValueOnEmptyText="true"
                                                      Clearable="true"
                                                      Immediate="true"
-                                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                                     AdornmentIcon="@(_selectedServicio == null ? Icons.Material.Filled.Search : Icons.Material.Filled.CheckCircle)"
+                                                     AdornmentColor="@(_selectedServicio == null ? Color.Default : Color.Success)"
                                                      Adornment="Adornment.Start" />
                                 </MudItem>
                                 <MudItem xs="12" md="5">

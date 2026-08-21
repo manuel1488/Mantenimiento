@@ -137,6 +137,32 @@ A `MudSimpleTable`/`MudDataGrid` with 4+ columns and any long text column (servi
 
 Use plain Bootstrap-style display-breakpoint classes (`d-none d-sm-block` / `d-sm-none`) — no JS, no `MudHidden` component needed, and it matches how the rest of this codebase already toggles responsive visibility. Apply this to **any** multi-column table showing user-entered text of unpredictable length (product/service names, addresses) — short, fixed-format columns (dates, small numeric totals) are fine to leave as a plain table that just gets dense on mobile.
 
+## Inline "add row" numeric fields need `Immediate="true"`
+
+Any "Agregar Línea"/"Agregar Actividad" mini-form where a `+` button's `Disabled` state is computed from a bound field (`Disabled="@(_selectedServicio is null || _cantidad <= 0)"`) must set `Immediate="true"` on that `MudNumericField`/`MudTextField`. Without it, `@bind-Value` only pushes the new value on blur — so on mobile, where there's no natural "tab away" gesture, the user types a quantity and the Add button stays visibly disabled until they tap somewhere else first. This bit both `CotizacionFormPage.razor` and `ObraDetallePage.razor`'s línea/actividad quantity fields and was fixed by adding `Immediate="true"` to each. Any new inline-add field gated by a live `Disabled` check needs the same.
+
+## Short unit labels — pull from the catalog's own `Codigo`, not `Nombre`
+
+When pairing a quantity with its unit inline (`"150.00 m²"`, a `Cantidad (m²)` field label), use the `UnidadMedida.Codigo` field (the catalog's own short code, e.g. `M2`, `KG`, `HR`) — never `UnidadMedida.Nombre` (the full spelled-out name, e.g. `Metro Cuadrado`), which is verbose and defeats the point of showing a unit next to a number. `ServicioDto`/`ActividadDto` both expose `UnidadMedidaCodigo` alongside `UnidadMedidaNombre` for this reason — use the `Codigo` field for any inline quantity+unit display, and reserve `Nombre` for places that are genuinely describing/defining the unit itself (the Unidades de Medida catalog page, a Servicio's own detail page field list) rather than tagging a number.
+
+Do **not** confuse this catalog's own `Codigo` with `ClaveUnidadSat.Codigo` (the official SAT unit-code catalog) — they're unrelated concepts that happen to share a similar name. `UnidadMedida.Codigo` is this app's own short label, freely editable per deployment; the SAT catalog is a separate, read-only, government-defined table linked only for CFDI invoicing purposes and must never be used as the source for an on-screen quantity tag.
+
+## Confirm a `MudAutocomplete` selection visually — don't leave it looking like plain text
+
+Every entity-picker `MudAutocomplete` (Cliente, Servicio, UnidadMedida, ClaveProdServSat/ClaveUnidadSat pickers) starts with a search icon adornment. Once a value is actually selected, swap that icon to a green checkmark so the user has unambiguous confirmation they picked a real record — not just typed matching text that happens to look right. Without this, a field showing "Manuel Alfaro" is visually indistinguishable from a half-typed search that never resolved to a selection, which is confusing on mobile where there's no separate "confirmed" visual state.
+
+```razor
+<MudAutocomplete T="ClienteDto"
+                 ...
+                 Value="_selectedCliente"
+                 ValueChanged="@(c => _selectedCliente = c)"
+                 AdornmentIcon="@(_selectedCliente == null ? Icons.Material.Filled.Search : Icons.Material.Filled.CheckCircle)"
+                 AdornmentColor="@(_selectedCliente == null ? Color.Default : Color.Success)"
+                 Adornment="Adornment.Start" />
+```
+
+Apply this to every `MudAutocomplete` bound to a nullable entity reference, using that field's own `_selectedX == null` check — not just the "primary" picker on a page. A page with two pickers (e.g. Cotización's Cliente + Servicio) needs the conditional on both, each keyed to its own bound variable.
+
 ## State/status color + label helpers
 
 Every resource with a workflow enum (`CotizacionEstado`, `ObraEstado`, `ActividadEstado`, ...) gets two small static/instance helper methods on its list page, reused by the detail page too:
