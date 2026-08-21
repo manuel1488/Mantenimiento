@@ -1,0 +1,230 @@
+@page "/gestion/cotizaciones/{Id:int}"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewCotizaciones)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Cotizaciones
+@using App.Core.Enums.Cotizaciones
+@using App.Core.Interfaces
+@using App.Web.Components.Shared.Dialogs
+@using MudBlazor
+
+@inject IStringLocalizer<CotizacionDetallePage> L
+@inject ICotizacionService CotizacionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<CotizacionDetallePage> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(_cotizacion is null ? L["Cotización Details"] : _cotizacion.ClienteNombre)</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 mb-8">
+            @if (_loading)
+            {
+                <div class="d-flex justify-center pa-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (_cotizacion is null)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-2"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />
+                <MudAlert Severity="Severity.Warning">@L["Cotización not found"]</MudAlert>
+            }
+            else
+            {
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                                   OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Cotizaciones"]</MudText>
+                </MudStack>
+
+                <MudPaper Class="da-card pa-4 pa-sm-6" Elevation="2">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Wrap="Wrap.Wrap" Spacing="2" Class="mb-3">
+                        <div>
+                            <MudText Typo="Typo.h5" Style="font-weight: 600;">@_cotizacion.ClienteNombre</MudText>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@_cotizacion.FechaGeneracion.ToString("dd/MM/yyyy")</MudText>
+                            <MudChip T="string" Size="Size.Small" Color="@EstadoColor(_cotizacion.Estado)" Variant="Variant.Filled" Class="mt-2">
+                                @EstadoLabel(_cotizacion.Estado)
+                            </MudChip>
+                        </div>
+                        <MudStack Row="true" Spacing="2">
+                            <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Secondary"
+                                           Variant="Variant.Outlined" OnClick="DescargarPdf" title="@L["Download PDF"]" />
+                            @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
+                            {
+                                <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+                                    <Authorized Context="authContext">
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                                   StartIcon="@Icons.Material.Filled.Edit" Class="da-button-rounded"
+                                                   OnClick="@(() => NavigationManager.NavigateTo($"/gestion/cotizaciones/{Id}/editar"))">
+                                            @L["Edit"]
+                                        </MudButton>
+                                    </Authorized>
+                                </AuthorizeView>
+                            }
+                        </MudStack>
+                    </MudStack>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudSimpleTable Dense="true" Hover="true">
+                        <thead>
+                            <tr>
+                                <th>@L["Service"]</th>
+                                <th style="text-align: right;">@L["Quantity"]</th>
+                                <th style="text-align: right;">@L["Unit Price"]</th>
+                                <th style="text-align: right;">@L["Subtotal"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var linea in _cotizacion.Lineas)
+                            {
+                                <tr>
+                                    <td>@linea.ServicioNombre</td>
+                                    <td style="text-align: right;">@linea.Cantidad.ToString("F2") @linea.UnidadMedida</td>
+                                    <td style="text-align: right;">@linea.PrecioUnitario.ToString("C2")</td>
+                                    <td style="text-align: right;">@linea.Subtotal.ToString("C2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                        <MudText Typo="Typo.h6">@L["Total"]: @_cotizacion.Total.ToString("C2")</MudText>
+                    </MudStack>
+
+                    @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
+                    {
+                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+                            <Authorized Context="authContext">
+                                <MudDivider Class="my-3" />
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Approval"]</MudText>
+                                <MudGrid>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="_aprobadaPor" Label="@L["Approved By"]" />
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudTextField @bind-Value="_medioAprobacion" Label="@L["Approval Method"]" />
+                                    </MudItem>
+                                </MudGrid>
+                                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-3">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="RechazarAsync" Class="da-button-rounded">
+                                        @L["Reject"]
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="AprobarAsync" Class="da-button-rounded">
+                                        @L["Approve"]
+                                    </MudButton>
+                                </MudStack>
+                            </Authorized>
+                        </AuthorizeView>
+                    }
+                </MudPaper>
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view cotizaciones."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private CotizacionDto? _cotizacion;
+    private string _aprobadaPor = string.Empty;
+    private string _medioAprobacion = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await CotizacionService.GetByIdAsync(Id);
+            _cotizacion = result.IsSuccess ? result.Value : null;
+            if (!result.IsSuccess)
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading cotización {Id}", Id);
+            Snackbar.Add(L["Error loading cotización"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task AprobarAsync()
+    {
+        if (_cotizacion is null) return;
+
+        if (string.IsNullOrWhiteSpace(_aprobadaPor) || string.IsNullOrWhiteSpace(_medioAprobacion))
+        {
+            Snackbar.Add(L["Approved By and Approval Method are required"], Severity.Warning);
+            return;
+        }
+
+        var dto = new AprobarCotizacionDto { AprobadaPor = _aprobadaPor, MedioAprobacion = _medioAprobacion };
+        var result = await CotizacionService.AprobarAsync(_cotizacion.Id, dto);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cotización approved successfully"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task RechazarAsync()
+    {
+        if (_cotizacion is null) return;
+
+        var result = await CotizacionService.RechazarAsync(_cotizacion.Id);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Cotización rejected successfully"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private void DescargarPdf()
+    {
+        NavigationManager.NavigateTo($"/api/cotizaciones/{Id}/pdf", forceLoad: true);
+    }
+
+    private static Color EstadoColor(CotizacionEstado estado) => estado switch
+    {
+        CotizacionEstado.Pendiente => Color.Warning,
+        CotizacionEstado.Aprobada => Color.Success,
+        CotizacionEstado.Rechazada => Color.Error,
+        _ => Color.Default
+    };
+
+    private string EstadoLabel(CotizacionEstado estado) => estado switch
+    {
+        CotizacionEstado.Pendiente => L["Pending"],
+        CotizacionEstado.Aprobada => L["Approved"],
+        CotizacionEstado.Rechazada => L["Rejected"],
+        _ => estado.ToString()
+    };
+}

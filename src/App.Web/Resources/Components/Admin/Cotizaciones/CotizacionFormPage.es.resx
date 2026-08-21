@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Cotizaciones" xml:space="preserve">
+    <value>Cotizaciones</value>
+  </data>
+  <data name="New Cotización" xml:space="preserve">
+    <value>Nueva Cotización</value>
+  </data>
+  <data name="Edit Cotización" xml:space="preserve">
+    <value>Editar Cotización</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Client is required" xml:space="preserve">
+    <value>El cliente es obligatorio</value>
+  </data>
+  <data name="Add Linea" xml:space="preserve">
+    <value>Agregar Línea</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Servicio</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Agregar</value>
+  </data>
+  <data name="No lineas added yet" xml:space="preserve">
+    <value>Aún no se han agregado líneas</value>
+  </data>
+  <data name="Unit Price" xml:space="preserve">
+    <value>Precio Unitario</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Error loading cotización" xml:space="preserve">
+    <value>Error al cargar la cotización</value>
+  </data>
+  <data name="Cotización created successfully" xml:space="preserve">
+    <value>Cotización creada exitosamente</value>
+  </data>
+  <data name="Cotización updated successfully" xml:space="preserve">
+    <value>Cotización actualizada exitosamente</value>
+  </data>
+  <data name="You don't have permission to manage cotizaciones." xml:space="preserve">
+    <value>No tienes permiso para gestionar cotizaciones.</value>
+  </data>
+</root>

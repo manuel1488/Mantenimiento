@@ -1,0 +1,278 @@
+@page "/gestion/cotizaciones/nueva"
+@page "/gestion/cotizaciones/{Id:int}/editar"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ManageCotizaciones)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Clientes
+@using App.Core.DTOs.Cotizaciones
+@using App.Core.DTOs.Servicios
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<CotizacionFormPage> L
+@inject ICotizacionService CotizacionService
+@inject IClienteService ClienteService
+@inject IServicioService ServicioService
+@inject ISnackbar Snackbar
+@inject ILogger<CotizacionFormPage> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(IsCreate ? L["New Cotización"] : L["Edit Cotización"])</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 mb-8">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Cotizaciones"]</MudText>
+            </MudStack>
+
+            <MudText Typo="Typo.h4" GutterBottom="true">
+                @(IsCreate ? L["New Cotización"] : L["Edit Cotización"])
+            </MudText>
+
+            <MudPaper Class="da-card pa-4 pa-sm-6" Elevation="2">
+                @if (_loading)
+                {
+                    <div class="d-flex justify-center pa-8">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+                else
+                {
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudAutocomplete T="ClienteDto"
+                                             Label="@L["Client"]"
+                                             Required="true"
+                                             RequiredError="@L["Client is required"]"
+                                             SearchFunc="@SearchClientes"
+                                             ToStringFunc="@(c => c == null ? string.Empty : (c.NombreComercial ?? c.Nombre))"
+                                             Value="_selectedCliente"
+                                             ValueChanged="@(c => _selectedCliente = c)"
+                                             MaxItems="null"
+                                             CoerceText="false"
+                                             ResetValueOnEmptyText="true"
+                                             Clearable="true"
+                                             Immediate="true"
+                                             AdornmentIcon="@Icons.Material.Filled.Search"
+                                             Adornment="Adornment.Start" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-4" />
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">@L["Add Linea"]</MudText>
+
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudAutocomplete T="ServicioDto"
+                                             Label="@L["Service"]"
+                                             SearchFunc="@SearchServicios"
+                                             ToStringFunc="@(s => s == null ? string.Empty : s.Nombre)"
+                                             Value="_selectedServicio"
+                                             ValueChanged="@(s => _selectedServicio = s)"
+                                             MaxItems="null"
+                                             CoerceText="false"
+                                             ResetValueOnEmptyText="true"
+                                             Clearable="true"
+                                             Immediate="true"
+                                             AdornmentIcon="@Icons.Material.Filled.Search"
+                                             Adornment="Adornment.Start" />
+                        </MudItem>
+                        <MudItem xs="12" md="5">
+                            <MudNumericField @bind-Value="_cantidad" Label="@CantidadLabel" Format="F3" Min="0.001m" />
+                        </MudItem>
+                        <MudItem xs="12" md="1" Class="d-flex align-center">
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled"
+                                           Disabled="@(_selectedServicio is null || _cantidad <= 0)"
+                                           OnClick="AgregarLinea" title="@L["Add"]" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDataGrid T="LineaDraft" Items="@_lineas" Dense="true" Hover="true" Class="mt-3">
+                        <Columns>
+                            <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
+                            <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                                <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedida</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Unit Price"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                                <CellTemplate>@context.Item.PrecioUnitario.ToString("C2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Subtotal"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                                <CellTemplate>@context.Item.Subtotal.ToString("C2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false" CellClass="d-flex justify-end">
+                                <CellTemplate>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                                   OnClick="@(() => _lineas.Remove(context.Item))" />
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <NoRecordsContent>
+                            <MudText>@L["No lineas added yet"]</MudText>
+                        </NoRecordsContent>
+                    </MudDataGrid>
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                        <MudText Typo="Typo.h6">@L["Total"]: @_lineas.Sum(l => l.Subtotal).ToString("C2")</MudText>
+                    </MudStack>
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+                        <MudButton OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" Class="da-button-rounded">
+                            @L["Cancel"]
+                        </MudButton>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="da-button-rounded"
+                                   Disabled="@(_selectedCliente is null || _lineas.Count == 0 || _saving)"
+                                   OnClick="GuardarAsync">
+                            @L["Save"]
+                        </MudButton>
+                    </MudStack>
+                }
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage cotizaciones."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool IsCreate => Id is null;
+
+    private bool _loading = true;
+    private bool _saving;
+
+    private List<ClienteDto> _clientes = new();
+    private ClienteDto? _selectedCliente;
+    private List<ServicioDto> _servicios = new();
+    private ServicioDto? _selectedServicio;
+    private decimal _cantidad;
+    private List<LineaDraft> _lineas = new();
+
+    private string CantidadLabel => _selectedServicio is null
+        ? L["Quantity"].ToString()
+        : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaNombre})";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var clientesResult = await ClienteService.GetAllAsync();
+        if (clientesResult.IsSuccess) _clientes = clientesResult.Value!;
+
+        var serviciosResult = await ServicioService.GetAllAsync();
+        if (serviciosResult.IsSuccess) _servicios = serviciosResult.Value!;
+
+        if (!IsCreate)
+        {
+            var result = await CotizacionService.GetByIdAsync(Id!.Value);
+            if (result.IsSuccess)
+            {
+                var cotizacion = result.Value!;
+                _selectedCliente = _clientes.FirstOrDefault(c => c.Id == cotizacion.ClienteId);
+                _lineas = cotizacion.Lineas.Select(l => new LineaDraft
+                {
+                    ServicioId = l.ServicioId,
+                    ServicioNombre = l.ServicioNombre,
+                    UnidadMedida = l.UnidadMedida,
+                    Cantidad = l.Cantidad,
+                    PrecioUnitario = l.PrecioUnitario,
+                    Subtotal = l.Subtotal
+                }).ToList();
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+                NavigationManager.NavigateTo("/gestion/cotizaciones");
+                return;
+            }
+        }
+
+        _loading = false;
+    }
+
+    private Task<IEnumerable<ClienteDto>> SearchClientes(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_clientes.AsEnumerable());
+
+        return Task.FromResult(_clientes.Where(c =>
+            c.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            (c.NombreComercial?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)));
+    }
+
+    private Task<IEnumerable<ServicioDto>> SearchServicios(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_servicios.AsEnumerable());
+
+        return Task.FromResult(_servicios.Where(s => s.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void AgregarLinea()
+    {
+        if (_selectedServicio is null || _cantidad <= 0) return;
+
+        var precioUnitario = _selectedServicio.PrecioUnitario;
+        _lineas.Add(new LineaDraft
+        {
+            ServicioId = _selectedServicio.Id,
+            ServicioNombre = _selectedServicio.Nombre,
+            UnidadMedida = _selectedServicio.UnidadMedidaNombre,
+            Cantidad = _cantidad,
+            PrecioUnitario = precioUnitario,
+            Subtotal = _cantidad * precioUnitario
+        });
+
+        _selectedServicio = null;
+        _cantidad = 0;
+    }
+
+    private async Task GuardarAsync()
+    {
+        if (_selectedCliente is null || _lineas.Count == 0) return;
+
+        _saving = true;
+        try
+        {
+            var lineasDto = _lineas.Select(l => new CreateCotizacionLineaDto
+            {
+                ServicioId = l.ServicioId,
+                Cantidad = l.Cantidad,
+                PrecioUnitarioOverride = l.PrecioUnitario
+            }).ToList();
+
+            var result = IsCreate
+                ? await CotizacionService.CreateAsync(new CreateCotizacionDto { ClienteId = _selectedCliente.Id, Lineas = lineasDto })
+                : await CotizacionService.UpdateAsync(Id!.Value, new UpdateCotizacionDto { ClienteId = _selectedCliente.Id, Lineas = lineasDto });
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(IsCreate ? L["Cotización created successfully"] : L["Cotización updated successfully"], Severity.Success);
+                NavigationManager.NavigateTo($"/gestion/cotizaciones/{result.Value!.Id}");
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private class LineaDraft
+    {
+        public int ServicioId { get; set; }
+        public string ServicioNombre { get; set; } = null!;
+        public string UnidadMedida { get; set; } = null!;
+        public decimal Cantidad { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal Subtotal { get; set; }
+    }
+}

@@ -9,6 +9,9 @@ public interface ICotizacionService
     Task<Result<List<CotizacionDto>>> GetByClienteIdAsync(int clienteId);
     Task<Result<CotizacionDto>> GetByIdAsync(int id);
     Task<Result<CotizacionDto>> CreateAsync(CreateCotizacionDto dto);
+
+    /// <summary>Replaces the Cliente and líneas of a Cotización. Only allowed while Estado == Pendiente.</summary>
+    Task<Result<CotizacionDto>> UpdateAsync(int cotizacionId, UpdateCotizacionDto dto);
     Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto);
     Task<Result<CotizacionDto>> RechazarAsync(int cotizacionId);
     Task<Result> DeleteAsync(int cotizacionId);

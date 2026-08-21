@@ -226,6 +226,115 @@ public class CotizacionService : ICotizacionService
         }
     }
 
+    public async Task<Result<CotizacionDto>> UpdateAsync(int cotizacionId, UpdateCotizacionDto dto)
+    {
+        try
+        {
+            if (dto.Lineas.Count == 0)
+                return Result<CotizacionDto>.Failure(_localizer["A Cotizacion must have at least one linea"]);
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    var cotizacion = await context.Cotizaciones
+                        .Include(c => c.Lineas)
+                        .FirstOrDefaultAsync(c => c.Id == cotizacionId);
+
+                    if (cotizacion == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<CotizacionDto>.Failure(_localizer["Cotizacion not found"]);
+                    }
+
+                    if (cotizacion.Estado != CotizacionEstado.Pendiente)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<CotizacionDto>.Failure(_localizer["Only a Pendiente Cotizacion can be edited"]);
+                    }
+
+                    var clienteExists = await context.Clientes.AnyAsync(c => c.Id == dto.ClienteId);
+                    if (!clienteExists)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<CotizacionDto>.Failure(_localizer["Cliente not found"]);
+                    }
+
+                    var servicioIds = dto.Lineas.Select(l => l.ServicioId).Distinct().ToList();
+                    var servicios = await context.Servicios
+                        .Include(s => s.UnidadMedida)
+                        .Where(s => servicioIds.Contains(s.Id))
+                        .ToDictionaryAsync(s => s.Id);
+
+                    if (servicios.Count != servicioIds.Count)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<CotizacionDto>.Failure(_localizer["One or more Servicios were not found"]);
+                    }
+
+                    var currentUser = await _currentUserService.GetUserIdAsync();
+                    var currentTime = _dateTimeService.Now;
+
+                    context.CotizacionLineas.RemoveRange(cotizacion.Lineas);
+                    cotizacion.Lineas.Clear();
+                    cotizacion.ClienteId = dto.ClienteId;
+
+                    decimal total = 0;
+                    foreach (var linea in dto.Lineas)
+                    {
+                        var servicio = servicios[linea.ServicioId];
+                        var precioUnitario = linea.PrecioUnitarioOverride ?? servicio.PrecioUnitario;
+                        var subtotal = linea.Cantidad * precioUnitario;
+                        total += subtotal;
+
+                        cotizacion.Lineas.Add(new CotizacionLinea
+                        {
+                            ServicioId = servicio.Id,
+                            ServicioNombre = servicio.Nombre,
+                            UnidadMedida = servicio.UnidadMedida.Nombre,
+                            Cantidad = linea.Cantidad,
+                            PrecioUnitario = precioUnitario,
+                            Subtotal = subtotal,
+                            CreatedBy = currentUser,
+                            CreatedAt = currentTime,
+                            ModifiedBy = currentUser,
+                            ModifiedAt = currentTime
+                        });
+                    }
+
+                    cotizacion.Total = total;
+                    cotizacion.ModifiedBy = currentUser;
+                    cotizacion.ModifiedAt = currentTime;
+
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    var updated = await context.Cotizaciones
+                        .AsNoTracking()
+                        .Where(c => c.Id == cotizacion.Id)
+                        .ProjectTo<CotizacionDto>(_mapper.ConfigurationProvider)
+                        .FirstAsync();
+
+                    return Result<CotizacionDto>.Success(updated);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating cotizacion {Id}", cotizacionId);
+            return Result<CotizacionDto>.Failure(_localizer["Error updating cotizacion"]);
+        }
+    }
+
     public async Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto)
     {
         try

@@ -35,7 +35,7 @@
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Add"
-                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones/nueva"))" Class="da-button-rounded">
                                 @L["New Cotización"]
                             </MudButton>
                         </Authorized>
@@ -63,7 +63,7 @@
                             <CellTemplate>
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                                Size="Size.Small"
-                                               OnClick="@(() => OpenManageDialog(context.Item.Id))"
+                                               OnClick="@(() => NavigationManager.NavigateTo($"/gestion/cotizaciones/{context.Item.Id}"))"
                                                title="@L["View Cotización"]" />
                                 <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
                                                Size="Size.Small"
@@ -73,6 +73,10 @@
                                 {
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
                                         <Authorized Context="authContext">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => NavigationManager.NavigateTo($"/gestion/cotizaciones/{context.Item.Id}/editar"))"
+                                                           title="@L["Edit Cotización"]" />
                                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                            Size="Size.Small"
                                                            Color="Color.Error"
@@ -167,39 +171,6 @@
         CotizacionEstado.Rechazada => L["Rejected"],
         _ => estado.ToString()
     };
-
-    private async Task OpenCreateDialog()
-    {
-        var parameters = new DialogParameters<CotizacionDialog>
-        {
-            { x => x.CotizacionId, null }
-        };
-
-        var dialog = await DialogService.ShowAsync<CotizacionDialog>(L["New Cotización"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is true)
-        {
-            await LoadDataAsync();
-        }
-    }
-
-    private async Task OpenManageDialog(int id)
-    {
-        var parameters = new DialogParameters<CotizacionDialog>
-        {
-            { x => x.CotizacionId, id }
-        };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
-
-        var dialog = await DialogService.ShowAsync<CotizacionDialog>(L["Cotización"], parameters, options);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is true)
-        {
-            await LoadDataAsync();
-        }
-    }
 
     private void DescargarPdf(int id)
     {
