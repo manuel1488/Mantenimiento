@@ -82,7 +82,7 @@
                                              Adornment="Adornment.Start" />
                         </MudItem>
                         <MudItem xs="12" md="5">
-                            <MudNumericField @bind-Value="_cantidad" Label="@CantidadLabel" Format="F3" Min="0.001m" />
+                            <MudNumericField @bind-Value="_cantidad" Immediate="true" Label="@CantidadLabel" Format="F3" Min="0.001m" />
                         </MudItem>
                         <MudItem xs="12" md="1" Class="d-flex align-center">
                             <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled"
@@ -157,7 +157,7 @@
 
     private string CantidadLabel => _selectedServicio is null
         ? L["Quantity"].ToString()
-        : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaNombre})";
+        : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaCodigo})";
 
     protected override async Task OnInitializedAsync()
     {
@@ -222,7 +222,7 @@
         {
             ServicioId = _selectedServicio.Id,
             ServicioNombre = _selectedServicio.Nombre,
-            UnidadMedida = _selectedServicio.UnidadMedidaNombre,
+            UnidadMedida = _selectedServicio.UnidadMedidaCodigo,
             Cantidad = _cantidad,
             PrecioUnitario = precioUnitario,
             Subtotal = _cantidad * precioUnitario

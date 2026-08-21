@@ -117,7 +117,7 @@
                                                      Adornment="Adornment.Start" />
                                 </MudItem>
                                 <MudItem xs="12" md="5">
-                                    <MudNumericField @bind-Value="_cantidad"
+                                    <MudNumericField @bind-Value="_cantidad" Immediate="true"
                                                       Label="@CantidadLabel"
                                                       Format="F3" Min="0.001m" />
                                 </MudItem>
@@ -145,7 +145,7 @@
                         <Columns>
                             <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
                             <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
-                                <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedidaNombre</CellTemplate>
+                                <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedidaCodigo</CellTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Estimated Time (days)"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
                                 <CellTemplate>@context.Item.TiempoEstimadoDias.ToString("F2")</CellTemplate>
@@ -215,7 +215,7 @@
                                     </MudStack>
                                     <MudStack Row="true" Justify="Justify.SpaceBetween">
                                         <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Quantity"]</MudText>
-                                        <MudText Typo="Typo.body2">@actividad.Cantidad.ToString("F2") @actividad.UnidadMedidaNombre</MudText>
+                                        <MudText Typo="Typo.body2">@actividad.Cantidad.ToString("F2") @actividad.UnidadMedidaCodigo</MudText>
                                     </MudStack>
                                     <MudStack Row="true" Justify="Justify.SpaceBetween">
                                         <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Estimated Time (days)"]</MudText>
@@ -288,7 +288,7 @@
 
     private string CantidadLabel => _selectedServicio is null
         ? L["Quantity"].ToString()
-        : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaNombre})";
+        : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaCodigo})";
 
     private bool CanFinalizar => _obra is not null &&
         (_obra.Estado == ObraEstado.Aprobada || _obra.Estado == ObraEstado.EnProceso);
@@ -440,7 +440,7 @@
                 {
                     Id = actividad.Id,
                     ServicioNombre = actividad.ServicioNombre,
-                    UnidadMedidaNombre = actividad.UnidadMedidaNombre,
+                    UnidadMedidaCodigo = actividad.UnidadMedidaCodigo,
                     Cantidad = actividad.Cantidad
                 }
             }

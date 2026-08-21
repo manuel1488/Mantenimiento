@@ -8,6 +8,7 @@ public class ActividadDto
     public int ObraId { get; set; }
     public int ServicioId { get; set; }
     public string ServicioNombre { get; set; } = null!;
+    public string UnidadMedidaCodigo { get; set; } = null!;
     public string UnidadMedidaNombre { get; set; } = null!;
     public decimal Cantidad { get; set; }
     public decimal PrecioUnitario { get; set; }

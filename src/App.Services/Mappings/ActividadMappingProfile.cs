@@ -11,6 +11,7 @@ public class ActividadMappingProfile : Profile
     {
         CreateMap<Actividad, ActividadDto>()
             .ForMember(dest => dest.ServicioNombre, opt => opt.MapFrom(src => src.Servicio.Nombre))
+            .ForMember(dest => dest.UnidadMedidaCodigo, opt => opt.MapFrom(src => src.Servicio.UnidadMedida.Codigo))
             .ForMember(dest => dest.UnidadMedidaNombre, opt => opt.MapFrom(src => src.Servicio.UnidadMedida.Nombre));
 
         CreateMap<ActividadEvidenciaFoto, ActividadEvidenciaFotoDto>();

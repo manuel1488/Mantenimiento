@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="SAT Unit Codes Catalog" xml:space="preserve">
-    <value>Catálogo de Claves de Unidad SAT</value>
+    <value>Claves de Unidad SAT</value>
   </data>
   <data name="Official SAT c_ClaveUnidad catalog, used for CFDI invoicing. Read-only — to correct an entry, update the source CSV file and reseed." xml:space="preserve">
     <value>Catálogo oficial c_ClaveUnidad del SAT, usado para facturación CFDI. Solo lectura — para corregir una entrada, actualiza el archivo CSV origen y vuelve a sembrar.</value>

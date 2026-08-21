@@ -112,10 +112,10 @@
     <value>Unidades de Medida</value>
   </data>
   <data name="SAT Unit Codes Catalog" xml:space="preserve">
-    <value>Catálogo de Claves de Unidad SAT</value>
+    <value>Claves Unidad SAT</value>
   </data>
   <data name="SAT Product/Service Codes Catalog" xml:space="preserve">
-    <value>Catálogo de Claves de Producto/Servicio SAT</value>
+    <value>Claves Prod/Serv SAT</value>
   </data>
   <data name="Clients" xml:space="preserve">
     <value>Clientes</value>

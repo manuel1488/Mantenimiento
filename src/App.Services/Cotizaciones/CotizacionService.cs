@@ -190,7 +190,7 @@ public class CotizacionService : ICotizacionService
                         {
                             ServicioId = servicio.Id,
                             ServicioNombre = servicio.Nombre,
-                            UnidadMedida = servicio.UnidadMedida.Nombre,
+                            UnidadMedida = servicio.UnidadMedida.Codigo,
                             Cantidad = linea.Cantidad,
                             PrecioUnitario = precioUnitario,
                             Subtotal = subtotal,
@@ -298,7 +298,7 @@ public class CotizacionService : ICotizacionService
                         {
                             ServicioId = servicio.Id,
                             ServicioNombre = servicio.Nombre,
-                            UnidadMedida = servicio.UnidadMedida.Nombre,
+                            UnidadMedida = servicio.UnidadMedida.Codigo,
                             Cantidad = linea.Cantidad,
                             PrecioUnitario = precioUnitario,
                             Subtotal = subtotal,
