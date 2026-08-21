@@ -12,7 +12,7 @@
 @using App.Web.Components.Shared.Models
 @using MudBlazor
 
-@inject IStringLocalizer<ClienteDialog> L
+@inject IStringLocalizer<ClienteDetallePage> L
 @inject IClienteService ClienteService
 @inject IFiscalCatalogService FiscalCatalogService
 @inject IDialogService DialogService
@@ -87,7 +87,7 @@
                                     <MudButton Variant="Variant.Outlined" Color="Color.Primary"
                                                StartIcon="@Icons.Material.Filled.Edit"
                                                Class="da-button-rounded" FullWidth="false"
-                                               OnClick="OpenEditDialog">
+                                               OnClick="@(() => NavigationManager.NavigateTo($"/gestion/clientes/{Id}/editar"))">
                                         @L["Edit Client"]
                                     </MudButton>
                                 </Authorized>
@@ -280,34 +280,6 @@
     }
 
     // ── Actions ───────────────────────────────────────────────────────────
-
-    private async Task OpenEditDialog()
-    {
-        if (_cliente is null) return;
-
-        var parameters = new DialogParameters<ClienteDialog>
-        {
-            { x => x.IsNew, false },
-            { x => x.Model, ClienteDialogMapper.ToDialogModel(_cliente) }
-        };
-
-        var dialog = await DialogService.ShowAsync<ClienteDialog>(L["Edit Client"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ClienteDialogModel model)
-        {
-            var updateResult = await ClienteService.UpdateAsync(model.Id, ClienteDialogMapper.ToUpdateDto(model));
-            if (updateResult.IsSuccess)
-            {
-                Snackbar.Add(L["Client updated successfully"], Severity.Success);
-                await LoadClienteAsync();
-            }
-            else
-            {
-                Snackbar.Add(updateResult.Error, Severity.Error);
-            }
-        }
-    }
 
     private async Task OpenDeleteDialog()
     {

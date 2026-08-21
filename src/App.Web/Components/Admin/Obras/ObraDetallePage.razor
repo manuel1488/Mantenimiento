@@ -75,7 +75,8 @@
                                 <Authorized Context="authContext">
                                     <MudButton Variant="Variant.Outlined" Color="Color.Primary"
                                                StartIcon="@Icons.Material.Filled.Edit"
-                                               Class="da-button-rounded" OnClick="OpenEditDialog">
+                                               Class="da-button-rounded"
+                                               OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{Id}/editar"))">
                                         @L["Edit Obra"]
                                     </MudButton>
                                 </Authorized>
@@ -136,8 +137,11 @@
                 @* ── Actividades grid ─────────────────────────────────────── *@
                 <MudPaper Class="da-card pa-2 pa-sm-4 mb-4" Elevation="2">
                     <MudText Typo="Typo.subtitle1" Class="pa-2">@L["Actividades"]</MudText>
+
+                    @* Desktop/tablet: regular grid. Hidden below sm — ServicioNombre is unpredictable-length
+                       text that forces horizontal scroll and wrapped headers on phones. *@
                     <MudDataGrid T="ActividadDto" Items="@_actividades" Loading="_loadingActividades"
-                                 Dense="true" Hover="true" RowsPerPage="10">
+                                 Dense="true" Hover="true" RowsPerPage="10" Class="d-none d-sm-block">
                         <Columns>
                             <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
                             <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
@@ -149,21 +153,28 @@
                             <TemplateColumn Title="@L["Cost"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
                                 <CellTemplate>@context.Item.Costo.ToString("C2")</CellTemplate>
                             </TemplateColumn>
+                            <TemplateColumn Title="@L["Status"]" HeaderStyle="width: 130px;">
+                                <CellTemplate>
+                                    <MudChip T="string" Size="Size.Small" Color="@EstadoColor(context.Item.Estado)" Variant="Variant.Filled">
+                                        @EstadoLabel(context.Item.Estado)
+                                    </MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false" CellClass="d-flex justify-end">
                                 <CellTemplate>
-                                    <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small"
+                                    <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Medium"
                                                    OnClick="@(() => OpenEvidenciasDialog(context.Item.Id))"
                                                    title="@L["Evidence Photos (view/upload)"]" />
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                         <Authorized Context="authContext">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Medium"
                                                            OnClick="@(() => OpenEditActividadDialog(context.Item))"
                                                            title="@L["Edit Actividad"]" />
                                         </Authorized>
                                     </AuthorizeView>
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                         <Authorized Context="authContext">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Medium" Color="Color.Error"
                                                            OnClick="@(() => DeleteActividadAsync(context.Item))"
                                                            title="@L["Delete Actividad"]" />
                                         </Authorized>
@@ -178,16 +189,71 @@
                             <MudDataGridPager T="ActividadDto" />
                         </PagerContent>
                     </MudDataGrid>
+
+                    @* Mobile: one stacked card per actividad instead of a cramped table. *@
+                    <div class="d-sm-none">
+                        @if (_loadingActividades)
+                        {
+                            <div class="d-flex justify-center pa-4">
+                                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
+                            </div>
+                        }
+                        else if (_actividades.Count == 0)
+                        {
+                            <MudText Class="pa-2">@L["No actividades yet"]</MudText>
+                        }
+                        else
+                        {
+                            @foreach (var actividad in _actividades)
+                            {
+                                <MudPaper Class="pa-3 mb-2" Outlined="true">
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-1">
+                                        <MudText Typo="Typo.subtitle2">@actividad.ServicioNombre</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="@EstadoColor(actividad.Estado)" Variant="Variant.Filled">
+                                            @EstadoLabel(actividad.Estado)
+                                        </MudChip>
+                                    </MudStack>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Quantity"]</MudText>
+                                        <MudText Typo="Typo.body2">@actividad.Cantidad.ToString("F2") @actividad.UnidadMedidaNombre</MudText>
+                                    </MudStack>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Estimated Time (days)"]</MudText>
+                                        <MudText Typo="Typo.body2">@actividad.TiempoEstimadoDias.ToString("F2")</MudText>
+                                    </MudStack>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2" Class="mud-text-secondary" Style="font-weight: 600;">@L["Cost"]</MudText>
+                                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@actividad.Costo.ToString("C2")</MudText>
+                                    </MudStack>
+                                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2">
+                                        <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Medium"
+                                                       OnClick="@(() => OpenEvidenciasDialog(actividad.Id))"
+                                                       title="@L["Evidence Photos (view/upload)"]" />
+                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                            <Authorized Context="authContext">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Medium"
+                                                               OnClick="@(() => OpenEditActividadDialog(actividad))"
+                                                               title="@L["Edit Actividad"]" />
+                                            </Authorized>
+                                        </AuthorizeView>
+                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                            <Authorized Context="authContext">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Medium" Color="Color.Error"
+                                                               OnClick="@(() => DeleteActividadAsync(actividad))"
+                                                               title="@L["Delete Actividad"]" />
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </MudStack>
+                                </MudPaper>
+                            }
+                        }
+                    </div>
                 </MudPaper>
 
                 @* ── Footer actions ───────────────────────────────────────── *@
                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                         <Authorized Context="authContext">
-                            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-                                       OnClick="OpenEditDialog" Class="da-button-rounded">
-                                @L["Save"]
-                            </MudButton>
                             <MudButton Variant="Variant.Filled" Color="Color.Success"
                                        StartIcon="@Icons.Material.Filled.CheckCircle"
                                        Disabled="@(!CanFinalizar)"
@@ -300,6 +366,22 @@
         ObraEstado.EnProceso => L["In Progress"],
         ObraEstado.Finalizada => L["Finished"],
         ObraEstado.Facturada => L["Invoiced"],
+        _ => estado.ToString()
+    };
+
+    private static Color EstadoColor(ActividadEstado estado) => estado switch
+    {
+        ActividadEstado.Pendiente => Color.Warning,
+        ActividadEstado.EnProceso => Color.Info,
+        ActividadEstado.Finalizada => Color.Success,
+        _ => Color.Default
+    };
+
+    private string EstadoLabel(ActividadEstado estado) => estado switch
+    {
+        ActividadEstado.Pendiente => L["Pending"],
+        ActividadEstado.EnProceso => L["In Progress"],
+        ActividadEstado.Finalizada => L["Finished"],
         _ => estado.ToString()
     };
 
@@ -430,34 +512,6 @@
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
         await DialogService.ShowAsync<EvidenciaFotosDialog>(L["Evidence Photos"], parameters, options);
-    }
-
-    private async Task OpenEditDialog()
-    {
-        if (_obra is null) return;
-
-        var parameters = new DialogParameters<ObraDialog>
-        {
-            { x => x.IsNew, false },
-            { x => x.Model, ObraDialogMapper.ToDialogModel(_obra) }
-        };
-
-        var dialog = await DialogService.ShowAsync<ObraDialog>(L["Edit Obra"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ObraDialogModel model)
-        {
-            var updateResult = await ObraService.UpdateAsync(ObraDialogMapper.ToUpdateDto(model));
-            if (updateResult.IsSuccess)
-            {
-                Snackbar.Add(L["Obra updated successfully"], Severity.Success);
-                await LoadObraAsync();
-            }
-            else
-            {
-                Snackbar.Add(updateResult.Error, Severity.Error);
-            }
-        }
     }
 
     private async Task OpenDeleteDialog()

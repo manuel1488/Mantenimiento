@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="New Client" xml:space="preserve">
+    <value>Nuevo Cliente</value>
+  </data>
+  <data name="Client Details" xml:space="preserve">
+    <value>Detalle del Cliente</value>
+  </data>
+  <data name="Client not found" xml:space="preserve">
+    <value>Cliente no encontrado</value>
+  </data>
+  <data name="Error loading client" xml:space="preserve">
+    <value>Error al cargar el cliente</value>
+  </data>
+  <data name="Clients" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="Client created successfully" xml:space="preserve">
+    <value>Cliente creado exitosamente</value>
+  </data>
+  <data name="Client updated successfully" xml:space="preserve">
+    <value>Cliente actualizado exitosamente</value>
+  </data>
+  <data name="You don't have permission to manage clients." xml:space="preserve">
+    <value>No tienes permiso para gestionar clientes.</value>
+  </data>
+  <data name="Client deleted successfully" xml:space="preserve">
+    <value>Cliente eliminado exitosamente</value>
+  </data>
+  <data name="Delete Client" xml:space="preserve">
+    <value>Eliminar Cliente</value>
+  </data>
+  <data name="Delete Client Confirmation" xml:space="preserve">
+    <value>Confirmar Eliminación de Cliente</value>
+  </data>
+  <data name="Are you sure you want to delete client:" xml:space="preserve">
+    <value>¿Estás seguro de que deseas eliminar el cliente:</value>
+  </data>
+  <data name="This action cannot be undone." xml:space="preserve">
+    <value>Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Has fiscal data" xml:space="preserve">
+    <value>Con datos fiscales</value>
+  </data>
+  <data name="No fiscal data" xml:space="preserve">
+    <value>Sin datos fiscales</value>
+  </data>
+  <data name="Not specified" xml:space="preserve">
+    <value>No especificado</value>
+  </data>
+  <data name="You don't have permission to view clients." xml:space="preserve">
+    <value>No tienes permiso para ver los clientes.</value>
+  </data>
+  <data name="Edit Client" xml:space="preserve">
+    <value>Editar Cliente</value>
+  </data>
+  <data name="Commercial Information" xml:space="preserve">
+    <value>Datos Comerciales</value>
+  </data>
+  <data name="Tax Information" xml:space="preserve">
+    <value>Datos Fiscales</value>
+  </data>
+  <data name="Name / Trade Name" xml:space="preserve">
+    <value>Nombre / Nombre Comercial</value>
+  </data>
+  <data name="Name is required" xml:space="preserve">
+    <value>El nombre es requerido</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>País</value>
+  </data>
+  <data name="Country is required" xml:space="preserve">
+    <value>El país es requerido</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo</value>
+  </data>
+  <data name="Contact Name" xml:space="preserve">
+    <value>Nombre de Contacto</value>
+  </data>
+  <data name="Business Address" xml:space="preserve">
+    <value>Dirección Comercial</value>
+  </data>
+  <data name="Street" xml:space="preserve">
+    <value>Calle</value>
+  </data>
+  <data name="Ext. Number" xml:space="preserve">
+    <value>Núm. Ext.</value>
+  </data>
+  <data name="Int. Number" xml:space="preserve">
+    <value>Núm. Int.</value>
+  </data>
+  <data name="Neighborhood" xml:space="preserve">
+    <value>Colonia</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Zip Code" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="This client has fiscal data" xml:space="preserve">
+    <value>Este cliente tiene datos fiscales</value>
+  </data>
+  <data name="This client has no fiscal data" xml:space="preserve">
+    <value>Este cliente no tiene datos fiscales</value>
+  </data>
+  <data name="RFC/Tax ID" xml:space="preserve">
+    <value>RFC/NIT</value>
+  </data>
+  <data name="Legal Name" xml:space="preserve">
+    <value>Razón Social</value>
+  </data>
+  <data name="Legal name is required" xml:space="preserve">
+    <value>La razón social es requerida</value>
+  </data>
+  <data name="Fiscal Email" xml:space="preserve">
+    <value>Correo Fiscal</value>
+  </data>
+  <data name="For invoice delivery. Leave empty to use the commercial email." xml:space="preserve">
+    <value>Para envío de facturas. Dejar vacío para usar el correo comercial.</value>
+  </data>
+  <data name="Fiscal Address" xml:space="preserve">
+    <value>Domicilio Fiscal</value>
+  </data>
+  <data name="Required for CFDI stamping (Mexico)" xml:space="preserve">
+    <value>Requerido para timbrado CFDI (México)</value>
+  </data>
+  <data name="Mexico Billing Preferences" xml:space="preserve">
+    <value>Preferencias de Facturación México</value>
+  </data>
+  <data name="Tax Regime" xml:space="preserve">
+    <value>Régimen Fiscal</value>
+  </data>
+  <data name="Default CFDI Use" xml:space="preserve">
+    <value>Uso de CFDI Predeterminado</value>
+  </data>
+  <data name="Automatic Invoicing" xml:space="preserve">
+    <value>Facturación Automática</value>
+  </data>
+  <data name="Generate an invoice automatically after each sale" xml:space="preserve">
+    <value>Generar factura automáticamente después de cada venta</value>
+  </data>
+  <data name="Send Invoice Email" xml:space="preserve">
+    <value>Enviar Correo de Factura</value>
+  </data>
+  <data name="Automatically send the invoice email when it's generated" xml:space="preserve">
+    <value>Enviar automáticamente el correo con la factura al generarla</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+</root>

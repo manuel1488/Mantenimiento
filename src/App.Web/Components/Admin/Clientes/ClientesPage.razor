@@ -35,7 +35,7 @@
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Add"
-                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/clientes/nueva"))" Class="da-button-rounded">
                                 @L["New Client"]
                             </MudButton>
                         </Authorized>
@@ -51,24 +51,24 @@
                         <PropertyColumn Property="x => x.Telefono" Title="@L["Phone"]" HeaderStyle="width: 130px;" />
                         <PropertyColumn Property="x => x.Pais" Title="@L["Country"]" HeaderStyle="width: 130px;" />
                         <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
-                                        CellClass="d-flex justify-end">
+                                        HeaderStyle="width: 150px;" CellClass="d-flex justify-end">
                             <CellTemplate>
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
-                                               Size="Size.Small"
+                                               Size="Size.Medium"
                                                OnClick="@(() => NavigationManager.NavigateTo($"/gestion/clientes/{context.Item.Id}"))"
                                                title="@L["View Client"]" />
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageClientes">
                                     <Authorized Context="authContext">
                                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                       Size="Size.Small"
-                                                       OnClick="@(() => OpenEditDialog(context.Item))"
+                                                       Size="Size.Medium"
+                                                       OnClick="@(() => NavigationManager.NavigateTo($"/gestion/clientes/{context.Item.Id}/editar"))"
                                                        title="@L["Edit Client"]" />
                                     </Authorized>
                                 </AuthorizeView>
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteClientes">
                                     <Authorized Context="authContext">
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                       Size="Size.Small"
+                                                       Size="Size.Medium"
                                                        Color="Color.Error"
                                                        OnClick="@(() => OpenDeleteDialog(context.Item))"
                                                        title="@L["Delete Client"]" />
@@ -147,62 +147,6 @@
     {
         _searchString = value;
         ApplyFilter();
-    }
-
-    private async Task OpenCreateDialog()
-    {
-        var parameters = new DialogParameters<ClienteDialog>
-        {
-            { x => x.IsNew, true },
-            { x => x.Model, new ClienteDialogModel() }
-        };
-
-        var dialog = await DialogService.ShowAsync<ClienteDialog>(L["New Client"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ClienteDialogModel model)
-        {
-            var createDto = ClienteDialogMapper.ToCreateDto(model);
-
-            var createResult = await ClienteService.CreateAsync(createDto);
-            if (createResult.IsSuccess)
-            {
-                Snackbar.Add(L["Client created successfully"], Severity.Success);
-                await LoadDataAsync();
-            }
-            else
-            {
-                Snackbar.Add(createResult.Error, Severity.Error);
-            }
-        }
-    }
-
-    private async Task OpenEditDialog(ClienteDto cliente)
-    {
-        var parameters = new DialogParameters<ClienteDialog>
-        {
-            { x => x.IsNew, false },
-            { x => x.Model, ClienteDialogMapper.ToDialogModel(cliente) }
-        };
-
-        var dialog = await DialogService.ShowAsync<ClienteDialog>(L["Edit Client"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ClienteDialogModel model)
-        {
-            var updateDto = ClienteDialogMapper.ToUpdateDto(model);
-
-            var updateResult = await ClienteService.UpdateAsync(model.Id, updateDto);
-            if (updateResult.IsSuccess)
-            {
-                Snackbar.Add(L["Client updated successfully"], Severity.Success);
-                await LoadDataAsync();
-            }
-            else
-            {
-                Snackbar.Add(updateResult.Error, Severity.Error);
-            }
-        }
     }
 
     private async Task OpenDeleteDialog(ClienteDto cliente)

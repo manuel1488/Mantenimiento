@@ -1,0 +1,178 @@
+@page "/gestion/obras/nueva"
+@page "/gestion/obras/{Id:int}/editar"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ManageObras)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Clientes
+@using App.Core.Interfaces
+@using App.Web.Components.Admin.Obras.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ObraFormPage> L
+@inject IObraService ObraService
+@inject IClienteService ClienteService
+@inject ISnackbar Snackbar
+@inject ILogger<ObraFormPage> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(IsCreate ? L["New Obra"] : L["Edit Obra"])</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/obras"))" />
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Works"]</MudText>
+            </MudStack>
+
+            <MudText Typo="Typo.h4" GutterBottom="true">
+                @(IsCreate ? L["New Obra"] : L["Edit Obra"])
+            </MudText>
+
+            <MudPaper Class="da-card pa-4 pa-sm-6" Elevation="2">
+                @if (_loading)
+                {
+                    <div class="d-flex justify-center pa-8">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+                else
+                {
+                    <MudForm Model="@Model" @ref="@_form">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudAutocomplete T="ClienteDto"
+                                                 Label="@L["Client"]"
+                                                 Required="true"
+                                                 RequiredError="@L["Client is required"]"
+                                                 SearchFunc="@SearchClientes"
+                                                 ToStringFunc="@(c => c == null ? string.Empty : (c.NombreComercial ?? c.Nombre))"
+                                                 Value="_selectedCliente"
+                                                 ValueChanged="OnClienteSelected"
+                                                 MaxItems="null"
+                                                 CoerceText="false"
+                                                 ResetValueOnEmptyText="true"
+                                                 Clearable="true"
+                                                 Immediate="true"
+                                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                                 Adornment="Adornment.Start" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="Model.Direccion"
+                                              Label="@L["Address"]"
+                                              Lines="2"
+                                              Required="true"
+                                              RequiredError="@L["Address is required"]" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudSwitch T="bool" @bind-Value="Model.Urgente" Color="Color.Warning" Label="@L["Urgent"]" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudForm>
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+                        <MudButton OnClick="@(() => NavigationManager.NavigateTo("/gestion/obras"))" Class="da-button-rounded">
+                            @L["Cancel"]
+                        </MudButton>
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="da-button-rounded"
+                                   Disabled="@_saving"
+                                   OnClick="GuardarAsync">
+                            @L["Save"]
+                        </MudButton>
+                    </MudStack>
+                }
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage works."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool IsCreate => Id is null;
+
+    private bool _loading = true;
+    private bool _saving;
+    private MudForm _form = null!;
+    private ObraDialogModel Model { get; set; } = new();
+
+    private List<ClienteDto> _clientes = new();
+    private ClienteDto? _selectedCliente;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var clientesResult = await ClienteService.GetAllAsync();
+        if (clientesResult.IsSuccess) _clientes = clientesResult.Value!;
+
+        if (!IsCreate)
+        {
+            var result = await ObraService.GetByIdAsync(Id!.Value);
+            if (result.IsSuccess)
+            {
+                Model = ObraDialogMapper.ToDialogModel(result.Value!);
+                _selectedCliente = _clientes.FirstOrDefault(c => c.Id == Model.ClienteId);
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+                NavigationManager.NavigateTo("/gestion/obras");
+                return;
+            }
+        }
+
+        _loading = false;
+    }
+
+    private Task<IEnumerable<ClienteDto>> SearchClientes(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_clientes.AsEnumerable());
+
+        return Task.FromResult(_clientes.Where(c =>
+            c.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            (c.NombreComercial?.Contains(value, StringComparison.OrdinalIgnoreCase) ?? false)));
+    }
+
+    private void OnClienteSelected(ClienteDto? value)
+    {
+        _selectedCliente = value;
+        Model.ClienteId = value?.Id ?? 0;
+    }
+
+    private async Task GuardarAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            var result = IsCreate
+                ? await ObraService.CreateAsync(ObraDialogMapper.ToCreateDto(Model))
+                : await ObraService.UpdateAsync(ObraDialogMapper.ToUpdateDto(Model));
+
+            if (result.IsSuccess)
+            {
+                Snackbar.Add(IsCreate ? L["Obra created successfully"] : L["Obra updated successfully"], Severity.Success);
+                NavigationManager.NavigateTo($"/gestion/obras/{result.Value!.Id}");
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -36,7 +36,7 @@
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Add"
-                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/obras/nueva"))" Class="da-button-rounded">
                                 @L["New Obra"]
                             </MudButton>
                         </Authorized>
@@ -66,24 +66,24 @@
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.FechaSolicitud" Title="@L["Request Date"]" Format="dd/MM/yyyy" HeaderStyle="width: 130px;" />
                         <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
-                                        CellClass="d-flex justify-end">
+                                        HeaderStyle="width: 150px;" CellClass="d-flex justify-end">
                             <CellTemplate>
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
-                                               Size="Size.Small"
+                                               Size="Size.Medium"
                                                OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{context.Item.Id}"))"
                                                title="@L["View Obra"]" />
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                     <Authorized Context="authContext">
                                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                       Size="Size.Small"
-                                                       OnClick="@(() => OpenEditDialog(context.Item))"
+                                                       Size="Size.Medium"
+                                                       OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{context.Item.Id}/editar"))"
                                                        title="@L["Edit Obra"]" />
                                     </Authorized>
                                 </AuthorizeView>
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteObras">
                                     <Authorized Context="authContext">
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                       Size="Size.Small"
+                                                       Size="Size.Medium"
                                                        Color="Color.Error"
                                                        OnClick="@(() => OpenDeleteDialog(context.Item))"
                                                        title="@L["Delete Obra"]" />
@@ -185,58 +185,6 @@
         ObraEstado.Facturada => L["Invoiced"],
         _ => estado.ToString()
     };
-
-    private async Task OpenCreateDialog()
-    {
-        var parameters = new DialogParameters<ObraDialog>
-        {
-            { x => x.IsNew, true },
-            { x => x.Model, new ObraDialogModel() }
-        };
-
-        var dialog = await DialogService.ShowAsync<ObraDialog>(L["New Obra"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ObraDialogModel model)
-        {
-            var createResult = await ObraService.CreateAsync(ObraDialogMapper.ToCreateDto(model));
-            if (createResult.IsSuccess)
-            {
-                Snackbar.Add(L["Obra created successfully"], Severity.Success);
-                await LoadDataAsync();
-            }
-            else
-            {
-                Snackbar.Add(createResult.Error, Severity.Error);
-            }
-        }
-    }
-
-    private async Task OpenEditDialog(ObraDto obra)
-    {
-        var parameters = new DialogParameters<ObraDialog>
-        {
-            { x => x.IsNew, false },
-            { x => x.Model, ObraDialogMapper.ToDialogModel(obra) }
-        };
-
-        var dialog = await DialogService.ShowAsync<ObraDialog>(L["Edit Obra"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ObraDialogModel model)
-        {
-            var updateResult = await ObraService.UpdateAsync(ObraDialogMapper.ToUpdateDto(model));
-            if (updateResult.IsSuccess)
-            {
-                Snackbar.Add(L["Obra updated successfully"], Severity.Success);
-                await LoadDataAsync();
-            }
-            else
-            {
-                Snackbar.Add(updateResult.Error, Severity.Error);
-            }
-        }
-    }
 
     private async Task OpenDeleteDialog(ObraDto obra)
     {

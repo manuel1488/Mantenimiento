@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Services" xml:space="preserve">
+    <value>Services</value>
+  </data>
   <data name="New Service" xml:space="preserve">
     <value>New Service</value>
   </data>
@@ -39,16 +42,25 @@
   <data name="Search by code or description" xml:space="preserve">
     <value>Search by code or description (min. 3 characters)</value>
   </data>
+  <data name="Find code by category" xml:space="preserve">
+    <value>Find code by category</value>
+  </data>
+  <data name="SAT Product/Service Code Assistant" xml:space="preserve">
+    <value>SAT Product/Service Code Assistant</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
   </data>
-  <data name="Find code by category" xml:space="preserve">
-    <value>Find code by category</value>
+  <data name="You don't have permission to manage services." xml:space="preserve">
+    <value>You don't have permission to manage services.</value>
   </data>
-  <data name="SAT Product/Service Code Assistant" xml:space="preserve">
-    <value>SAT Product/Service Code Assistant</value>
+  <data name="Service created successfully" xml:space="preserve">
+    <value>Service created successfully</value>
+  </data>
+  <data name="Service updated successfully" xml:space="preserve">
+    <value>Service updated successfully</value>
   </data>
 </root>

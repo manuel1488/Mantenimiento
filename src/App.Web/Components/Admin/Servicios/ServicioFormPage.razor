@@ -1,0 +1,314 @@
+@page "/gestion/servicios/nueva"
+@page "/gestion/servicios/{Id:int}/editar"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ManageServicios)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Fiscal
+@using App.Core.DTOs.Servicios
+@using App.Core.Interfaces
+@using App.Web.Components.Admin.Servicios.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ServicioFormPage> L
+@inject IServicioService ServicioService
+@inject IUnidadMedidaService UnidadMedidaService
+@inject IFiscalCatalogService FiscalCatalogService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<ServicioFormPage> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(IsCreate ? L["New Service"] : L["Edit Service"])</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/servicios"))" />
+                <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Services"]</MudText>
+            </MudStack>
+
+            <MudText Typo="Typo.h4" GutterBottom="true">
+                @(IsCreate ? L["New Service"] : L["Edit Service"])
+            </MudText>
+
+            <MudPaper Class="da-card pa-4 pa-sm-6" Elevation="2">
+                @if (_loading)
+                {
+                    <div class="d-flex justify-center pa-8">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+                else
+                {
+                    <MudForm Model="@_model" @ref="@_form">
+                        <MudGrid>
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Nombre"
+                                              Label="@L["Name"]"
+                                              Required="true"
+                                              RequiredError="@L["Name is required"]" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_model.Descripcion"
+                                              Label="@L["Description"]"
+                                              Lines="2" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="4">
+                                <MudAutocomplete T="UnidadMedidaDto"
+                                                 Label="@L["Unit of Measure"]"
+                                                 Required="true"
+                                                 RequiredError="@L["Unit of measure is required"]"
+                                                 SearchFunc="@SearchUnidadesMedida"
+                                                 ToStringFunc="@(u => u == null ? string.Empty : u.Nombre)"
+                                                 Value="_selectedUnidadMedida"
+                                                 ValueChanged="OnUnidadMedidaSelected"
+                                                 MaxItems="null"
+                                                 CoerceText="false"
+                                                 ResetValueOnEmptyText="true"
+                                                 Clearable="true"
+                                                 Immediate="true"
+                                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                                 Adornment="Adornment.Start" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="4">
+                                <MudNumericField @bind-Value="_model.PrecioUnitario"
+                                                  Label="@L["Unit Price"]"
+                                                  Format="F2"
+                                                  Min="0"
+                                                  Required="true"
+                                                  RequiredError="@L["Unit price is required"]" />
+                            </MudItem>
+
+                            <MudItem xs="12" md="4">
+                                <MudNumericField @bind-Value="_model.RendimientoDiasPorUnidad"
+                                                  Label="@L["Days per Unit"]"
+                                                  Format="F2"
+                                                  Min="0"
+                                                  Required="true"
+                                                  RequiredError="@L["Days per unit is required"]" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Start">
+                                    <MudAutocomplete T="ClaveProdServSatCatalogoDto"
+                                                     Label="@L["SAT Product/Service Code"]"
+                                                     Placeholder="@L["Search by code or description"]"
+                                                     SearchFunc="@SearchClavesProdServSat"
+                                                     ToStringFunc="@(c => c == null ? string.Empty : $"{c.Codigo} - {c.Descripcion}")"
+                                                     Value="_selectedClaveProdServSat"
+                                                     ValueChanged="OnClaveProdServSatSelected"
+                                                     MaxItems="null"
+                                                     MinCharacters="3"
+                                                     DebounceInterval="300"
+                                                     CoerceText="false"
+                                                     ResetValueOnEmptyText="true"
+                                                     Clearable="true"
+                                                     AdornmentIcon="@Icons.Material.Filled.Search"
+                                                     Adornment="Adornment.Start"
+                                                     Class="flex-grow-1" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.TravelExplore" Color="Color.Primary"
+                                                   Variant="Variant.Outlined" Class="mt-2"
+                                                   OnClick="OpenWizardAsync" title="@L["Find code by category"]" />
+                                </MudStack>
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+                            <MudButton OnClick="@(() => NavigationManager.NavigateTo("/gestion/servicios"))" Class="da-button-rounded">
+                                @L["Cancel"]
+                            </MudButton>
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="da-button-rounded"
+                                       Disabled="@_saving" OnClick="Submit">
+                                @L["Save"]
+                            </MudButton>
+                        </MudStack>
+                    </MudForm>
+                }
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to manage services."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool IsCreate => Id is null;
+
+    private MudForm _form = null!;
+    private bool _loading = true;
+    private bool _saving;
+    private ServicioDialogModel _model = new();
+    private List<UnidadMedidaDto> _unidadesMedida = new();
+    private UnidadMedidaDto? _selectedUnidadMedida;
+    private ClaveProdServSatCatalogoDto? _selectedClaveProdServSat;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var unidadesResult = await UnidadMedidaService.GetAllAsync();
+        if (unidadesResult.IsSuccess)
+        {
+            _unidadesMedida = unidadesResult.Value!;
+        }
+
+        if (!IsCreate)
+        {
+            var result = await ServicioService.GetByIdAsync(Id!.Value);
+            if (result.IsSuccess)
+            {
+                var servicio = result.Value!;
+                _model = new ServicioDialogModel
+                {
+                    Id = servicio.Id,
+                    Nombre = servicio.Nombre,
+                    Descripcion = servicio.Descripcion,
+                    UnidadMedidaId = servicio.UnidadMedidaId,
+                    PrecioUnitario = servicio.PrecioUnitario,
+                    RendimientoDiasPorUnidad = servicio.RendimientoDiasPorUnidad,
+                    ClaveProdServSatId = servicio.ClaveProdServSatId,
+                    ClaveProdServSatCodigo = servicio.ClaveProdServSatCodigo,
+                    ClaveProdServSatDescripcion = servicio.ClaveProdServSatDescripcion
+                };
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+                NavigationManager.NavigateTo("/gestion/servicios");
+                return;
+            }
+        }
+
+        if (_model.UnidadMedidaId != 0)
+        {
+            _selectedUnidadMedida = _unidadesMedida.FirstOrDefault(u => u.Id == _model.UnidadMedidaId);
+        }
+
+        if (_model.ClaveProdServSatId is not null)
+        {
+            _selectedClaveProdServSat = new ClaveProdServSatCatalogoDto
+            {
+                Id = _model.ClaveProdServSatId.Value,
+                Codigo = _model.ClaveProdServSatCodigo ?? string.Empty,
+                Descripcion = _model.ClaveProdServSatDescripcion ?? string.Empty
+            };
+        }
+
+        _loading = false;
+    }
+
+    private async Task<IEnumerable<ClaveProdServSatCatalogoDto>> SearchClavesProdServSat(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+            return [];
+
+        var (_, items) = await FiscalCatalogService.SearchClavesProdServSatAsync(value, page: 1, pageSize: 20);
+        return items;
+    }
+
+    private void OnClaveProdServSatSelected(ClaveProdServSatCatalogoDto? value)
+    {
+        _selectedClaveProdServSat = value;
+        _model.ClaveProdServSatId = value?.Id;
+        _model.ClaveProdServSatCodigo = value?.Codigo;
+        _model.ClaveProdServSatDescripcion = value?.Descripcion;
+    }
+
+    private async Task OpenWizardAsync()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ClaveProdServSatWizardDialog>(L["SAT Product/Service Code Assistant"], options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ClaveProdServSatCatalogoDto selected)
+        {
+            OnClaveProdServSatSelected(selected);
+        }
+    }
+
+    private Task<IEnumerable<UnidadMedidaDto>> SearchUnidadesMedida(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_unidadesMedida.AsEnumerable());
+
+        return Task.FromResult(_unidadesMedida.Where(u =>
+            u.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            u.Codigo.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void OnUnidadMedidaSelected(UnidadMedidaDto? value)
+    {
+        _selectedUnidadMedida = value;
+        _model.UnidadMedidaId = value?.Id ?? 0;
+    }
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _saving = true;
+        try
+        {
+            if (IsCreate)
+            {
+                var createDto = new CreateServicioDto
+                {
+                    Nombre = _model.Nombre,
+                    Descripcion = _model.Descripcion,
+                    UnidadMedidaId = _model.UnidadMedidaId,
+                    PrecioUnitario = _model.PrecioUnitario,
+                    RendimientoDiasPorUnidad = _model.RendimientoDiasPorUnidad,
+                    ClaveProdServSatId = _model.ClaveProdServSatId
+                };
+
+                var createResult = await ServicioService.CreateAsync(createDto);
+                if (createResult.IsSuccess)
+                {
+                    Snackbar.Add(L["Service created successfully"], Severity.Success);
+                    NavigationManager.NavigateTo($"/gestion/servicios/{createResult.Value!.Id}");
+                }
+                else
+                {
+                    Snackbar.Add(createResult.Error, Severity.Error);
+                }
+            }
+            else
+            {
+                var updateDto = new UpdateServicioDto
+                {
+                    Nombre = _model.Nombre,
+                    Descripcion = _model.Descripcion,
+                    UnidadMedidaId = _model.UnidadMedidaId,
+                    PrecioUnitario = _model.PrecioUnitario,
+                    RendimientoDiasPorUnidad = _model.RendimientoDiasPorUnidad,
+                    ClaveProdServSatId = _model.ClaveProdServSatId
+                };
+
+                var updateResult = await ServicioService.UpdateAsync(_model.Id, updateDto);
+                if (updateResult.IsSuccess)
+                {
+                    Snackbar.Add(L["Service updated successfully"], Severity.Success);
+                    NavigationManager.NavigateTo($"/gestion/servicios/{_model.Id}");
+                }
+                else
+                {
+                    Snackbar.Add(updateResult.Error, Severity.Error);
+                }
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

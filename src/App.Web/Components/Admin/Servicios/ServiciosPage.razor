@@ -5,7 +5,6 @@
 @using App.Core.Constants
 @using App.Core.DTOs.Servicios
 @using App.Core.Interfaces
-@using App.Web.Components.Admin.Servicios.Models
 @using App.Web.Components.Shared.Dialogs
 @using MudBlazor
 
@@ -14,6 +13,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<ServiciosPage> Logger
+@inject NavigationManager NavigationManager
 
 <PageTitle>@L["Services"]</PageTitle>
 
@@ -34,7 +34,7 @@
                         <Authorized Context="authContext">
                             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Add"
-                                       OnClick="OpenCreateDialog" Class="da-button-rounded">
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/servicios/nueva"))" Class="da-button-rounded">
                                 @L["New Service"]
                             </MudButton>
                         </Authorized>
@@ -45,7 +45,11 @@
                              SortMode="SortMode.Multiple" Filterable="false"
                              Dense="true" Hover="true" RowsPerPage="10">
                         <Columns>
-                            <PropertyColumn Property="x => x.Nombre" Title="@L["Name"]" />
+                            <TemplateColumn Title="@L["Name"]">
+                                <CellTemplate>
+                                    <MudLink Href="@($"/gestion/servicios/{context.Item.Id}")">@context.Item.Nombre</MudLink>
+                                </CellTemplate>
+                            </TemplateColumn>
                             <PropertyColumn Property="x => x.Descripcion" Title="@L["Description"]" />
                             <PropertyColumn Property="x => x.UnidadMedidaNombre" Title="@L["Unit of Measure"]"
                                             HeaderStyle="width: 140px;" />
@@ -58,20 +62,24 @@
                                 <CellTemplate>@context.Item.RendimientoDiasPorUnidad.ToString("F2")</CellTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
-                                            CellClass="d-flex justify-end">
+                                            HeaderStyle="width: 150px;" CellClass="d-flex justify-end">
                                 <CellTemplate>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                                   Size="Size.Medium"
+                                                   OnClick="@(() => NavigationManager.NavigateTo($"/gestion/servicios/{context.Item.Id}"))"
+                                                   title="@L["View Service"]" />
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                           Size="Size.Small"
-                                                           OnClick="@(() => OpenEditDialog(context.Item))"
+                                                           Size="Size.Medium"
+                                                           OnClick="@(() => NavigationManager.NavigateTo($"/gestion/servicios/{context.Item.Id}/editar"))"
                                                            title="@L["Edit Service"]" />
                                         </Authorized>
                                     </AuthorizeView>
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteServicios">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                           Size="Size.Small"
+                                                           Size="Size.Medium"
                                                            Color="Color.Error"
                                                            OnClick="@(() => OpenDeleteDialog(context.Item))"
                                                            title="@L["Delete Service"]" />
@@ -146,90 +154,6 @@
     {
         _searchString = value;
         ApplyFilter();
-    }
-
-    private async Task OpenCreateDialog()
-    {
-        var parameters = new DialogParameters<ServicioDialog>
-        {
-            { x => x.IsNew, true },
-            { x => x.Model, new ServicioDialogModel() }
-        };
-
-        var dialog = await DialogService.ShowAsync<ServicioDialog>(L["New Service"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ServicioDialogModel model)
-        {
-            var createDto = new CreateServicioDto
-            {
-                Nombre = model.Nombre,
-                Descripcion = model.Descripcion,
-                UnidadMedidaId = model.UnidadMedidaId,
-                PrecioUnitario = model.PrecioUnitario,
-                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad,
-                ClaveProdServSatId = model.ClaveProdServSatId
-            };
-
-            var createResult = await ServicioService.CreateAsync(createDto);
-            if (createResult.IsSuccess)
-            {
-                Snackbar.Add(L["Service created successfully"], Severity.Success);
-                await LoadDataAsync();
-            }
-            else
-            {
-                Snackbar.Add(createResult.Error, Severity.Error);
-            }
-        }
-    }
-
-    private async Task OpenEditDialog(ServicioDto servicio)
-    {
-        var parameters = new DialogParameters<ServicioDialog>
-        {
-            { x => x.IsNew, false },
-            { x => x.Model, new ServicioDialogModel
-                {
-                    Id = servicio.Id,
-                    Nombre = servicio.Nombre,
-                    Descripcion = servicio.Descripcion,
-                    UnidadMedidaId = servicio.UnidadMedidaId,
-                    PrecioUnitario = servicio.PrecioUnitario,
-                    RendimientoDiasPorUnidad = servicio.RendimientoDiasPorUnidad,
-                    ClaveProdServSatId = servicio.ClaveProdServSatId,
-                    ClaveProdServSatCodigo = servicio.ClaveProdServSatCodigo,
-                    ClaveProdServSatDescripcion = servicio.ClaveProdServSatDescripcion
-                }
-            }
-        };
-
-        var dialog = await DialogService.ShowAsync<ServicioDialog>(L["Edit Service"], parameters);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is ServicioDialogModel model)
-        {
-            var updateDto = new UpdateServicioDto
-            {
-                Nombre = model.Nombre,
-                Descripcion = model.Descripcion,
-                UnidadMedidaId = model.UnidadMedidaId,
-                PrecioUnitario = model.PrecioUnitario,
-                RendimientoDiasPorUnidad = model.RendimientoDiasPorUnidad,
-                ClaveProdServSatId = model.ClaveProdServSatId
-            };
-
-            var updateResult = await ServicioService.UpdateAsync(model.Id, updateDto);
-            if (updateResult.IsSuccess)
-            {
-                Snackbar.Add(L["Service updated successfully"], Severity.Success);
-                await LoadDataAsync();
-            }
-            else
-            {
-                Snackbar.Add(updateResult.Error, Severity.Error);
-            }
-        }
     }
 
     private async Task OpenDeleteDialog(ServicioDto servicio)

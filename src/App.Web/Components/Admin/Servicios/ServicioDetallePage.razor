@@ -1,0 +1,158 @@
+@page "/gestion/servicios/{Id:int}"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewServicios)]
+
+@using Microsoft.AspNetCore.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Servicios
+@using App.Core.Interfaces
+@using App.Web.Components.Shared
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Components.Shared.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ServicioDetallePage> L
+@inject IServicioService ServicioService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject ILogger<ServicioDetallePage> Logger
+
+<PageTitle>@(_servicio is null ? L["Service Details"] : _servicio.Nombre)</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewServicios">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+            @if (_loading)
+            {
+                <div class="d-flex justify-center pa-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (_servicio is null)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-2"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/servicios"))" />
+                <MudAlert Severity="Severity.Warning">@L["Service not found"]</MudAlert>
+            }
+            else
+            {
+                @* ── Header card ─────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-4 pa-sm-6 mb-4" Elevation="2">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/servicios"))" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Services"]</MudText>
+                    </MudStack>
+
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="4">
+                        <div style="min-width: 0;">
+                            <MudText Typo="Typo.h5" Style="font-weight: 600;">@_servicio.Nombre</MudText>
+                        </div>
+
+                        <MudStack Row="true" Spacing="2" Class="flex-shrink-0">
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.ManageServicios">
+                                <Authorized Context="authContext">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Edit"
+                                               Class="da-button-rounded"
+                                               OnClick="@(() => NavigationManager.NavigateTo($"/gestion/servicios/{Id}/editar"))">
+                                        @L["Edit Service"]
+                                    </MudButton>
+                                </Authorized>
+                            </AuthorizeView>
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteServicios">
+                                <Authorized Context="authContext">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                                   Variant="Variant.Outlined" OnClick="OpenDeleteDialog"
+                                                   title="@L["Delete Service"]" />
+                                </Authorized>
+                            </AuthorizeView>
+                        </MudStack>
+                    </MudStack>
+
+                    <MudDivider Class="my-3" />
+                    <CamposDetalleGrid Campos="@CamposServicio()" />
+                </MudPaper>
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view services."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private ServicioDto? _servicio;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await ServicioService.GetByIdAsync(Id);
+            _servicio = result.IsSuccess ? result.Value : null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading servicio {Id}", Id);
+            Snackbar.Add(L["Error loading service"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private List<CampoDetalle> CamposServicio() =>
+    [
+        new(Icons.Material.Filled.Description, L["Description"], _servicio!.Descripcion),
+        new(Icons.Material.Filled.Straighten, L["Unit of Measure"], _servicio.UnidadMedidaNombre),
+        new(Icons.Material.Filled.AttachMoney, L["Unit Price"], _servicio.PrecioUnitario.ToString("C2")),
+        new(Icons.Material.Filled.Schedule, L["Days per Unit"], _servicio.RendimientoDiasPorUnidad.ToString("F2")),
+        new(Icons.Material.Filled.Receipt, L["SAT Product/Service Code"],
+            _servicio.ClaveProdServSatId is null ? null : $"{_servicio.ClaveProdServSatCodigo} - {_servicio.ClaveProdServSatDescripcion}")
+    ];
+
+    private async Task OpenDeleteDialog()
+    {
+        if (_servicio is null) return;
+
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Delete Service Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["Are you sure you want to delete service:"].ToString() },
+            { nameof(ConfirmDialog.HighlightedText), _servicio.Nombre },
+            { nameof(ConfirmDialog.ConfirmText), L["Delete"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Delete },
+            { nameof(ConfirmDialog.Color), Color.Error },
+            { nameof(ConfirmDialog.WarningText), L["This action cannot be undone."].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Delete Service"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var deleteResult = await ServicioService.DeleteAsync(_servicio.Id);
+        if (deleteResult.IsSuccess)
+        {
+            Snackbar.Add(L["Service deleted successfully"], Severity.Success);
+            NavigationManager.NavigateTo("/gestion/servicios");
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+}

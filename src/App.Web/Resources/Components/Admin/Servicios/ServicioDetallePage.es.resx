@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Service Details" xml:space="preserve">
+    <value>Detalle de Servicio</value>
+  </data>
+  <data name="Service not found" xml:space="preserve">
+    <value>Servicio no encontrado</value>
+  </data>
   <data name="Services" xml:space="preserve">
     <value>Servicios</value>
-  </data>
-  <data name="Search services" xml:space="preserve">
-    <value>Buscar servicios</value>
-  </data>
-  <data name="New Service" xml:space="preserve">
-    <value>Nuevo Servicio</value>
-  </data>
-  <data name="View Service" xml:space="preserve">
-    <value>Ver Servicio</value>
   </data>
   <data name="Edit Service" xml:space="preserve">
     <value>Editar Servicio</value>
   </data>
   <data name="Delete Service" xml:space="preserve">
     <value>Eliminar Servicio</value>
-  </data>
-  <data name="Name" xml:space="preserve">
-    <value>Nombre</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Descripción</value>
@@ -33,26 +27,14 @@
   <data name="Days per Unit" xml:space="preserve">
     <value>Días por Unidad</value>
   </data>
-  <data name="Actions" xml:space="preserve">
-    <value>Acciones</value>
+  <data name="SAT Product/Service Code" xml:space="preserve">
+    <value>Clave de Producto/Servicio SAT</value>
   </data>
-  <data name="No services found" xml:space="preserve">
-    <value>No se encontraron servicios</value>
+  <data name="Error loading service" xml:space="preserve">
+    <value>Error al cargar el servicio</value>
   </data>
   <data name="You don't have permission to view services." xml:space="preserve">
     <value>No tienes permiso para ver los servicios.</value>
-  </data>
-  <data name="Error loading services" xml:space="preserve">
-    <value>Error al cargar los servicios</value>
-  </data>
-  <data name="Service created successfully" xml:space="preserve">
-    <value>Servicio creado exitosamente</value>
-  </data>
-  <data name="Service updated successfully" xml:space="preserve">
-    <value>Servicio actualizado exitosamente</value>
-  </data>
-  <data name="Service deleted successfully" xml:space="preserve">
-    <value>Servicio eliminado exitosamente</value>
   </data>
   <data name="Delete Service Confirmation" xml:space="preserve">
     <value>Confirmar Eliminación de Servicio</value>
@@ -68,5 +50,8 @@
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancelar</value>
+  </data>
+  <data name="Service deleted successfully" xml:space="preserve">
+    <value>Servicio eliminado exitosamente</value>
   </data>
 </root>
