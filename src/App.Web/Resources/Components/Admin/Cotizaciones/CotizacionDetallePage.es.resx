@@ -12,6 +12,15 @@
   <data name="Edit" xml:space="preserve">
     <value>Editar</value>
   </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Lineas" xml:space="preserve">
+    <value>Líneas</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
   <data name="Service" xml:space="preserve">
     <value>Servicio</value>
   </data>
@@ -42,8 +51,26 @@
   <data name="Approve" xml:space="preserve">
     <value>Aprobar</value>
   </data>
+  <data name="View PDF" xml:space="preserve">
+    <value>Ver PDF</value>
+  </data>
   <data name="Download PDF" xml:space="preserve">
     <value>Descargar PDF</value>
+  </data>
+  <data name="Send by Email" xml:space="preserve">
+    <value>Enviar por Correo</value>
+  </data>
+  <data name="Share by WhatsApp" xml:space="preserve">
+    <value>Compartir por WhatsApp</value>
+  </data>
+  <data name="Cotización sent successfully" xml:space="preserve">
+    <value>Cotización enviada exitosamente</value>
+  </data>
+  <data name="This browser can't attach the file directly — opened WhatsApp with a text message instead" xml:space="preserve">
+    <value>Este navegador no puede adjuntar el archivo directamente — se abrió WhatsApp con un mensaje de texto en su lugar</value>
+  </data>
+  <data name="Quotation for {0} — Total: {1:C2}" xml:space="preserve">
+    <value>Cotización para {0} — Total: {1:C2}</value>
   </data>
   <data name="Error loading cotización" xml:space="preserve">
     <value>Error al cargar la cotización</value>

@@ -543,6 +543,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
         Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")));
 
     services.AddSingleton<IPdfService, PdfService>();
+    services.AddScoped<IWhatsAppShareService, WhatsAppShareService>();
     services.AddScoped<IPermissionCheckService, PermissionCheckService>();
     services.AddSingleton<PermissionTranslationService>();
     services.AddSingleton<RoleTranslationService>();

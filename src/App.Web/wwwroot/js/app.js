@@ -120,6 +120,35 @@ window.openFileInNewTab = (contentType, base64Data) => {
     window.open(url, '_blank', 'noopener,noreferrer');
 };
 
+// Share a file (e.g. a PDF) via the OS-level share sheet (navigator.share with files),
+// so the user can pick WhatsApp/Mail/etc. and the file attaches natively — supported on
+// iOS/iPadOS Safari and Android Chrome. Returns true if the native share sheet handled it.
+// If the browser can't share files (most desktops), falls back to opening a wa.me link
+// with just a pre-filled text message — no attachment in that fallback case.
+window.shareFile = async function (fileName, base64Data, contentType, text) {
+    try {
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const file = new File([byteNumbers], fileName, { type: contentType });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], text: text || '' });
+            return true;
+        }
+    } catch (err) {
+        // AbortError means the user simply cancelled the native share sheet — not a real failure.
+        if (err && err.name === 'AbortError') return true;
+        console.error('shareFile failed', err);
+    }
+
+    const waText = encodeURIComponent(text || '');
+    window.open(`https://wa.me/?text=${waText}`, '_blank', 'noopener,noreferrer');
+    return false;
+};
+
 // File download helper — called from Blazor via JS interop
 window.downloadFile = (fileName, contentType, base64Data) => {
     const link = document.createElement('a');

@@ -46,7 +46,11 @@
                              SortMode="SortMode.Multiple" Filterable="false"
                              Dense="true" Hover="true" RowsPerPage="10">
                     <Columns>
-                        <PropertyColumn Property="x => x.ClienteNombre" Title="@L["Client"]" />
+                        <TemplateColumn Title="@L["Client"]">
+                            <CellTemplate>
+                                <MudLink Href="@($"/gestion/cotizaciones/{context.Item.Id}")">@context.Item.ClienteNombre</MudLink>
+                            </CellTemplate>
+                        </TemplateColumn>
                         <PropertyColumn Property="x => x.FechaGeneracion" Title="@L["Date"]" Format="dd/MM/yyyy" HeaderStyle="width: 130px;" />
                         <TemplateColumn Title="@L["Total"]" HeaderStyle="text-align: right; width: 130px;" CellStyle="text-align: right;">
                             <CellTemplate>@context.Item.Total.ToString("C2")</CellTemplate>
@@ -59,32 +63,44 @@
                             </CellTemplate>
                         </TemplateColumn>
                         <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false"
-                                        CellClass="d-flex justify-end">
+                                        HeaderStyle="width: 190px;" CellClass="d-flex justify-end">
                             <CellTemplate>
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility"
-                                               Size="Size.Small"
+                                               Size="Size.Medium"
                                                OnClick="@(() => NavigationManager.NavigateTo($"/gestion/cotizaciones/{context.Item.Id}"))"
                                                title="@L["View Cotización"]" />
                                 <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf"
-                                               Size="Size.Small"
-                                               OnClick="@(() => DescargarPdf(context.Item.Id))"
-                                               title="@L["Download PDF"]" />
+                                               Size="Size.Medium"
+                                               Href="@($"/api/cotizaciones/{context.Item.Id}/pdf?inline=true")"
+                                               Target="_blank"
+                                               title="@L["View PDF"]" />
                                 @if (context.Item.Estado == CotizacionEstado.Pendiente)
                                 {
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                           Size="Size.Small"
+                                                           Size="Size.Medium"
                                                            OnClick="@(() => NavigationManager.NavigateTo($"/gestion/cotizaciones/{context.Item.Id}/editar"))"
                                                            title="@L["Edit Cotización"]" />
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                           Size="Size.Small"
-                                                           Color="Color.Error"
-                                                           OnClick="@(() => OpenDeleteDialog(context.Item))"
-                                                           title="@L["Delete Cotización"]" />
                                         </Authorized>
                                     </AuthorizeView>
                                 }
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Medium" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    <MudMenuItem Href="@($"/api/cotizaciones/{context.Item.Id}/pdf")" Icon="@Icons.Material.Filled.Download">
+                                        @L["Download PDF"]
+                                    </MudMenuItem>
+                                    @if (context.Item.Estado == CotizacionEstado.Pendiente)
+                                    {
+                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+                                            <Authorized Context="authContext">
+                                                <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error"
+                                                             OnClick="@(() => OpenDeleteDialog(context.Item))">
+                                                    @L["Delete Cotización"]
+                                                </MudMenuItem>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    }
+                                </MudMenu>
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -171,11 +187,6 @@
         CotizacionEstado.Rechazada => L["Rejected"],
         _ => estado.ToString()
     };
-
-    private void DescargarPdf(int id)
-    {
-        NavigationManager.NavigateTo($"/api/cotizaciones/{id}/pdf", forceLoad: true);
-    }
 
     private async Task OpenDeleteDialog(CotizacionDto cotizacion)
     {

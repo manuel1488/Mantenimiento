@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Send by Email" xml:space="preserve">
+    <value>Enviar por Correo</value>
+  </data>
+  <data name="Recipient Email" xml:space="preserve">
+    <value>Correo del Destinatario</value>
+  </data>
+  <data name="Email is required" xml:space="preserve">
+    <value>El correo es obligatorio</value>
+  </data>
+  <data name="Enter a valid email address" xml:space="preserve">
+    <value>Ingresa un correo válido</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Enviar</value>
+  </data>
+</root>

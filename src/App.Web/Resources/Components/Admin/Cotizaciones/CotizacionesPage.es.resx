@@ -27,6 +27,9 @@
   <data name="View Cotización" xml:space="preserve">
     <value>Ver Cotización</value>
   </data>
+  <data name="View PDF" xml:space="preserve">
+    <value>Ver PDF</value>
+  </data>
   <data name="Edit Cotización" xml:space="preserve">
     <value>Editar Cotización</value>
   </data>

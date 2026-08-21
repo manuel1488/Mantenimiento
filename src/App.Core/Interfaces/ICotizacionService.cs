@@ -18,4 +18,7 @@ public interface ICotizacionService
 
     /// <summary>Renders the Cotización as a PDF using the effective (DB override or default) template.</summary>
     Task<Result<byte[]>> GetCotizacionPdfAsync(int cotizacionId, CancellationToken cancellationToken = default);
+
+    /// <summary>Emails the Cotización PDF as an attachment to the given recipient.</summary>
+    Task<Result> SendCotizacionEmailAsync(int cotizacionId, string recipientEmail, CancellationToken cancellationToken = default);
 }

@@ -6,11 +6,15 @@
 @using App.Core.DTOs.Cotizaciones
 @using App.Core.Enums.Cotizaciones
 @using App.Core.Interfaces
+@using App.Web.Components.Shared
 @using App.Web.Components.Shared.Dialogs
+@using App.Web.Components.Shared.Models
+@using App.Web.Services
 @using MudBlazor
 
 @inject IStringLocalizer<CotizacionDetallePage> L
 @inject ICotizacionService CotizacionService
+@inject IWhatsAppShareService WhatsAppShareService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<CotizacionDetallePage> Logger
@@ -20,7 +24,7 @@
 
 <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
     <Authorized Context="pageAuth">
-        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 mb-8">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
             @if (_loading)
             {
                 <div class="d-flex justify-center pa-8">
@@ -35,24 +39,40 @@
             }
             else
             {
-                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
-                    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
-                                   OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />
-                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Cotizaciones"]</MudText>
-                </MudStack>
+                @* ── Header card ─────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-4 pa-sm-6 mb-4" Elevation="2">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                                       OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Cotizaciones"]</MudText>
+                    </MudStack>
 
-                <MudPaper Class="da-card pa-4 pa-sm-6" Elevation="2">
-                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Wrap="Wrap.Wrap" Spacing="2" Class="mb-3">
-                        <div>
+                    <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="4">
+                        <div style="min-width: 0;">
                             <MudText Typo="Typo.h5" Style="font-weight: 600;">@_cotizacion.ClienteNombre</MudText>
                             <MudText Typo="Typo.body2" Class="mud-text-secondary">@_cotizacion.FechaGeneracion.ToString("dd/MM/yyyy")</MudText>
-                            <MudChip T="string" Size="Size.Small" Color="@EstadoColor(_cotizacion.Estado)" Variant="Variant.Filled" Class="mt-2">
-                                @EstadoLabel(_cotizacion.Estado)
-                            </MudChip>
+                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-2">
+                                <MudChip T="string" Size="Size.Small" Color="@EstadoColor(_cotizacion.Estado)" Variant="Variant.Filled">
+                                    @EstadoLabel(_cotizacion.Estado)
+                                </MudChip>
+                            </MudStack>
                         </div>
-                        <MudStack Row="true" Spacing="2">
+
+                        <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="flex-shrink-0">
                             <MudIconButton Icon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Secondary"
-                                           Variant="Variant.Outlined" OnClick="DescargarPdf" title="@L["Download PDF"]" />
+                                           Variant="Variant.Outlined"
+                                           Href="@($"/api/cotizaciones/{Id}/pdf?inline=true")" Target="_blank"
+                                           title="@L["View PDF"]" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Secondary"
+                                           Variant="Variant.Outlined"
+                                           Href="@($"/api/cotizaciones/{Id}/pdf")"
+                                           title="@L["Download PDF"]" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Email" Color="Color.Secondary"
+                                           Variant="Variant.Outlined" OnClick="OpenSendEmailDialog"
+                                           title="@L["Send by Email"]" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Secondary"
+                                           Variant="Variant.Outlined" OnClick="ShareByWhatsAppAsync" Disabled="@_sharing"
+                                           title="@L["Share by WhatsApp"]" />
                             @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
                             {
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
@@ -69,7 +89,12 @@
                     </MudStack>
 
                     <MudDivider Class="my-3" />
+                    <CamposDetalleGrid Campos="@CamposCotizacion()" />
+                </MudPaper>
 
+                @* ── Líneas ────────────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-2 pa-sm-4 mb-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle1" Class="pa-2">@L["Lineas"]</MudText>
                     <MudSimpleTable Dense="true" Hover="true">
                         <thead>
                             <tr>
@@ -92,16 +117,18 @@
                         </tbody>
                     </MudSimpleTable>
 
-                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-2 mt-2">
                         <MudText Typo="Typo.h6">@L["Total"]: @_cotizacion.Total.ToString("C2")</MudText>
                     </MudStack>
+                </MudPaper>
 
-                    @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
-                    {
-                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
-                            <Authorized Context="authContext">
-                                <MudDivider Class="my-3" />
-                                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Approval"]</MudText>
+                @* ── Aprobación ───────────────────────────────────────────── *@
+                @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
+                {
+                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
+                        <Authorized Context="authContext">
+                            <MudPaper Class="da-card pa-4 mb-4" Elevation="2">
+                                <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Approval"]</MudText>
                                 <MudGrid>
                                     <MudItem xs="12" md="6">
                                         <MudTextField @bind-Value="_aprobadaPor" Label="@L["Approved By"]" />
@@ -118,10 +145,10 @@
                                         @L["Approve"]
                                     </MudButton>
                                 </MudStack>
-                            </Authorized>
-                        </AuthorizeView>
-                    }
-                </MudPaper>
+                            </MudPaper>
+                        </Authorized>
+                    </AuthorizeView>
+                }
             }
         </MudContainer>
     </Authorized>
@@ -136,6 +163,7 @@
     [Parameter] public int Id { get; set; }
 
     private bool _loading = true;
+    private bool _sharing;
     private CotizacionDto? _cotizacion;
     private string _aprobadaPor = string.Empty;
     private string _medioAprobacion = string.Empty;
@@ -167,6 +195,13 @@
             _loading = false;
         }
     }
+
+    private List<CampoDetalle> CamposCotizacion() =>
+    [
+        new(Icons.Material.Filled.Business, L["Client"], _cotizacion!.ClienteNombre),
+        new(Icons.Material.Filled.Event, L["Date"], _cotizacion.FechaGeneracion.ToString("dd/MM/yyyy")),
+        new(Icons.Material.Filled.AttachMoney, L["Total"], _cotizacion.Total.ToString("C2"))
+    ];
 
     private async Task AprobarAsync()
     {
@@ -207,9 +242,56 @@
         }
     }
 
-    private void DescargarPdf()
+    private async Task OpenSendEmailDialog()
     {
-        NavigationManager.NavigateTo($"/api/cotizaciones/{Id}/pdf", forceLoad: true);
+        var parameters = new DialogParameters<SendCotizacionEmailDialog>
+        {
+            { x => x.DefaultEmail, _cotizacion?.ClienteCorreo }
+        };
+
+        var dialog = await DialogService.ShowAsync<SendCotizacionEmailDialog>(L["Send by Email"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not string email) return;
+
+        var sendResult = await CotizacionService.SendCotizacionEmailAsync(Id, email);
+        if (sendResult.IsSuccess)
+        {
+            Snackbar.Add(L["Cotización sent successfully"], Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(sendResult.Error, Severity.Error);
+        }
+    }
+
+    private async Task ShareByWhatsAppAsync()
+    {
+        if (_cotizacion is null) return;
+
+        _sharing = true;
+        try
+        {
+            var pdfResult = await CotizacionService.GetCotizacionPdfAsync(Id);
+            if (!pdfResult.IsSuccess)
+            {
+                Snackbar.Add(pdfResult.Error, Severity.Error);
+                return;
+            }
+
+            var text = L["Quotation for {0} — Total: {1:C2}", _cotizacion.ClienteNombre, _cotizacion.Total].ToString();
+            var shared = await WhatsAppShareService.ShareFileAsync(
+                pdfResult.Value!, $"cotizacion-{Id}.pdf", "application/pdf", text);
+
+            if (!shared)
+            {
+                Snackbar.Add(L["This browser can't attach the file directly — opened WhatsApp with a text message instead"], Severity.Info);
+            }
+        }
+        finally
+        {
+            _sharing = false;
+        }
     }
 
     private static Color EstadoColor(CotizacionEstado estado) => estado switch

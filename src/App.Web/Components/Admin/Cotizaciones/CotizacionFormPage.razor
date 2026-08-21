@@ -22,7 +22,7 @@
 
 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
     <Authorized Context="pageAuth">
-        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 mb-8">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
             <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
                 <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
                                OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />

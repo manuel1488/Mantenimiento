@@ -29,6 +29,7 @@ public class CotizacionService : ICotizacionService
     private readonly ICotizacionTemplateSettingsService _templateSettingsService;
     private readonly ICompanySettingsService _companySettingsService;
     private readonly IEmailTemplateService _emailTemplateService;
+    private readonly IEmailService _emailService;
     private readonly IOptions<ApplicationOptions> _applicationOptions;
     private readonly IOptions<BrandingOptions> _brandingOptions;
 
@@ -43,6 +44,7 @@ public class CotizacionService : ICotizacionService
         ICotizacionTemplateSettingsService templateSettingsService,
         ICompanySettingsService companySettingsService,
         IEmailTemplateService emailTemplateService,
+        IEmailService emailService,
         IOptions<ApplicationOptions> applicationOptions,
         IOptions<BrandingOptions> brandingOptions)
     {
@@ -56,6 +58,7 @@ public class CotizacionService : ICotizacionService
         _templateSettingsService = templateSettingsService;
         _companySettingsService = companySettingsService;
         _emailTemplateService = emailTemplateService;
+        _emailService = emailService;
         _applicationOptions = applicationOptions;
         _brandingOptions = brandingOptions;
     }
@@ -581,6 +584,62 @@ public class CotizacionService : ICotizacionService
         {
             _logger.LogError(ex, "Error generating PDF for cotizacion {Id}", cotizacionId);
             return Result<byte[]>.Failure(_localizer["Error generating cotizacion PDF"]);
+        }
+    }
+
+    public async Task<Result> SendCotizacionEmailAsync(int cotizacionId, string recipientEmail, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var cotizacion = await context.Cotizaciones
+                .AsNoTracking()
+                .Include(c => c.Cliente)
+                .FirstOrDefaultAsync(c => c.Id == cotizacionId, cancellationToken);
+
+            if (cotizacion == null)
+                return Result.Failure(_localizer["Cotizacion not found"]);
+
+            var pdfResult = await GetCotizacionPdfAsync(cotizacionId, cancellationToken);
+            if (!pdfResult.IsSuccess)
+                return Result.Failure(pdfResult.Error!);
+
+            var companySettings = await _companySettingsService.GetSettingsAsync();
+            var companyName = string.IsNullOrWhiteSpace(companySettings?.CompanyName)
+                ? _applicationOptions.Value.Name
+                : companySettings.CompanyName;
+
+            var message = new Core.Models.Email.EmailMessage
+            {
+                To = recipientEmail,
+                Subject = _localizer["Quotation {0} - {1}", cotizacion.Id, companyName],
+                Body = _localizer["Attached is your quotation from {0}.", companyName],
+                IsHtml = false,
+                Attachments =
+                [
+                    new Core.Models.Email.EmailAttachment
+                    {
+                        FileName = $"cotizacion-{cotizacion.Id}.pdf",
+                        Content = pdfResult.Value!,
+                        ContentType = "application/pdf"
+                    }
+                ]
+            };
+
+            var emailResult = await _emailService.SendAsync(message, cancellationToken);
+            if (!emailResult.Success)
+            {
+                _logger.LogWarning("Error sending cotizacion {Id} email to {Recipient}: {Error}", cotizacionId, recipientEmail, emailResult.Error);
+                return Result.Failure(_localizer["Error sending cotizacion email"]);
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending cotizacion {Id} email", cotizacionId);
+            return Result.Failure(_localizer["Error sending cotizacion email"]);
         }
     }
 }

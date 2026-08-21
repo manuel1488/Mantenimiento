@@ -7,6 +7,7 @@ public class CotizacionDto
     public int Id { get; set; }
     public int ClienteId { get; set; }
     public string ClienteNombre { get; set; } = null!;
+    public string? ClienteCorreo { get; set; }
     public DateTime FechaGeneracion { get; set; }
     public decimal Total { get; set; }
     public CotizacionEstado Estado { get; set; }

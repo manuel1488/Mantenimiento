@@ -1,0 +1,52 @@
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Send by Email"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudTextField T="string" @bind-Value="_email" Label="@L["Recipient Email"]"
+                          Required="true" RequiredError="@L["Email is required"]"
+                          Validation="@(new Func<string, string?>(ValidateEmail))" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Class="da-button-rounded">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Class="da-button-rounded"
+                   Disabled="@(!_isValid)" OnClick="Send">
+            @L["Send"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string? DefaultEmail { get; set; }
+    [Inject] private IStringLocalizer<SendCotizacionEmailDialog> L { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private string _email = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _email = DefaultEmail ?? string.Empty;
+    }
+
+    private string? ValidateEmail(string email) =>
+        string.IsNullOrWhiteSpace(email) || email.Contains('@')
+            ? null
+            : L["Enter a valid email address"];
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Send()
+    {
+        await _form.Validate();
+        if (_isValid)
+        {
+            MudDialog.Close(DialogResult.Ok(_email));
+        }
+    }
+}
