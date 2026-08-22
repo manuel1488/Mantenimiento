@@ -1,0 +1,162 @@
+    <div class="header">
+        <div>
+            {{ if has_logo }}
+            <div class="logo"><img src="{{ logo_base64 }}" alt="{{ company_name }}" /></div>
+            {{ end }}
+            <div class="company-name">{{ company_name }}</div>
+        </div>
+        <div class="title-block">
+            <div class="title">{{ label_quotation }} #{{ cotizacion_id }}</div>
+            <div class="date">{{ label_date }}: {{ fecha_generacion }}</div>
+        </div>
+    </div>
+
+    <div class="info-block">
+        <div class="info-box">
+            <div class="box-title">{{ label_client }}</div>
+            <div class="field-value">{{ cliente_nombre }}</div>
+            {{ if has_cliente_correo }}
+            <div class="field-line"><span class="field-icon">&#9993;</span>{{ cliente_correo }}</div>
+            {{ end }}
+            {{ if has_cliente_telefono }}
+            <div class="field-line"><span class="field-icon">&#9742;</span>{{ cliente_telefono }}</div>
+            {{ end }}
+            {{ if has_cliente_direccion }}
+            <div class="field-line">{{ cliente_direccion }}</div>
+            {{ end }}
+        </div>
+        {{ if cliente_tiene_datos_fiscales }}
+        <div class="info-box fiscal-box">
+            <div class="box-title">{{ label_fiscal_data }}</div>
+            <div class="field-value">{{ cliente_razon_social }}</div>
+            <div class="field-line">{{ label_rfc }}: {{ cliente_rfc }}</div>
+            <div class="field-line">{{ label_tax_regime }}: {{ cliente_regimen_fiscal }}</div>
+        </div>
+        {{ end }}
+    </div>
+
+    <table class="lineas">
+        <thead>
+            <tr>
+                <th class="col-index">#</th>
+                <th>{{ label_service }}</th>
+                <th class="align-right">{{ label_quantity }}</th>
+                <th class="align-right">{{ label_unit_price }}</th>
+                <th class="align-right">{{ label_subtotal }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ for linea in lineas }}
+            <tr>
+                <td class="col-index">{{ linea.indice }}</td>
+                <td>{{ linea.servicio_nombre }}</td>
+                <td class="align-right">{{ linea.cantidad }} {{ linea.unidad_medida }}</td>
+                <td class="align-right">{{ linea.precio_unitario }}</td>
+                <td class="align-right">{{ linea.subtotal }}</td>
+            </tr>
+            {{ end }}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="totals-box">
+            <div class="totals-row">
+                <span>{{ label_subtotal }}</span>
+                <span>{{ subtotal }}</span>
+            </div>
+            {{ if incluir_iva }}
+            <div class="totals-row">
+                <span>{{ label_iva }} ({{ iva_tasa }}%)</span>
+                <span>{{ iva_monto }}</span>
+            </div>
+            {{ end }}
+            <div class="total-box">
+                <span>{{ label_total }}</span>
+                <span>{{ total }}</span>
+            </div>
+        </div>
+    </div>
+
+    {{ if has_payment_terms }}
+    <div class="extra-section">
+        <div class="box-title">{{ label_payment_terms }}</div>
+        <div class="box-text">{{ payment_terms_text }}</div>
+    </div>
+    {{ end }}
+
+    {{ if mostrar_datos_bancarios }}
+    <div class="extra-section">
+        <div class="box-title">{{ label_bank_transfer }}</div>
+        <div class="bank-grid">
+            <div class="bank-field">
+                <div class="bank-label">{{ label_beneficiary }}</div>
+                <div class="bank-value">{{ banco_beneficiario }}</div>
+            </div>
+            <div class="bank-field">
+                <div class="bank-label">{{ label_rfc }}</div>
+                <div class="bank-value">{{ banco_rfc }}</div>
+            </div>
+            <div class="bank-field">
+                <div class="bank-label">{{ label_bank }}</div>
+                <div class="bank-value">{{ banco_nombre }}</div>
+            </div>
+            <div class="bank-field">
+                <div class="bank-label">{{ label_account_number }}</div>
+                <div class="bank-value">{{ banco_numero_cuenta }}</div>
+            </div>
+            <div class="bank-field full-width">
+                <div class="bank-label">{{ label_clabe }}</div>
+                <div class="bank-value">{{ banco_clabe }}</div>
+            </div>
+            <div class="bank-field">
+                <div class="bank-label">{{ label_swift }}</div>
+                <div class="bank-value">{{ banco_swift }}</div>
+            </div>
+        </div>
+    </div>
+    {{ end }}
+
+    {{ if mostrar_contacto }}
+    <div class="extra-section">
+        <div class="box-title">{{ label_contact }}</div>
+        <div class="bank-grid">
+            {{ if has_contacto_sitio_web }}
+            <div class="bank-field">
+                <div class="bank-value">{{ contacto_sitio_web }}</div>
+            </div>
+            {{ end }}
+            {{ if has_contacto_telefono }}
+            <div class="bank-field">
+                <div class="bank-value">{{ contacto_telefono }}</div>
+            </div>
+            {{ end }}
+            {{ if has_contacto_correo }}
+            <div class="bank-field">
+                <div class="bank-value">{{ contacto_correo }}</div>
+            </div>
+            {{ end }}
+            {{ if has_contacto_whatsapp }}
+            <div class="bank-field">
+                <div class="bank-value">{{ contacto_whatsapp }}</div>
+            </div>
+            {{ end }}
+            {{ if has_contacto_facebook }}
+            <div class="bank-field">
+                <div class="bank-value">{{ contacto_facebook }}</div>
+            </div>
+            {{ end }}
+            {{ if has_contacto_instagram }}
+            <div class="bank-field">
+                <div class="bank-value">{{ contacto_instagram }}</div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
+    <div class="footer">
+        {{ if mostrar_direccion }}
+        <div class="company-address">{{ company_direccion }}</div>
+        {{ end }}
+        {{ company_name }} — {{ label_quotation }} #{{ cotizacion_id }}
+    </div>

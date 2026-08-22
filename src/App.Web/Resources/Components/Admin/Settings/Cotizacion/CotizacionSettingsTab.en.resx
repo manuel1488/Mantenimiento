@@ -42,4 +42,67 @@
   <data name="Error rendering preview" xml:space="preserve">
     <value>Error rendering preview</value>
   </data>
+  <data name="Footer Content" xml:space="preserve">
+    <value>Footer Content</value>
+  </data>
+  <data name="Optional content shown in the Cotización PDF footer." xml:space="preserve">
+    <value>Optional content shown in the Cotización PDF footer.</value>
+  </data>
+  <data name="Payment Terms" xml:space="preserve">
+    <value>Payment Terms</value>
+  </data>
+  <data name="Leave blank to hide this section from the PDF." xml:space="preserve">
+    <value>Leave blank to hide this section from the PDF.</value>
+  </data>
+  <data name="Show company address on the Cotización PDF" xml:space="preserve">
+    <value>Show company address on the Cotización PDF</value>
+  </data>
+  <data name="Show bank transfer details on the Cotización PDF" xml:space="preserve">
+    <value>Show bank transfer details on the Cotización PDF</value>
+  </data>
+  <data name="Beneficiary" xml:space="preserve">
+    <value>Beneficiary</value>
+  </data>
+  <data name="RFC" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Bank" xml:space="preserve">
+    <value>Bank</value>
+  </data>
+  <data name="Account Number" xml:space="preserve">
+    <value>Account Number</value>
+  </data>
+  <data name="CLABE" xml:space="preserve">
+    <value>CLABE</value>
+  </data>
+  <data name="SWIFT/BIC" xml:space="preserve">
+    <value>SWIFT/BIC</value>
+  </data>
+  <data name="Contact and Social Media" xml:space="preserve">
+    <value>Contact and Social Media</value>
+  </data>
+  <data name="Show on PDF" xml:space="preserve">
+    <value>Show on PDF</value>
+  </data>
+  <data name="Contact details shown in the Cotización PDF footer." xml:space="preserve">
+    <value>Contact details shown in the Cotización PDF footer.</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Website</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="WhatsApp" xml:space="preserve">
+    <value>WhatsApp</value>
+  </data>
+  <data name="Facebook" xml:space="preserve">
+    <value>Facebook</value>
+  </data>
+  <data name="Instagram" xml:space="preserve">
+    <value>Instagram</value>
+  </data>
 </root>

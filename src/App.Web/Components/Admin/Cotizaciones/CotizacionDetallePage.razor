@@ -142,7 +142,12 @@
                         }
                     </div>
 
-                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-2 mt-2">
+                    <MudStack Spacing="0" Class="pa-2 mt-2" Style="align-items: flex-end;">
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Subtotal"]: @_cotizacion.Subtotal.ToString("C2")</MudText>
+                        @if (_cotizacion.IncluirIva)
+                        {
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["IVA"] (@_cotizacion.IvaTasa.ToString("F2")%): @_cotizacion.IvaMonto.ToString("C2")</MudText>
+                        }
                         <MudText Typo="Typo.h6">@L["Total"]: @_cotizacion.Total.ToString("C2")</MudText>
                     </MudStack>
                 </MudPaper>

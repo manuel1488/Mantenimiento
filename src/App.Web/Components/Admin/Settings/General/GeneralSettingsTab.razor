@@ -48,6 +48,24 @@
                                             ReadOnly="true" />
                             }
                         </MudItem>
+
+                        <!-- Default IVA rate -->
+                        <MudItem xs="12" md="6">
+                            <MudNumericField @bind-Value="_model.IvaTasaPorDefecto"
+                                        Label="@L["Default IVA Rate (%)"]"
+                                        Format="F2" Min="0" Max="100"
+                                        HelperText="@L["Used when \"Include IVA\" is enabled on a new Cotización. Changing this does not affect Cotizaciones already generated."]"
+                                        ReadOnly="@(!_hasWriteAccess)" />
+                        </MudItem>
+
+                        <!-- Company Address -->
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_model.Direccion"
+                                        Label="@L["Company Address"]"
+                                        Lines="2"
+                                        HelperText="@L["Shown on documents (e.g. the Cotización footer) only when explicitly enabled for that document."]"
+                                        ReadOnly="@(!_hasWriteAccess)" />
+                        </MudItem>
                     </MudGrid>
                 </MudItem>
 
@@ -152,7 +170,9 @@
                 {
                     CompanyName = _settings.CompanyName,
                     TimeZoneId = _settings.TimeZoneId,
-                    LogoBase64 = _settings.LogoBase64
+                    LogoBase64 = _settings.LogoBase64,
+                    IvaTasaPorDefecto = _settings.IvaTasaPorDefecto,
+                    Direccion = _settings.Direccion
                 };
             }
         }

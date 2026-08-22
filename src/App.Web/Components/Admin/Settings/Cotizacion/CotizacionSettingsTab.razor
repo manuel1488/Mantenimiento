@@ -12,6 +12,98 @@
 <MudForm @ref="_form" @bind-IsValid="_isValid">
     <MudGrid Spacing="3">
         <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-1">@L["Footer Content"]</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                @L["Optional content shown in the Cotización PDF footer."]
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTextField @bind-Value="_paymentTermsText"
+                          Label="@L["Payment Terms"]"
+                          HelperText="@L["Leave blank to hide this section from the PDF."]"
+                          Lines="3"
+                          Variant="Variant.Outlined"
+                          FullWidth="true" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudSwitch @bind-Value="_mostrarDireccion" Color="Color.Primary" Label="@L["Show company address on the Cotización PDF"]" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudSwitch @bind-Value="_mostrarDatosBancarios" Color="Color.Primary" Label="@L["Show bank transfer details on the Cotización PDF"]" />
+        </MudItem>
+
+        @if (_mostrarDatosBancarios)
+        {
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_bancoBeneficiario" Label="@L["Beneficiary"]" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_bancoRfc" Label="@L["RFC"]" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_bancoNombre" Label="@L["Bank"]" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_bancoNumeroCuenta" Label="@L["Account Number"]" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_bancoClabe" Label="@L["CLABE"]" Variant="Variant.Outlined" FullWidth="true" />
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_bancoSwift" Label="@L["SWIFT/BIC"]" Variant="Variant.Outlined" />
+            </MudItem>
+        }
+
+        <MudItem xs="12">
+            <MudDivider Class="my-2" />
+        </MudItem>
+
+        <MudItem xs="12" Class="d-flex align-center gap-2">
+            <MudText Typo="Typo.h6">@L["Contact and Social Media"]</MudText>
+            <MudSwitch @bind-Value="_mostrarContacto" Color="Color.Primary" Label="@L["Show on PDF"]" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="display:block;">
+                @L["Contact details shown in the Cotización PDF footer."]
+            </MudText>
+        </MudItem>
+
+        @if (_mostrarContacto)
+        {
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_sitioWeb" Label="@L["Website"]" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Language" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_telefono" Label="@L["Phone"]" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_correoElectronico" Label="@L["Email"]" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_whatsApp" Label="@L["WhatsApp"]" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Chat" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_facebook" Label="@L["Facebook"]" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Groups" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="_instagram" Label="@L["Instagram"]" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CameraAlt" />
+            </MudItem>
+        }
+
+        <MudItem xs="12">
+            <MudDivider Class="my-2" />
+        </MudItem>
+
+        <MudItem xs="12">
             <MudText Typo="Typo.h6" Class="mb-1">@L["Cotización PDF Template"]</MudText>
             <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
                 @L["Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template."]
@@ -36,6 +128,10 @@
                           Variant="Variant.Outlined"
                           Style="font-family: monospace; font-size: 12px;"
                           FullWidth="true" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudDivider Class="my-2" />
         </MudItem>
 
         <MudItem xs="12">
@@ -90,6 +186,22 @@
     private bool _resetting;
     private string _htmlContent = string.Empty;
     private string _cssContent = string.Empty;
+    private string? _paymentTermsText;
+    private bool _mostrarDireccion;
+    private bool _mostrarDatosBancarios;
+    private string? _bancoBeneficiario;
+    private string? _bancoRfc;
+    private string? _bancoNombre;
+    private string? _bancoNumeroCuenta;
+    private string? _bancoClabe;
+    private string? _bancoSwift;
+    private bool _mostrarContacto;
+    private string? _sitioWeb;
+    private string? _telefono;
+    private string? _correoElectronico;
+    private string? _whatsApp;
+    private string? _facebook;
+    private string? _instagram;
 
     protected override async Task OnInitializedAsync()
     {
@@ -101,6 +213,24 @@
         var (html, css) = await TemplateSettingsService.GetEffectiveTemplateAsync();
         _htmlContent = html;
         _cssContent = css;
+
+        var config = await TemplateSettingsService.GetConfigAsync();
+        _paymentTermsText = config?.PaymentTermsText;
+        _mostrarDireccion = config?.MostrarDireccionEnCotizacion ?? false;
+        _mostrarDatosBancarios = config?.MostrarDatosBancarios ?? false;
+        _bancoBeneficiario = config?.BancoBeneficiario;
+        _bancoRfc = config?.BancoRfc;
+        _bancoNombre = config?.BancoNombre;
+        _bancoNumeroCuenta = config?.BancoNumeroCuenta;
+        _bancoClabe = config?.BancoClabe;
+        _bancoSwift = config?.BancoSwift;
+        _mostrarContacto = config?.MostrarContacto ?? false;
+        _sitioWeb = config?.SitioWeb;
+        _telefono = config?.Telefono;
+        _correoElectronico = config?.CorreoElectronico;
+        _whatsApp = config?.WhatsApp;
+        _facebook = config?.Facebook;
+        _instagram = config?.Instagram;
     }
 
     private async Task SaveAsync()
@@ -114,7 +244,23 @@
             await TemplateSettingsService.UpdateConfigAsync(new UpdateCotizacionTemplateSettingsDto
             {
                 HtmlContent = _htmlContent,
-                CssContent = _cssContent
+                CssContent = _cssContent,
+                PaymentTermsText = _paymentTermsText,
+                MostrarDireccionEnCotizacion = _mostrarDireccion,
+                MostrarDatosBancarios = _mostrarDatosBancarios,
+                BancoBeneficiario = _bancoBeneficiario,
+                BancoRfc = _bancoRfc,
+                BancoNombre = _bancoNombre,
+                BancoNumeroCuenta = _bancoNumeroCuenta,
+                BancoClabe = _bancoClabe,
+                BancoSwift = _bancoSwift,
+                MostrarContacto = _mostrarContacto,
+                SitioWeb = _sitioWeb,
+                Telefono = _telefono,
+                CorreoElectronico = _correoElectronico,
+                WhatsApp = _whatsApp,
+                Facebook = _facebook,
+                Instagram = _instagram
             });
             Snackbar.Add(L["Template saved successfully"], Severity.Success);
         }
@@ -176,16 +322,48 @@
     private static readonly Dictionary<string, string> Variables = new()
     {
         { "company_name",        "Nombre de la empresa" },
+        { "company_direccion",   "Dirección de la empresa (si mostrar_direccion es true)" },
+        { "mostrar_direccion",   "true si se debe mostrar la dirección de la empresa" },
         { "logo_base64",         "Logo en base64 (usar dentro de has_logo)" },
         { "has_logo",            "true si hay logo configurado" },
         { "primary_color",       "Color primario de marca (hex)" },
         { "secondary_color",     "Color secundario de marca (hex)" },
-        { "cotizacion_version",  "Número de versión de la cotización" },
+        { "cotizacion_id",       "Número/ID de la cotización" },
         { "fecha_generacion",    "Fecha de generación (dd/MM/yyyy)" },
         { "cliente_nombre",      "Nombre del cliente" },
-        { "obra_direccion",      "Dirección de la obra" },
+        { "cliente_correo",      "Correo del cliente (usar dentro de has_cliente_correo)" },
+        { "has_cliente_correo",  "true si el cliente tiene correo" },
+        { "cliente_telefono",    "Teléfono del cliente (usar dentro de has_cliente_telefono)" },
+        { "has_cliente_telefono", "true si el cliente tiene teléfono" },
+        { "cliente_direccion",   "Dirección comercial del cliente (usar dentro de has_cliente_direccion)" },
+        { "has_cliente_direccion", "true si el cliente tiene dirección comercial" },
+        { "cliente_tiene_datos_fiscales", "true si el cliente tiene datos fiscales capturados" },
+        { "cliente_razon_social", "Razón social del cliente" },
+        { "cliente_rfc",         "RFC del cliente" },
+        { "cliente_regimen_fiscal", "Régimen fiscal del cliente" },
+        { "subtotal",            "Subtotal formateado como moneda" },
+        { "incluir_iva",         "true si la cotización incluye IVA" },
+        { "iva_tasa",            "Tasa de IVA aplicada (%)" },
+        { "iva_monto",           "Monto de IVA formateado como moneda" },
         { "total",               "Total formateado como moneda" },
+        { "has_payment_terms",   "true si hay términos de pago configurados" },
+        { "payment_terms_text",  "Texto de términos de pago" },
+        { "mostrar_datos_bancarios", "true si se deben mostrar los datos bancarios" },
+        { "banco_beneficiario",  "Nombre del beneficiario" },
+        { "banco_rfc",           "RFC del beneficiario" },
+        { "banco_nombre",        "Nombre del banco" },
+        { "banco_numero_cuenta", "Número de cuenta" },
+        { "banco_clabe",         "CLABE interbancaria" },
+        { "banco_swift",         "SWIFT/BIC" },
+        { "mostrar_contacto",    "true si se deben mostrar los datos de contacto y redes sociales" },
+        { "contacto_sitio_web",  "Sitio web (usar dentro de has_contacto_sitio_web)" },
+        { "contacto_telefono",   "Teléfono de contacto (usar dentro de has_contacto_telefono)" },
+        { "contacto_correo",     "Correo electrónico de contacto (usar dentro de has_contacto_correo)" },
+        { "contacto_whatsapp",   "WhatsApp (usar dentro de has_contacto_whatsapp)" },
+        { "contacto_facebook",   "Facebook (usar dentro de has_contacto_facebook)" },
+        { "contacto_instagram",  "Instagram (usar dentro de has_contacto_instagram)" },
         { "lineas",              "Lista de líneas (loop: for linea in lineas)" },
+        { "linea.indice",        "Número de fila (1-based)" },
         { "linea.servicio_nombre", "Nombre del servicio" },
         { "linea.unidad_medida", "Unidad de medida" },
         { "linea.cantidad",      "Cantidad" },

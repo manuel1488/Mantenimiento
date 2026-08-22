@@ -14,6 +14,7 @@
 @inject ICotizacionService CotizacionService
 @inject IClienteService ClienteService
 @inject IServicioService ServicioService
+@inject ICompanySettingsService CompanySettingsService
 @inject ISnackbar Snackbar
 @inject ILogger<CotizacionFormPage> Logger
 @inject NavigationManager NavigationManager
@@ -117,8 +118,17 @@
                         </NoRecordsContent>
                     </MudDataGrid>
 
-                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
-                        <MudText Typo="Typo.h6">@L["Total"]: @_lineas.Sum(l => l.Subtotal).ToString("C2")</MudText>
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mt-3">
+                        <MudSwitch T="bool" @bind-Value="_incluirIva" Color="Color.Primary"
+                                   Label="@($"{L["Include IVA"]} ({_ivaTasaPorDefecto:F2}%)")" />
+                        <MudStack Spacing="0" Class="text-right">
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Subtotal"]: @SubtotalCalculado.ToString("C2")</MudText>
+                            @if (_incluirIva)
+                            {
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["IVA"]: @IvaCalculado.ToString("C2")</MudText>
+                            }
+                            <MudText Typo="Typo.h6">@L["Total"]: @TotalCalculado.ToString("C2")</MudText>
+                        </MudStack>
                     </MudStack>
 
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
@@ -156,10 +166,16 @@
     private ServicioDto? _selectedServicio;
     private decimal _cantidad;
     private List<LineaDraft> _lineas = new();
+    private bool _incluirIva;
+    private decimal _ivaTasaPorDefecto;
 
     private string CantidadLabel => _selectedServicio is null
         ? L["Quantity"].ToString()
         : $"{L["Quantity"]} ({_selectedServicio.UnidadMedidaCodigo})";
+
+    private decimal SubtotalCalculado => _lineas.Sum(l => l.Subtotal);
+    private decimal IvaCalculado => Math.Round(SubtotalCalculado * _ivaTasaPorDefecto / 100m, 2);
+    private decimal TotalCalculado => SubtotalCalculado + (_incluirIva ? IvaCalculado : 0);
 
     protected override async Task OnInitializedAsync()
     {
@@ -169,6 +185,9 @@
         var serviciosResult = await ServicioService.GetAllAsync();
         if (serviciosResult.IsSuccess) _servicios = serviciosResult.Value!;
 
+        var companySettings = await CompanySettingsService.GetSettingsAsync();
+        _ivaTasaPorDefecto = companySettings?.IvaTasaPorDefecto ?? 0;
+
         if (!IsCreate)
         {
             var result = await CotizacionService.GetByIdAsync(Id!.Value);
@@ -176,6 +195,7 @@
             {
                 var cotizacion = result.Value!;
                 _selectedCliente = _clientes.FirstOrDefault(c => c.Id == cotizacion.ClienteId);
+                _incluirIva = cotizacion.IncluirIva;
                 _lineas = cotizacion.Lineas.Select(l => new LineaDraft
                 {
                     ServicioId = l.ServicioId,
@@ -249,8 +269,8 @@
             }).ToList();
 
             var result = IsCreate
-                ? await CotizacionService.CreateAsync(new CreateCotizacionDto { ClienteId = _selectedCliente.Id, Lineas = lineasDto })
-                : await CotizacionService.UpdateAsync(Id!.Value, new UpdateCotizacionDto { ClienteId = _selectedCliente.Id, Lineas = lineasDto });
+                ? await CotizacionService.CreateAsync(new CreateCotizacionDto { ClienteId = _selectedCliente.Id, IncluirIva = _incluirIva, Lineas = lineasDto })
+                : await CotizacionService.UpdateAsync(Id!.Value, new UpdateCotizacionDto { ClienteId = _selectedCliente.Id, IncluirIva = _incluirIva, Lineas = lineasDto });
 
             if (result.IsSuccess)
             {

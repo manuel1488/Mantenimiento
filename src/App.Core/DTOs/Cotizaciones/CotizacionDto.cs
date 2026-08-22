@@ -9,6 +9,10 @@ public class CotizacionDto
     public string ClienteNombre { get; set; } = null!;
     public string? ClienteCorreo { get; set; }
     public DateTime FechaGeneracion { get; set; }
+    public decimal Subtotal { get; set; }
+    public bool IncluirIva { get; set; }
+    public decimal IvaTasa { get; set; }
+    public decimal IvaMonto { get; set; }
     public decimal Total { get; set; }
     public CotizacionEstado Estado { get; set; }
     public DateTime? FechaAprobacion { get; set; }

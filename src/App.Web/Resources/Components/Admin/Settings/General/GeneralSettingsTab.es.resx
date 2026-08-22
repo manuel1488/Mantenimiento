@@ -42,6 +42,18 @@
     <data name="Time zone is required" xml:space="preserve">
         <value>La zona horaria es requerida</value>
     </data>
+    <data name="Default IVA Rate (%)" xml:space="preserve">
+        <value>Tasa de IVA por Defecto (%)</value>
+    </data>
+    <data name="Used when &quot;Include IVA&quot; is enabled on a new Cotización. Changing this does not affect Cotizaciones already generated." xml:space="preserve">
+        <value>Se usa cuando "Incluir IVA" está activado en una Cotización nueva. Cambiar este valor no afecta cotizaciones ya generadas.</value>
+    </data>
+    <data name="Company Address" xml:space="preserve">
+        <value>Dirección de la Compañía</value>
+    </data>
+    <data name="Shown on documents (e.g. the Cotización footer) only when explicitly enabled for that document." xml:space="preserve">
+        <value>Se muestra en documentos (ej. el pie de la Cotización) solo cuando está explícitamente habilitado para ese documento.</value>
+    </data>
     <data name="Display Preferences" xml:space="preserve">
         <value>Preferencias de Visualización</value>
     </data>

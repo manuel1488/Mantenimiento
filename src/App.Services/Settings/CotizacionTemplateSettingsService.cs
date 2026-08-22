@@ -2,7 +2,6 @@ using App.Core.DTOs.Settings;
 using App.Core.Interfaces;
 using App.Models.Data.Contexts;
 using App.Models.Settings;
-using App.Services.Email;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +17,8 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
     private readonly ILogger<CotizacionTemplateSettingsService> _logger;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTime _dateTime;
-    private const string DefaultTemplatePath = "CotizacionTemplates/default.html";
+    private const string DefaultTemplateHtmlPath = "CotizacionTemplates/template.html";
+    private const string DefaultTemplateCssPath = "CotizacionTemplates/styles.css";
 
     public CotizacionTemplateSettingsService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -61,18 +61,30 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
         {
             settings = new CotizacionTemplateSettings
             {
-                HtmlContent = dto.HtmlContent,
-                CssContent = dto.CssContent,
                 CreatedBy = currentUser,
                 CreatedAt = currentTime
             };
             context.CotizacionTemplateSettings.Add(settings);
         }
-        else
-        {
-            settings.HtmlContent = dto.HtmlContent;
-            settings.CssContent = dto.CssContent;
-        }
+
+        settings.HtmlContent = dto.HtmlContent;
+        settings.CssContent = dto.CssContent;
+        settings.PaymentTermsText = dto.PaymentTermsText;
+        settings.MostrarDatosBancarios = dto.MostrarDatosBancarios;
+        settings.BancoBeneficiario = dto.BancoBeneficiario;
+        settings.BancoRfc = dto.BancoRfc;
+        settings.BancoNombre = dto.BancoNombre;
+        settings.BancoNumeroCuenta = dto.BancoNumeroCuenta;
+        settings.BancoClabe = dto.BancoClabe;
+        settings.BancoSwift = dto.BancoSwift;
+        settings.MostrarDireccionEnCotizacion = dto.MostrarDireccionEnCotizacion;
+        settings.MostrarContacto = dto.MostrarContacto;
+        settings.SitioWeb = dto.SitioWeb;
+        settings.Telefono = dto.Telefono;
+        settings.CorreoElectronico = dto.CorreoElectronico;
+        settings.WhatsApp = dto.WhatsApp;
+        settings.Facebook = dto.Facebook;
+        settings.Instagram = dto.Instagram;
 
         settings.ModifiedBy = currentUser;
         settings.ModifiedAt = currentTime;
@@ -104,23 +116,44 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
         if (dbOverride != null)
             return (dbOverride.HtmlContent, dbOverride.CssContent);
 
-        var fileInfo = _fileProvider.GetFileInfo(DefaultTemplatePath);
-        if (!fileInfo.Exists)
+        var htmlFileInfo = _fileProvider.GetFileInfo(DefaultTemplateHtmlPath);
+        var cssFileInfo = _fileProvider.GetFileInfo(DefaultTemplateCssPath);
+
+        if (!htmlFileInfo.Exists || !cssFileInfo.Exists)
         {
-            _logger.LogWarning("Default Cotización template not found at {Path}", DefaultTemplatePath);
+            _logger.LogWarning("Default Cotización template not found at {HtmlPath} / {CssPath}", DefaultTemplateHtmlPath, DefaultTemplateCssPath);
             return (string.Empty, string.Empty);
         }
 
-        using var reader = new StreamReader(fileInfo.CreateReadStream());
-        var fullHtml = await reader.ReadToEndAsync();
+        using var htmlReader = new StreamReader(htmlFileInfo.CreateReadStream());
+        using var cssReader = new StreamReader(cssFileInfo.CreateReadStream());
 
-        return EmailTemplateService.ExtractCssAndBody(fullHtml);
+        var html = await htmlReader.ReadToEndAsync();
+        var css = await cssReader.ReadToEndAsync();
+
+        return (html, css);
     }
 
     private static CotizacionTemplateSettingsDto MapToDto(CotizacionTemplateSettings entity) => new()
     {
         Id = entity.Id,
         HtmlContent = entity.HtmlContent,
-        CssContent = entity.CssContent
+        CssContent = entity.CssContent,
+        PaymentTermsText = entity.PaymentTermsText,
+        MostrarDatosBancarios = entity.MostrarDatosBancarios,
+        BancoBeneficiario = entity.BancoBeneficiario,
+        BancoRfc = entity.BancoRfc,
+        BancoNombre = entity.BancoNombre,
+        BancoNumeroCuenta = entity.BancoNumeroCuenta,
+        BancoClabe = entity.BancoClabe,
+        BancoSwift = entity.BancoSwift,
+        MostrarDireccionEnCotizacion = entity.MostrarDireccionEnCotizacion,
+        MostrarContacto = entity.MostrarContacto,
+        SitioWeb = entity.SitioWeb,
+        Telefono = entity.Telefono,
+        CorreoElectronico = entity.CorreoElectronico,
+        WhatsApp = entity.WhatsApp,
+        Facebook = entity.Facebook,
+        Instagram = entity.Instagram
     };
 }

@@ -42,4 +42,67 @@
   <data name="Error rendering preview" xml:space="preserve">
     <value>Error al renderizar la vista previa</value>
   </data>
+  <data name="Footer Content" xml:space="preserve">
+    <value>Contenido del Pie de Página</value>
+  </data>
+  <data name="Optional content shown in the Cotización PDF footer." xml:space="preserve">
+    <value>Contenido opcional mostrado en el pie del PDF de la Cotización.</value>
+  </data>
+  <data name="Payment Terms" xml:space="preserve">
+    <value>Términos de Pago</value>
+  </data>
+  <data name="Leave blank to hide this section from the PDF." xml:space="preserve">
+    <value>Deja en blanco para ocultar esta sección del PDF.</value>
+  </data>
+  <data name="Show company address on the Cotización PDF" xml:space="preserve">
+    <value>Mostrar la dirección de la empresa en el PDF de la Cotización</value>
+  </data>
+  <data name="Show bank transfer details on the Cotización PDF" xml:space="preserve">
+    <value>Mostrar los datos de transferencia bancaria en el PDF de la Cotización</value>
+  </data>
+  <data name="Beneficiary" xml:space="preserve">
+    <value>Beneficiario</value>
+  </data>
+  <data name="RFC" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Bank" xml:space="preserve">
+    <value>Banco</value>
+  </data>
+  <data name="Account Number" xml:space="preserve">
+    <value>Número de Cuenta</value>
+  </data>
+  <data name="CLABE" xml:space="preserve">
+    <value>CLABE</value>
+  </data>
+  <data name="SWIFT/BIC" xml:space="preserve">
+    <value>SWIFT/BIC</value>
+  </data>
+  <data name="Contact and Social Media" xml:space="preserve">
+    <value>Contacto y Redes Sociales</value>
+  </data>
+  <data name="Show on PDF" xml:space="preserve">
+    <value>Mostrar en PDF</value>
+  </data>
+  <data name="Contact details shown in the Cotización PDF footer." xml:space="preserve">
+    <value>Datos de contacto que se muestran al pie de la Cotización.</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Sitio Web</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo Electrónico</value>
+  </data>
+  <data name="WhatsApp" xml:space="preserve">
+    <value>WhatsApp</value>
+  </data>
+  <data name="Facebook" xml:space="preserve">
+    <value>Facebook</value>
+  </data>
+  <data name="Instagram" xml:space="preserve">
+    <value>Instagram</value>
+  </data>
 </root>

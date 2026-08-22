@@ -39,6 +39,12 @@
   <data name="Total" xml:space="preserve">
     <value>Total</value>
   </data>
+  <data name="Include IVA" xml:space="preserve">
+    <value>Incluir IVA</value>
+  </data>
+  <data name="IVA" xml:space="preserve">
+    <value>IVA</value>
+  </data>
   <data name="Actions" xml:space="preserve">
     <value>Acciones</value>
   </data>

@@ -13,4 +13,10 @@ public class UpdateCompanySettingsDto
     public string TimeZoneId { get; set; } = null!;
 
     public string? LogoBase64 { get; set; }
+
+    [Range(0, 100)]
+    public decimal IvaTasaPorDefecto { get; set; } = 16.00m;
+
+    [StringLength(300)]
+    public string? Direccion { get; set; }
 }

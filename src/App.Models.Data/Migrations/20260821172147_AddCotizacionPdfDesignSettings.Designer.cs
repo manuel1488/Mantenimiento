@@ -4,6 +4,7 @@ using App.Models.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace App.Models.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821172147_AddCotizacionPdfDesignSettings")]
+    partial class AddCotizacionPdfDesignSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1438,10 +1441,6 @@ namespace App.Models.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<string>("CorreoElectronico")
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -1459,17 +1458,9 @@ namespace App.Models.Data.Migrations
                     b.Property<string>("DeletedBy")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Facebook")
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
-
                     b.Property<string>("HtmlContent")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<string>("Instagram")
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
 
                     b.Property<uint>("IsDeleted")
                         .HasColumnType("int unsigned");
@@ -1480,9 +1471,6 @@ namespace App.Models.Data.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("MostrarContacto")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<bool>("MostrarDatosBancarios")
                         .HasColumnType("tinyint(1)");
 
@@ -1492,18 +1480,6 @@ namespace App.Models.Data.Migrations
                     b.Property<string>("PaymentTermsText")
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
-
-                    b.Property<string>("SitioWeb")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Telefono")
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
-
-                    b.Property<string>("WhatsApp")
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
 
                     b.HasKey("Id");
 

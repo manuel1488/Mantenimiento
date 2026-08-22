@@ -24,4 +24,19 @@ public class CompanySettings : BaseEntity<int>, IAuditTracked
     /// Main brand logo (full color), shown in the NavMenu, Login screen, and generated documents.
     /// </summary>
     public string? LogoBase64 { get; set; }
+
+    /// <summary>
+    /// Tasa de IVA por defecto expresada como porcentaje (ej. 16.00 = 16%), usada al generar una
+    /// Cotización con "Incluir IVA" activado. Snapshot: la tasa vigente se copia a la Cotización al
+    /// crearla, así que cambiar este valor no afecta cotizaciones ya generadas.
+    /// </summary>
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal IvaTasaPorDefecto { get; set; } = 16.00m;
+
+    /// <summary>
+    /// Domicilio fiscal/comercial de la empresa, texto libre. Mostrado en documentos (ej. pie de la
+    /// Cotización) solo cuando el documento correspondiente lo tiene habilitado explícitamente.
+    /// </summary>
+    [StringLength(300)]
+    public string? Direccion { get; set; }
 }

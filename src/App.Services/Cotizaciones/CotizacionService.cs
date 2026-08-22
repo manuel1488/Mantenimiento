@@ -172,19 +172,20 @@ public class CotizacionService : ICotizacionService
                         ClienteId = dto.ClienteId,
                         FechaGeneracion = currentTime,
                         Estado = CotizacionEstado.Pendiente,
+                        IncluirIva = dto.IncluirIva,
                         CreatedBy = currentUser,
                         CreatedAt = currentTime,
                         ModifiedBy = currentUser,
                         ModifiedAt = currentTime
                     };
 
-                    decimal total = 0;
+                    decimal subtotalTotal = 0;
                     foreach (var linea in dto.Lineas)
                     {
                         var servicio = servicios[linea.ServicioId];
                         var precioUnitario = linea.PrecioUnitarioOverride ?? servicio.PrecioUnitario;
                         var subtotal = linea.Cantidad * precioUnitario;
-                        total += subtotal;
+                        subtotalTotal += subtotal;
 
                         cotizacion.Lineas.Add(new CotizacionLinea
                         {
@@ -201,7 +202,7 @@ public class CotizacionService : ICotizacionService
                         });
                     }
 
-                    cotizacion.Total = total;
+                    await ApplyTotalesAsync(cotizacion, subtotalTotal, dto.IncluirIva);
 
                     context.Cotizaciones.Add(cotizacion);
                     await context.SaveChangesAsync();
@@ -286,13 +287,13 @@ public class CotizacionService : ICotizacionService
                     cotizacion.Lineas.Clear();
                     cotizacion.ClienteId = dto.ClienteId;
 
-                    decimal total = 0;
+                    decimal subtotalTotal = 0;
                     foreach (var linea in dto.Lineas)
                     {
                         var servicio = servicios[linea.ServicioId];
                         var precioUnitario = linea.PrecioUnitarioOverride ?? servicio.PrecioUnitario;
                         var subtotal = linea.Cantidad * precioUnitario;
-                        total += subtotal;
+                        subtotalTotal += subtotal;
 
                         cotizacion.Lineas.Add(new CotizacionLinea
                         {
@@ -309,7 +310,7 @@ public class CotizacionService : ICotizacionService
                         });
                     }
 
-                    cotizacion.Total = total;
+                    await ApplyTotalesAsync(cotizacion, subtotalTotal, dto.IncluirIva);
                     cotizacion.ModifiedBy = currentUser;
                     cotizacion.ModifiedAt = currentTime;
 
@@ -528,26 +529,104 @@ public class CotizacionService : ICotizacionService
             var logoBase64 = await _companySettingsService.GetLogoDataUriAsync()
                 ?? await _emailTemplateService.GetStaticFileBase64Async(_brandingOptions.Value.LogoPath);
 
+            var templateSettings = await _templateSettingsService.GetConfigAsync();
+
+            var cliente = cotizacion.Cliente;
+            var hasPaymentTerms = !string.IsNullOrWhiteSpace(templateSettings?.PaymentTermsText);
+            var mostrarDatosBancarios = templateSettings != null
+                && templateSettings.MostrarDatosBancarios
+                && (!string.IsNullOrWhiteSpace(templateSettings.BancoBeneficiario)
+                    || !string.IsNullOrWhiteSpace(templateSettings.BancoRfc)
+                    || !string.IsNullOrWhiteSpace(templateSettings.BancoNombre)
+                    || !string.IsNullOrWhiteSpace(templateSettings.BancoNumeroCuenta)
+                    || !string.IsNullOrWhiteSpace(templateSettings.BancoClabe)
+                    || !string.IsNullOrWhiteSpace(templateSettings.BancoSwift));
+            var mostrarDireccion = templateSettings is { MostrarDireccionEnCotizacion: true }
+                && !string.IsNullOrWhiteSpace(companySettings?.Direccion);
+            var mostrarContacto = templateSettings != null
+                && templateSettings.MostrarContacto
+                && (!string.IsNullOrWhiteSpace(templateSettings.SitioWeb)
+                    || !string.IsNullOrWhiteSpace(templateSettings.Telefono)
+                    || !string.IsNullOrWhiteSpace(templateSettings.CorreoElectronico)
+                    || !string.IsNullOrWhiteSpace(templateSettings.WhatsApp)
+                    || !string.IsNullOrWhiteSpace(templateSettings.Facebook)
+                    || !string.IsNullOrWhiteSpace(templateSettings.Instagram));
+
             var data = new
             {
                 company_name = companyName,
+                company_direccion = companySettings?.Direccion,
+                mostrar_direccion = mostrarDireccion,
                 logo_base64 = logoBase64,
                 has_logo = !string.IsNullOrEmpty(logoBase64),
                 primary_color = _brandingOptions.Value.PrimaryColor,
                 secondary_color = _brandingOptions.Value.SecondaryColor,
                 cotizacion_id = cotizacion.Id,
                 fecha_generacion = cotizacion.FechaGeneracion.ToString("dd/MM/yyyy"),
-                cliente_nombre = cotizacion.Cliente.Nombre,
+                cliente_nombre = cliente.Nombre,
+                cliente_correo = cliente.Correo,
+                has_cliente_correo = !string.IsNullOrWhiteSpace(cliente.Correo),
+                cliente_telefono = cliente.Telefono,
+                has_cliente_telefono = !string.IsNullOrWhiteSpace(cliente.Telefono),
+                cliente_direccion = FormatDireccion(cliente.Calle, cliente.NumeroExterior, cliente.NumeroInterior, cliente.Colonia, cliente.Ciudad, cliente.Estado, cliente.CodigoPostal),
+                has_cliente_direccion = !string.IsNullOrWhiteSpace(cliente.Calle),
+                cliente_tiene_datos_fiscales = cliente.TieneDatosFiscales,
+                cliente_razon_social = cliente.RazonSocial,
+                cliente_rfc = cliente.Rfc,
+                cliente_regimen_fiscal = cliente.RegimenFiscal,
+                subtotal = cotizacion.Subtotal.ToString("C2"),
+                incluir_iva = cotizacion.IncluirIva,
+                iva_tasa = cotizacion.IvaTasa.ToString("F2"),
+                iva_monto = cotizacion.IvaMonto.ToString("C2"),
                 total = cotizacion.Total.ToString("C2"),
+                has_payment_terms = hasPaymentTerms,
+                payment_terms_text = templateSettings?.PaymentTermsText,
+                mostrar_datos_bancarios = mostrarDatosBancarios,
+                banco_beneficiario = templateSettings?.BancoBeneficiario,
+                banco_rfc = templateSettings?.BancoRfc,
+                banco_nombre = templateSettings?.BancoNombre,
+                banco_numero_cuenta = templateSettings?.BancoNumeroCuenta,
+                banco_clabe = templateSettings?.BancoClabe,
+                banco_swift = templateSettings?.BancoSwift,
+                mostrar_contacto = mostrarContacto,
+                contacto_sitio_web = templateSettings?.SitioWeb,
+                has_contacto_sitio_web = !string.IsNullOrWhiteSpace(templateSettings?.SitioWeb),
+                contacto_telefono = templateSettings?.Telefono,
+                has_contacto_telefono = !string.IsNullOrWhiteSpace(templateSettings?.Telefono),
+                contacto_correo = templateSettings?.CorreoElectronico,
+                has_contacto_correo = !string.IsNullOrWhiteSpace(templateSettings?.CorreoElectronico),
+                contacto_whatsapp = templateSettings?.WhatsApp,
+                has_contacto_whatsapp = !string.IsNullOrWhiteSpace(templateSettings?.WhatsApp),
+                contacto_facebook = templateSettings?.Facebook,
+                has_contacto_facebook = !string.IsNullOrWhiteSpace(templateSettings?.Facebook),
+                contacto_instagram = templateSettings?.Instagram,
+                has_contacto_instagram = !string.IsNullOrWhiteSpace(templateSettings?.Instagram),
                 label_quotation = _localizer["Quotation"].Value,
                 label_client = _localizer["Client"].Value,
+                label_fiscal_data = _localizer["Fiscal Data"].Value,
+                label_date = _localizer["Date"].Value,
+                label_email = _localizer["Email"].Value,
+                label_phone = _localizer["Phone"].Value,
+                label_address = _localizer["Address"].Value,
+                label_rfc = _localizer["RFC"].Value,
+                label_tax_regime = _localizer["Tax Regime"].Value,
                 label_service = _localizer["Service"].Value,
                 label_quantity = _localizer["Quantity"].Value,
                 label_unit_price = _localizer["Unit Price"].Value,
                 label_subtotal = _localizer["Subtotal"].Value,
+                label_iva = _localizer["IVA"].Value,
                 label_total = _localizer["Total"].Value,
-                lineas = cotizacion.Lineas.Select(l => new
+                label_payment_terms = _localizer["Payment Terms"].Value,
+                label_bank_transfer = _localizer["Bank Transfer Details"].Value,
+                label_beneficiary = _localizer["Beneficiary"].Value,
+                label_bank = _localizer["Bank"].Value,
+                label_account_number = _localizer["Account Number"].Value,
+                label_clabe = _localizer["CLABE"].Value,
+                label_swift = _localizer["SWIFT/BIC"].Value,
+                label_contact = _localizer["Contact and Social Media"].Value,
+                lineas = cotizacion.Lineas.Select((l, i) => new
                 {
+                    indice = i + 1,
                     servicio_nombre = l.ServicioNombre,
                     unidad_medida = l.UnidadMedida,
                     cantidad = l.Cantidad.ToString("F2"),
@@ -585,6 +664,27 @@ public class CotizacionService : ICotizacionService
             _logger.LogError(ex, "Error generating PDF for cotizacion {Id}", cotizacionId);
             return Result<byte[]>.Failure(_localizer["Error generating cotizacion PDF"]);
         }
+    }
+
+    private static string? FormatDireccion(string? calle, string? numeroExterior, string? numeroInterior, string? colonia, string? ciudad, string? estado, string? codigoPostal)
+    {
+        if (string.IsNullOrWhiteSpace(calle))
+            return null;
+
+        var numero = string.IsNullOrWhiteSpace(numeroInterior)
+            ? numeroExterior
+            : $"{numeroExterior} Int. {numeroInterior}";
+
+        var parts = new[]
+        {
+            string.IsNullOrWhiteSpace(numero) ? calle : $"{calle} {numero}",
+            colonia,
+            ciudad,
+            estado,
+            codigoPostal
+        };
+
+        return string.Join(", ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
     }
 
     public async Task<Result> SendCotizacionEmailAsync(int cotizacionId, string recipientEmail, CancellationToken cancellationToken = default)
@@ -641,5 +741,31 @@ public class CotizacionService : ICotizacionService
             _logger.LogError(ex, "Error sending cotizacion {Id} email", cotizacionId);
             return Result.Failure(_localizer["Error sending cotizacion email"]);
         }
+    }
+
+    /// <summary>
+    /// Sets Subtotal/IvaTasa/IvaMonto/Total on <paramref name="cotizacion"/>. When
+    /// <paramref name="incluirIva"/> is true, snapshots the company's current default IVA rate
+    /// (<see cref="Core.Interfaces.ICompanySettingsService"/>) — a later change to that default does
+    /// not retroactively alter this Cotización's stored rate/amount.
+    /// </summary>
+    private async Task ApplyTotalesAsync(Cotizacion cotizacion, decimal subtotal, bool incluirIva)
+    {
+        cotizacion.Subtotal = subtotal;
+
+        if (!incluirIva)
+        {
+            cotizacion.IvaTasa = 0;
+            cotizacion.IvaMonto = 0;
+            cotizacion.Total = subtotal;
+            return;
+        }
+
+        var companySettings = await _companySettingsService.GetSettingsAsync();
+        var ivaTasa = companySettings?.IvaTasaPorDefecto ?? 0;
+
+        cotizacion.IvaTasa = ivaTasa;
+        cotizacion.IvaMonto = Math.Round(subtotal * ivaTasa / 100m, 2);
+        cotizacion.Total = subtotal + cotizacion.IvaMonto;
     }
 }
