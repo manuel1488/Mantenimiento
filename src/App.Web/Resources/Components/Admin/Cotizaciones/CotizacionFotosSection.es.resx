@@ -9,9 +9,6 @@
   <data name="Delete Photo" xml:space="preserve">
     <value>Eliminar foto</value>
   </data>
-  <data name="Add a description..." xml:space="preserve">
-    <value>Agregar una descripción...</value>
-  </data>
   <data name="Error loading photos" xml:space="preserve">
     <value>Error al cargar las fotos</value>
   </data>

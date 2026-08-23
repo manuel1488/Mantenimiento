@@ -306,13 +306,16 @@ public class CotizacionService : ICotizacionService
                     var currentUser = await _currentUserService.GetUserIdAsync();
                     var currentTime = _dateTimeService.Now;
 
-                    foreach (var lineaExistente in cotizacion.Lineas)
-                        lineaExistente.DeletedBy = currentUser;
-                    context.CotizacionLineas.RemoveRange(cotizacion.Lineas);
-                    cotizacion.Lineas.Clear();
                     cotizacion.ClienteId = dto.ClienteId;
 
+                    // Diff against the incoming set instead of blindly deleting and recreating every
+                    // línea on each save — otherwise saving with unchanged líneas (e.g. just to add a
+                    // foto) would soft-delete and recreate rows that were never actually removed,
+                    // polluting the audit trail with false deletions. Matched by ServicioId since the
+                    // form doesn't round-trip original línea IDs.
+                    var lineasRestantes = cotizacion.Lineas.ToList();
                     decimal subtotalTotal = 0;
+
                     foreach (var linea in dto.Lineas)
                     {
                         var servicio = servicios[linea.ServicioId];
@@ -320,20 +323,54 @@ public class CotizacionService : ICotizacionService
                         var subtotal = linea.Cantidad * precioUnitario;
                         subtotalTotal += subtotal;
 
-                        cotizacion.Lineas.Add(new CotizacionLinea
+                        var existente = lineasRestantes.FirstOrDefault(l => l.ServicioId == linea.ServicioId);
+                        if (existente is not null)
                         {
-                            ServicioId = servicio.Id,
-                            ServicioNombre = servicio.Nombre,
-                            UnidadMedida = servicio.UnidadMedida.Codigo,
-                            Cantidad = linea.Cantidad,
-                            PrecioUnitario = precioUnitario,
-                            Subtotal = subtotal,
-                            CreatedBy = currentUser,
-                            CreatedAt = currentTime,
-                            ModifiedBy = currentUser,
-                            ModifiedAt = currentTime
-                        });
+                            lineasRestantes.Remove(existente);
+
+                            var cambio = existente.ServicioNombre != servicio.Nombre
+                                || existente.UnidadMedida != servicio.UnidadMedida.Codigo
+                                || existente.Cantidad != linea.Cantidad
+                                || existente.PrecioUnitario != precioUnitario
+                                || existente.Subtotal != subtotal;
+
+                            existente.ServicioNombre = servicio.Nombre;
+                            existente.UnidadMedida = servicio.UnidadMedida.Codigo;
+                            existente.Cantidad = linea.Cantidad;
+                            existente.PrecioUnitario = precioUnitario;
+                            existente.Subtotal = subtotal;
+
+                            if (cambio)
+                            {
+                                existente.ModifiedBy = currentUser;
+                                existente.ModifiedAt = currentTime;
+                            }
+                        }
+                        else
+                        {
+                            cotizacion.Lineas.Add(new CotizacionLinea
+                            {
+                                ServicioId = servicio.Id,
+                                ServicioNombre = servicio.Nombre,
+                                UnidadMedida = servicio.UnidadMedida.Codigo,
+                                Cantidad = linea.Cantidad,
+                                PrecioUnitario = precioUnitario,
+                                Subtotal = subtotal,
+                                CreatedBy = currentUser,
+                                CreatedAt = currentTime,
+                                ModifiedBy = currentUser,
+                                ModifiedAt = currentTime
+                            });
+                        }
                     }
+
+                    // Anything left unmatched was actually removed by the user.
+                    foreach (var lineaEliminada in lineasRestantes)
+                    {
+                        lineaEliminada.DeletedBy = currentUser;
+                        cotizacion.Lineas.Remove(lineaEliminada);
+                    }
+                    context.CotizacionLineas.RemoveRange(lineasRestantes);
 
                     await ApplyTotalesAsync(cotizacion, subtotalTotal, dto.IncluirIva);
                     cotizacion.IntegridadHash = ComputeIntegridadHash(cotizacion);
@@ -704,10 +741,12 @@ public class CotizacionService : ICotizacionService
                     precio_unitario = l.PrecioUnitario.ToString("C2"),
                     subtotal = l.Subtotal.ToString("C2")
                 }).ToList(),
-                label_photos = _localizer["Photos"].Value,
+                label_photos_annex = _localizer["Photo Annex"].Value,
+                label_photo = _localizer["Photo"].Value,
                 has_fotos = fotosData.Count > 0,
-                fotos = fotosData.Select(f => new
+                fotos = fotosData.Select((f, i) => new
                 {
+                    indice = i + 1,
                     url = f.Url,
                     descripcion = f.Descripcion,
                     has_descripcion = !string.IsNullOrWhiteSpace(f.Descripcion)

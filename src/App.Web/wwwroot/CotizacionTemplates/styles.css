@@ -195,29 +195,73 @@ table.lineas tbody tr:nth-child(even) {
     white-space: pre-line;
 }
 
-.photo-grid {
+.photo-annex {
+    page-break-before: always;
+    padding-top: 8px;
+}
+
+.photo-annex .annex-title {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.photo-annex .photo-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid #e0e0e0;
+    page-break-inside: avoid;
 }
 
-.photo-grid .photo-item {
-    width: calc(33.333% - 7px);
+.photo-annex .photo-row:last-child {
+    border-bottom: none;
 }
 
-.photo-grid img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 4px;
+.photo-annex .photo-frame {
+    width: 180px;
+    height: 130px;
+    flex-shrink: 0;
+    background-color: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.photo-annex .photo-frame img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
     display: block;
 }
 
-.photo-grid .photo-caption {
-    font-size: 9px;
-    color: #616161;
-    margin-top: 3px;
-    text-align: center;
+.photo-annex .photo-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.photo-annex .photo-index {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--secondary-color);
+    margin-bottom: 6px;
+}
+
+.photo-annex .photo-caption {
+    font-size: 12px;
+    color: #424242;
+    line-height: 1.5;
 }
 
 .bank-grid {

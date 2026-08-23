@@ -1,0 +1,55 @@
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject ICotizacionService CotizacionService
+@inject IStringLocalizer<CotizacionFotoViewerDialog> L
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex justify-center mb-4">
+            <img src="@ImageUrl" style="max-width: 100%; max-height: 60vh; border-radius: 4px;" />
+        </div>
+        @if (ReadOnly)
+        {
+            @if (!string.IsNullOrWhiteSpace(_descripcion))
+            {
+                <MudText Typo="Typo.body1">@_descripcion</MudText>
+            }
+        }
+        else
+        {
+            <MudTextField T="string" @bind-Value="_descripcion" Label="@L["Description"]"
+                           Placeholder="@L["Add a description..."]" Variant="Variant.Outlined"
+                           Lines="3" AutoGrow="true" FullWidth="true"
+                           OnBlur="SaveAsync" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Class="da-button-rounded">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter, EditorRequired] public string ImageUrl { get; set; } = null!;
+    [Parameter] public int FotoId { get; set; }
+    [Parameter] public string? Descripcion { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private string? _descripcion;
+
+    protected override void OnInitialized()
+    {
+        _descripcion = Descripcion;
+    }
+
+    private async Task SaveAsync()
+    {
+        var result = await CotizacionService.UpdateFotoDescripcionAsync(FotoId, _descripcion);
+        if (!result.IsSuccess)
+            Snackbar.Add(result.Error, Severity.Error);
+    }
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(_descripcion));
+}

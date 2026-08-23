@@ -117,8 +117,11 @@
   <data name="Phone" xml:space="preserve">
     <value>Phone</value>
   </data>
-  <data name="Photos" xml:space="preserve">
-    <value>Photos</value>
+  <data name="Photo" xml:space="preserve">
+    <value>Photo</value>
+  </data>
+  <data name="Photo Annex" xml:space="preserve">
+    <value>Photo Annex</value>
   </data>
   <data name="Quantity" xml:space="preserve">
     <value>Quantity</value>
