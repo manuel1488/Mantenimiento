@@ -68,6 +68,7 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
     public string? MedioAprobacion { get; set; }
 
     public ICollection<CotizacionLinea> Lineas { get; set; } = new List<CotizacionLinea>();
+    public ICollection<CotizacionFoto> Fotos { get; set; } = new List<CotizacionFoto>();
 
     /// <summary>
     /// Huella SHA-256 (ver CotizacionIntegrityHasher) sobre el folio, cliente, totales y líneas —

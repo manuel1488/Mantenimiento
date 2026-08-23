@@ -14,5 +14,6 @@ public class CotizacionMappingProfile : Profile
             .ForMember(d => d.ClienteCorreo, opt => opt.MapFrom(s => s.Cliente.Correo));
 
         CreateMap<CotizacionLinea, CotizacionLineaDto>();
+        CreateMap<CotizacionFoto, CotizacionFotoDto>();
     }
 }

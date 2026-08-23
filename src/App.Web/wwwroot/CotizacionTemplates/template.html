@@ -77,6 +77,22 @@
         </div>
     </div>
 
+    {{ if has_fotos }}
+    <div class="extra-section">
+        <div class="box-title">{{ label_photos }}</div>
+        <div class="photo-grid">
+            {{ for foto in fotos }}
+            <div class="photo-item">
+                <img src="{{ foto.url }}" />
+                {{ if foto.has_descripcion }}
+                <div class="photo-caption">{{ foto.descripcion }}</div>
+                {{ end }}
+            </div>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
     {{ if has_payment_terms }}
     <div class="extra-section">
         <div class="box-title">{{ label_payment_terms }}</div>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Photos" xml:space="preserve">
+    <value>Photos</value>
+  </data>
+  <data name="No photos" xml:space="preserve">
+    <value>No photos</value>
+  </data>
+  <data name="Delete Photo" xml:space="preserve">
+    <value>Delete Photo</value>
+  </data>
+  <data name="Add a description..." xml:space="preserve">
+    <value>Add a description...</value>
+  </data>
+  <data name="Error loading photos" xml:space="preserve">
+    <value>Error loading photos</value>
+  </data>
+  <data name="Photo deleted successfully" xml:space="preserve">
+    <value>Photo deleted successfully</value>
+  </data>
+  <data name="Upload Photo" xml:space="preserve">
+    <value>Upload Photo</value>
+  </data>
+  <data name="Error processing photo file" xml:space="preserve">
+    <value>Error processing photo file</value>
+  </data>
+  <data name="Photo uploaded successfully" xml:space="preserve">
+    <value>Photo uploaded successfully</value>
+  </data>
+</root>

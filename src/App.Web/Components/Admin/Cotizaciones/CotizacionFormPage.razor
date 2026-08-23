@@ -131,6 +131,12 @@
                         </MudStack>
                     </MudStack>
 
+                    @if (Id.HasValue)
+                    {
+                        <MudDivider Class="my-4" />
+                        <CotizacionFotosSection CotizacionId="Id.Value" ReadOnly="false" />
+                    }
+
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
                         <MudButton OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" Class="da-button-rounded">
                             @L["Cancel"]
@@ -275,7 +281,11 @@
             if (result.IsSuccess)
             {
                 Snackbar.Add(IsCreate ? L["Cotización created successfully"] : L["Cotización updated successfully"], Severity.Success);
-                NavigationManager.NavigateTo($"/gestion/cotizaciones/{result.Value!.Id}");
+                // On create, stay in edit mode (instead of the read-only detail page) so photos —
+                // which require an existing CotizacionId — can be added right away.
+                NavigationManager.NavigateTo(IsCreate
+                    ? $"/gestion/cotizaciones/{result.Value!.Id}/editar"
+                    : $"/gestion/cotizaciones/{result.Value!.Id}");
             }
             else
             {

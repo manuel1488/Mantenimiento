@@ -200,6 +200,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // Configure image service
     services.Configure<ImageOptions>(
         builder.Configuration.GetSection(ImageOptions.SectionName));
+    services.Configure<CotizacionFotoOptions>(
+        builder.Configuration.GetSection(CotizacionFotoOptions.SectionName));
 
     services.AddControllers();
     services.AddHttpContextAccessor();
