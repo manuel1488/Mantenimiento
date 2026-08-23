@@ -116,47 +116,19 @@
     </div>
     {{ end }}
 
-    {{ if mostrar_contacto }}
-    <div class="extra-section">
-        <div class="box-title">{{ label_contact }}</div>
-        <div class="bank-grid">
-            {{ if has_contacto_sitio_web }}
-            <div class="bank-field">
-                <div class="bank-value">{{ contacto_sitio_web }}</div>
-            </div>
-            {{ end }}
-            {{ if has_contacto_telefono }}
-            <div class="bank-field">
-                <div class="bank-value">{{ contacto_telefono }}</div>
-            </div>
-            {{ end }}
-            {{ if has_contacto_correo }}
-            <div class="bank-field">
-                <div class="bank-value">{{ contacto_correo }}</div>
-            </div>
-            {{ end }}
-            {{ if has_contacto_whatsapp }}
-            <div class="bank-field">
-                <div class="bank-value">{{ contacto_whatsapp }}</div>
-            </div>
-            {{ end }}
-            {{ if has_contacto_facebook }}
-            <div class="bank-field">
-                <div class="bank-value">{{ contacto_facebook }}</div>
-            </div>
-            {{ end }}
-            {{ if has_contacto_instagram }}
-            <div class="bank-field">
-                <div class="bank-value">{{ contacto_instagram }}</div>
-            </div>
-            {{ end }}
-        </div>
-    </div>
-    {{ end }}
-
     <div class="footer">
         {{ if mostrar_direccion }}
         <div class="company-address">{{ company_direccion }}</div>
+        {{ end }}
+        {{ if mostrar_contacto }}
+        <div class="contact-line">
+            {{ if has_contacto_sitio_web }}<span class="contact-item"><span class="field-icon">&#127760;</span>{{ contacto_sitio_web }}</span>{{ end }}
+            {{ if has_contacto_telefono }}<span class="contact-item"><span class="field-icon">&#9742;</span>{{ contacto_telefono }}</span>{{ end }}
+            {{ if has_contacto_correo }}<span class="contact-item"><span class="field-icon">&#9993;</span>{{ contacto_correo }}</span>{{ end }}
+            {{ if has_contacto_whatsapp }}<span class="contact-item"><span class="field-icon">&#128172;</span>{{ contacto_whatsapp }}</span>{{ end }}
+            {{ if has_contacto_facebook }}<span class="contact-item"><span class="field-icon">&#128101;</span>{{ contacto_facebook }}</span>{{ end }}
+            {{ if has_contacto_instagram }}<span class="contact-item"><span class="field-icon">&#128247;</span>{{ contacto_instagram }}</span>{{ end }}
+        </div>
         {{ end }}
         {{ company_name }} — {{ label_quotation }} #{{ cotizacion_id }}
     </div>

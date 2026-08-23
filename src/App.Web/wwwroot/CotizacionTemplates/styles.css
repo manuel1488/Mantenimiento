@@ -11,6 +11,9 @@ body {
     color: #212121;
     margin: 0;
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .header {
@@ -199,7 +202,7 @@ table.lineas tbody tr:nth-child(even) {
 }
 
 .bank-grid .bank-field {
-    min-width: 200px;
+    flex: 1 1 200px;
 }
 
 .bank-grid .bank-field.full-width {
@@ -219,6 +222,7 @@ table.lineas tbody tr:nth-child(even) {
 }
 
 .footer {
+    margin-top: auto;
     border-top: 1px solid #e0e0e0;
     padding-top: 12px;
     font-size: 10px;
@@ -228,4 +232,21 @@ table.lineas tbody tr:nth-child(even) {
 
 .footer .company-address {
     margin-bottom: 6px;
+}
+
+.contact-line {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin-bottom: 6px;
+}
+
+.contact-item {
+    display: inline-flex;
+    align-items: center;
+}
+
+.contact-item .field-icon {
+    color: #9e9e9e;
 }

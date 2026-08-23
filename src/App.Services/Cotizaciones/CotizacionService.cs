@@ -636,7 +636,6 @@ public class CotizacionService : ICotizacionService
                 label_account_number = _localizer["Account Number"].Value,
                 label_clabe = _localizer["CLABE"].Value,
                 label_swift = _localizer["SWIFT/BIC"].Value,
-                label_contact = _localizer["Contact and Social Media"].Value,
                 lineas = cotizacion.Lineas.Select((l, i) => new
                 {
                     indice = i + 1,

@@ -53,7 +53,6 @@ public static class CotizacionTemplateSampleData
         has_contacto_facebook = true,
         contacto_instagram = "@mantenimientodemo",
         has_contacto_instagram = true,
-        label_contact = "Contacto y Redes Sociales",
         label_quotation = "Cotización",
         label_client = "Cliente",
         label_fiscal_data = "Datos Fiscales",
