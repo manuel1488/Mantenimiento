@@ -22,4 +22,6 @@ public class CotizacionTemplateSettingsDto
     public string? WhatsApp { get; set; }
     public string? Facebook { get; set; }
     public string? Instagram { get; set; }
+    public string FolioPrefijo { get; set; } = "COT";
+    public int FolioDigitos { get; set; } = 4;
 }

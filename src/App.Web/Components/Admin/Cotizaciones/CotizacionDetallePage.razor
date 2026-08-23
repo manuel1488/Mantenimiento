@@ -2,6 +2,7 @@
 @attribute [Authorize(Policy = ApplicationClaims.Shared.ViewCotizaciones)]
 
 @using Microsoft.AspNetCore.Authorization
+@using App.Core.Common
 @using App.Core.Constants
 @using App.Core.DTOs.Cotizaciones
 @using App.Core.Enums.Cotizaciones
@@ -14,6 +15,7 @@
 
 @inject IStringLocalizer<CotizacionDetallePage> L
 @inject ICotizacionService CotizacionService
+@inject ICotizacionTemplateSettingsService TemplateSettingsService
 @inject IWhatsAppShareService WhatsAppShareService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -50,7 +52,7 @@
                     <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="4">
                         <div style="min-width: 0;">
                             <MudText Typo="Typo.h5" Style="font-weight: 600;">@_cotizacion.ClienteNombre</MudText>
-                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@_cotizacion.FechaGeneracion.ToString("dd/MM/yyyy")</MudText>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@Folio() — @_cotizacion.FechaGeneracion.ToString("dd/MM/yyyy")</MudText>
                             <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-2">
                                 <MudChip T="string" Size="Size.Small" Color="@EstadoColor(_cotizacion.Estado)" Variant="Variant.Filled">
                                     @EstadoLabel(_cotizacion.Estado)
@@ -197,11 +199,20 @@
     private CotizacionDto? _cotizacion;
     private string _aprobadaPor = string.Empty;
     private string _medioAprobacion = string.Empty;
+    private string? _folioPrefijo;
+    private int? _folioDigitos;
 
     protected override async Task OnInitializedAsync()
     {
+        var config = await TemplateSettingsService.GetConfigAsync();
+        _folioPrefijo = config?.FolioPrefijo;
+        _folioDigitos = config?.FolioDigitos;
+
         await LoadAsync();
     }
+
+    private string Folio() => CotizacionFolioFormatter.Format(
+        _cotizacion!.Id, _cotizacion.FolioAnio, _cotizacion.FolioNumero, _folioPrefijo, _folioDigitos);
 
     private async Task LoadAsync()
     {

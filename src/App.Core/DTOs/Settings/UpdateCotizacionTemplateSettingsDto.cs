@@ -56,4 +56,11 @@ public class UpdateCotizacionTemplateSettingsDto
 
     [StringLength(150)]
     public string? Instagram { get; set; }
+
+    [Required]
+    [StringLength(20)]
+    public string FolioPrefijo { get; set; } = "COT";
+
+    [Range(1, 10)]
+    public int FolioDigitos { get; set; } = 4;
 }

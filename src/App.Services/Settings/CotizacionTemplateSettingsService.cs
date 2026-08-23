@@ -86,6 +86,8 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
         settings.WhatsApp = dto.WhatsApp;
         settings.Facebook = dto.Facebook;
         settings.Instagram = dto.Instagram;
+        settings.FolioPrefijo = dto.FolioPrefijo;
+        settings.FolioDigitos = dto.FolioDigitos;
 
         settings.ModifiedBy = currentUser;
         settings.ModifiedAt = currentTime;
@@ -156,6 +158,8 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
         CorreoElectronico = entity.CorreoElectronico,
         WhatsApp = entity.WhatsApp,
         Facebook = entity.Facebook,
-        Instagram = entity.Instagram
+        Instagram = entity.Instagram,
+        FolioPrefijo = entity.FolioPrefijo,
+        FolioDigitos = entity.FolioDigitos
     };
 }

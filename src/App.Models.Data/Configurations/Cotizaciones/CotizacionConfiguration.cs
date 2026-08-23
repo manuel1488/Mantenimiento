@@ -17,5 +17,8 @@ public class CotizacionConfiguration : IEntityTypeConfiguration<Cotizacion>
             .WithMany()
             .HasForeignKey(e => e.ClienteId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => new { e.FolioAnio, e.FolioNumero })
+            .IsUnique();
     }
 }

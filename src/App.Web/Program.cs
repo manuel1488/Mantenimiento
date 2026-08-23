@@ -514,6 +514,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IObraService, ObraService>();
     services.AddScoped<IActividadService, ActividadService>();
     services.AddScoped<ICotizacionService, CotizacionService>();
+    services.AddScoped<ICotizacionFolioService, CotizacionFolioService>();
     services.AddScoped<ICotizacionTemplateSettingsService, CotizacionTemplateSettingsService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 

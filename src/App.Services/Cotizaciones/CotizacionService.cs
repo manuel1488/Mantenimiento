@@ -31,6 +31,7 @@ public class CotizacionService : ICotizacionService
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IEmailService _emailService;
     private readonly IFiscalCatalogService _fiscalCatalogService;
+    private readonly ICotizacionFolioService _folioService;
     private readonly IOptions<ApplicationOptions> _applicationOptions;
     private readonly IOptions<BrandingOptions> _brandingOptions;
 
@@ -47,6 +48,7 @@ public class CotizacionService : ICotizacionService
         IEmailTemplateService emailTemplateService,
         IEmailService emailService,
         IFiscalCatalogService fiscalCatalogService,
+        ICotizacionFolioService folioService,
         IOptions<ApplicationOptions> applicationOptions,
         IOptions<BrandingOptions> brandingOptions)
     {
@@ -62,6 +64,7 @@ public class CotizacionService : ICotizacionService
         _emailTemplateService = emailTemplateService;
         _emailService = emailService;
         _fiscalCatalogService = fiscalCatalogService;
+        _folioService = folioService;
         _applicationOptions = applicationOptions;
         _brandingOptions = brandingOptions;
     }
@@ -170,10 +173,14 @@ public class CotizacionService : ICotizacionService
                     var currentUser = await _currentUserService.GetUserIdAsync();
                     var currentTime = _dateTimeService.Now;
 
+                    var (folioAnio, folioNumero) = await _folioService.GenerarSiguienteFolioAsync();
+
                     var cotizacion = new Cotizacion
                     {
                         ClienteId = dto.ClienteId,
                         FechaGeneracion = currentTime,
+                        FolioAnio = folioAnio,
+                        FolioNumero = folioNumero,
                         Estado = CotizacionEstado.Pendiente,
                         IncluirIva = dto.IncluirIva,
                         CreatedBy = currentUser,
@@ -574,6 +581,9 @@ public class CotizacionService : ICotizacionService
                 primary_color = _brandingOptions.Value.PrimaryColor,
                 secondary_color = _brandingOptions.Value.SecondaryColor,
                 cotizacion_id = cotizacion.Id,
+                cotizacion_folio = CotizacionFolioFormatter.Format(
+                    cotizacion.Id, cotizacion.FolioAnio, cotizacion.FolioNumero,
+                    templateSettings?.FolioPrefijo, templateSettings?.FolioDigitos),
                 fecha_generacion = fechaGeneracionLocal.ToString("dd/MM/yyyy"),
                 hora_generacion = fechaGeneracionLocal.ToString("HH:mm"),
                 cliente_nombre = cliente.Nombre,

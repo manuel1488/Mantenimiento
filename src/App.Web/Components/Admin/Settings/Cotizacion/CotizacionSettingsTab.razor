@@ -1,3 +1,4 @@
+@using App.Core.Common
 @using App.Core.DTOs.Settings
 @using App.Core.Interfaces
 @using App.Services.Email
@@ -11,6 +12,37 @@
 
 <MudForm @ref="_form" @bind-IsValid="_isValid">
     <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-1">@L["Folio Numbering"]</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                @L["The consecutive number resets every year and never changes once assigned; only the prefix/padding shown here are applied retroactively to existing folios."]
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudTextField @bind-Value="_folioPrefijo"
+                          Label="@L["Folio Prefix"]"
+                          Required="true"
+                          RequiredError="@L["Folio prefix is required"]"
+                          Variant="Variant.Outlined"
+                          MaxLength="20" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudNumericField @bind-Value="_folioDigitos"
+                             Label="@L["Folio Digits"]"
+                             Min="1" Max="10"
+                             Variant="Variant.Outlined" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                @L["Preview"]: @FolioPreview
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudDivider Class="my-2" />
+        </MudItem>
+
         <MudItem xs="12">
             <MudText Typo="Typo.h6" Class="mb-1">@L["Footer Content"]</MudText>
             <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
@@ -214,6 +246,11 @@
     private string? _whatsApp;
     private string? _facebook;
     private string? _instagram;
+    private string _folioPrefijo = "COT";
+    private int _folioDigitos = 4;
+
+    private string FolioPreview => CotizacionFolioFormatter.Format(
+        1, DateTime.Now.Year, 1, _folioPrefijo, _folioDigitos);
 
     protected override async Task OnInitializedAsync()
     {
@@ -244,6 +281,8 @@
         _whatsApp = config?.WhatsApp;
         _facebook = config?.Facebook;
         _instagram = config?.Instagram;
+        _folioPrefijo = config?.FolioPrefijo ?? "COT";
+        _folioDigitos = config?.FolioDigitos ?? 4;
     }
 
     private async Task SaveAsync()
@@ -274,7 +313,9 @@
                 CorreoElectronico = _correoElectronico,
                 WhatsApp = _whatsApp,
                 Facebook = _facebook,
-                Instagram = _instagram
+                Instagram = _instagram,
+                FolioPrefijo = _folioPrefijo,
+                FolioDigitos = _folioDigitos
             });
 
             Snackbar.Add(L["Template saved successfully"], Severity.Success);
@@ -343,7 +384,8 @@
         { "has_logo",            "true si hay logo configurado" },
         { "primary_color",       "Color primario de marca (hex)" },
         { "secondary_color",     "Color secundario de marca (hex)" },
-        { "cotizacion_id",       "Número/ID de la cotización" },
+        { "cotizacion_id",       "ID interno de la cotización (no usar para mostrar el folio)" },
+        { "cotizacion_folio",    "Folio formateado de la cotización (ej. COT-2026-0001), según Prefijo/Dígitos configurados" },
         { "fecha_generacion",    "Fecha de generación (dd/MM/yyyy)" },
         { "hora_generacion",     "Hora de generación (HH:mm)" },
         { "cliente_nombre",      "Nombre del cliente" },

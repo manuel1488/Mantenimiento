@@ -6,7 +6,7 @@
             <div class="company-name">{{ company_name }}</div>
         </div>
         <div class="title-block">
-            <div class="title">{{ label_quotation }} #{{ cotizacion_id }}</div>
+            <div class="title">{{ label_quotation }} {{ cotizacion_folio }}</div>
             <div class="date">{{ label_date }}: {{ fecha_generacion }} {{ hora_generacion }}</div>
         </div>
     </div>
@@ -130,5 +130,5 @@
             {{ if has_contacto_instagram }}<span class="contact-item"><span class="field-icon">&#128247;</span>{{ contacto_instagram }}</span>{{ end }}
         </div>
         {{ end }}
-        {{ company_name }} — {{ label_quotation }} #{{ cotizacion_id }}
+        {{ company_name }} — {{ label_quotation }} {{ cotizacion_folio }}
     </div>

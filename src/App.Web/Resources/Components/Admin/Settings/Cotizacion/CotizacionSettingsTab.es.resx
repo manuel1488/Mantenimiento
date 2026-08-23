@@ -3,6 +3,21 @@
   <data name="Cotización PDF Template" xml:space="preserve">
     <value>Plantilla PDF de Cotización</value>
   </data>
+  <data name="Folio Numbering" xml:space="preserve">
+    <value>Numeración de Folio</value>
+  </data>
+  <data name="The consecutive number resets every year and never changes once assigned; only the prefix/padding shown here are applied retroactively to existing folios." xml:space="preserve">
+    <value>El consecutivo se reinicia cada año y nunca cambia una vez asignado; solo el prefijo/dígitos que configures aquí se aplican retroactivamente a los folios existentes.</value>
+  </data>
+  <data name="Folio Prefix" xml:space="preserve">
+    <value>Prefijo del Folio</value>
+  </data>
+  <data name="Folio prefix is required" xml:space="preserve">
+    <value>El prefijo del folio es requerido</value>
+  </data>
+  <data name="Folio Digits" xml:space="preserve">
+    <value>Dígitos del Folio</value>
+  </data>
   <data name="Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template." xml:space="preserve">
     <value>Personaliza el HTML/CSS usado para generar el PDF de la Cotización. Restablece para usar la plantilla por defecto.</value>
   </data>

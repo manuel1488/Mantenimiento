@@ -18,6 +18,15 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
     [Required]
     public DateTime FechaGeneracion { get; set; }
 
+    /// <summary>
+    /// Año y consecutivo del folio (ej. Año=2026, Numero=42 → "COT-2026-0042"), asignados al crear la
+    /// Cotización; el consecutivo se reinicia cada año. El prefijo/padding se aplican en tiempo de
+    /// visualización desde CotizacionTemplateSettings, así que cambiarlos no altera folios ya
+    /// asignados. Nulos en Cotizaciones creadas antes de que existiera este folio.
+    /// </summary>
+    public int? FolioAnio { get; set; }
+    public int? FolioNumero { get; set; }
+
     /// <summary>Suma de los subtotales de las líneas, sin IVA.</summary>
     [Required]
     [Column(TypeName = "decimal(18,2)")]

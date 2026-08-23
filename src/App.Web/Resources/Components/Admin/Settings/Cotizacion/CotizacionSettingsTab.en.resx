@@ -3,6 +3,21 @@
   <data name="Cotización PDF Template" xml:space="preserve">
     <value>Cotización PDF Template</value>
   </data>
+  <data name="Folio Numbering" xml:space="preserve">
+    <value>Folio Numbering</value>
+  </data>
+  <data name="The consecutive number resets every year and never changes once assigned; only the prefix/padding shown here are applied retroactively to existing folios." xml:space="preserve">
+    <value>The consecutive number resets every year and never changes once assigned; only the prefix/padding shown here are applied retroactively to existing folios.</value>
+  </data>
+  <data name="Folio Prefix" xml:space="preserve">
+    <value>Folio Prefix</value>
+  </data>
+  <data name="Folio prefix is required" xml:space="preserve">
+    <value>Folio prefix is required</value>
+  </data>
+  <data name="Folio Digits" xml:space="preserve">
+    <value>Folio Digits</value>
+  </data>
   <data name="Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template." xml:space="preserve">
     <value>Customize the HTML/CSS used to render the Cotización PDF. Leave blank and reset to use the default template.</value>
   </data>

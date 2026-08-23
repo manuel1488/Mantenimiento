@@ -5,12 +5,14 @@
 @using App.Core.Constants
 @using App.Core.DTOs.Cotizaciones
 @using App.Core.Enums.Cotizaciones
+@using App.Core.Common
 @using App.Core.Interfaces
 @using App.Web.Components.Shared.Dialogs
 @using MudBlazor
 
 @inject IStringLocalizer<CotizacionesPage> L
 @inject ICotizacionService CotizacionService
+@inject ICotizacionTemplateSettingsService TemplateSettingsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<CotizacionesPage> Logger
@@ -46,9 +48,14 @@
                              SortMode="SortMode.Multiple" Filterable="false"
                              Dense="true" Hover="true" RowsPerPage="10">
                     <Columns>
+                        <TemplateColumn Title="@L["Folio"]" HeaderStyle="width: 150px;">
+                            <CellTemplate>
+                                <MudLink Href="@($"/gestion/cotizaciones/{context.Item.Id}")">@Folio(context.Item)</MudLink>
+                            </CellTemplate>
+                        </TemplateColumn>
                         <TemplateColumn Title="@L["Client"]">
                             <CellTemplate>
-                                <MudLink Href="@($"/gestion/cotizaciones/{context.Item.Id}")">@context.Item.ClienteNombre</MudLink>
+                                @context.Item.ClienteNombre
                             </CellTemplate>
                         </TemplateColumn>
                         <PropertyColumn Property="x => x.FechaGeneracion" Title="@L["Date"]" Format="dd/MM/yyyy" HeaderStyle="width: 130px;" />
@@ -126,11 +133,20 @@
     private List<CotizacionDto> _cotizaciones = new();
     private List<CotizacionDto> _filteredCotizaciones = new();
     private string _searchString = "";
+    private string? _folioPrefijo;
+    private int? _folioDigitos;
 
     protected override async Task OnInitializedAsync()
     {
+        var config = await TemplateSettingsService.GetConfigAsync();
+        _folioPrefijo = config?.FolioPrefijo;
+        _folioDigitos = config?.FolioDigitos;
+
         await LoadDataAsync();
     }
+
+    private string Folio(CotizacionDto cotizacion) => CotizacionFolioFormatter.Format(
+        cotizacion.Id, cotizacion.FolioAnio, cotizacion.FolioNumero, _folioPrefijo, _folioDigitos);
 
     private async Task LoadDataAsync()
     {

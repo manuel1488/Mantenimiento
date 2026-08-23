@@ -9,6 +9,9 @@
   <data name="New Cotización" xml:space="preserve">
     <value>Nueva Cotización</value>
   </data>
+  <data name="Folio" xml:space="preserve">
+    <value>Folio</value>
+  </data>
   <data name="Client" xml:space="preserve">
     <value>Cliente</value>
   </data>

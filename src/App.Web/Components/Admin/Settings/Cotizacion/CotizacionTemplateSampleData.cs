@@ -13,6 +13,7 @@ public static class CotizacionTemplateSampleData
         primary_color = "#1A6868",
         secondary_color = "#7B3FA0",
         cotizacion_id = 1,
+        cotizacion_folio = "COT-2026-0001",
         fecha_generacion = DateTime.Now.ToString("dd/MM/yyyy"),
         hora_generacion = DateTime.Now.ToString("HH:mm"),
         cliente_nombre = "Juan Pérez",

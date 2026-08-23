@@ -74,4 +74,14 @@ public class CotizacionTemplateSettings : BaseEntity<int>, IAuditTracked
 
     [StringLength(150)]
     public string? Instagram { get; set; }
+
+    /// <summary>Prefijo del folio de Cotización (ej. "COT" → "COT-2026-0042"). Aplicado en tiempo de
+    /// visualización — cambiarlo no altera el año/consecutivo ya asignado a Cotizaciones existentes.</summary>
+    [Required]
+    [StringLength(20)]
+    public string FolioPrefijo { get; set; } = "COT";
+
+    /// <summary>Cantidad de dígitos con ceros a la izquierda para el consecutivo del folio (ej. 4 → "0042").</summary>
+    [Range(1, 10)]
+    public int FolioDigitos { get; set; } = 4;
 }
