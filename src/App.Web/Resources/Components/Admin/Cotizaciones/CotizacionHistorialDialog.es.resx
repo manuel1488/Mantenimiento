@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="No history entries found" xml:space="preserve">
+    <value>No se encontraron registros de historial</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Creada</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Eliminada</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Modificada</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="(empty)" xml:space="preserve">
+    <value>(vacío)</value>
+  </data>
+</root>

@@ -515,6 +515,7 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IActividadService, ActividadService>();
     services.AddScoped<ICotizacionService, CotizacionService>();
     services.AddScoped<ICotizacionFolioService, CotizacionFolioService>();
+    services.AddScoped<ICotizacionIntegrityHashService, CotizacionIntegrityHashService>();
     services.AddScoped<ICotizacionTemplateSettingsService, CotizacionTemplateSettingsService>();
     services.AddAutoMapper(typeof(UserMappingProfile));
 

@@ -32,6 +32,7 @@ public class CotizacionService : ICotizacionService
     private readonly IEmailService _emailService;
     private readonly IFiscalCatalogService _fiscalCatalogService;
     private readonly ICotizacionFolioService _folioService;
+    private readonly ICotizacionIntegrityHashService _integrityHashService;
     private readonly IOptions<ApplicationOptions> _applicationOptions;
     private readonly IOptions<BrandingOptions> _brandingOptions;
 
@@ -49,6 +50,7 @@ public class CotizacionService : ICotizacionService
         IEmailService emailService,
         IFiscalCatalogService fiscalCatalogService,
         ICotizacionFolioService folioService,
+        ICotizacionIntegrityHashService integrityHashService,
         IOptions<ApplicationOptions> applicationOptions,
         IOptions<BrandingOptions> brandingOptions)
     {
@@ -65,6 +67,7 @@ public class CotizacionService : ICotizacionService
         _emailService = emailService;
         _fiscalCatalogService = fiscalCatalogService;
         _folioService = folioService;
+        _integrityHashService = integrityHashService;
         _applicationOptions = applicationOptions;
         _brandingOptions = brandingOptions;
     }
@@ -213,6 +216,7 @@ public class CotizacionService : ICotizacionService
                     }
 
                     await ApplyTotalesAsync(cotizacion, subtotalTotal, dto.IncluirIva);
+                    cotizacion.IntegridadHash = ComputeIntegridadHash(cotizacion);
 
                     context.Cotizaciones.Add(cotizacion);
                     await context.SaveChangesAsync();
@@ -321,6 +325,7 @@ public class CotizacionService : ICotizacionService
                     }
 
                     await ApplyTotalesAsync(cotizacion, subtotalTotal, dto.IncluirIva);
+                    cotizacion.IntegridadHash = ComputeIntegridadHash(cotizacion);
                     cotizacion.ModifiedBy = currentUser;
                     cotizacion.ModifiedAt = currentTime;
 
@@ -542,6 +547,13 @@ public class CotizacionService : ICotizacionService
             var templateSettings = await _templateSettingsService.GetConfigAsync();
             var regimenesFiscales = await _fiscalCatalogService.GetRegimenesFiscalesAsync();
             var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+
+            var generadoPorNombre = await context.Users
+                .IgnoreQueryFilters()
+                .Where(u => u.Id == cotizacion.CreatedBy)
+                .Select(u => u.FullName)
+                .FirstOrDefaultAsync(cancellationToken);
+            var generadoPor = string.IsNullOrWhiteSpace(generadoPorNombre) ? cotizacion.CreatedBy : generadoPorNombre;
             var fechaGeneracionLocal = TimeZoneInfo.ConvertTimeFromUtc(cotizacion.FechaGeneracion, timeZone);
 
             var cliente = cotizacion.Cliente;
@@ -584,6 +596,10 @@ public class CotizacionService : ICotizacionService
                 cotizacion_folio = CotizacionFolioFormatter.Format(
                     cotizacion.Id, cotizacion.FolioAnio, cotizacion.FolioNumero,
                     templateSettings?.FolioPrefijo, templateSettings?.FolioDigitos),
+                generado_por = generadoPor,
+                has_generado_por = !string.IsNullOrWhiteSpace(generadoPor),
+                integridad_hash = cotizacion.IntegridadHash,
+                has_integridad_hash = !string.IsNullOrWhiteSpace(cotizacion.IntegridadHash),
                 fecha_generacion = fechaGeneracionLocal.ToString("dd/MM/yyyy"),
                 hora_generacion = fechaGeneracionLocal.ToString("HH:mm"),
                 cliente_nombre = cliente.Nombre,
@@ -613,16 +629,22 @@ public class CotizacionService : ICotizacionService
                 banco_swift = templateSettings?.BancoSwift,
                 mostrar_contacto = mostrarContacto,
                 contacto_sitio_web = templateSettings?.SitioWeb,
+                contacto_sitio_web_href = ContactLinkFormatter.NormalizeUrl(templateSettings?.SitioWeb),
                 has_contacto_sitio_web = !string.IsNullOrWhiteSpace(templateSettings?.SitioWeb),
                 contacto_telefono = templateSettings?.Telefono,
+                contacto_telefono_href = ContactLinkFormatter.BuildTelHref(templateSettings?.Telefono),
                 has_contacto_telefono = !string.IsNullOrWhiteSpace(templateSettings?.Telefono),
                 contacto_correo = templateSettings?.CorreoElectronico,
+                contacto_correo_href = ContactLinkFormatter.BuildMailtoHref(templateSettings?.CorreoElectronico),
                 has_contacto_correo = !string.IsNullOrWhiteSpace(templateSettings?.CorreoElectronico),
                 contacto_whatsapp = templateSettings?.WhatsApp,
+                contacto_whatsapp_href = ContactLinkFormatter.BuildWhatsAppUrl(templateSettings?.WhatsApp),
                 has_contacto_whatsapp = !string.IsNullOrWhiteSpace(templateSettings?.WhatsApp),
                 contacto_facebook = templateSettings?.Facebook,
+                contacto_facebook_href = ContactLinkFormatter.NormalizeUrl(templateSettings?.Facebook),
                 has_contacto_facebook = !string.IsNullOrWhiteSpace(templateSettings?.Facebook),
                 contacto_instagram = templateSettings?.Instagram,
+                contacto_instagram_href = ContactLinkFormatter.NormalizeUrl(templateSettings?.Instagram),
                 has_contacto_instagram = !string.IsNullOrWhiteSpace(templateSettings?.Instagram),
                 label_quotation = _localizer["Quotation"].Value,
                 label_client = _localizer["Client"].Value,
@@ -646,6 +668,8 @@ public class CotizacionService : ICotizacionService
                 label_account_number = _localizer["Account Number"].Value,
                 label_clabe = _localizer["CLABE"].Value,
                 label_swift = _localizer["SWIFT/BIC"].Value,
+                label_generated_by = _localizer["Generated by"].Value,
+                label_integrity_hash = _localizer["Integrity Hash"].Value,
                 lineas = cotizacion.Lineas.Select((l, i) => new
                 {
                     indice = i + 1,
@@ -790,4 +814,17 @@ public class CotizacionService : ICotizacionService
         cotizacion.IvaMonto = Math.Round(subtotal * ivaTasa / 100m, 2);
         cotizacion.Total = subtotal + cotizacion.IvaMonto;
     }
+
+    private string ComputeIntegridadHash(Cotizacion cotizacion) => _integrityHashService.Compute(
+        cotizacion.FolioAnio,
+        cotizacion.FolioNumero,
+        cotizacion.ClienteId,
+        cotizacion.FechaGeneracion,
+        cotizacion.Subtotal,
+        cotizacion.IncluirIva,
+        cotizacion.IvaTasa,
+        cotizacion.IvaMonto,
+        cotizacion.Total,
+        cotizacion.Lineas.Select(l => new CotizacionIntegrityLinea(
+            l.ServicioNombre, l.UnidadMedida, l.Cantidad, l.PrecioUnitario, l.Subtotal)));
 }

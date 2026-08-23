@@ -16,6 +16,7 @@ public interface IAuditLogService
         int page = 1,
         int pageSize = 20,
         string? entityType = null,
+        string? entityId = null,
         string? userId = null,
         AuditAction? action = null,
         DateTime? fromUtc = null,

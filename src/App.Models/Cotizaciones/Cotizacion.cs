@@ -68,4 +68,14 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
     public string? MedioAprobacion { get; set; }
 
     public ICollection<CotizacionLinea> Lineas { get; set; } = new List<CotizacionLinea>();
+
+    /// <summary>
+    /// Huella SHA-256 (ver CotizacionIntegrityHasher) sobre el folio, cliente, totales y líneas —
+    /// recalculada en cada creación/edición. No es una firma digital (no usa llave privada); solo
+    /// permite detectar si los datos guardados fueron alterados directamente en la base de datos
+    /// sin pasar por la aplicación.
+    /// </summary>
+    [Required]
+    [StringLength(64)]
+    public string IntegridadHash { get; set; } = string.Empty;
 }

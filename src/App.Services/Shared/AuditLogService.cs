@@ -32,6 +32,7 @@ public class AuditLogService : IAuditLogService
         int page = 1,
         int pageSize = 20,
         string? entityType = null,
+        string? entityId = null,
         string? userId = null,
         AuditAction? action = null,
         DateTime? fromUtc = null,
@@ -43,6 +44,9 @@ public class AuditLogService : IAuditLogService
 
         if (!string.IsNullOrWhiteSpace(entityType))
             query = query.Where(a => a.EntityType == entityType);
+
+        if (!string.IsNullOrWhiteSpace(entityId))
+            query = query.Where(a => a.EntityId == entityId);
 
         if (!string.IsNullOrWhiteSpace(userId))
             query = query.Where(a => a.UserName == userId);

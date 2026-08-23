@@ -75,6 +75,9 @@
                             <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Secondary"
                                            Variant="Variant.Outlined" OnClick="ShareByWhatsAppAsync" Disabled="@_sharing"
                                            title="@L["Share by WhatsApp"]" />
+                            <MudIconButton Icon="@Icons.Material.Filled.History" Color="Color.Secondary"
+                                           Variant="Variant.Outlined" OnClick="OpenHistorialDialog"
+                                           title="@L["View History"]" />
                             @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
                             {
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
@@ -281,6 +284,17 @@
         {
             Snackbar.Add(result.Error, Severity.Error);
         }
+    }
+
+    private async Task OpenHistorialDialog()
+    {
+        var parameters = new DialogParameters<CotizacionHistorialDialog>
+        {
+            { x => x.CotizacionId, Id }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<CotizacionHistorialDialog>(L["History"], parameters, options);
     }
 
     private async Task OpenSendEmailDialog()

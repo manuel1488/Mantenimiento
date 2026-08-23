@@ -66,6 +66,12 @@
   <data name="Share by WhatsApp" xml:space="preserve">
     <value>Share by WhatsApp</value>
   </data>
+  <data name="View History" xml:space="preserve">
+    <value>View History</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>History</value>
+  </data>
   <data name="Cotización sent successfully" xml:space="preserve">
     <value>Quotation sent successfully</value>
   </data>

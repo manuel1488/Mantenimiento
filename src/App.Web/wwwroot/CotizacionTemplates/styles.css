@@ -245,8 +245,18 @@ table.lineas tbody tr:nth-child(even) {
 .contact-item {
     display: inline-flex;
     align-items: center;
+    color: inherit;
+    text-decoration: none;
 }
 
 .contact-item .field-icon {
     color: #9e9e9e;
+}
+
+.integrity-line {
+    margin-top: 6px;
+    font-size: 8px;
+    color: #bdbdbd;
+    letter-spacing: .01em;
+    word-break: break-all;
 }

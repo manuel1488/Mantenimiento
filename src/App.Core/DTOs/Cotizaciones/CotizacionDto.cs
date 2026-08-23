@@ -21,4 +21,5 @@ public class CotizacionDto
     public string? AprobadaPor { get; set; }
     public string? MedioAprobacion { get; set; }
     public List<CotizacionLineaDto> Lineas { get; set; } = [];
+    public string IntegridadHash { get; set; } = string.Empty;
 }

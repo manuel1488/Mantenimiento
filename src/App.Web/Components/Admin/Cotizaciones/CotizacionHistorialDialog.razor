@@ -1,0 +1,100 @@
+@using App.Core.DTOs.Shared
+@using App.Core.Enums.Shared
+@using App.Core.Interfaces
+@using App.Shared.Services
+@using MudBlazor
+
+@inject IAuditLogService AuditLogService
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
+@inject IStringLocalizer<CotizacionHistorialDialog> L
+
+<MudDialog>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_entries.Count == 0)
+        {
+            <MudText Class="pa-4">@L["No history entries found"]</MudText>
+        }
+        else
+        {
+            <MudTimeline TimelinePosition="TimelinePosition.Start">
+                @foreach (var entry in _entries)
+                {
+                    var (color, label) = entry.Action switch
+                    {
+                        AuditAction.Insert => (Color.Success, L["Created"].Value),
+                        AuditAction.Delete => (Color.Error, L["Deleted"].Value),
+                        _ => (Color.Info, L["Updated"].Value)
+                    };
+
+                    <MudTimelineItem Color="@color">
+                        <ItemContent>
+                            <MudStack Spacing="1">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudChip T="string" Size="Size.Small" Color="@color">@label</MudChip>
+                                    <MudText Typo="Typo.body2">@FormatDateTime(entry.Timestamp)</MudText>
+                                </MudStack>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@entry.UserName</MudText>
+
+                                @if (entry.Changes.Count > 0)
+                                {
+                                    <MudStack Spacing="0" Class="mt-1">
+                                        @foreach (var change in entry.Changes)
+                                        {
+                                            <MudText Typo="Typo.caption">
+                                                <strong>@change.Property:</strong>
+                                                <span style="color: var(--mud-palette-error)">@DisplayValue(change.Old)</span>
+                                                <MudIcon Icon="@Icons.Material.Filled.ArrowRightAlt" Size="Size.Small" />
+                                                <span style="color: var(--mud-palette-success)">@DisplayValue(change.New)</span>
+                                            </MudText>
+                                        }
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        </ItemContent>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int CotizacionId { get; set; }
+
+    private bool _loading = true;
+    private List<AuditLogDto> _entries = [];
+    private TimeZoneInfo? _companyTimeZone;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+
+        var (_, items) = await AuditLogService.GetAsync(
+            page: 1,
+            pageSize: 100,
+            entityType: nameof(App.Models.Cotizaciones.Cotizacion),
+            entityId: CotizacionId.ToString());
+
+        _entries = items.OrderByDescending(e => e.Timestamp).ToList();
+        _loading = false;
+    }
+
+    private string FormatDateTime(DateTime utcDate)
+        => _companyTimeZone is null
+            ? utcDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+            : DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+
+    private string DisplayValue(string? value)
+        => string.IsNullOrEmpty(value) ? L["(empty)"] : value;
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+}
