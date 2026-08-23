@@ -48,8 +48,11 @@ public class CotizacionTemplateSettings : BaseEntity<int>, IAuditTracked
     [StringLength(20)]
     public string? BancoSwift { get; set; }
 
-    /// <summary>Whether the company's own address (CompanySettings.Direccion) is shown on the PDF.</summary>
+    /// <summary>Whether the company's own address is shown on the PDF.</summary>
     public bool MostrarDireccionEnCotizacion { get; set; }
+
+    [StringLength(300)]
+    public string? Direccion { get; set; }
 
     /// <summary>Whether the "Contacto y Redes Sociales" section is shown on the PDF footer.</summary>
     public bool MostrarContacto { get; set; }

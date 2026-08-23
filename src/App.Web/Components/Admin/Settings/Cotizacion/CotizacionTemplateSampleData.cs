@@ -14,6 +14,7 @@ public static class CotizacionTemplateSampleData
         secondary_color = "#7B3FA0",
         cotizacion_id = 1,
         fecha_generacion = DateTime.Now.ToString("dd/MM/yyyy"),
+        hora_generacion = DateTime.Now.ToString("HH:mm"),
         cliente_nombre = "Juan Pérez",
         cliente_correo = "juan.perez@example.com",
         has_cliente_correo = true,

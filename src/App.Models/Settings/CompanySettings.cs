@@ -32,11 +32,4 @@ public class CompanySettings : BaseEntity<int>, IAuditTracked
     /// </summary>
     [Column(TypeName = "decimal(5,2)")]
     public decimal IvaTasaPorDefecto { get; set; } = 16.00m;
-
-    /// <summary>
-    /// Domicilio fiscal/comercial de la empresa, texto libre. Mostrado en documentos (ej. pie de la
-    /// Cotización) solo cuando el documento correspondiente lo tiene habilitado explícitamente.
-    /// </summary>
-    [StringLength(300)]
-    public string? Direccion { get; set; }
 }

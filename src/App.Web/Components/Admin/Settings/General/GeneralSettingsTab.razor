@@ -57,15 +57,6 @@
                                         HelperText="@L["Used when \"Include IVA\" is enabled on a new Cotización. Changing this does not affect Cotizaciones already generated."]"
                                         ReadOnly="@(!_hasWriteAccess)" />
                         </MudItem>
-
-                        <!-- Company Address -->
-                        <MudItem xs="12">
-                            <MudTextField @bind-Value="_model.Direccion"
-                                        Label="@L["Company Address"]"
-                                        Lines="2"
-                                        HelperText="@L["Shown on documents (e.g. the Cotización footer) only when explicitly enabled for that document."]"
-                                        ReadOnly="@(!_hasWriteAccess)" />
-                        </MudItem>
                     </MudGrid>
                 </MudItem>
 
@@ -171,8 +162,7 @@
                     CompanyName = _settings.CompanyName,
                     TimeZoneId = _settings.TimeZoneId,
                     LogoBase64 = _settings.LogoBase64,
-                    IvaTasaPorDefecto = _settings.IvaTasaPorDefecto,
-                    Direccion = _settings.Direccion
+                    IvaTasaPorDefecto = _settings.IvaTasaPorDefecto
                 };
             }
         }

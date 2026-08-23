@@ -8,7 +8,6 @@ public class CompanySettingsDto
     public string? TimeZoneDisplayName { get; set; }
     public string? LogoBase64 { get; set; }
     public decimal IvaTasaPorDefecto { get; set; }
-    public string? Direccion { get; set; }
     public string CreatedBy { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public string? ModifiedBy { get; set; }

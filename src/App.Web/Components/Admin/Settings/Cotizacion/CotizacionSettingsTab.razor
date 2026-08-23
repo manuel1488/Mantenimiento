@@ -31,6 +31,17 @@
             <MudSwitch @bind-Value="_mostrarDireccion" Color="Color.Primary" Label="@L["Show company address on the Cotización PDF"]" />
         </MudItem>
 
+        @if (_mostrarDireccion)
+        {
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_direccion"
+                              Label="@L["Company Address"]"
+                              Lines="2"
+                              Variant="Variant.Outlined"
+                              FullWidth="true" />
+            </MudItem>
+        }
+
         <MudItem xs="12">
             <MudSwitch @bind-Value="_mostrarDatosBancarios" Color="Color.Primary" Label="@L["Show bank transfer details on the Cotización PDF"]" />
         </MudItem>
@@ -188,6 +199,7 @@
     private string _cssContent = string.Empty;
     private string? _paymentTermsText;
     private bool _mostrarDireccion;
+    private string? _direccion;
     private bool _mostrarDatosBancarios;
     private string? _bancoBeneficiario;
     private string? _bancoRfc;
@@ -215,6 +227,7 @@
         _cssContent = css;
 
         var config = await TemplateSettingsService.GetConfigAsync();
+        _direccion = config?.Direccion;
         _paymentTermsText = config?.PaymentTermsText;
         _mostrarDireccion = config?.MostrarDireccionEnCotizacion ?? false;
         _mostrarDatosBancarios = config?.MostrarDatosBancarios ?? false;
@@ -247,6 +260,7 @@
                 CssContent = _cssContent,
                 PaymentTermsText = _paymentTermsText,
                 MostrarDireccionEnCotizacion = _mostrarDireccion,
+                Direccion = _direccion,
                 MostrarDatosBancarios = _mostrarDatosBancarios,
                 BancoBeneficiario = _bancoBeneficiario,
                 BancoRfc = _bancoRfc,
@@ -262,6 +276,7 @@
                 Facebook = _facebook,
                 Instagram = _instagram
             });
+
             Snackbar.Add(L["Template saved successfully"], Severity.Success);
         }
         catch
@@ -330,6 +345,7 @@
         { "secondary_color",     "Color secundario de marca (hex)" },
         { "cotizacion_id",       "Número/ID de la cotización" },
         { "fecha_generacion",    "Fecha de generación (dd/MM/yyyy)" },
+        { "hora_generacion",     "Hora de generación (HH:mm)" },
         { "cliente_nombre",      "Nombre del cliente" },
         { "cliente_correo",      "Correo del cliente (usar dentro de has_cliente_correo)" },
         { "has_cliente_correo",  "true si el cliente tiene correo" },

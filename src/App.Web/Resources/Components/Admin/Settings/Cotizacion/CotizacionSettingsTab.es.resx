@@ -57,6 +57,9 @@
   <data name="Show company address on the Cotización PDF" xml:space="preserve">
     <value>Mostrar la dirección de la empresa en el PDF de la Cotización</value>
   </data>
+  <data name="Company Address" xml:space="preserve">
+    <value>Dirección de la Compañía</value>
+  </data>
   <data name="Show bank transfer details on the Cotización PDF" xml:space="preserve">
     <value>Mostrar los datos de transferencia bancaria en el PDF de la Cotización</value>
   </data>

@@ -78,6 +78,7 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
         settings.BancoClabe = dto.BancoClabe;
         settings.BancoSwift = dto.BancoSwift;
         settings.MostrarDireccionEnCotizacion = dto.MostrarDireccionEnCotizacion;
+        settings.Direccion = dto.Direccion;
         settings.MostrarContacto = dto.MostrarContacto;
         settings.SitioWeb = dto.SitioWeb;
         settings.Telefono = dto.Telefono;
@@ -148,6 +149,7 @@ public class CotizacionTemplateSettingsService : ICotizacionTemplateSettingsServ
         BancoClabe = entity.BancoClabe,
         BancoSwift = entity.BancoSwift,
         MostrarDireccionEnCotizacion = entity.MostrarDireccionEnCotizacion,
+        Direccion = entity.Direccion,
         MostrarContacto = entity.MostrarContacto,
         SitioWeb = entity.SitioWeb,
         Telefono = entity.Telefono,

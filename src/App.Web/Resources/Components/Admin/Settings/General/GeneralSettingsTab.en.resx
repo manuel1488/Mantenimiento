@@ -48,12 +48,6 @@
     <data name="Used when &quot;Include IVA&quot; is enabled on a new Cotización. Changing this does not affect Cotizaciones already generated." xml:space="preserve">
         <value>Used when "Include IVA" is enabled on a new Cotización. Changing this does not affect Cotizaciones already generated.</value>
     </data>
-    <data name="Company Address" xml:space="preserve">
-        <value>Company Address</value>
-    </data>
-    <data name="Shown on documents (e.g. the Cotización footer) only when explicitly enabled for that document." xml:space="preserve">
-        <value>Shown on documents (e.g. the Cotización footer) only when explicitly enabled for that document.</value>
-    </data>
     <data name="Display Preferences" xml:space="preserve">
         <value>Display Preferences</value>
     </data>

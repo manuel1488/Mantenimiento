@@ -7,7 +7,7 @@
         </div>
         <div class="title-block">
             <div class="title">{{ label_quotation }} #{{ cotizacion_id }}</div>
-            <div class="date">{{ label_date }}: {{ fecha_generacion }}</div>
+            <div class="date">{{ label_date }}: {{ fecha_generacion }} {{ hora_generacion }}</div>
         </div>
     </div>
 
@@ -22,7 +22,7 @@
             <div class="field-line"><span class="field-icon">&#9742;</span>{{ cliente_telefono }}</div>
             {{ end }}
             {{ if has_cliente_direccion }}
-            <div class="field-line">{{ cliente_direccion }}</div>
+            <div class="field-line"><span class="field-icon">&#128205;</span>{{ cliente_direccion }}</div>
             {{ end }}
         </div>
         {{ if cliente_tiene_datos_fiscales }}

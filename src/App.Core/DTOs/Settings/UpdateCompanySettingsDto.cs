@@ -16,7 +16,4 @@ public class UpdateCompanySettingsDto
 
     [Range(0, 100)]
     public decimal IvaTasaPorDefecto { get; set; } = 16.00m;
-
-    [StringLength(300)]
-    public string? Direccion { get; set; }
 }

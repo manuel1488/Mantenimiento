@@ -30,6 +30,7 @@ public class CotizacionService : ICotizacionService
     private readonly ICompanySettingsService _companySettingsService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IEmailService _emailService;
+    private readonly IFiscalCatalogService _fiscalCatalogService;
     private readonly IOptions<ApplicationOptions> _applicationOptions;
     private readonly IOptions<BrandingOptions> _brandingOptions;
 
@@ -45,6 +46,7 @@ public class CotizacionService : ICotizacionService
         ICompanySettingsService companySettingsService,
         IEmailTemplateService emailTemplateService,
         IEmailService emailService,
+        IFiscalCatalogService fiscalCatalogService,
         IOptions<ApplicationOptions> applicationOptions,
         IOptions<BrandingOptions> brandingOptions)
     {
@@ -59,6 +61,7 @@ public class CotizacionService : ICotizacionService
         _companySettingsService = companySettingsService;
         _emailTemplateService = emailTemplateService;
         _emailService = emailService;
+        _fiscalCatalogService = fiscalCatalogService;
         _applicationOptions = applicationOptions;
         _brandingOptions = brandingOptions;
     }
@@ -530,8 +533,17 @@ public class CotizacionService : ICotizacionService
                 ?? await _emailTemplateService.GetStaticFileBase64Async(_brandingOptions.Value.LogoPath);
 
             var templateSettings = await _templateSettingsService.GetConfigAsync();
+            var regimenesFiscales = await _fiscalCatalogService.GetRegimenesFiscalesAsync();
+            var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
+            var fechaGeneracionLocal = TimeZoneInfo.ConvertTimeFromUtc(cotizacion.FechaGeneracion, timeZone);
 
             var cliente = cotizacion.Cliente;
+            var regimenFiscal = regimenesFiscales.FirstOrDefault(r => r.Codigo == cliente.RegimenFiscal);
+            var clienteRegimenFiscalDisplay = string.IsNullOrWhiteSpace(cliente.RegimenFiscal)
+                ? null
+                : regimenFiscal is null
+                    ? cliente.RegimenFiscal
+                    : $"{regimenFiscal.Codigo} - {regimenFiscal.Descripcion}";
             var hasPaymentTerms = !string.IsNullOrWhiteSpace(templateSettings?.PaymentTermsText);
             var mostrarDatosBancarios = templateSettings != null
                 && templateSettings.MostrarDatosBancarios
@@ -542,7 +554,7 @@ public class CotizacionService : ICotizacionService
                     || !string.IsNullOrWhiteSpace(templateSettings.BancoClabe)
                     || !string.IsNullOrWhiteSpace(templateSettings.BancoSwift));
             var mostrarDireccion = templateSettings is { MostrarDireccionEnCotizacion: true }
-                && !string.IsNullOrWhiteSpace(companySettings?.Direccion);
+                && !string.IsNullOrWhiteSpace(templateSettings.Direccion);
             var mostrarContacto = templateSettings != null
                 && templateSettings.MostrarContacto
                 && (!string.IsNullOrWhiteSpace(templateSettings.SitioWeb)
@@ -555,14 +567,15 @@ public class CotizacionService : ICotizacionService
             var data = new
             {
                 company_name = companyName,
-                company_direccion = companySettings?.Direccion,
+                company_direccion = templateSettings?.Direccion,
                 mostrar_direccion = mostrarDireccion,
                 logo_base64 = logoBase64,
                 has_logo = !string.IsNullOrEmpty(logoBase64),
                 primary_color = _brandingOptions.Value.PrimaryColor,
                 secondary_color = _brandingOptions.Value.SecondaryColor,
                 cotizacion_id = cotizacion.Id,
-                fecha_generacion = cotizacion.FechaGeneracion.ToString("dd/MM/yyyy"),
+                fecha_generacion = fechaGeneracionLocal.ToString("dd/MM/yyyy"),
+                hora_generacion = fechaGeneracionLocal.ToString("HH:mm"),
                 cliente_nombre = cliente.Nombre,
                 cliente_correo = cliente.Correo,
                 has_cliente_correo = !string.IsNullOrWhiteSpace(cliente.Correo),
@@ -573,7 +586,7 @@ public class CotizacionService : ICotizacionService
                 cliente_tiene_datos_fiscales = cliente.TieneDatosFiscales,
                 cliente_razon_social = cliente.RazonSocial,
                 cliente_rfc = cliente.Rfc,
-                cliente_regimen_fiscal = cliente.RegimenFiscal,
+                cliente_regimen_fiscal = clienteRegimenFiscalDisplay,
                 subtotal = cotizacion.Subtotal.ToString("C2"),
                 incluir_iva = cotizacion.IncluirIva,
                 iva_tasa = cotizacion.IvaTasa.ToString("F2"),

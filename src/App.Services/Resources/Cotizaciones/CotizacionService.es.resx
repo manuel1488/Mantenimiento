@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="A Cotizacion must have at least one linea" xml:space="preserve">
+    <value>Una Cotización debe tener al menos una línea</value>
+  </data>
+  <data name="Account Number" xml:space="preserve">
+    <value>Número de Cuenta</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="Bank" xml:space="preserve">
+    <value>Banco</value>
+  </data>
+  <data name="Bank Transfer Details" xml:space="preserve">
+    <value>Datos para Transferencia</value>
+  </data>
+  <data name="Beneficiary" xml:space="preserve">
+    <value>Beneficiario</value>
+  </data>
+  <data name="CLABE" xml:space="preserve">
+    <value>CLABE</value>
+  </data>
+  <data name="Client" xml:space="preserve">
+    <value>Cliente</value>
+  </data>
+  <data name="Cliente not found" xml:space="preserve">
+    <value>Cliente no encontrado</value>
+  </data>
+  <data name="Contact and Social Media" xml:space="preserve">
+    <value>Contacto y Redes Sociales</value>
+  </data>
+  <data name="Cotizacion not found" xml:space="preserve">
+    <value>Cotización no encontrada</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Hora</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo</value>
+  </data>
+  <data name="Error approving cotizacion" xml:space="preserve">
+    <value>Error al aprobar la cotización</value>
+  </data>
+  <data name="Error creating cotizacion" xml:space="preserve">
+    <value>Error al crear la cotización</value>
+  </data>
+  <data name="Error deleting cotizacion" xml:space="preserve">
+    <value>Error al eliminar la cotización</value>
+  </data>
+  <data name="Error generating cotizacion PDF" xml:space="preserve">
+    <value>Error al generar el PDF de la cotización</value>
+  </data>
+  <data name="Error rejecting cotizacion" xml:space="preserve">
+    <value>Error al rechazar la cotización</value>
+  </data>
+  <data name="Error retrieving cotizacion" xml:space="preserve">
+    <value>Error al obtener la cotización</value>
+  </data>
+  <data name="Error retrieving cotizaciones" xml:space="preserve">
+    <value>Error al obtener las cotizaciones</value>
+  </data>
+  <data name="Error sending cotizacion email" xml:space="preserve">
+    <value>Error al enviar el correo de la cotización</value>
+  </data>
+  <data name="Error updating cotizacion" xml:space="preserve">
+    <value>Error al actualizar la cotización</value>
+  </data>
+  <data name="Fiscal Data" xml:space="preserve">
+    <value>Datos Fiscales</value>
+  </data>
+  <data name="IVA" xml:space="preserve">
+    <value>IVA</value>
+  </data>
+  <data name="One or more Servicios were not found" xml:space="preserve">
+    <value>Uno o más Servicios no fueron encontrados</value>
+  </data>
+  <data name="Only a Cotizacion in Pendiente can be Aprobada" xml:space="preserve">
+    <value>Solo una Cotización en estado Pendiente puede ser Aprobada</value>
+  </data>
+  <data name="Only a Cotizacion in Pendiente can be deleted" xml:space="preserve">
+    <value>Solo una Cotización en estado Pendiente puede ser eliminada</value>
+  </data>
+  <data name="Only a Cotizacion in Pendiente can be Rechazada" xml:space="preserve">
+    <value>Solo una Cotización en estado Pendiente puede ser Rechazada</value>
+  </data>
+  <data name="Only a Pendiente Cotizacion can be edited" xml:space="preserve">
+    <value>Solo una Cotización en estado Pendiente puede ser editada</value>
+  </data>
+  <data name="Payment Terms" xml:space="preserve">
+    <value>Términos de Pago</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="Quotation" xml:space="preserve">
+    <value>Cotización</value>
+  </data>
+  <data name="RFC" xml:space="preserve">
+    <value>RFC</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Servicio</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="SWIFT/BIC" xml:space="preserve">
+    <value>SWIFT/BIC</value>
+  </data>
+  <data name="Tax Regime" xml:space="preserve">
+    <value>Régimen Fiscal</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Unit Price" xml:space="preserve">
+    <value>Precio Unitario</value>
+  </data>
+</root>

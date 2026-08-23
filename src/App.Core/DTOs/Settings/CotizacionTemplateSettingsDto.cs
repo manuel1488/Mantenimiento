@@ -14,6 +14,7 @@ public class CotizacionTemplateSettingsDto
     public string? BancoClabe { get; set; }
     public string? BancoSwift { get; set; }
     public bool MostrarDireccionEnCotizacion { get; set; }
+    public string? Direccion { get; set; }
     public bool MostrarContacto { get; set; }
     public string? SitioWeb { get; set; }
     public string? Telefono { get; set; }

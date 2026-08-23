@@ -57,6 +57,9 @@
   <data name="Show company address on the Cotización PDF" xml:space="preserve">
     <value>Show company address on the Cotización PDF</value>
   </data>
+  <data name="Company Address" xml:space="preserve">
+    <value>Company Address</value>
+  </data>
   <data name="Show bank transfer details on the Cotización PDF" xml:space="preserve">
     <value>Show bank transfer details on the Cotización PDF</value>
   </data>

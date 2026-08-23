@@ -34,6 +34,9 @@ public class UpdateCotizacionTemplateSettingsDto
 
     public bool MostrarDireccionEnCotizacion { get; set; }
 
+    [StringLength(300)]
+    public string? Direccion { get; set; }
+
     public bool MostrarContacto { get; set; }
 
     [StringLength(200)]
