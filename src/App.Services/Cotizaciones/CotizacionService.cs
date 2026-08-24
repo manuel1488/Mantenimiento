@@ -750,7 +750,9 @@ public class CotizacionService : ICotizacionService
                     url = f.Url,
                     descripcion = f.Descripcion,
                     has_descripcion = !string.IsNullOrWhiteSpace(f.Descripcion)
-                }).ToList()
+                }).ToList(),
+                label_page = _localizer["Page"].Value,
+                label_of = _localizer["of"].Value
             };
 
             var (htmlBody, css) = await _templateSettingsService.GetEffectiveTemplateAsync();
@@ -773,7 +775,16 @@ public class CotizacionService : ICotizacionService
             var template = Scriban.Template.Parse(fullHtml);
             var renderedHtml = await template.RenderAsync(data);
 
-            var pdfBytes = await _pdfService.GeneratePdfFromHtmlAsync(renderedHtml, cancellationToken);
+            // The template embeds the footer markup in a <template id="pdf-footer"> tag — inert in the
+            // body's own render/print (browsers never render a <template>'s content), but extracted here
+            // and handed to Puppeteer as its native per-page footer (isolated from this document's own
+            // CSS/JS), so it repeats identically on every printed page instead of appearing once wherever
+            // it happens to land in the body's flowing content.
+            var footerMatch = System.Text.RegularExpressions.Regex.Match(
+                renderedHtml, "<template id=\"pdf-footer\">(.*?)</template>", System.Text.RegularExpressions.RegexOptions.Singleline);
+            var renderedFooter = footerMatch.Success ? footerMatch.Groups[1].Value : null;
+
+            var pdfBytes = await _pdfService.GeneratePdfFromHtmlAsync(renderedHtml, cancellationToken, renderedFooter);
 
             return Result<byte[]>.Success(pdfBytes);
         }

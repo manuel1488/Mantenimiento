@@ -19,7 +19,8 @@ public class PdfService : IPdfService
 
     public async Task<byte[]> GeneratePdfFromHtmlAsync(
         string html,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? footerHtml = null)
     {
         try
         {
@@ -31,6 +32,8 @@ public class PdfService : IPdfService
                 WaitUntil = new[] { WaitUntilNavigation.Networkidle0 }
             });
 
+            var hasCustomFooter = !string.IsNullOrWhiteSpace(footerHtml);
+
             // Generate PDF
             var pdfOptions = new PdfOptions
             {
@@ -39,14 +42,18 @@ public class PdfService : IPdfService
                 PreferCSSPageSize = true,
                 DisplayHeaderFooter = true,
                 HeaderTemplate = "<span></span>",
-                FooterTemplate = "<div style=\"width:100%;font-family:Arial,sans-serif;font-size:8px;color:#999;text-align:center;padding:0 20px;\">" +
-                                 "Página <span class=\"pageNumber\"></span> de <span class=\"totalPages\"></span>" +
-                                 "</div>",
+                FooterTemplate = hasCustomFooter
+                    ? footerHtml!
+                    : "<div style=\"width:100%;font-family:Arial,sans-serif;font-size:8px;color:#999;text-align:center;padding:0 20px;\">" +
+                      "Página <span class=\"pageNumber\"></span> de <span class=\"totalPages\"></span>" +
+                      "</div>",
                 MarginOptions = new MarginOptions
                 {
                     Top = "20px",
                     Right = "20px",
-                    Bottom = "32px",
+                    // A custom footer carries multiple lines (address/contacto/folio/hash/page) instead
+                    // of the default single line, so it needs more room at the bottom of every page.
+                    Bottom = hasCustomFooter ? "90px" : "32px",
                     Left = "20px"
                 }
             };

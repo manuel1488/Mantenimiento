@@ -116,29 +116,79 @@
     </div>
     {{ end }}
 
-    <div class="footer">
-        {{ if mostrar_direccion }}
-        <div class="company-address">{{ company_direccion }}</div>
-        {{ end }}
-        {{ if mostrar_contacto }}
-        <div class="contact-line">
-            {{ if has_contacto_sitio_web }}<a class="contact-item" href="{{ contacto_sitio_web_href }}"><span class="field-icon">&#127760;</span>{{ contacto_sitio_web }}</a>{{ end }}
-            {{ if has_contacto_telefono }}<a class="contact-item" href="{{ contacto_telefono_href }}"><span class="field-icon">&#9742;</span>{{ contacto_telefono }}</a>{{ end }}
-            {{ if has_contacto_correo }}<a class="contact-item" href="{{ contacto_correo_href }}"><span class="field-icon">&#9993;</span>{{ contacto_correo }}</a>{{ end }}
-            {{ if has_contacto_whatsapp }}<a class="contact-item" href="{{ contacto_whatsapp_href }}"><span class="field-icon">&#128172;</span>{{ contacto_whatsapp }}</a>{{ end }}
-            {{ if has_contacto_facebook }}<a class="contact-item" href="{{ contacto_facebook_href }}"><span class="field-icon">&#128101;</span>{{ contacto_facebook }}</a>{{ end }}
-            {{ if has_contacto_instagram }}<a class="contact-item" href="{{ contacto_instagram_href }}"><span class="field-icon">&#128247;</span>{{ contacto_instagram }}</a>{{ end }}
+    <!-- The browser never renders/prints a <template> element's content — it's inert until cloned via
+         JS — so this sits harmlessly in the body flow. CotizacionService extracts its rendered markup
+         and hands it to Puppeteer as the native per-page footer (isolated from this document's own
+         <style>, hence the self-contained <style> below), so it repeats identically on every printed
+         page instead of appearing once wherever it happens to land in the body's own flow. -->
+    <template id="pdf-footer">
+        <style>
+            .pdf-footer {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 9px;
+                color: #9e9e9e;
+                text-align: center;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 0 24px;
+            }
+            .pdf-footer .company-address {
+                margin-bottom: 4px;
+            }
+            .pdf-footer .contact-line {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 3px 14px;
+                margin-bottom: 4px;
+            }
+            .pdf-footer .contact-item {
+                display: inline-flex;
+                align-items: center;
+                color: inherit;
+                text-decoration: none;
+            }
+            .pdf-footer .field-icon {
+                color: #9e9e9e;
+                margin-right: 2px;
+            }
+            .pdf-footer .integrity-line {
+                margin-top: 4px;
+                font-size: 8px;
+                color: #bdbdbd;
+                word-break: break-all;
+            }
+            .pdf-footer .page-line {
+                margin-top: 4px;
+                font-size: 8px;
+                color: #bdbdbd;
+            }
+        </style>
+        <div class="pdf-footer">
+            {{ if mostrar_direccion }}
+            <div class="company-address">{{ company_direccion }}</div>
+            {{ end }}
+            {{ if mostrar_contacto }}
+            <div class="contact-line">
+                {{ if has_contacto_sitio_web }}<a class="contact-item" href="{{ contacto_sitio_web_href }}"><span class="field-icon">&#127760;</span>{{ contacto_sitio_web }}</a>{{ end }}
+                {{ if has_contacto_telefono }}<a class="contact-item" href="{{ contacto_telefono_href }}"><span class="field-icon">&#9742;</span>{{ contacto_telefono }}</a>{{ end }}
+                {{ if has_contacto_correo }}<a class="contact-item" href="{{ contacto_correo_href }}"><span class="field-icon">&#9993;</span>{{ contacto_correo }}</a>{{ end }}
+                {{ if has_contacto_whatsapp }}<a class="contact-item" href="{{ contacto_whatsapp_href }}"><span class="field-icon">&#128172;</span>{{ contacto_whatsapp }}</a>{{ end }}
+                {{ if has_contacto_facebook }}<a class="contact-item" href="{{ contacto_facebook_href }}"><span class="field-icon">&#128101;</span>{{ contacto_facebook }}</a>{{ end }}
+                {{ if has_contacto_instagram }}<a class="contact-item" href="{{ contacto_instagram_href }}"><span class="field-icon">&#128247;</span>{{ contacto_instagram }}</a>{{ end }}
+            </div>
+            {{ end }}
+            <div>{{ company_name }} — {{ label_quotation }} {{ cotizacion_folio }}</div>
+            {{ if has_generado_por || has_integridad_hash }}
+            <div class="integrity-line">
+                {{ if has_generado_por }}{{ label_generated_by }}: {{ generado_por }}{{ end }}
+                {{ if has_generado_por && has_integridad_hash }} · {{ end }}
+                {{ if has_integridad_hash }}{{ label_integrity_hash }}: {{ integridad_hash }}{{ end }}
+            </div>
+            {{ end }}
+            <div class="page-line">{{ label_page }} <span class="pageNumber"></span> {{ label_of }} <span class="totalPages"></span></div>
         </div>
-        {{ end }}
-        {{ company_name }} — {{ label_quotation }} {{ cotizacion_folio }}
-        {{ if has_generado_por || has_integridad_hash }}
-        <div class="integrity-line">
-            {{ if has_generado_por }}{{ label_generated_by }}: {{ generado_por }}{{ end }}
-            {{ if has_generado_por && has_integridad_hash }} · {{ end }}
-            {{ if has_integridad_hash }}{{ label_integrity_hash }}: {{ integridad_hash }}{{ end }}
-        </div>
-        {{ end }}
-    </div>
+    </template>
 
     {{ if has_fotos }}
     <div class="photo-annex">

@@ -90,6 +90,12 @@
   <data name="Integrity Hash" xml:space="preserve">
     <value>Integrity Hash</value>
   </data>
+  <data name="Page" xml:space="preserve">
+    <value>Page</value>
+  </data>
+  <data name="of" xml:space="preserve">
+    <value>of</value>
+  </data>
   <data name="IVA" xml:space="preserve">
     <value>IVA</value>
   </data>

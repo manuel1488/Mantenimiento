@@ -90,6 +90,12 @@
   <data name="Integrity Hash" xml:space="preserve">
     <value>Huella de Integridad</value>
   </data>
+  <data name="Page" xml:space="preserve">
+    <value>Página</value>
+  </data>
+  <data name="of" xml:space="preserve">
+    <value>de</value>
+  </data>
   <data name="IVA" xml:space="preserve">
     <value>IVA</value>
   </data>
