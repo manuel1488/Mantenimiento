@@ -22,4 +22,5 @@ public class CotizacionDto
     public string? MedioAprobacion { get; set; }
     public List<CotizacionLineaDto> Lineas { get; set; } = [];
     public string IntegridadHash { get; set; } = string.Empty;
+    public int? ObraGeneradaId { get; set; }
 }

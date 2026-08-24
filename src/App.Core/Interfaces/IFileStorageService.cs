@@ -16,6 +16,13 @@ public interface IFileStorageService
 
     Task<Result<string>> GetPresignedUrlAsync(string key, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Copia un objeto existente a una nueva clave (server-side, sin descargar/resubir bytes).
+    /// Usado para desacoplar un archivo que sigue en uso por su dueño original de una copia que
+    /// otro registro guarda como snapshot propio.
+    /// </summary>
+    Task<Result<string>> CopyAsync(string sourceKey, string keyPrefix, string extension, CancellationToken cancellationToken = default);
+
     Task<Result> DeleteAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>

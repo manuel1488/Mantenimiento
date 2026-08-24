@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using App.Core.Constants
 @using App.Core.DTOs.Cotizaciones
+@using App.Core.DTOs.Obras
 @using App.Core.Enums.Cotizaciones
 @using App.Core.Common
 @using App.Core.Interfaces
@@ -13,6 +14,7 @@
 @inject IStringLocalizer<CotizacionesPage> L
 @inject ICotizacionService CotizacionService
 @inject ICotizacionTemplateSettingsService TemplateSettingsService
+@inject IObraService ObraService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<CotizacionesPage> Logger
@@ -91,6 +93,27 @@
                                                            title="@L["Edit Cotización"]" />
                                         </Authorized>
                                     </AuthorizeView>
+                                }
+                                @if (context.Item.Estado == CotizacionEstado.Aprobada)
+                                {
+                                    @if (context.Item.ObraGeneradaId is int obraId)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Construction"
+                                                       Size="Size.Medium"
+                                                       OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{obraId}"))"
+                                                       title="@L["View Obra"]" />
+                                    }
+                                    else
+                                    {
+                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                            <Authorized Context="authContext">
+                                                <MudIconButton Icon="@Icons.Material.Filled.Construction"
+                                                               Size="Size.Medium"
+                                                               OnClick="@(() => OpenConvertirAObraDialog(context.Item))"
+                                                               title="@L["Convert to Obra"]" />
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    }
                                 }
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Medium" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
                                     <MudMenuItem Href="@($"/api/cotizaciones/{context.Item.Id}/pdf")" Icon="@Icons.Material.Filled.Download">
@@ -203,6 +226,26 @@
         CotizacionEstado.Rechazada => L["Rejected"],
         _ => estado.ToString()
     };
+
+    private async Task OpenConvertirAObraDialog(CotizacionDto cotizacion)
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<ConvertirCotizacionAObraDialog>(L["Convert to Obra"], options);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not ConvertirCotizacionAObraDto dto) return;
+
+        var convertResult = await ObraService.CreateFromCotizacionAsync(cotizacion.Id, dto);
+        if (convertResult.IsSuccess)
+        {
+            Snackbar.Add(L["Obra created successfully"], Severity.Success);
+            NavigationManager.NavigateTo($"/gestion/obras/{convertResult.Value!.Id}");
+        }
+        else
+        {
+            Snackbar.Add(convertResult.Error, Severity.Error);
+        }
+    }
 
     private async Task OpenDeleteDialog(CotizacionDto cotizacion)
     {

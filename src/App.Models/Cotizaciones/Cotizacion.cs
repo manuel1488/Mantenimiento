@@ -5,6 +5,7 @@ using App.Core.Base;
 using App.Core.Enums.Cotizaciones;
 using App.Core.Interfaces;
 using App.Models.Clientes;
+using App.Models.Obras;
 
 namespace App.Models.Cotizaciones;
 
@@ -69,6 +70,9 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
 
     public ICollection<CotizacionLinea> Lineas { get; set; } = new List<CotizacionLinea>();
     public ICollection<CotizacionFoto> Fotos { get; set; } = new List<CotizacionFoto>();
+
+    /// <summary>Obra generada al convertir esta Cotización, si ya fue convertida.</summary>
+    public Obra? ObraGenerada { get; set; }
 
     /// <summary>
     /// Huella SHA-256 (ver CotizacionIntegrityHasher) sobre el folio, cliente, totales y líneas —

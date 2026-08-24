@@ -1,0 +1,45 @@
+@using App.Core.DTOs.Obras
+@using MudBlazor
+
+@inject IStringLocalizer<ConvertirCotizacionAObraDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form">
+            <MudText Typo="Typo.body2" Class="mb-4">
+                @L["This will create an Obra with one Actividad per línea of this Cotización."]
+            </MudText>
+
+            <MudTextField @bind-Value="Model.Direccion"
+                          Label="@L["Address"]"
+                          Lines="2"
+                          Required="true"
+                          RequiredError="@L["Address is required"]" />
+
+            <MudSwitch T="bool" @bind-Value="Model.Urgente" Color="Color.Warning" Label="@L["Urgent"]" Class="mt-3" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">
+            @L["Convert to Obra"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = null!;
+    private ConvertirCotizacionAObraDto Model { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}

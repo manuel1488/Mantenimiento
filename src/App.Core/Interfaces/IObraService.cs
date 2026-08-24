@@ -11,4 +11,5 @@ public interface IObraService
     Task<Result<ObraDto>> UpdateAsync(UpdateObraDto dto);
     Task<Result> DeleteAsync(int id);
     Task<Result<ObraDto>> FinalizarAsync(int id);
+    Task<Result<ObraDto>> CreateFromCotizacionAsync(int cotizacionId, ConvertirCotizacionAObraDto dto);
 }

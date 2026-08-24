@@ -27,5 +27,10 @@ public class ObraConfiguration : IEntityTypeConfiguration<Obra>
             .WithOne(f => f.Obra)
             .HasForeignKey<Factura>(f => f.ObraId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.CotizacionOrigen)
+            .WithOne(c => c.ObraGenerada)
+            .HasForeignKey<Obra>(e => e.CotizacionOrigenId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

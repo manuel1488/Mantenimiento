@@ -78,4 +78,13 @@
   <data name="Cotización deleted successfully" xml:space="preserve">
     <value>Quotation deleted successfully</value>
   </data>
+  <data name="Convert to Obra" xml:space="preserve">
+    <value>Convert to Obra</value>
+  </data>
+  <data name="View Obra" xml:space="preserve">
+    <value>View Obra</value>
+  </data>
+  <data name="Obra created successfully" xml:space="preserve">
+    <value>Obra created successfully</value>
+  </data>
 </root>

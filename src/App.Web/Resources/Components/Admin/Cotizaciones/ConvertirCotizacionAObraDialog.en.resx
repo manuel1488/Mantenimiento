@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="This will create an Obra with one Actividad per línea of this Cotización." xml:space="preserve">
+    <value>This will create an Obra with one Actividad per línea of this Cotización.</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="Address is required" xml:space="preserve">
+    <value>Address is required</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Urgent</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Convert to Obra" xml:space="preserve">
+    <value>Convert to Obra</value>
+  </data>
+</root>

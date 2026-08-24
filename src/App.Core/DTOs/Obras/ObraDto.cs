@@ -11,4 +11,5 @@ public class ObraDto
     public bool Urgente { get; set; }
     public ObraEstado Estado { get; set; }
     public DateTime FechaSolicitud { get; set; }
+    public int? CotizacionOrigenId { get; set; }
 }

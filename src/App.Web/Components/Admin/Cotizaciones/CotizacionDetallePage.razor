@@ -5,6 +5,7 @@
 @using App.Core.Common
 @using App.Core.Constants
 @using App.Core.DTOs.Cotizaciones
+@using App.Core.DTOs.Obras
 @using App.Core.Enums.Cotizaciones
 @using App.Core.Interfaces
 @using App.Web.Components.Shared
@@ -16,6 +17,7 @@
 @inject IStringLocalizer<CotizacionDetallePage> L
 @inject ICotizacionService CotizacionService
 @inject ICotizacionTemplateSettingsService TemplateSettingsService
+@inject IObraService ObraService
 @inject IWhatsAppShareService WhatsAppShareService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -89,6 +91,29 @@
                                         </MudButton>
                                     </Authorized>
                                 </AuthorizeView>
+                            }
+                            @if (_cotizacion.Estado == CotizacionEstado.Aprobada)
+                            {
+                                @if (_cotizacion.ObraGeneradaId is int obraId)
+                                {
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                                               StartIcon="@Icons.Material.Filled.Construction" Class="da-button-rounded"
+                                               OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{obraId}"))">
+                                        @L["View Obra"]
+                                    </MudButton>
+                                }
+                                else
+                                {
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                        <Authorized Context="authContext">
+                                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                                       StartIcon="@Icons.Material.Filled.Construction" Class="da-button-rounded"
+                                                       OnClick="OpenConvertirAObraDialog">
+                                                @L["Convert to Obra"]
+                                            </MudButton>
+                                        </Authorized>
+                                    </AuthorizeView>
+                                }
                             }
                         </MudStack>
                     </MudStack>
@@ -288,6 +313,28 @@
         else
         {
             Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task OpenConvertirAObraDialog()
+    {
+        if (_cotizacion is null) return;
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<ConvertirCotizacionAObraDialog>(L["Convert to Obra"], options);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not ConvertirCotizacionAObraDto dto) return;
+
+        var convertResult = await ObraService.CreateFromCotizacionAsync(_cotizacion.Id, dto);
+        if (convertResult.IsSuccess)
+        {
+            Snackbar.Add(L["Obra created successfully"], Severity.Success);
+            NavigationManager.NavigateTo($"/gestion/obras/{convertResult.Value!.Id}");
+        }
+        else
+        {
+            Snackbar.Add(convertResult.Error, Severity.Error);
         }
     }
 

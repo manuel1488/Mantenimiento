@@ -99,6 +99,36 @@ public class MinioFileStorageService : IFileStorageService
         }
     }
 
+    public async Task<Result<string>> CopyAsync(string sourceKey, string keyPrefix, string extension, CancellationToken cancellationToken = default)
+    {
+        var config = await _configService.GetConfigAsync();
+        if (config == null)
+            return Result<string>.Failure(NotConfiguredMessage);
+
+        try
+        {
+            var client = BuildClient(config);
+            var now = DateTime.UtcNow;
+            var key = $"{keyPrefix}/{now:yyyy}/{now:MM}/{Guid.NewGuid():N}.{extension.TrimStart('.')}";
+
+            var copySource = new CopySourceObjectArgs()
+                .WithBucket(config.BucketName)
+                .WithObject(sourceKey);
+
+            await client.CopyObjectAsync(new CopyObjectArgs()
+                .WithBucket(config.BucketName)
+                .WithObject(key)
+                .WithCopyObjectSource(copySource), cancellationToken);
+
+            return Result<string>.Success(key);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error copying object {SourceKey} to prefix {KeyPrefix} in bucket {BucketName}", sourceKey, keyPrefix, config.BucketName);
+            return Result<string>.Failure("Error al copiar el archivo en el almacenamiento");
+        }
+    }
+
     public async Task<Result> DeleteAsync(string key, CancellationToken cancellationToken = default)
     {
         var config = await _configService.GetConfigAsync();

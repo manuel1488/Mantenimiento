@@ -5,6 +5,7 @@ using App.Core.Base;
 using App.Core.Enums.Obras;
 using App.Core.Interfaces;
 using App.Models.Clientes;
+using App.Models.Cotizaciones;
 using App.Models.Facturas;
 
 namespace App.Models.Obras;
@@ -15,6 +16,13 @@ public class Obra : BaseEntity<int>, IAuditTracked
     [Required]
     public int ClienteId { get; set; }
     public Cliente Cliente { get; set; } = null!;
+
+    /// <summary>
+    /// Cotización aprobada de la que se generó esta Obra, si fue creada por conversión en vez de
+    /// capturada manualmente. Relación 1:1 opcional — una Cotización solo puede convertirse una vez.
+    /// </summary>
+    public int? CotizacionOrigenId { get; set; }
+    public Cotizacion? CotizacionOrigen { get; set; }
 
     /// <summary>
     /// Dirección de la obra, texto libre capturado por Obra, sin catálogo de sitios.

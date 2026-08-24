@@ -105,4 +105,13 @@
   <data name="You don't have permission to view cotizaciones." xml:space="preserve">
     <value>No tienes permiso para ver cotizaciones.</value>
   </data>
+  <data name="Convert to Obra" xml:space="preserve">
+    <value>Convertir a Obra</value>
+  </data>
+  <data name="View Obra" xml:space="preserve">
+    <value>Ver Obra</value>
+  </data>
+  <data name="Obra created successfully" xml:space="preserve">
+    <value>Obra creada exitosamente</value>
+  </data>
 </root>
