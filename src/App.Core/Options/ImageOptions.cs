@@ -33,6 +33,16 @@ public class ImageOptions
     public int JpegQuality { get; set; } = 75;
 
     /// <summary>
+    /// Maximum width/height (px) for the full (non-thumbnail) processed image — larger uploads are
+    /// downscaled preserving aspect ratio before compression; smaller images are never upscaled.
+    /// Quality compression alone barely shrinks a 4000px+ phone photo, and nothing here displays it
+    /// past the photo viewer's max-height:60vh, so keeping the original resolution has no upside.
+    /// </summary>
+    public int MaxWidth { get; set; } = 1280;
+
+    public int MaxHeight { get; set; } = 1280;
+
+    /// <summary>
     /// Thumbnail settings
     /// </summary>
     public ThumbnailOptions Thumbnail { get; set; } = new();

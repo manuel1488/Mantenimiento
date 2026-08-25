@@ -38,6 +38,7 @@ public class ImageService : IImageService
 
             // Apply basic optimization
             image.Mutate(x => x.AutoOrient());
+            ResizeIfExceedsMax(image, _options.MaxWidth, _options.MaxHeight);
 
             // Convert to byte array with optimal settings
             var imageData = await ConvertToByteArrayWithOptimalSettings(image, contentType, cancellationToken);
@@ -105,6 +106,7 @@ public class ImageService : IImageService
             // Process main image
             var mainImage = image.Clone(ctx => { });
             mainImage.Mutate(x => x.AutoOrient());
+            ResizeIfExceedsMax(mainImage, _options.MaxWidth, _options.MaxHeight);
             var imageData = await ConvertToByteArrayWithOptimalSettings(mainImage, contentType, cancellationToken);
 
             // Process thumbnail
@@ -143,6 +145,7 @@ public class ImageService : IImageService
 
             // Apply basic optimization
             image.Mutate(x => x.AutoOrient());
+            ResizeIfExceedsMax(image, _options.MaxWidth, _options.MaxHeight);
 
             // Convert to target format — ConvertToByteArrayWithOptimalSettings itself rejects
             // any format it doesn't have an encoder for.
@@ -197,6 +200,23 @@ public class ImageService : IImageService
         using var memoryStream = new MemoryStream();
         await image.SaveAsync(memoryStream, encoder, cancellationToken);
         return memoryStream.ToArray();
+    }
+
+    /// <summary>
+    /// Downscales <paramref name="image"/> in place if it exceeds <paramref name="maxWidth"/>/
+    /// <paramref name="maxHeight"/>, preserving aspect ratio. A no-op for images already within
+    /// bounds — unlike <see cref="CalculateDimensions"/> (used for thumbnails, which intentionally
+    /// fills its target box), this never upscales a smaller image.
+    /// </summary>
+    private static void ResizeIfExceedsMax(Image image, int maxWidth, int maxHeight)
+    {
+        if (image.Width <= maxWidth && image.Height <= maxHeight) return;
+
+        var ratio = Math.Min((double)maxWidth / image.Width, (double)maxHeight / image.Height);
+        var newWidth = (int)(image.Width * ratio);
+        var newHeight = (int)(image.Height * ratio);
+
+        image.Mutate(x => x.Resize(newWidth, newHeight));
     }
 
     private (int width, int height) CalculateDimensions(
