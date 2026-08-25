@@ -20,7 +20,8 @@ public class PdfService : IPdfService
     public async Task<byte[]> GeneratePdfFromHtmlAsync(
         string html,
         CancellationToken cancellationToken = default,
-        string? footerHtml = null)
+        string? footerHtml = null,
+        string? headerHtml = null)
     {
         try
         {
@@ -33,6 +34,7 @@ public class PdfService : IPdfService
             });
 
             var hasCustomFooter = !string.IsNullOrWhiteSpace(footerHtml);
+            var hasCustomHeader = !string.IsNullOrWhiteSpace(headerHtml);
 
             // Generate PDF
             var pdfOptions = new PdfOptions
@@ -41,7 +43,7 @@ public class PdfService : IPdfService
                 PrintBackground = true,
                 PreferCSSPageSize = true,
                 DisplayHeaderFooter = true,
-                HeaderTemplate = "<span></span>",
+                HeaderTemplate = hasCustomHeader ? headerHtml! : "<span></span>",
                 FooterTemplate = hasCustomFooter
                     ? footerHtml!
                     : "<div style=\"width:100%;font-family:Arial,sans-serif;font-size:8px;color:#999;text-align:center;padding:0 20px;\">" +
@@ -49,7 +51,9 @@ public class PdfService : IPdfService
                       "</div>",
                 MarginOptions = new MarginOptions
                 {
-                    Top = "20px",
+                    // A custom header carries a decorative corner graphic that needs room to render
+                    // above the page's own content instead of being clipped by a thin margin.
+                    Top = hasCustomHeader ? "110px" : "20px",
                     Right = "20px",
                     // A custom footer carries multiple lines (address/contacto/folio/hash/page) instead
                     // of the default single line, so it needs more room at the bottom of every page.

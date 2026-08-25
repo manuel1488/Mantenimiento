@@ -1,0 +1,11 @@
+{
+  "Application": {
+    "Name": "Grupo Perso"
+  },
+  "Branding": {
+    "LogoPath": "/images/brands/perso/logo.webp",
+    "FaviconPath": "/images/brands/perso/favicon.ico",
+    "PrimaryColor": "#0A4395",
+    "SecondaryColor": "#64748B"
+  }
+}

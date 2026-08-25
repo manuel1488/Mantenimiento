@@ -775,16 +775,20 @@ public class CotizacionService : ICotizacionService
             var template = Scriban.Template.Parse(fullHtml);
             var renderedHtml = await template.RenderAsync(data);
 
-            // The template embeds the footer markup in a <template id="pdf-footer"> tag — inert in the
-            // body's own render/print (browsers never render a <template>'s content), but extracted here
-            // and handed to Puppeteer as its native per-page footer (isolated from this document's own
-            // CSS/JS), so it repeats identically on every printed page instead of appearing once wherever
-            // it happens to land in the body's flowing content.
+            // The template embeds the footer/header markup in <template> tags — inert in the body's own
+            // render/print (browsers never render a <template>'s content), but extracted here and handed
+            // to Puppeteer as its native per-page footer/header (isolated from this document's own
+            // CSS/JS), so each repeats identically on every printed page instead of appearing once
+            // wherever it happens to land in the body's flowing content.
             var footerMatch = System.Text.RegularExpressions.Regex.Match(
                 renderedHtml, "<template id=\"pdf-footer\">(.*?)</template>", System.Text.RegularExpressions.RegexOptions.Singleline);
             var renderedFooter = footerMatch.Success ? footerMatch.Groups[1].Value : null;
 
-            var pdfBytes = await _pdfService.GeneratePdfFromHtmlAsync(renderedHtml, cancellationToken, renderedFooter);
+            var headerMatch = System.Text.RegularExpressions.Regex.Match(
+                renderedHtml, "<template id=\"pdf-header\">(.*?)</template>", System.Text.RegularExpressions.RegexOptions.Singleline);
+            var renderedHeader = headerMatch.Success ? headerMatch.Groups[1].Value : null;
+
+            var pdfBytes = await _pdfService.GeneratePdfFromHtmlAsync(renderedHtml, cancellationToken, renderedFooter, renderedHeader);
 
             return Result<byte[]>.Success(pdfBytes);
         }
