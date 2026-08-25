@@ -1,3 +1,11 @@
+    <!-- position:fixed repeats this on every printed page (Chromium paints fixed-position
+         elements once per page box) without reserving any margin — later content in the
+         normal flow (header, tables, etc.) simply paints on top of it in DOM order. -->
+    <div class="corner-decoration" aria-hidden="true">
+        <div class="shard shard-1"></div>
+        <div class="shard shard-2"></div>
+    </div>
+
     <div class="header">
         <div class="header-brand">
             {{ if has_logo }}
@@ -116,49 +124,6 @@
         </div>
     </div>
     {{ end }}
-
-    <!-- Same inert-<template> trick as pdf-footer below, but handed to Puppeteer as the native
-         per-page header, so this decorative corner ribbon repeats identically on every printed
-         page instead of appearing once at the top of the body's own flow. -->
-    <template id="pdf-header">
-        <style>
-            .pdf-header {
-                position: relative;
-                width: 100%;
-                height: 96px;
-                box-sizing: border-box;
-                overflow: hidden;
-                --shard-secondary-color: {{ secondary_color }};
-                --shard-primary-color: {{ primary_color }};
-            }
-            .pdf-header .shard {
-                position: absolute;
-                width: 320px;
-                height: 46px;
-                right: -70px;
-                transform: rotate(45deg);
-                /* Chromium's print header/footer overlay does not inherit the page's
-                   PrintBackground option — without this, background-color here is silently
-                   dropped and the ribbon renders invisible. */
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .pdf-header .shard-1 {
-                top: 6px;
-                background-color: var(--shard-secondary-color);
-                opacity: .3;
-            }
-            .pdf-header .shard-2 {
-                top: 44px;
-                background-color: var(--shard-primary-color);
-                opacity: .5;
-            }
-        </style>
-        <div class="pdf-header" aria-hidden="true">
-            <div class="shard shard-1"></div>
-            <div class="shard shard-2"></div>
-        </div>
-    </template>
 
     <!-- The browser never renders/prints a <template> element's content — it's inert until cloned via
          JS — so this sits harmlessly in the body flow. CotizacionService extracts its rendered markup

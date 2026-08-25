@@ -16,6 +16,41 @@ body {
     min-height: 100vh;
 }
 
+.corner-decoration {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 130px;
+    height: 130px;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.corner-decoration .shard {
+    position: absolute;
+    width: 220px;
+    height: 40px;
+    right: -60px;
+    transform: rotate(45deg);
+    /* Some print pipelines drop background colors on decorative overlays unless color
+       adjustment is forced — harmless elsewhere, but keeps this ribbon reliably visible. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.corner-decoration .shard-1 {
+    top: 10px;
+    background-color: var(--secondary-color);
+    opacity: .3;
+}
+
+.corner-decoration .shard-2 {
+    top: 44px;
+    background-color: var(--primary-color);
+    opacity: .5;
+}
+
 .header {
     display: flex;
     justify-content: space-between;

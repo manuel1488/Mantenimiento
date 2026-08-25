@@ -11,8 +11,7 @@ public interface IPdfService
     Task<byte[]> GeneratePdfFromHtmlAsync(
         string html,
         CancellationToken cancellationToken = default,
-        string? footerHtml = null,
-        string? headerHtml = null);
+        string? footerHtml = null);
 
     Task<byte[]> GeneratePdfFromViewAsync<TModel>(
         string viewPath,
