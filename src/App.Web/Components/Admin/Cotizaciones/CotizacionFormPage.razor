@@ -97,16 +97,23 @@
                     <MudDataGrid T="LineaDraft" Items="@_lineas" Dense="true" Hover="true" Class="mt-3">
                         <Columns>
                             <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
-                            <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                            <TemplateColumn Title="@L["Quantity"]">
                                 <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedida</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Unit Price"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
-                                <CellTemplate>@context.Item.PrecioUnitario.ToString("C2")</CellTemplate>
+                            <TemplateColumn Title="@L["Unit Price"]">
+                                <CellTemplate>
+                                    <MudNumericField T="decimal"
+                                                     Value="@context.Item.PrecioUnitario"
+                                                     ValueChanged="@(v => ActualizarPrecioUnitario(context.Item, v))"
+                                                     Format="F2" Min="0" Immediate="true"
+                                                     Variant="Variant.Text" Margin="Margin.Dense"
+                                                     FullWidth="true" />
+                                </CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Subtotal"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                            <TemplateColumn Title="@L["Subtotal"]">
                                 <CellTemplate>@context.Item.Subtotal.ToString("C2")</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false" CellClass="d-flex justify-end">
+                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false">
                                 <CellTemplate>
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
                                                    OnClick="@(() => _lineas.Remove(context.Item))" />
@@ -239,6 +246,12 @@
             return Task.FromResult(_servicios.AsEnumerable());
 
         return Task.FromResult(_servicios.Where(s => s.Nombre.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void ActualizarPrecioUnitario(LineaDraft linea, decimal nuevoPrecio)
+    {
+        linea.PrecioUnitario = nuevoPrecio;
+        linea.Subtotal = linea.Cantidad * nuevoPrecio;
     }
 
     private void AgregarLinea()
