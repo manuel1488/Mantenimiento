@@ -248,9 +248,9 @@ table.lineas tbody tr:nth-child(even) {
 
 .photo-annex .photo-row {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding: 16px 0;
+    padding: 24px 0;
     border-bottom: 1px solid #e0e0e0;
     page-break-inside: avoid;
 }
@@ -260,9 +260,8 @@ table.lineas tbody tr:nth-child(even) {
 }
 
 .photo-annex .photo-frame {
-    width: 180px;
-    height: 130px;
-    flex-shrink: 0;
+    width: 100%;
+    height: 480px;
     background-color: #fafafa;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -280,12 +279,13 @@ table.lineas tbody tr:nth-child(even) {
 }
 
 .photo-annex .photo-info {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
+    margin-top: 10px;
+    text-align: center;
 }
 
 .photo-annex .photo-index {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: .04em;
