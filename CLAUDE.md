@@ -9,6 +9,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 | [`docs/00-Requirements/`](docs/00-Requirements/) | Requerimientos, casos de uso, reglas de negocio |
 | [`docs/01-Architecture/`](docs/01-Architecture/) | ADRs, system diagrams, architecture decisions |
 | [`docs/02-Development/`](docs/02-Development/) | Development guides and patterns |
+| [`docs/03-Incidents/`](docs/03-Incidents/) | Production incident post-mortems and the prevention rules they produced |
 
 ### Key guides
 - [List / Detail / Form Page Pattern](docs/02-Development/list-detail-form-pattern-guide.md) — **Base design for any new business-domain screen.** List/Detail/Form page structure, icon conventions, actions column (MudMenu overflow), PDF view/download/email/WhatsApp sharing, responsive table→card fallback, status color/label helpers. Reference implementation: Cotizaciones.
@@ -16,6 +17,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [Workflow Diagram Guide](docs/02-Development/workflow-diagram-guide.md) — Status flow dialogs with inline SVG
 - [White-Label Deployment Guide](docs/02-Development/white-label-deployment-guide.md) — Desplegar la app con otra marca: perfil de marca (`Branding/{profile}.json`), logo/nombre en BD, checklist de onboarding
 - [SAT Clave Producto/Servicio Classification Guide](docs/02-Development/sat-clave-prodserv-classification-guide.md) — Cómo clasificar un Servicio contra el catálogo `c_ClaveProdServ`, estructura del código, y cómo actualizar los CSV del catálogo si el SAT publica cambios
+- [Text Field Length Limits Guide](docs/02-Development/text-field-length-limits-guide.md) — **Every `MudTextField` bound to a length-constrained string must set a matching `MaxLength`** (`Counter` too if multiline). Came out of a real production bug — see [incident](docs/03-Incidents/2026-08-26-text-field-length-mismatch.md).
 
 ### ADRs
 Índice completo: [docs/01-Architecture/README.md](docs/01-Architecture/README.md)

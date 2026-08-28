@@ -46,10 +46,11 @@
                                 <MudGrid>
                                     <MudItem xs="12" md="6">
                                         <MudTextField @bind-Value="Model.Nombre" Label="@L["Name / Trade Name"]"
-                                                      Required="true" RequiredError="@L["Name is required"]" />
+                                                      Required="true" RequiredError="@L["Name is required"]"
+                                                      MaxLength="150" />
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.NombreContacto" Label="@L["Contact Name"]" />
+                                        <MudTextField @bind-Value="Model.NombreContacto" Label="@L["Contact Name"]" MaxLength="150" />
                                     </MudItem>
 
                                     <MudItem xs="12" md="6">
@@ -62,11 +63,11 @@
                                         </MudSelect>
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.Correo" Label="@L["Email"]" InputType="InputType.Email" />
+                                        <MudTextField @bind-Value="Model.Correo" Label="@L["Email"]" InputType="InputType.Email" MaxLength="150" />
                                     </MudItem>
 
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.Telefono" Label="@L["Phone"]" />
+                                        <MudTextField @bind-Value="Model.Telefono" Label="@L["Phone"]" MaxLength="30" />
                                     </MudItem>
 
                                     <MudItem xs="12">
@@ -74,27 +75,27 @@
                                     </MudItem>
 
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.Calle" Label="@L["Street"]" />
+                                        <MudTextField @bind-Value="Model.Calle" Label="@L["Street"]" MaxLength="150" />
                                     </MudItem>
                                     <MudItem xs="6" md="3">
-                                        <MudTextField @bind-Value="Model.NumeroExterior" Label="@L["Ext. Number"]" />
+                                        <MudTextField @bind-Value="Model.NumeroExterior" Label="@L["Ext. Number"]" MaxLength="20" />
                                     </MudItem>
                                     <MudItem xs="6" md="3">
-                                        <MudTextField @bind-Value="Model.NumeroInterior" Label="@L["Int. Number"]" />
+                                        <MudTextField @bind-Value="Model.NumeroInterior" Label="@L["Int. Number"]" MaxLength="20" />
                                     </MudItem>
 
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.Colonia" Label="@L["Neighborhood"]" />
+                                        <MudTextField @bind-Value="Model.Colonia" Label="@L["Neighborhood"]" MaxLength="100" />
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.Ciudad" Label="@L["City"]" />
+                                        <MudTextField @bind-Value="Model.Ciudad" Label="@L["City"]" MaxLength="100" />
                                     </MudItem>
 
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.Estado" Label="@L["State"]" />
+                                        <MudTextField @bind-Value="Model.Estado" Label="@L["State"]" MaxLength="100" />
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="Model.CodigoPostal" Label="@L["Zip Code"]" />
+                                        <MudTextField @bind-Value="Model.CodigoPostal" Label="@L["Zip Code"]" MaxLength="10" />
                                     </MudItem>
                                 </MudGrid>
                             </MudTabPanel>
@@ -109,17 +110,19 @@
                                     @if (Model.TieneDatosFiscales)
                                     {
                                         <MudItem xs="12" md="4">
-                                            <MudTextField @bind-Value="Model.Rfc" Label="@L["RFC/Tax ID"]" />
+                                            <MudTextField @bind-Value="Model.Rfc" Label="@L["RFC/Tax ID"]" MaxLength="13" />
                                         </MudItem>
                                         <MudItem xs="12" md="8">
                                             <MudTextField @bind-Value="Model.RazonSocial" Label="@L["Legal Name"]"
-                                                          Required="true" RequiredError="@L["Legal name is required"]" />
+                                                          Required="true" RequiredError="@L["Legal name is required"]"
+                                                          MaxLength="150" />
                                         </MudItem>
 
                                         <MudItem xs="12" md="6">
                                             <MudTextField @bind-Value="Model.CorreoFiscal" Label="@L["Fiscal Email"]"
                                                           InputType="InputType.Email"
-                                                          HelperText="@L["For invoice delivery. Leave empty to use the commercial email."]" />
+                                                          HelperText="@L["For invoice delivery. Leave empty to use the commercial email."]"
+                                                          MaxLength="150" />
                                         </MudItem>
 
                                         <MudItem xs="12">
@@ -127,28 +130,29 @@
                                         </MudItem>
 
                                         <MudItem xs="12" md="6">
-                                            <MudTextField @bind-Value="Model.CalleFiscal" Label="@L["Street"]" />
+                                            <MudTextField @bind-Value="Model.CalleFiscal" Label="@L["Street"]" MaxLength="150" />
                                         </MudItem>
                                         <MudItem xs="6" md="3">
-                                            <MudTextField @bind-Value="Model.NumeroExteriorFiscal" Label="@L["Ext. Number"]" />
+                                            <MudTextField @bind-Value="Model.NumeroExteriorFiscal" Label="@L["Ext. Number"]" MaxLength="20" />
                                         </MudItem>
                                         <MudItem xs="6" md="3">
-                                            <MudTextField @bind-Value="Model.NumeroInteriorFiscal" Label="@L["Int. Number"]" />
+                                            <MudTextField @bind-Value="Model.NumeroInteriorFiscal" Label="@L["Int. Number"]" MaxLength="20" />
                                         </MudItem>
 
                                         <MudItem xs="12" md="6">
-                                            <MudTextField @bind-Value="Model.ColoniaFiscal" Label="@L["Neighborhood"]" />
+                                            <MudTextField @bind-Value="Model.ColoniaFiscal" Label="@L["Neighborhood"]" MaxLength="100" />
                                         </MudItem>
                                         <MudItem xs="12" md="6">
-                                            <MudTextField @bind-Value="Model.CiudadFiscal" Label="@L["City"]" />
+                                            <MudTextField @bind-Value="Model.CiudadFiscal" Label="@L["City"]" MaxLength="100" />
                                         </MudItem>
 
                                         <MudItem xs="12" md="6">
-                                            <MudTextField @bind-Value="Model.EstadoFiscal" Label="@L["State"]" />
+                                            <MudTextField @bind-Value="Model.EstadoFiscal" Label="@L["State"]" MaxLength="100" />
                                         </MudItem>
                                         <MudItem xs="12" md="6">
                                             <MudTextField @bind-Value="Model.CodigoPostalFiscal" Label="@L["Zip Code"]"
-                                                          HelperText="@L["Required for CFDI stamping (Mexico)"]" />
+                                                          HelperText="@L["Required for CFDI stamping (Mexico)"]"
+                                                          MaxLength="10" />
                                         </MudItem>
 
                                         <MudItem xs="12">

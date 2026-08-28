@@ -22,6 +22,7 @@
             <MudTextField T="string" @bind-Value="_descripcion" Label="@L["Description"]"
                            Placeholder="@L["Add a description..."]" Variant="Variant.Outlined"
                            Lines="3" AutoGrow="true" FullWidth="true"
+                           MaxLength="3000" Counter="3000"
                            OnBlur="SaveAsync" />
         }
     </DialogContent>

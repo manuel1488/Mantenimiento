@@ -49,13 +49,15 @@
                                 <MudTextField @bind-Value="_model.Nombre"
                                               Label="@L["Name"]"
                                               Required="true"
-                                              RequiredError="@L["Name is required"]" />
+                                              RequiredError="@L["Name is required"]"
+                                              MaxLength="150" />
                             </MudItem>
 
                             <MudItem xs="12">
                                 <MudTextField @bind-Value="_model.Descripcion"
                                               Label="@L["Description"]"
-                                              Lines="2" />
+                                              Lines="2"
+                                              MaxLength="500" Counter="500" />
                             </MudItem>
 
                             <MudItem xs="12" md="4">

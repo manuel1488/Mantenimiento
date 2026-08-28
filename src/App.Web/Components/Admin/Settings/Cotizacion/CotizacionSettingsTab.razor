@@ -56,7 +56,8 @@
                           HelperText="@L["Leave blank to hide this section from the PDF."]"
                           Lines="3"
                           Variant="Variant.Outlined"
-                          FullWidth="true" />
+                          FullWidth="true"
+                          MaxLength="2000" Counter="2000" />
         </MudItem>
 
         <MudItem xs="12">
@@ -70,7 +71,8 @@
                               Label="@L["Company Address"]"
                               Lines="2"
                               Variant="Variant.Outlined"
-                              FullWidth="true" />
+                              FullWidth="true"
+                              MaxLength="300" Counter="300" />
             </MudItem>
         }
 
@@ -81,22 +83,22 @@
         @if (_mostrarDatosBancarios)
         {
             <MudItem xs="12" md="6">
-                <MudTextField @bind-Value="_bancoBeneficiario" Label="@L["Beneficiary"]" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_bancoBeneficiario" Label="@L["Beneficiary"]" Variant="Variant.Outlined" MaxLength="150" />
             </MudItem>
             <MudItem xs="12" md="6">
-                <MudTextField @bind-Value="_bancoRfc" Label="@L["RFC"]" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_bancoRfc" Label="@L["RFC"]" Variant="Variant.Outlined" MaxLength="13" />
             </MudItem>
             <MudItem xs="12" md="6">
-                <MudTextField @bind-Value="_bancoNombre" Label="@L["Bank"]" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_bancoNombre" Label="@L["Bank"]" Variant="Variant.Outlined" MaxLength="100" />
             </MudItem>
             <MudItem xs="12" md="6">
-                <MudTextField @bind-Value="_bancoNumeroCuenta" Label="@L["Account Number"]" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_bancoNumeroCuenta" Label="@L["Account Number"]" Variant="Variant.Outlined" MaxLength="50" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_bancoClabe" Label="@L["CLABE"]" Variant="Variant.Outlined" FullWidth="true" />
+                <MudTextField @bind-Value="_bancoClabe" Label="@L["CLABE"]" Variant="Variant.Outlined" FullWidth="true" MaxLength="18" />
             </MudItem>
             <MudItem xs="12" md="6">
-                <MudTextField @bind-Value="_bancoSwift" Label="@L["SWIFT/BIC"]" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_bancoSwift" Label="@L["SWIFT/BIC"]" Variant="Variant.Outlined" MaxLength="20" />
             </MudItem>
         }
 
@@ -118,27 +120,27 @@
         {
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="_sitioWeb" Label="@L["Website"]" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Language" />
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Language" MaxLength="200" />
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="_telefono" Label="@L["Phone"]" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" />
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" MaxLength="30" />
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="_correoElectronico" Label="@L["Email"]" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" MaxLength="150" />
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="_whatsApp" Label="@L["WhatsApp"]" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Chat" />
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Chat" MaxLength="30" />
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="_facebook" Label="@L["Facebook"]" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Groups" />
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Groups" MaxLength="150" />
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="_instagram" Label="@L["Instagram"]" Variant="Variant.Outlined"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CameraAlt" />
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CameraAlt" MaxLength="150" />
             </MudItem>
         }
 

@@ -14,7 +14,8 @@
                           Label="@L["Address"]"
                           Lines="2"
                           Required="true"
-                          RequiredError="@L["Address is required"]" />
+                          RequiredError="@L["Address is required"]"
+                          MaxLength="300" Counter="300" />
 
             <MudSwitch T="bool" @bind-Value="Model.Urgente" Color="Color.Warning" Label="@L["Urgent"]" Class="mt-3" />
         </MudForm>

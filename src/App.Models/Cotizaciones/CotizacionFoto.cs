@@ -36,7 +36,7 @@ public class CotizacionFoto : BaseEntity<int>, IAuditTracked
     [Required]
     public long FileSize { get; set; }
 
-    [StringLength(300)]
+    [StringLength(3000)]
     public string? Descripcion { get; set; }
 
     [Required]

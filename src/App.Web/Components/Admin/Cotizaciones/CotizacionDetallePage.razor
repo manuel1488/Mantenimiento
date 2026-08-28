@@ -196,10 +196,10 @@
                                 <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Approval"]</MudText>
                                 <MudGrid>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="_aprobadaPor" Label="@L["Approved By"]" />
+                                        <MudTextField @bind-Value="_aprobadaPor" Label="@L["Approved By"]" MaxLength="150" />
                                     </MudItem>
                                     <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="_medioAprobacion" Label="@L["Approval Method"]" />
+                                        <MudTextField @bind-Value="_medioAprobacion" Label="@L["Approval Method"]" MaxLength="200" />
                                     </MudItem>
                                 </MudGrid>
                                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-3">
