@@ -6,15 +6,15 @@ using App.Core.Interfaces;
 
 namespace App.Models.Cotizaciones;
 
-/// <summary>Foto asociada a una Cotización. El archivo y su miniatura se guardan en MinIO vía
-/// <see cref="Core.Interfaces.IFileStorageService"/> — aquí solo se persiste la clave del objeto
-/// y su metadata.</summary>
+/// <summary>Foto asociada a una línea (Servicio) de una Cotización. El archivo y su miniatura se
+/// guardan en MinIO vía <see cref="Core.Interfaces.IFileStorageService"/> — aquí solo se persiste
+/// la clave del objeto y su metadata.</summary>
 [Table("cot_cotizacion_fotos")]
 public class CotizacionFoto : BaseEntity<int>, IAuditTracked
 {
     [Required]
-    public int CotizacionId { get; set; }
-    public Cotizacion Cotizacion { get; set; } = null!;
+    public int CotizacionLineaId { get; set; }
+    public CotizacionLinea CotizacionLinea { get; set; } = null!;
 
     /// <summary>Clave del objeto en MinIO (no una ruta de disco).</summary>
     [Required]

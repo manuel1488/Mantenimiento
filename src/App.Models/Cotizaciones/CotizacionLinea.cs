@@ -42,4 +42,6 @@ public class CotizacionLinea : BaseEntity<int>, IAuditTracked
     [Required]
     [Column(TypeName = "decimal(18,2)")]
     public decimal Subtotal { get; set; }
+
+    public ICollection<CotizacionFoto> Fotos { get; set; } = new List<CotizacionFoto>();
 }

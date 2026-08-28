@@ -3,6 +3,12 @@
   <data name="Photos" xml:space="preserve">
     <value>Photos</value>
   </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Optional caption for the next photo you upload" xml:space="preserve">
+    <value>Optional caption for the next photo you upload</value>
+  </data>
   <data name="No photos" xml:space="preserve">
     <value>No photos</value>
   </data>

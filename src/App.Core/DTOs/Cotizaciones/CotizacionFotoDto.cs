@@ -3,7 +3,7 @@ namespace App.Core.DTOs.Cotizaciones;
 public class CotizacionFotoDto
 {
     public int Id { get; set; }
-    public int CotizacionId { get; set; }
+    public int CotizacionLineaId { get; set; }
 
     public string MimeType { get; set; } = null!;
     public long FileSize { get; set; }

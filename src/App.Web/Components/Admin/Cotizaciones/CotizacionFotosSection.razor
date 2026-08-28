@@ -60,6 +60,10 @@ else
 
     @if (!ReadOnly)
     {
+        <MudTextField @bind-Value="_nuevaDescripcion" Label="@L["Description"]"
+                      Placeholder="@L["Optional caption for the next photo you upload"]"
+                      Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true"
+                      MaxLength="3000" Class="mb-2" />
         <InputFile id="@_inputId" OnChange="UploadFotoAsync" accept="@_acceptedFileTypes" class="d-none" />
         <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
                    StartIcon="@Icons.Material.Filled.CloudUpload" for="@_inputId"
@@ -70,12 +74,13 @@ else
 }
 
 @code {
-    [Parameter, EditorRequired] public int CotizacionId { get; set; }
+    [Parameter, EditorRequired] public int CotizacionLineaId { get; set; }
     [Parameter] public bool ReadOnly { get; set; }
 
     private readonly string _inputId = $"cotizacionFotoUpload-{Guid.NewGuid():N}";
     private bool _loading = true;
     private bool _uploading;
+    private string? _nuevaDescripcion;
     private string _acceptedFileTypes => string.Join(",", ImageOptions.Value.AllowedExtensions);
     private List<CotizacionFotoDto> _fotos = new();
 
@@ -89,7 +94,7 @@ else
         _loading = true;
         try
         {
-            var result = await CotizacionService.GetFotosAsync(CotizacionId);
+            var result = await CotizacionService.GetFotosAsync(CotizacionLineaId);
             if (result.IsSuccess)
             {
                 _fotos = result.Value!;
@@ -101,7 +106,7 @@ else
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading fotos for cotizacion {Id}", CotizacionId);
+            Logger.LogError(ex, "Error loading fotos for cotizacion linea {Id}", CotizacionLineaId);
             Snackbar.Add(L["Error loading photos"], Severity.Error);
         }
         finally
@@ -129,11 +134,12 @@ else
             var data = memoryStream.ToArray();
 
             var uploadResult = await CotizacionService.UploadFotoAsync(
-                CotizacionId, data, file.ContentType, file.Name);
+                CotizacionLineaId, data, file.ContentType, file.Name, _nuevaDescripcion);
 
             if (uploadResult.IsSuccess)
             {
                 Snackbar.Add(L["Photo uploaded successfully"], Severity.Success);
+                _nuevaDescripcion = null;
                 await LoadAsync();
             }
             else
@@ -143,7 +149,7 @@ else
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error uploading foto file for cotizacion {Id}", CotizacionId);
+            Logger.LogError(ex, "Error uploading foto file for cotizacion linea {Id}", CotizacionLineaId);
             Snackbar.Add(L["Error processing photo file"], Severity.Error);
         }
         finally

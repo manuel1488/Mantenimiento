@@ -15,6 +15,7 @@
 @inject IClienteService ClienteService
 @inject IServicioService ServicioService
 @inject ICompanySettingsService CompanySettingsService
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<CotizacionFormPage> Logger
 @inject NavigationManager NavigationManager
@@ -115,6 +116,11 @@
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false">
                                 <CellTemplate>
+                                    @if (context.Item.Id != 0)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small"
+                                                       OnClick="@(() => OpenFotosDialog(context.Item))" title="@L["Photos"]" />
+                                    }
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
                                                    OnClick="@(() => _lineas.Remove(context.Item))" />
                                 </CellTemplate>
@@ -137,12 +143,6 @@
                             <MudText Typo="Typo.h6">@L["Total"]: @TotalCalculado.ToString("C2")</MudText>
                         </MudStack>
                     </MudStack>
-
-                    @if (Id.HasValue)
-                    {
-                        <MudDivider Class="my-4" />
-                        <CotizacionFotosSection CotizacionId="Id.Value" ReadOnly="false" />
-                    }
 
                     <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
                         <MudButton OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" Class="da-button-rounded">
@@ -211,6 +211,7 @@
                 _incluirIva = cotizacion.IncluirIva;
                 _lineas = cotizacion.Lineas.Select(l => new LineaDraft
                 {
+                    Id = l.Id,
                     ServicioId = l.ServicioId,
                     ServicioNombre = l.ServicioNombre,
                     UnidadMedida = l.UnidadMedida,
@@ -254,6 +255,19 @@
         linea.Subtotal = linea.Cantidad * nuevoPrecio;
     }
 
+    private async Task OpenFotosDialog(LineaDraft linea)
+    {
+        var parameters = new DialogParameters<CotizacionLineaFotosDialog>
+        {
+            { x => x.CotizacionLineaId, linea.Id },
+            { x => x.ServicioNombre, linea.ServicioNombre },
+            { x => x.ReadOnly, false }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<CotizacionLineaFotosDialog>(null, parameters, options);
+    }
+
     private void AgregarLinea()
     {
         if (_selectedServicio is null || _cantidad <= 0) return;
@@ -294,11 +308,7 @@
             if (result.IsSuccess)
             {
                 Snackbar.Add(IsCreate ? L["Cotización created successfully"] : L["Cotización updated successfully"], Severity.Success);
-                // On create, stay in edit mode (instead of the read-only detail page) so photos —
-                // which require an existing CotizacionId — can be added right away.
-                NavigationManager.NavigateTo(IsCreate
-                    ? $"/gestion/cotizaciones/{result.Value!.Id}/editar"
-                    : $"/gestion/cotizaciones/{result.Value!.Id}");
+                NavigationManager.NavigateTo($"/gestion/cotizaciones/{result.Value!.Id}");
             }
             else
             {
@@ -313,6 +323,9 @@
 
     private class LineaDraft
     {
+        /// <summary>0 for a línea not yet persisted — photos require a saved línea, so the
+        /// per-row photo button only shows once this is non-zero (after saving the Cotización).</summary>
+        public int Id { get; set; }
         public int ServicioId { get; set; }
         public string ServicioNombre { get; set; } = null!;
         public string UnidadMedida { get; set; } = null!;

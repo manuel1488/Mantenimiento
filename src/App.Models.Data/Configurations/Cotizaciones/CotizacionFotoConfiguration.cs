@@ -13,9 +13,9 @@ public class CotizacionFotoConfiguration : IEntityTypeConfiguration<CotizacionFo
         builder.Property(f => f.ThumbnailFileKey).HasMaxLength(1000);
         builder.Property(f => f.MimeType).HasMaxLength(100).IsRequired();
 
-        builder.HasOne(f => f.Cotizacion)
-            .WithMany(c => c.Fotos)
-            .HasForeignKey(f => f.CotizacionId)
+        builder.HasOne(f => f.CotizacionLinea)
+            .WithMany(l => l.Fotos)
+            .HasForeignKey(f => f.CotizacionLineaId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

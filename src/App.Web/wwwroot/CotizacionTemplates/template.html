@@ -202,15 +202,20 @@
     {{ if has_fotos }}
     <div class="photo-annex">
         <div class="annex-title">{{ label_photos_annex }}</div>
-        {{ for foto in fotos }}
-        <div class="photo-row">
-            <div class="photo-frame"><img src="{{ foto.url }}" /></div>
-            <div class="photo-info">
-                <div class="photo-index">{{ label_photo }} {{ foto.indice }}</div>
-                {{ if foto.has_descripcion }}
-                <div class="photo-caption">{{ foto.descripcion }}</div>
-                {{ end }}
+        {{ for linea in lineas_con_fotos }}
+        <div class="photo-group">
+            <div class="photo-group-title">{{ linea.servicio_nombre }}</div>
+            {{ for foto in linea.fotos }}
+            <div class="photo-row">
+                <div class="photo-frame"><img src="{{ foto.url }}" /></div>
+                <div class="photo-info">
+                    <div class="photo-index">{{ label_photo }} {{ foto.indice }}</div>
+                    {{ if foto.has_descripcion }}
+                    <div class="photo-caption">{{ foto.descripcion }}</div>
+                    {{ end }}
+                </div>
             </div>
+            {{ end }}
         </div>
         {{ end }}
     </div>

@@ -578,6 +578,7 @@ public class CotizacionService : ICotizacionService
             var cotizacion = await context.Cotizaciones
                 .AsNoTracking()
                 .Include(c => c.Lineas)
+                    .ThenInclude(l => l.Fotos)
                 .Include(c => c.Cliente)
                 .FirstOrDefaultAsync(c => c.Id == cotizacionId, cancellationToken);
 
@@ -596,18 +597,24 @@ public class CotizacionService : ICotizacionService
             var regimenesFiscales = await _fiscalCatalogService.GetRegimenesFiscalesAsync();
             var timeZone = await _companySettingsService.GetCurrentTimeZoneAsync();
 
-            var fotos = await context.CotizacionFotos
-                .AsNoTracking()
-                .Where(f => f.CotizacionId == cotizacionId)
-                .OrderBy(f => f.FechaCarga)
-                .ToListAsync(cancellationToken);
-
-            var fotosData = new List<(string Url, string? Descripcion)>();
-            foreach (var foto in fotos)
+            // Fotos are grouped by línea (Servicio) in the photo annex — each línea that has fotos
+            // gets its own labeled group instead of one flat, undifferentiated list of images.
+            var lineasConFotos = new List<(CotizacionLinea Linea, List<(string Url, string? Descripcion)> Fotos)>();
+            foreach (var linea in cotizacion.Lineas)
             {
-                var presignedResult = await _fileStorageService.GetPresignedUrlAsync(foto.FileKey, cancellationToken);
-                if (presignedResult.IsSuccess)
-                    fotosData.Add((presignedResult.Value!, foto.Descripcion));
+                if (linea.Fotos.Count == 0)
+                    continue;
+
+                var fotosLinea = new List<(string Url, string? Descripcion)>();
+                foreach (var foto in linea.Fotos.OrderBy(f => f.FechaCarga))
+                {
+                    var presignedResult = await _fileStorageService.GetPresignedUrlAsync(foto.FileKey, cancellationToken);
+                    if (presignedResult.IsSuccess)
+                        fotosLinea.Add((presignedResult.Value!, foto.Descripcion));
+                }
+
+                if (fotosLinea.Count > 0)
+                    lineasConFotos.Add((linea, fotosLinea));
             }
 
             var generadoPorNombre = await context.Users
@@ -743,13 +750,17 @@ public class CotizacionService : ICotizacionService
                 }).ToList(),
                 label_photos_annex = _localizer["Photo Annex"].Value,
                 label_photo = _localizer["Photo"].Value,
-                has_fotos = fotosData.Count > 0,
-                fotos = fotosData.Select((f, i) => new
+                has_fotos = lineasConFotos.Count > 0,
+                lineas_con_fotos = lineasConFotos.Select(lf => new
                 {
-                    indice = i + 1,
-                    url = f.Url,
-                    descripcion = f.Descripcion,
-                    has_descripcion = !string.IsNullOrWhiteSpace(f.Descripcion)
+                    servicio_nombre = lf.Linea.ServicioNombre,
+                    fotos = lf.Fotos.Select((f, i) => new
+                    {
+                        indice = i + 1,
+                        url = f.Url,
+                        descripcion = f.Descripcion,
+                        has_descripcion = !string.IsNullOrWhiteSpace(f.Descripcion)
+                    }).ToList()
                 }).ToList(),
                 label_page = _localizer["Page"].Value,
                 label_of = _localizer["of"].Value
@@ -912,24 +923,24 @@ public class CotizacionService : ICotizacionService
             l.ServicioNombre, l.UnidadMedida, l.Cantidad, l.PrecioUnitario, l.Subtotal)));
 
     public async Task<Result<CotizacionFotoDto>> UploadFotoAsync(
-        int cotizacionId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default)
+        int cotizacionLineaId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default)
     {
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var cotizacionExists = await context.Cotizaciones.AnyAsync(c => c.Id == cotizacionId, cancellationToken);
-            if (!cotizacionExists)
-                return Result<CotizacionFotoDto>.Failure(_localizer["Cotizacion not found"]);
+            var lineaExists = await context.CotizacionLineas.AnyAsync(l => l.Id == cotizacionLineaId, cancellationToken);
+            if (!lineaExists)
+                return Result<CotizacionFotoDto>.Failure(_localizer["Cotizacion linea not found"]);
 
             var currentFotoCount = await context.CotizacionFotos
-                .Where(f => f.CotizacionId == cotizacionId)
+                .Where(f => f.CotizacionLineaId == cotizacionLineaId)
                 .CountAsync(cancellationToken);
 
             if (currentFotoCount >= _fotoOptions.Value.MaxFotos)
             {
                 return Result<CotizacionFotoDto>.Failure(
-                    _localizer["Maximum number of photos ({0}) reached for this Cotización", _fotoOptions.Value.MaxFotos]);
+                    _localizer["Maximum number of photos ({0}) reached for this línea", _fotoOptions.Value.MaxFotos]);
             }
 
             byte[] processedData;
@@ -948,7 +959,7 @@ public class CotizacionService : ICotizacionService
                 _ => "jpg"
             };
 
-            var keyPrefix = $"cotizaciones/cotizacion-{cotizacionId}";
+            var keyPrefix = $"cotizaciones/linea-{cotizacionLineaId}";
 
             var uploadResult = await _fileStorageService.UploadAsync(
                 processedData, processedContentType, keyPrefix, extension, cancellationToken);
@@ -964,8 +975,8 @@ public class CotizacionService : ICotizacionService
             if (!thumbnailUploadResult.IsSuccess)
             {
                 _logger.LogWarning(
-                    "Failed to upload thumbnail for cotizacion {Id}, continuing with full image only: {Error}",
-                    cotizacionId, thumbnailUploadResult.Error);
+                    "Failed to upload thumbnail for cotizacion linea {Id}, continuing with full image only: {Error}",
+                    cotizacionLineaId, thumbnailUploadResult.Error);
             }
 
             var strategy = context.Database.CreateExecutionStrategy();
@@ -976,7 +987,7 @@ public class CotizacionService : ICotizacionService
                 {
                     var entity = new CotizacionFoto
                     {
-                        CotizacionId = cotizacionId,
+                        CotizacionLineaId = cotizacionLineaId,
                         FileKey = uploadResult.Value!,
                         ThumbnailFileKey = thumbnailUploadResult.IsSuccess ? thumbnailUploadResult.Value : null,
                         MimeType = processedContentType,
@@ -1028,7 +1039,7 @@ public class CotizacionService : ICotizacionService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error uploading foto for cotizacion {Id}", cotizacionId);
+            _logger.LogError(ex, "Error uploading foto for cotizacion linea {Id}", cotizacionLineaId);
             return Result<CotizacionFotoDto>.Failure(_localizer["Error uploading foto"]);
         }
     }
@@ -1125,7 +1136,7 @@ public class CotizacionService : ICotizacionService
         }
     }
 
-    public async Task<Result<List<CotizacionFotoDto>>> GetFotosAsync(int cotizacionId, CancellationToken cancellationToken = default)
+    public async Task<Result<List<CotizacionFotoDto>>> GetFotosAsync(int cotizacionLineaId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -1133,7 +1144,7 @@ public class CotizacionService : ICotizacionService
 
             var fotos = await context.CotizacionFotos
                 .AsNoTracking()
-                .Where(f => f.CotizacionId == cotizacionId)
+                .Where(f => f.CotizacionLineaId == cotizacionLineaId)
                 .OrderBy(f => f.FechaCarga)
                 .ToListAsync(cancellationToken);
 
@@ -1156,7 +1167,7 @@ public class CotizacionService : ICotizacionService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving fotos for cotizacion {Id}", cotizacionId);
+            _logger.LogError(ex, "Error retrieving fotos for cotizacion linea {Id}", cotizacionLineaId);
             return Result<List<CotizacionFotoDto>>.Failure(_localizer["Error retrieving fotos"]);
         }
     }

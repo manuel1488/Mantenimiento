@@ -22,15 +22,15 @@ public interface ICotizacionService
     /// <summary>Emails the Cotización PDF as an attachment to the given recipient.</summary>
     Task<Result> SendCotizacionEmailAsync(int cotizacionId, string recipientEmail, CancellationToken cancellationToken = default);
 
-    /// <summary>Uploads and compresses a photo for the given Cotización. Fails if the Cotización
-    /// already has CotizacionFotoOptions.MaxFotos photos.</summary>
+    /// <summary>Uploads and compresses a photo for the given línea (Servicio) of a Cotización. Fails
+    /// if the línea already has CotizacionFotoOptions.MaxFotos photos.</summary>
     Task<Result<CotizacionFotoDto>> UploadFotoAsync(
-        int cotizacionId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default);
+        int cotizacionLineaId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default);
 
     Task<Result> DeleteFotoAsync(int fotoId, CancellationToken cancellationToken = default);
 
     /// <summary>Updates only the caption of an existing photo.</summary>
     Task<Result> UpdateFotoDescripcionAsync(int fotoId, string? descripcion, CancellationToken cancellationToken = default);
 
-    Task<Result<List<CotizacionFotoDto>>> GetFotosAsync(int cotizacionId, CancellationToken cancellationToken = default);
+    Task<Result<List<CotizacionFotoDto>>> GetFotosAsync(int cotizacionLineaId, CancellationToken cancellationToken = default);
 }

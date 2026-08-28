@@ -313,7 +313,7 @@ public class ObraService : IObraService
                 {
                     var cotizacion = await context.Cotizaciones
                         .Include(c => c.Lineas)
-                        .Include(c => c.Fotos)
+                            .ThenInclude(l => l.Fotos)
                         .FirstOrDefaultAsync(c => c.Id == cotizacionId);
 
                     if (cotizacion == null)
@@ -363,11 +363,16 @@ public class ObraService : IObraService
                         ModifiedAt = currentTime
                     };
 
+                    // Track which Actividad was generated from which línea so each línea's fotos can
+                    // later be copied only into its own Actividad (1:1 by Servicio), not into every
+                    // Actividad of the Obra.
+                    var lineaActividadPairs = new List<(CotizacionLinea Linea, Actividad Actividad)>();
+
                     foreach (var linea in cotizacion.Lineas)
                     {
                         var rendimiento = rendimientos.GetValueOrDefault(linea.ServicioId);
 
-                        obra.Actividades.Add(new Actividad
+                        var actividad = new Actividad
                         {
                             ServicioId = linea.ServicioId,
                             Cantidad = linea.Cantidad,
@@ -380,7 +385,10 @@ public class ObraService : IObraService
                             CreatedAt = currentTime,
                             ModifiedBy = currentUser,
                             ModifiedAt = currentTime
-                        });
+                        };
+
+                        obra.Actividades.Add(actividad);
+                        lineaActividadPairs.Add((linea, actividad));
                     }
 
                     context.Obras.Add(obra);
@@ -398,8 +406,9 @@ public class ObraService : IObraService
                     // must not retroactively alter the Obra's evidence trail. Best-effort: a copy
                     // failure is logged and skipped rather than failing the whole conversion, since
                     // the Obra/Actividades are already committed at this point.
-                    if (cotizacion.Fotos.Count > 0)
-                        await CopiarFotosACtividadesAsync(cotizacion.Fotos, obra.Actividades, currentUser, currentTime);
+                    var pairsConFotos = lineaActividadPairs.Where(p => p.Linea.Fotos.Count > 0).ToList();
+                    if (pairsConFotos.Count > 0)
+                        await CopiarFotosACtividadesAsync(pairsConFotos, currentUser, currentTime);
 
                     return Result<ObraDto>.Success(_mapper.Map<ObraDto>(created));
                 }
@@ -418,15 +427,15 @@ public class ObraService : IObraService
     }
 
     private async Task CopiarFotosACtividadesAsync(
-        IEnumerable<CotizacionFoto> fotos, IEnumerable<Actividad> actividades, string currentUser, DateTime currentTime)
+        IEnumerable<(CotizacionLinea Linea, Actividad Actividad)> pairs, string currentUser, DateTime currentTime)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        foreach (var actividad in actividades)
+        foreach (var (linea, actividad) in pairs)
         {
             var keyPrefix = $"evidencias/actividad-{actividad.Id}";
 
-            foreach (var foto in fotos)
+            foreach (var foto in linea.Fotos)
             {
                 try
                 {

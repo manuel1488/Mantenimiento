@@ -2,6 +2,7 @@
 @attribute [Authorize(Policy = ApplicationClaims.Shared.ViewCotizaciones)]
 
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using App.Core.Common
 @using App.Core.Constants
 @using App.Core.DTOs.Cotizaciones
@@ -23,6 +24,8 @@
 @inject ISnackbar Snackbar
 @inject ILogger<CotizacionDetallePage> Logger
 @inject NavigationManager NavigationManager
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>@(_cotizacion is null ? L["Cotización Details"] : _cotizacion.ClienteNombre)</PageTitle>
 
@@ -135,6 +138,7 @@
                                 <th style="text-align: right;">@L["Quantity"]</th>
                                 <th style="text-align: right;">@L["Unit Price"]</th>
                                 <th style="text-align: right;">@L["Subtotal"]</th>
+                                <th style="text-align: right;">@L["Photos"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -145,6 +149,10 @@
                                     <td style="text-align: right;">@linea.Cantidad.ToString("F2") @linea.UnidadMedida</td>
                                     <td style="text-align: right;">@linea.PrecioUnitario.ToString("C2")</td>
                                     <td style="text-align: right;">@linea.Subtotal.ToString("C2")</td>
+                                    <td style="text-align: right;">
+                                        <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small"
+                                                       OnClick="@(() => OpenLineaFotosDialog(linea))" title="@L["Photos"]" />
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -155,7 +163,11 @@
                         @foreach (var linea in _cotizacion.Lineas)
                         {
                             <MudPaper Class="pa-3 mb-2" Outlined="true">
-                                <MudText Typo="Typo.subtitle2" Class="mb-1">@linea.ServicioNombre</MudText>
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.subtitle2" Class="mb-1">@linea.ServicioNombre</MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small"
+                                                   OnClick="@(() => OpenLineaFotosDialog(linea))" title="@L["Photos"]" />
+                                </MudStack>
                                 <MudStack Row="true" Justify="Justify.SpaceBetween">
                                     <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Quantity"]</MudText>
                                     <MudText Typo="Typo.body2">@linea.Cantidad.ToString("F2") @linea.UnidadMedida</MudText>
@@ -180,11 +192,6 @@
                         }
                         <MudText Typo="Typo.h6">@L["Total"]: @_cotizacion.Total.ToString("C2")</MudText>
                     </MudStack>
-                </MudPaper>
-
-                @* ── Fotos ────────────────────────────────────────────────── *@
-                <MudPaper Class="da-card pa-4 pa-sm-6 mb-4" Elevation="2">
-                    <CotizacionFotosSection CotizacionId="Id" ReadOnly="true" />
                 </MudPaper>
 
                 @* ── Aprobación ───────────────────────────────────────────── *@
@@ -229,6 +236,7 @@
 
     private bool _loading = true;
     private bool _sharing;
+    private bool _puedeGestionarFotos;
     private CotizacionDto? _cotizacion;
     private string _aprobadaPor = string.Empty;
     private string _medioAprobacion = string.Empty;
@@ -240,6 +248,10 @@
         var config = await TemplateSettingsService.GetConfigAsync();
         _folioPrefijo = config?.FolioPrefijo;
         _folioDigitos = config?.FolioDigitos;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authResult = await AuthorizationService.AuthorizeAsync(authState.User, ApplicationClaims.Shared.ManageCotizaciones);
+        _puedeGestionarFotos = authResult.Succeeded;
 
         await LoadAsync();
     }
@@ -314,6 +326,21 @@
         {
             Snackbar.Add(result.Error, Severity.Error);
         }
+    }
+
+    private async Task OpenLineaFotosDialog(CotizacionLineaDto linea)
+    {
+        var puedeEditar = _puedeGestionarFotos && _cotizacion?.Estado == CotizacionEstado.Pendiente;
+
+        var parameters = new DialogParameters<CotizacionLineaFotosDialog>
+        {
+            { x => x.CotizacionLineaId, linea.Id },
+            { x => x.ServicioNombre, linea.ServicioNombre },
+            { x => x.ReadOnly, !puedeEditar }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<CotizacionLineaFotosDialog>(null, parameters, options);
     }
 
     private async Task OpenConvertirAObraDialog()

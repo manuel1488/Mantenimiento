@@ -69,7 +69,6 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
     public string? MedioAprobacion { get; set; }
 
     public ICollection<CotizacionLinea> Lineas { get; set; } = new List<CotizacionLinea>();
-    public ICollection<CotizacionFoto> Fotos { get; set; } = new List<CotizacionFoto>();
 
     /// <summary>Obra generada al convertir esta Cotización, si ya fue convertida.</summary>
     public Obra? ObraGenerada { get; set; }

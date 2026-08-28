@@ -30,6 +30,9 @@
   <data name="Cotizacion not found" xml:space="preserve">
     <value>Cotizacion not found</value>
   </data>
+  <data name="Cotizacion linea not found" xml:space="preserve">
+    <value>Cotizacion linea not found</value>
+  </data>
   <data name="Date" xml:space="preserve">
     <value>Date</value>
   </data>
@@ -99,8 +102,8 @@
   <data name="IVA" xml:space="preserve">
     <value>IVA</value>
   </data>
-  <data name="Maximum number of photos ({0}) reached for this Cotización" xml:space="preserve">
-    <value>Maximum number of photos ({0}) reached for this Cotización</value>
+  <data name="Maximum number of photos ({0}) reached for this línea" xml:space="preserve">
+    <value>Maximum number of photos ({0}) reached for this línea</value>
   </data>
   <data name="One or more Servicios were not found" xml:space="preserve">
     <value>One or more Servicios were not found</value>
