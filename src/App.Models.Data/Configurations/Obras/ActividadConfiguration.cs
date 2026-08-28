@@ -13,6 +13,9 @@ public class ActividadConfiguration : IEntityTypeConfiguration<Actividad>
             .HasConversion<int>()
             .IsRequired();
 
+        builder.Property(e => e.Descripcion)
+            .HasMaxLength(500);
+
         builder.HasOne(e => e.Obra)
             .WithMany(o => o.Actividades)
             .HasForeignKey(e => e.ObraId)

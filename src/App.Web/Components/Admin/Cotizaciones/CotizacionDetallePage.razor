@@ -145,7 +145,13 @@
                             @foreach (var linea in _cotizacion.Lineas)
                             {
                                 <tr>
-                                    <td>@linea.ServicioNombre</td>
+                                    <td>
+                                        @linea.ServicioNombre
+                                        @if (!string.IsNullOrWhiteSpace(linea.Descripcion))
+                                        {
+                                            <div class="mud-text-secondary" style="font-size: 0.8rem;">@linea.Descripcion</div>
+                                        }
+                                    </td>
                                     <td style="text-align: right;">@linea.Cantidad.ToString("F2") @linea.UnidadMedida</td>
                                     <td style="text-align: right;">@linea.PrecioUnitario.ToString("C2")</td>
                                     <td style="text-align: right;">@linea.Subtotal.ToString("C2")</td>
@@ -168,6 +174,10 @@
                                     <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small"
                                                    OnClick="@(() => OpenLineaFotosDialog(linea))" title="@L["Photos"]" />
                                 </MudStack>
+                                @if (!string.IsNullOrWhiteSpace(linea.Descripcion))
+                                {
+                                    <MudText Typo="Typo.body2" Class="mud-text-secondary mb-1">@linea.Descripcion</MudText>
+                                }
                                 <MudStack Row="true" Justify="Justify.SpaceBetween">
                                     <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Quantity"]</MudText>
                                     <MudText Typo="Typo.body2">@linea.Cantidad.ToString("F2") @linea.UnidadMedida</MudText>

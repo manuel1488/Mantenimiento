@@ -58,7 +58,12 @@
             {{ for linea in lineas }}
             <tr>
                 <td class="col-index">{{ linea.indice }}</td>
-                <td>{{ linea.servicio_nombre }}</td>
+                <td>
+                    <div class="linea-servicio">{{ linea.servicio_nombre }}</div>
+                    {{ if linea.has_descripcion }}
+                    <div class="linea-descripcion">{{ linea.descripcion }}</div>
+                    {{ end }}
+                </td>
                 <td class="align-right">{{ linea.cantidad }} {{ linea.unidad_medida }}</td>
                 <td class="align-right">{{ linea.precio_unitario }}</td>
                 <td class="align-right">{{ linea.subtotal }}</td>

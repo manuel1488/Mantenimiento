@@ -6,6 +6,9 @@
   <data name="Service" xml:space="preserve">
     <value>Servicio</value>
   </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
   <data name="Quantity" xml:space="preserve">
     <value>Cantidad</value>
   </data>

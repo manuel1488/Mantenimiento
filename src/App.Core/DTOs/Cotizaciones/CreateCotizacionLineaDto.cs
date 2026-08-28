@@ -13,4 +13,8 @@ public class CreateCotizacionLineaDto
 
     /// <summary>Si es nulo, se usa el PrecioUnitario actual del catálogo de Servicio.</summary>
     public decimal? PrecioUnitarioOverride { get; set; }
+
+    /// <summary>Si es nulo, se usa la Descripcion actual del catálogo de Servicio.</summary>
+    [StringLength(500)]
+    public string? Descripcion { get; set; }
 }

@@ -98,6 +98,15 @@
                     <MudDataGrid T="LineaDraft" Items="@_lineas" Dense="true" Hover="true" Class="mt-3">
                         <Columns>
                             <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
+                            <TemplateColumn Title="@L["Description"]">
+                                <CellTemplate>
+                                    <MudTextField T="string" Value="@context.Item.Descripcion"
+                                                  ValueChanged="@(v => context.Item.Descripcion = v)"
+                                                  Lines="2" AutoGrow="true" MaxLength="500"
+                                                  Variant="Variant.Text" Margin="Margin.Dense"
+                                                  FullWidth="true" />
+                                </CellTemplate>
+                            </TemplateColumn>
                             <TemplateColumn Title="@L["Quantity"]">
                                 <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedida</CellTemplate>
                             </TemplateColumn>
@@ -214,6 +223,7 @@
                     Id = l.Id,
                     ServicioId = l.ServicioId,
                     ServicioNombre = l.ServicioNombre,
+                    Descripcion = l.Descripcion,
                     UnidadMedida = l.UnidadMedida,
                     Cantidad = l.Cantidad,
                     PrecioUnitario = l.PrecioUnitario,
@@ -277,6 +287,7 @@
         {
             ServicioId = _selectedServicio.Id,
             ServicioNombre = _selectedServicio.Nombre,
+            Descripcion = _selectedServicio.Descripcion,
             UnidadMedida = _selectedServicio.UnidadMedidaCodigo,
             Cantidad = _cantidad,
             PrecioUnitario = precioUnitario,
@@ -298,7 +309,8 @@
             {
                 ServicioId = l.ServicioId,
                 Cantidad = l.Cantidad,
-                PrecioUnitarioOverride = l.PrecioUnitario
+                PrecioUnitarioOverride = l.PrecioUnitario,
+                Descripcion = l.Descripcion
             }).ToList();
 
             var result = IsCreate
@@ -328,6 +340,7 @@
         public int Id { get; set; }
         public int ServicioId { get; set; }
         public string ServicioNombre { get; set; } = null!;
+        public string? Descripcion { get; set; }
         public string UnidadMedida { get; set; } = null!;
         public decimal Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }

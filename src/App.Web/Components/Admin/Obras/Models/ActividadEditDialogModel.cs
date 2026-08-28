@@ -4,6 +4,7 @@ public class ActividadEditDialogModel
 {
     public int Id { get; set; }
     public string ServicioNombre { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
     public string UnidadMedidaCodigo { get; set; } = string.Empty;
     public decimal Cantidad { get; set; }
     public decimal? PrecioUnitarioOverride { get; set; }

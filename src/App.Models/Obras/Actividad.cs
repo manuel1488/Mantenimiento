@@ -21,6 +21,14 @@ public class Actividad : BaseEntity<int>, IAuditTracked
     public int ServicioId { get; set; }
     public Servicio Servicio { get; set; } = null!;
 
+    /// <summary>
+    /// Descripción de esta Actividad, copiada del catálogo de Servicio al agregarla pero editable
+    /// libremente por Actividad sin afectar el catálogo — un snapshot igual que PrecioUnitario/
+    /// RendimientoDiasPorUnidad, que preserva lo capturado aunque el Servicio cambie después.
+    /// </summary>
+    [StringLength(500)]
+    public string? Descripcion { get; set; }
+
     [Required]
     [Column(TypeName = "decimal(18,3)")]
     public decimal Cantidad { get; set; }

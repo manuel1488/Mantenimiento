@@ -107,6 +107,7 @@ public class ActividadService : IActividadService
                     {
                         ObraId = dto.ObraId,
                         ServicioId = dto.ServicioId,
+                        Descripcion = dto.Descripcion ?? servicio.Descripcion,
                         Cantidad = dto.Cantidad,
                         PrecioUnitario = precioUnitario,
                         Costo = dto.Cantidad * precioUnitario,
@@ -176,6 +177,7 @@ public class ActividadService : IActividadService
                     }
 
                     entity.Cantidad = dto.Cantidad;
+                    entity.Descripcion = dto.Descripcion;
                     if (dto.PrecioUnitarioOverride.HasValue)
                         entity.PrecioUnitario = dto.PrecioUnitarioOverride.Value;
                     if (dto.RendimientoDiasPorUnidadOverride.HasValue)

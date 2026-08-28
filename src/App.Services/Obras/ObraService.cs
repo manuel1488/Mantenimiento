@@ -375,6 +375,7 @@ public class ObraService : IObraService
                         var actividad = new Actividad
                         {
                             ServicioId = linea.ServicioId,
+                            Descripcion = linea.Descripcion,
                             Cantidad = linea.Cantidad,
                             PrecioUnitario = linea.PrecioUnitario,
                             Costo = linea.Subtotal,

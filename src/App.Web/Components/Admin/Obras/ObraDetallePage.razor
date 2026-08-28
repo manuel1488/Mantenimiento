@@ -144,7 +144,15 @@
                     <MudDataGrid T="ActividadDto" Items="@_actividades" Loading="_loadingActividades"
                                  Dense="true" Hover="true" RowsPerPage="10" Class="d-none d-sm-block">
                         <Columns>
-                            <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
+                            <TemplateColumn Title="@L["Service"]">
+                                <CellTemplate>
+                                    @context.Item.ServicioNombre
+                                    @if (!string.IsNullOrWhiteSpace(context.Item.Descripcion))
+                                    {
+                                        <div class="mud-text-secondary" style="font-size: 0.8rem;">@context.Item.Descripcion</div>
+                                    }
+                                </CellTemplate>
+                            </TemplateColumn>
                             <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
                                 <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedidaCodigo</CellTemplate>
                             </TemplateColumn>
@@ -214,6 +222,10 @@
                                             @EstadoLabel(actividad.Estado)
                                         </MudChip>
                                     </MudStack>
+                                    @if (!string.IsNullOrWhiteSpace(actividad.Descripcion))
+                                    {
+                                        <MudText Typo="Typo.body2" Class="mud-text-secondary mb-1">@actividad.Descripcion</MudText>
+                                    }
                                     <MudStack Row="true" Justify="Justify.SpaceBetween">
                                         <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Quantity"]</MudText>
                                         <MudText Typo="Typo.body2">@actividad.Cantidad.ToString("F2") @actividad.UnidadMedidaCodigo</MudText>
@@ -441,6 +453,7 @@
                 {
                     Id = actividad.Id,
                     ServicioNombre = actividad.ServicioNombre,
+                    Descripcion = actividad.Descripcion,
                     UnidadMedidaCodigo = actividad.UnidadMedidaCodigo,
                     Cantidad = actividad.Cantidad
                 }
@@ -457,7 +470,8 @@
                 Id = model.Id,
                 Cantidad = model.Cantidad,
                 PrecioUnitarioOverride = model.PrecioUnitarioOverride,
-                RendimientoDiasPorUnidadOverride = model.RendimientoDiasPorUnidadOverride
+                RendimientoDiasPorUnidadOverride = model.RendimientoDiasPorUnidadOverride,
+                Descripcion = model.Descripcion
             };
 
             var updateResult = await ActividadService.UpdateAsync(updateDto);

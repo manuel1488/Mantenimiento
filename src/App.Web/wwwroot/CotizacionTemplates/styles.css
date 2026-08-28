@@ -179,6 +179,13 @@ table.lineas tbody tr:nth-child(even) {
     background-color: #fafafa;
 }
 
+table.lineas .linea-descripcion {
+    font-size: 10px;
+    color: var(--secondary-color);
+    margin-top: 2px;
+    white-space: pre-line;
+}
+
 .totals {
     display: flex;
     justify-content: flex-end;

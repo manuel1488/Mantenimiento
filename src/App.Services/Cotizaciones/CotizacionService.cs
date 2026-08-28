@@ -213,6 +213,7 @@ public class CotizacionService : ICotizacionService
                         {
                             ServicioId = servicio.Id,
                             ServicioNombre = servicio.Nombre,
+                            Descripcion = linea.Descripcion ?? servicio.Descripcion,
                             UnidadMedida = servicio.UnidadMedida.Codigo,
                             Cantidad = linea.Cantidad,
                             PrecioUnitario = precioUnitario,
@@ -307,6 +308,7 @@ public class CotizacionService : ICotizacionService
                     var currentTime = _dateTimeService.Now;
 
                     cotizacion.ClienteId = dto.ClienteId;
+                    cotizacion.IncluirIva = dto.IncluirIva;
 
                     // Diff against the incoming set instead of blindly deleting and recreating every
                     // línea on each save — otherwise saving with unchanged líneas (e.g. just to add a
@@ -329,12 +331,14 @@ public class CotizacionService : ICotizacionService
                             lineasRestantes.Remove(existente);
 
                             var cambio = existente.ServicioNombre != servicio.Nombre
+                                || existente.Descripcion != linea.Descripcion
                                 || existente.UnidadMedida != servicio.UnidadMedida.Codigo
                                 || existente.Cantidad != linea.Cantidad
                                 || existente.PrecioUnitario != precioUnitario
                                 || existente.Subtotal != subtotal;
 
                             existente.ServicioNombre = servicio.Nombre;
+                            existente.Descripcion = linea.Descripcion;
                             existente.UnidadMedida = servicio.UnidadMedida.Codigo;
                             existente.Cantidad = linea.Cantidad;
                             existente.PrecioUnitario = precioUnitario;
@@ -352,6 +356,7 @@ public class CotizacionService : ICotizacionService
                             {
                                 ServicioId = servicio.Id,
                                 ServicioNombre = servicio.Nombre,
+                                Descripcion = linea.Descripcion ?? servicio.Descripcion,
                                 UnidadMedida = servicio.UnidadMedida.Codigo,
                                 Cantidad = linea.Cantidad,
                                 PrecioUnitario = precioUnitario,
@@ -743,6 +748,8 @@ public class CotizacionService : ICotizacionService
                 {
                     indice = i + 1,
                     servicio_nombre = l.ServicioNombre,
+                    descripcion = l.Descripcion,
+                    has_descripcion = !string.IsNullOrWhiteSpace(l.Descripcion),
                     unidad_medida = l.UnidadMedida,
                     cantidad = l.Cantidad.ToString("F2"),
                     precio_unitario = l.PrecioUnitario.ToString("C2"),

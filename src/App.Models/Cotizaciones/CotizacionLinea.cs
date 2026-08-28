@@ -27,6 +27,14 @@ public class CotizacionLinea : BaseEntity<int>, IAuditTracked
     [StringLength(150)]
     public string ServicioNombre { get; set; } = null!;
 
+    /// <summary>
+    /// Descripción de esta línea, copiada del catálogo de Servicio al agregarla pero editable
+    /// libremente por línea sin afectar el catálogo — igual que ServicioNombre/UnidadMedida/PrecioUnitario,
+    /// es un snapshot que preserva lo cotizado aunque el Servicio cambie después.
+    /// </summary>
+    [StringLength(500)]
+    public string? Descripcion { get; set; }
+
     [Required]
     [StringLength(20)]
     public string UnidadMedida { get; set; } = null!;

@@ -13,6 +13,10 @@
                 <MudItem xs="12">
                     <MudTextField Value="@Model.ServicioNombre" Label="@L["Service"]" ReadOnly="true" />
                 </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Model.Descripcion" Label="@L["Description"]"
+                                  Lines="2" AutoGrow="true" MaxLength="500" Counter="500" />
+                </MudItem>
                 <MudItem xs="12" md="6">
                     <MudNumericField @bind-Value="Model.Cantidad"
                                       Label="@($"{L["Quantity"]} ({Model.UnidadMedidaCodigo})")"
