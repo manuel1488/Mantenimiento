@@ -20,19 +20,24 @@ body {
     position: fixed;
     top: 0;
     right: 0;
-    width: 130px;
-    height: 130px;
+    width: 170px;
+    height: 170px;
     overflow: hidden;
     z-index: -1;
     pointer-events: none;
 }
 
 .corner-decoration .shard {
+    /* A slice of a much larger ring (554px circle, 34px thick border) clipped by the
+       170x170 container — only the arc that crosses this corner is visible, giving the
+       ribbon a slight curve instead of a straight diagonal. */
     position: absolute;
-    width: 220px;
-    height: 40px;
-    right: -60px;
-    transform: rotate(45deg);
+    width: 554px;
+    height: 554px;
+    left: -85px;
+    border-radius: 50%;
+    box-sizing: border-box;
+    background: transparent;
     /* Some print pipelines drop background colors on decorative overlays unless color
        adjustment is forced — harmless elsewhere, but keeps this ribbon reliably visible. */
     -webkit-print-color-adjust: exact;
@@ -40,14 +45,14 @@ body {
 }
 
 .corner-decoration .shard-1 {
-    top: 10px;
-    background-color: var(--secondary-color);
+    top: -37px;
+    border: 34px solid var(--secondary-color);
     opacity: .3;
 }
 
 .corner-decoration .shard-2 {
-    top: 44px;
-    background-color: var(--primary-color);
+    top: 1px;
+    border: 34px solid var(--primary-color);
     opacity: .5;
 }
 
