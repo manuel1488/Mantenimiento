@@ -140,11 +140,17 @@
             :root {
                 --pdf-footer-bar-color: {{ primary_color }};
             }
-            /* Unlike the header's corner-decoration, position:fixed here resolves against the whole
-               physical page (not a frame scoped to just the footer's margin box) — so the background
-               has to be a normal, naturally-sized block instead of a fixed overlay, or it covers the
-               entire sheet. */
+            /* position:fixed here resolves against the whole physical page, same as the header's
+               corner-decoration — bottom:0 with left/right:0 and NO top offset anchors this block
+               exactly to the page's bottom edge while leaving its height to its own content, instead
+               of stretching to fill the page (which is what happens if top:0 is added alongside
+               bottom:0). This is what makes it sit flush against the edge regardless of how Chromium
+               lays out the footer template within PdfService's reserved bottom margin. */
             .pdf-footer {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 9px;
                 color: #ffffff;

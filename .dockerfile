@@ -63,6 +63,7 @@ RUN apt-get update \
         fonts-liberation \
         fonts-noto-core \
         fonts-noto-extra \
+        fonts-noto-color-emoji \
         lsb-release \
         xdg-utils \
         wget \
