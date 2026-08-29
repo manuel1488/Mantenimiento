@@ -31,7 +31,7 @@
 
 <AuthorizeView Policy="@ApplicationClaims.Shared.ViewCotizaciones">
     <Authorized Context="pageAuth">
-        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8 px-2 px-sm-4">
             @if (_loading)
             {
                 <div class="d-flex justify-center pa-8">
@@ -47,7 +47,7 @@
             else
             {
                 @* ── Header card ─────────────────────────────────────────── *@
-                <MudPaper Class="da-card pa-4 pa-sm-6 mb-4" Elevation="2">
+                <MudPaper Class="da-card pa-3 pa-sm-6 mb-4" Elevation="2">
                     <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
                         <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
                                        OnClick="@(() => NavigationManager.NavigateTo("/gestion/cotizaciones"))" />
@@ -211,7 +211,7 @@
                 {
                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
                         <Authorized Context="authContext">
-                            <MudPaper Class="da-card pa-4 mb-4" Elevation="2">
+                            <MudPaper Class="da-card pa-3 pa-sm-4 mb-4" Elevation="2">
                                 <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Approval"]</MudText>
                                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
                                     <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="RechazarAsync" Class="da-button-rounded">
