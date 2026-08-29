@@ -1,8 +1,10 @@
     <!-- position:fixed repeats this on every printed page (Chromium paints fixed-position
-         elements once per page box) without reserving any margin. Positive z-index puts it
-         above the normal-flow content (header, tables, etc.); low opacity keeps it legible
-         as a watermark instead of an opaque overlay. -->
-    <div class="watermark" aria-hidden="true"></div>
+         elements once per page box) without reserving any margin — later content in the
+         normal flow (header, tables, etc.) simply paints on top of it in DOM order. -->
+    <div class="corner-decoration" aria-hidden="true">
+        <div class="shard shard-1"></div>
+        <div class="shard shard-2"></div>
+    </div>
 
     <div class="header">
         <div class="header-brand">
@@ -124,16 +126,6 @@
                 <div class="bank-label">{{ label_swift }}</div>
                 <div class="bank-value">{{ banco_swift }}</div>
             </div>
-        </div>
-    </div>
-    {{ end }}
-
-    {{ if has_firma }}
-    <div class="extra-section signature-section">
-        <div class="box-title">{{ label_signature }}</div>
-        <div class="signature-block">
-            <img class="signature-image" src="{{ firma_url }}" alt="{{ label_signature }}" />
-            <div class="signature-meta">{{ label_signed_by }}: {{ firma_nombre }} — {{ firma_fecha }}</div>
         </div>
     </div>
     {{ end }}

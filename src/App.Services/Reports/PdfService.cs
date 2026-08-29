@@ -49,12 +49,17 @@ public class PdfService : IPdfService
                       "</div>",
                 MarginOptions = new MarginOptions
                 {
-                    Top = "20px",
-                    Right = "20px",
+                    // Top/Right/Left are 0 so the corner letterhead graphics (position:fixed in the
+                    // template — ribbon top-left, wave arcs bottom-right) can bleed all the way to the
+                    // physical page edge. Chromium clips main-content fixed elements to the margin box,
+                    // so any nonzero margin here cuts them off before they reach the corner. The
+                    // template compensates with body padding.
+                    Top = "0px",
+                    Right = "0px",
                     // A custom footer carries multiple lines (address/contacto/folio/hash/page) instead
                     // of the default single line, so it needs more room at the bottom of every page.
                     Bottom = hasCustomFooter ? "90px" : "32px",
-                    Left = "20px"
+                    Left = "0px"
                 }
             };
 
