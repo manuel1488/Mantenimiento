@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Hand the device to the client so they can sign below." xml:space="preserve">
+    <value>Hand the device to the client so they can sign below.</value>
+  </data>
+  <data name="Client Name" xml:space="preserve">
+    <value>Client Name</value>
+  </data>
+  <data name="Signature" xml:space="preserve">
+    <value>Signature</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Sign" xml:space="preserve">
+    <value>Sign</value>
+  </data>
+  <data name="Client name is required" xml:space="preserve">
+    <value>Client name is required</value>
+  </data>
+  <data name="Please sign before confirming" xml:space="preserve">
+    <value>Please sign before confirming</value>
+  </data>
+</root>

@@ -120,6 +120,24 @@
   <data name="Only a Pendiente Cotizacion can be edited" xml:space="preserve">
     <value>Only a Pendiente Cotizacion can be edited</value>
   </data>
+  <data name="Only a Cotizacion in Pendiente can be Firmada" xml:space="preserve">
+    <value>Only a Cotizacion in Pendiente can be Firmada</value>
+  </data>
+  <data name="Invalid signature image" xml:space="preserve">
+    <value>Invalid signature image</value>
+  </data>
+  <data name="Error signing cotizacion" xml:space="preserve">
+    <value>Error signing cotizacion</value>
+  </data>
+  <data name="Electronic signature" xml:space="preserve">
+    <value>Electronic signature</value>
+  </data>
+  <data name="Signature" xml:space="preserve">
+    <value>Signature</value>
+  </data>
+  <data name="Signed by" xml:space="preserve">
+    <value>Signed by</value>
+  </data>
   <data name="Payment Terms" xml:space="preserve">
     <value>Payment Terms</value>
   </data>

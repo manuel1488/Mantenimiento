@@ -130,6 +130,16 @@
     </div>
     {{ end }}
 
+    {{ if has_firma }}
+    <div class="extra-section signature-section">
+        <div class="box-title">{{ label_signature }}</div>
+        <div class="signature-block">
+            <img class="signature-image" src="{{ firma_url }}" alt="{{ label_signature }}" />
+            <div class="signature-meta">{{ label_signed_by }}: {{ firma_nombre }} — {{ firma_fecha }}</div>
+        </div>
+    </div>
+    {{ end }}
+
     <!-- The browser never renders/prints a <template> element's content — it's inert until cloned via
          JS — so this sits harmlessly in the body flow. CotizacionService extracts its rendered markup
          and hands it to Puppeteer as the native per-page footer (isolated from this document's own

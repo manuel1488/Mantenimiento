@@ -223,6 +223,10 @@
                                     <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="RechazarAsync" Class="da-button-rounded">
                                         @L["Reject"]
                                     </MudButton>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Draw"
+                                               OnClick="OpenFirmarDialog" Class="da-button-rounded">
+                                        @L["Sign"]
+                                    </MudButton>
                                     <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="AprobarAsync" Class="da-button-rounded">
                                         @L["Approve"]
                                     </MudButton>
@@ -230,6 +234,25 @@
                             </MudPaper>
                         </Authorized>
                     </AuthorizeView>
+                }
+
+                @* ── Firma ────────────────────────────────────────────────── *@
+                @if (_cotizacion.Firma is not null)
+                {
+                    <MudPaper Class="da-card pa-4 mb-4" Elevation="2">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Signature"]</MudText>
+                        <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                            @if (!string.IsNullOrEmpty(_cotizacion.Firma.PresignedUrl))
+                            {
+                                <MudImage Src="@_cotizacion.Firma.PresignedUrl" Width="200"
+                                          Style="border:1px solid var(--mud-palette-lines-default); border-radius:4px; background:#fff;" />
+                            }
+                            <div>
+                                <MudText Typo="Typo.body2"><b>@L["Signed by"]:</b> @_cotizacion.Firma.FirmanteNombre</MudText>
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@_cotizacion.Firma.FechaFirma.ToString("dd/MM/yyyy HH:mm")</MudText>
+                            </div>
+                        </MudStack>
+                    </MudPaper>
                 }
             }
         </MudContainer>
@@ -335,6 +358,28 @@
         else
         {
             Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task OpenFirmarDialog()
+    {
+        if (_cotizacion is null) return;
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<FirmarCotizacionDialog>(L["Sign Cotización"], options);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not FirmarCotizacionDto dto) return;
+
+        var firmarResult = await CotizacionService.FirmarAsync(_cotizacion.Id, dto);
+        if (firmarResult.IsSuccess)
+        {
+            Snackbar.Add(L["Cotización signed successfully"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(firmarResult.Error, Severity.Error);
         }
     }
 

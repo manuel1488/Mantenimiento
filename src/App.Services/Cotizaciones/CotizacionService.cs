@@ -139,6 +139,9 @@ public class CotizacionService : ICotizacionService
             if (cotizacion == null)
                 return Result<CotizacionDto>.Failure(_localizer["Cotizacion not found"]);
 
+            if (cotizacion.Firma is not null)
+                await ResolveFirmaPresignedUrlAsync(context, id, cotizacion.Firma);
+
             return Result<CotizacionDto>.Success(cotizacion);
         }
         catch (Exception ex)
@@ -526,6 +529,98 @@ public class CotizacionService : ICotizacionService
         }
     }
 
+    public async Task<Result<CotizacionDto>> FirmarAsync(int cotizacionId, FirmarCotizacionDto dto, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var signatureBytes = ExtractSignatureBytes(dto.SignatureDataUrl);
+            if (signatureBytes == null)
+                return Result<CotizacionDto>.Failure(_localizer["Invalid signature image"]);
+
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    var cotizacion = await context.Cotizaciones.FirstOrDefaultAsync(c => c.Id == cotizacionId, cancellationToken);
+
+                    if (cotizacion == null)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        return Result<CotizacionDto>.Failure(_localizer["Cotizacion not found"]);
+                    }
+
+                    if (cotizacion.Estado != CotizacionEstado.Pendiente)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        return Result<CotizacionDto>.Failure(_localizer["Only a Cotizacion in Pendiente can be Firmada"]);
+                    }
+
+                    var uploadResult = await _fileStorageService.UploadAsync(
+                        signatureBytes, "image/png", $"cotizaciones/{cotizacionId}/firma", "png", cancellationToken);
+                    if (!uploadResult.IsSuccess)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        return Result<CotizacionDto>.Failure(uploadResult.Error!);
+                    }
+
+                    var currentTime = _dateTimeService.Now;
+                    var currentUser = await _currentUserService.GetUserIdAsync();
+
+                    context.CotizacionFirmas.Add(new CotizacionFirma
+                    {
+                        CotizacionId = cotizacionId,
+                        FirmanteNombre = dto.FirmanteNombre,
+                        FileKey = uploadResult.Value!,
+                        ContentType = "image/png",
+                        FechaFirma = currentTime,
+                        CreatedBy = currentUser,
+                        CreatedAt = currentTime,
+                        ModifiedBy = currentUser,
+                        ModifiedAt = currentTime
+                    });
+
+                    cotizacion.Estado = CotizacionEstado.Aprobada;
+                    cotizacion.FechaAprobacion = currentTime;
+                    cotizacion.AprobadaPor = dto.FirmanteNombre;
+                    cotizacion.MedioAprobacion = _localizer["Electronic signature"].Value;
+                    cotizacion.ModifiedBy = currentUser;
+                    cotizacion.ModifiedAt = currentTime;
+
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    var updated = await context.Cotizaciones
+                        .AsNoTracking()
+                        .Where(c => c.Id == cotizacionId)
+                        .ProjectTo<CotizacionDto>(_mapper.ConfigurationProvider)
+                        .FirstAsync(cancellationToken);
+
+                    if (updated.Firma is not null)
+                    {
+                        var presigned = await _fileStorageService.GetPresignedUrlAsync(uploadResult.Value!, cancellationToken);
+                        updated.Firma.PresignedUrl = presigned.IsSuccess ? presigned.Value : null;
+                    }
+
+                    return Result<CotizacionDto>.Success(updated);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error signing cotizacion {Id}", cotizacionId);
+            return Result<CotizacionDto>.Failure(_localizer["Error signing cotizacion"]);
+        }
+    }
+
     public async Task<Result> DeleteAsync(int cotizacionId)
     {
         try
@@ -585,10 +680,18 @@ public class CotizacionService : ICotizacionService
                 .Include(c => c.Lineas)
                     .ThenInclude(l => l.Fotos)
                 .Include(c => c.Cliente)
+                .Include(c => c.Firma)
                 .FirstOrDefaultAsync(c => c.Id == cotizacionId, cancellationToken);
 
             if (cotizacion == null)
                 return Result<byte[]>.Failure(_localizer["Cotizacion not found"]);
+
+            string? firmaUrl = null;
+            if (cotizacion.Firma is not null)
+            {
+                var firmaPresignedResult = await _fileStorageService.GetPresignedUrlAsync(cotizacion.Firma.FileKey, cancellationToken);
+                firmaUrl = firmaPresignedResult.IsSuccess ? firmaPresignedResult.Value : null;
+            }
 
             var companySettings = await _companySettingsService.GetSettingsAsync();
             var companyName = string.IsNullOrWhiteSpace(companySettings?.CompanyName)
@@ -674,6 +777,14 @@ public class CotizacionService : ICotizacionService
                 has_generado_por = !string.IsNullOrWhiteSpace(generadoPor),
                 integridad_hash = cotizacion.IntegridadHash,
                 has_integridad_hash = !string.IsNullOrWhiteSpace(cotizacion.IntegridadHash),
+                has_firma = cotizacion.Firma is not null && firmaUrl is not null,
+                firma_url = firmaUrl,
+                firma_nombre = cotizacion.Firma?.FirmanteNombre,
+                firma_fecha = cotizacion.Firma is not null
+                    ? TimeZoneInfo.ConvertTimeFromUtc(cotizacion.Firma.FechaFirma, timeZone).ToString("dd/MM/yyyy HH:mm")
+                    : null,
+                label_signature = _localizer["Signature"].Value,
+                label_signed_by = _localizer["Signed by"].Value,
                 fecha_generacion = fechaGeneracionLocal.ToString("dd/MM/yyyy"),
                 hora_generacion = fechaGeneracionLocal.ToString("HH:mm"),
                 cliente_nombre = cliente.Nombre,
@@ -928,6 +1039,39 @@ public class CotizacionService : ICotizacionService
         cotizacion.Total,
         cotizacion.Lineas.Select(l => new CotizacionIntegrityLinea(
             l.ServicioNombre, l.UnidadMedida, l.Cantidad, l.PrecioUnitario, l.Subtotal)));
+
+    /// <summary>Decodifica el base64 de un data URL "data:image/png;base64,...". Regresa null si el
+    /// formato no coincide con lo que entrega signature-pad.js.</summary>
+    private static byte[]? ExtractSignatureBytes(string signatureDataUrl)
+    {
+        const string prefix = "data:image/png;base64,";
+        if (!signatureDataUrl.StartsWith(prefix, StringComparison.Ordinal))
+            return null;
+
+        try
+        {
+            return Convert.FromBase64String(signatureDataUrl[prefix.Length..]);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+    }
+
+    private async Task ResolveFirmaPresignedUrlAsync(ApplicationDbContext context, int cotizacionId, CotizacionFirmaDto firma)
+    {
+        var fileKey = await context.CotizacionFirmas
+            .AsNoTracking()
+            .Where(f => f.CotizacionId == cotizacionId)
+            .Select(f => f.FileKey)
+            .FirstOrDefaultAsync();
+
+        if (fileKey is null)
+            return;
+
+        var presigned = await _fileStorageService.GetPresignedUrlAsync(fileKey);
+        firma.PresignedUrl = presigned.IsSuccess ? presigned.Value : null;
+    }
 
     public async Task<Result<CotizacionFotoDto>> UploadFotoAsync(
         int cotizacionLineaId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default)

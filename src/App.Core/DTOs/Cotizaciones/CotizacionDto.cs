@@ -23,4 +23,5 @@ public class CotizacionDto
     public List<CotizacionLineaDto> Lineas { get; set; } = [];
     public string IntegridadHash { get; set; } = string.Empty;
     public int? ObraGeneradaId { get; set; }
+    public CotizacionFirmaDto? Firma { get; set; }
 }

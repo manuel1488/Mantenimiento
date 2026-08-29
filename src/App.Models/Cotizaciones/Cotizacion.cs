@@ -82,4 +82,7 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
     [Required]
     [StringLength(64)]
     public string IntegridadHash { get; set; } = string.Empty;
+
+    /// <summary>Firma electrónica autógrafa del cliente, si ya fue firmada.</summary>
+    public CotizacionFirma? Firma { get; set; }
 }

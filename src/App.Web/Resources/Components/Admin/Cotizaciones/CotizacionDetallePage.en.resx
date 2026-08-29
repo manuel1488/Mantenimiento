@@ -117,4 +117,19 @@
   <data name="Obra created successfully" xml:space="preserve">
     <value>Obra created successfully</value>
   </data>
+  <data name="Sign" xml:space="preserve">
+    <value>Sign</value>
+  </data>
+  <data name="Sign Cotización" xml:space="preserve">
+    <value>Sign Cotización</value>
+  </data>
+  <data name="Signature" xml:space="preserve">
+    <value>Signature</value>
+  </data>
+  <data name="Signed by" xml:space="preserve">
+    <value>Signed by</value>
+  </data>
+  <data name="Cotización signed successfully" xml:space="preserve">
+    <value>Cotización signed successfully</value>
+  </data>
 </root>

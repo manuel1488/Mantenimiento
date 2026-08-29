@@ -14,6 +14,11 @@ public interface ICotizacionService
     Task<Result<CotizacionDto>> UpdateAsync(int cotizacionId, UpdateCotizacionDto dto);
     Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto);
     Task<Result<CotizacionDto>> RechazarAsync(int cotizacionId);
+
+    /// <summary>Captura la firma electrónica autógrafa del cliente y aprueba la Cotización en un solo
+    /// paso atómico. Solo permitido si Estado == Pendiente; el resultado deja la Cotización bloqueada
+    /// igual que AprobarAsync (UpdateAsync ya rechaza ediciones fuera de Pendiente).</summary>
+    Task<Result<CotizacionDto>> FirmarAsync(int cotizacionId, FirmarCotizacionDto dto, CancellationToken cancellationToken = default);
     Task<Result> DeleteAsync(int cotizacionId);
 
     /// <summary>Renders the Cotización as a PDF using the effective (DB override or default) template.</summary>
