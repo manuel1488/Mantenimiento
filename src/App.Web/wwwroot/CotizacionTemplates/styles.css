@@ -28,13 +28,10 @@ body {
 }
 
 .corner-decoration .shard {
-    /* A slice of a much larger ring (554px circle, 34px thick border) clipped by the
-       170x170 container — only the arc that crosses this corner is visible, giving the
-       ribbon a slight curve instead of a straight diagonal. */
+    /* Concentric rings centered on the page's top-right corner, clipped by the 170x170
+       container — only the quarter-circle arc nearest the corner is visible, giving a
+       rippling curve that sweeps out from the corner. */
     position: absolute;
-    width: 554px;
-    height: 554px;
-    left: -85px;
     border-radius: 50%;
     box-sizing: border-box;
     background: transparent;
@@ -45,13 +42,19 @@ body {
 }
 
 .corner-decoration .shard-1 {
-    top: -37px;
+    width: 390px;
+    height: 390px;
+    left: -25px;
+    top: -195px;
     border: 34px solid var(--secondary-color);
     opacity: .3;
 }
 
 .corner-decoration .shard-2 {
-    top: 1px;
+    width: 300px;
+    height: 300px;
+    left: 20px;
+    top: -150px;
     border: 34px solid var(--primary-color);
     opacity: .5;
 }
