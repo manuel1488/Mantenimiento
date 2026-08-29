@@ -14,7 +14,7 @@ public class CotizacionLineaConfiguration : IEntityTypeConfiguration<CotizacionL
             .IsRequired();
 
         builder.Property(e => e.Descripcion)
-            .HasMaxLength(500);
+            .HasMaxLength(3000);
 
         builder.Property(e => e.UnidadMedida)
             .HasMaxLength(20)

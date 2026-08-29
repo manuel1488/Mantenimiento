@@ -7,9 +7,18 @@
         <MudText Typo="Typo.h6">@L["Photos"] — @ServicioNombre</MudText>
     </TitleContent>
     <DialogContent>
-        <CotizacionFotosSection CotizacionLineaId="CotizacionLineaId" ReadOnly="ReadOnly" />
+        <CotizacionFotosSection @ref="_fotosSection" CotizacionLineaId="CotizacionLineaId" ReadOnly="ReadOnly"
+                                 OnStateChanged="StateHasChanged" />
     </DialogContent>
     <DialogActions>
+        @if (!ReadOnly)
+        {
+            <MudButton Color="Color.Primary" Variant="Variant.Text"
+                       Disabled="@(_fotosSection?.HasPendingChanges != true)"
+                       OnClick="SaveDescripcionAsync">
+                @L["Save"]
+            </MudButton>
+        }
         <MudButton OnClick="Close" Class="da-button-rounded">@L["Close"]</MudButton>
     </DialogActions>
 </MudDialog>
@@ -19,6 +28,17 @@
     [Parameter] public int CotizacionLineaId { get; set; }
     [Parameter] public string ServicioNombre { get; set; } = string.Empty;
     [Parameter] public bool ReadOnly { get; set; }
+
+    private CotizacionFotosSection? _fotosSection;
+
+    private async Task SaveDescripcionAsync()
+    {
+        if (_fotosSection is null) return;
+
+        var success = await _fotosSection.SaveDescripcionAsync();
+        if (success)
+            MudDialog.Close(DialogResult.Ok(true));
+    }
 
     private void Close() => MudDialog.Close(DialogResult.Ok(true));
 }

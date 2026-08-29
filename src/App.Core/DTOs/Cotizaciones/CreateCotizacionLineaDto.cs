@@ -15,6 +15,6 @@ public class CreateCotizacionLineaDto
     public decimal? PrecioUnitarioOverride { get; set; }
 
     /// <summary>Si es nulo, se usa la Descripcion actual del catálogo de Servicio.</summary>
-    [StringLength(500)]
+    [StringLength(3000)]
     public string? Descripcion { get; set; }
 }

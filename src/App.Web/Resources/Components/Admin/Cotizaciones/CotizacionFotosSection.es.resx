@@ -6,14 +6,14 @@
   <data name="Description" xml:space="preserve">
     <value>Descripción</value>
   </data>
-  <data name="Optional caption for the next photo you upload" xml:space="preserve">
-    <value>Descripción opcional para la próxima foto que subas</value>
-  </data>
   <data name="No photos" xml:space="preserve">
     <value>Sin fotos</value>
   </data>
   <data name="Delete Photo" xml:space="preserve">
     <value>Eliminar foto</value>
+  </data>
+  <data name="View full size" xml:space="preserve">
+    <value>Ver tamaño completo</value>
   </data>
   <data name="Error loading photos" xml:space="preserve">
     <value>Error al cargar las fotos</value>
@@ -29,5 +29,8 @@
   </data>
   <data name="Photo uploaded successfully" xml:space="preserve">
     <value>Foto subida correctamente</value>
+  </data>
+  <data name="Description saved successfully" xml:space="preserve">
+    <value>Descripción guardada correctamente</value>
   </data>
 </root>

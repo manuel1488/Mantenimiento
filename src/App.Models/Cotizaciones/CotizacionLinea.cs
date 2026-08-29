@@ -32,7 +32,7 @@ public class CotizacionLinea : BaseEntity<int>, IAuditTracked
     /// libremente por línea sin afectar el catálogo — igual que ServicioNombre/UnidadMedida/PrecioUnitario,
     /// es un snapshot que preserva lo cotizado aunque el Servicio cambie después.
     /// </summary>
-    [StringLength(500)]
+    [StringLength(3000)]
     public string? Descripcion { get; set; }
 
     [Required]

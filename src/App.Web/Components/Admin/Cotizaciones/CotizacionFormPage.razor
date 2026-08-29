@@ -97,20 +97,21 @@
 
                     <MudDataGrid T="LineaDraft" Items="@_lineas" Dense="true" Hover="true" Class="mt-3">
                         <Columns>
-                            <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" />
+                            <PropertyColumn Property="x => x.ServicioNombre" Title="@L["Service"]" HeaderStyle="width: 140px;" />
                             <TemplateColumn Title="@L["Description"]">
                                 <CellTemplate>
                                     <MudTextField T="string" Value="@context.Item.Descripcion"
                                                   ValueChanged="@(v => context.Item.Descripcion = v)"
-                                                  Lines="2" AutoGrow="true" MaxLength="500"
+                                                  Lines="3" MaxLines="8" AutoGrow="true" MaxLength="3000" Counter="3000"
                                                   Variant="Variant.Text" Margin="Margin.Dense"
+                                                  Style="min-width: 220px;"
                                                   FullWidth="true" />
                                 </CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Quantity"]">
+                            <TemplateColumn Title="@L["Quantity"]" HeaderStyle="width: 90px; white-space: nowrap;" CellStyle="white-space: nowrap;">
                                 <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedida</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Unit Price"]">
+                            <TemplateColumn Title="@L["Unit Price"]" HeaderStyle="width: 110px;">
                                 <CellTemplate>
                                     <MudNumericField T="decimal"
                                                      Value="@context.Item.PrecioUnitario"
@@ -120,10 +121,10 @@
                                                      FullWidth="true" />
                                 </CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Subtotal"]">
+                            <TemplateColumn Title="@L["Subtotal"]" HeaderStyle="width: 100px; white-space: nowrap;" CellStyle="white-space: nowrap;">
                                 <CellTemplate>@context.Item.Subtotal.ToString("C2")</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false">
+                            <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false" HeaderStyle="width: 80px;" CellClass="d-flex justify-end">
                                 <CellTemplate>
                                     @if (context.Item.Id != 0)
                                     {

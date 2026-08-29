@@ -40,8 +40,12 @@ else
             {
                 <div style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
                     <img src="@(foto.ThumbnailPresignedUrl ?? foto.PresignedUrl)"
-                         style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover; display: block; border: 1px solid var(--mud-palette-lines-default); cursor: pointer;"
-                         @onclick="@(() => OpenViewer(foto))" />
+                         style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover; display: block; cursor: pointer;
+                                border: @(foto.Id == _selectedFotoId ? "3px solid var(--mud-palette-primary)" : "1px solid var(--mud-palette-lines-default)");"
+                         @onclick="@(() => SelectFoto(foto))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ZoomIn" Color="Color.Default" Size="Size.Small"
+                                   Class="pa-1" Style="position: absolute; bottom: -10px; left: -10px; background-color: var(--mud-palette-surface); box-shadow: 0 1px 3px rgba(0,0,0,.4);"
+                                   OnClick="@(() => OpenViewer(foto))" title="@L["View full size"]" />
                     @if (!ReadOnly)
                     {
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
@@ -51,19 +55,33 @@ else
                     @if (!string.IsNullOrWhiteSpace(foto.Descripcion))
                     {
                         <MudIcon Icon="@Icons.Material.Filled.Notes" Size="Size.Small" Color="Color.Default"
-                                 Style="position: absolute; bottom: 4px; right: 4px; background-color: var(--mud-palette-surface); border-radius: 50%; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.4);" />
+                                 Style="position: absolute; bottom: -10px; right: -10px; background-color: var(--mud-palette-surface); border-radius: 50%; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.4);" />
                     }
                 </div>
             }
         </div>
+
+        @if (_selectedFoto is not null)
+        {
+            @if (ReadOnly)
+            {
+                @if (!string.IsNullOrWhiteSpace(_selectedFoto.Descripcion))
+                {
+                    <MudText Typo="Typo.body2" Class="mb-3">@_selectedFoto.Descripcion</MudText>
+                }
+            }
+            else
+            {
+                <MudTextField T="string" Value="@_editedDescripciones[_selectedFoto.Id]" ValueChanged="OnDescripcionInputChanged" Immediate="true" Label="@L["Description"]"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Lines="3" AutoGrow="true" MaxLines="10"
+                              MaxLength="3000" Counter="3000" Class="mb-3" />
+            }
+        }
     }
 
     @if (!ReadOnly)
     {
-        <MudTextField @bind-Value="_nuevaDescripcion" Label="@L["Description"]"
-                      Placeholder="@L["Optional caption for the next photo you upload"]"
-                      Variant="Variant.Outlined" Margin="Margin.Dense" FullWidth="true"
-                      MaxLength="3000" Class="mb-2" />
         <InputFile id="@_inputId" OnChange="UploadFotoAsync" accept="@_acceptedFileTypes" class="d-none" />
         <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
                    StartIcon="@Icons.Material.Filled.CloudUpload" for="@_inputId"
@@ -77,12 +95,22 @@ else
     [Parameter, EditorRequired] public int CotizacionLineaId { get; set; }
     [Parameter] public bool ReadOnly { get; set; }
 
+    /// <summary>Fired whenever the selection or the selected photo's edited description changes, so
+    /// the containing dialog can refresh its own "Save" button's enabled state.</summary>
+    [Parameter] public EventCallback OnStateChanged { get; set; }
+
     private readonly string _inputId = $"cotizacionFotoUpload-{Guid.NewGuid():N}";
     private bool _loading = true;
     private bool _uploading;
-    private string? _nuevaDescripcion;
     private string _acceptedFileTypes => string.Join(",", ImageOptions.Value.AllowedExtensions);
     private List<CotizacionFotoDto> _fotos = new();
+    private int? _selectedFotoId;
+    private CotizacionFotoDto? _selectedFoto => _fotos.FirstOrDefault(f => f.Id == _selectedFotoId);
+
+    // Keyed by foto.Id, seeded from each foto's saved Descripcion. Edits accumulate here across
+    // selections — switching to another photo must not discard an unsaved edit on the previous one,
+    // since "Save" persists every pending edit at once (not just the currently shown one).
+    private readonly Dictionary<int, string?> _editedDescripciones = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,6 +126,18 @@ else
             if (result.IsSuccess)
             {
                 _fotos = result.Value!;
+
+                // Seed only newly-seen photos so a pending edit on one already tracked (e.g. while
+                // uploading/deleting another) survives this reload.
+                foreach (var foto in _fotos)
+                    _editedDescripciones.TryAdd(foto.Id, foto.Descripcion);
+
+                var currentIds = _fotos.Select(f => f.Id).ToHashSet();
+                foreach (var staleId in _editedDescripciones.Keys.Where(id => !currentIds.Contains(id)).ToList())
+                    _editedDescripciones.Remove(staleId);
+
+                if (!_fotos.Any(f => f.Id == _selectedFotoId))
+                    _selectedFotoId = null;
             }
             else
             {
@@ -134,12 +174,11 @@ else
             var data = memoryStream.ToArray();
 
             var uploadResult = await CotizacionService.UploadFotoAsync(
-                CotizacionLineaId, data, file.ContentType, file.Name, _nuevaDescripcion);
+                CotizacionLineaId, data, file.ContentType, file.Name);
 
             if (uploadResult.IsSuccess)
             {
                 Snackbar.Add(L["Photo uploaded successfully"], Severity.Success);
-                _nuevaDescripcion = null;
                 await LoadAsync();
             }
             else
@@ -158,6 +197,61 @@ else
         }
     }
 
+    /// <summary>Whether any photo has an edited description not yet saved — the containing dialog
+    /// uses this to enable/disable its own "Save" action. Not limited to the selected photo, since
+    /// switching selection must not lose an edit made on a different photo.</summary>
+    public bool HasPendingChanges => _fotos.Any(f => _editedDescripciones[f.Id] != f.Descripcion);
+
+    private async Task SelectFoto(CotizacionFotoDto foto)
+    {
+        _selectedFotoId = foto.Id;
+        await OnStateChanged.InvokeAsync();
+    }
+
+    private async Task OnDescripcionInputChanged(string? value)
+    {
+        if (_selectedFotoId is int id)
+            _editedDescripciones[id] = value;
+        await OnStateChanged.InvokeAsync();
+    }
+
+    /// <summary>Persists every photo's edited description (not just the one currently shown). Called
+    /// from the containing dialog's "Save" action rather than from an inline button here.
+    /// Returns true only if every pending edit was saved successfully, so the caller can decide
+    /// whether it's safe to close the dialog.</summary>
+    public async Task<bool> SaveDescripcionAsync()
+    {
+        var savedAny = false;
+        var allSucceeded = true;
+
+        foreach (var foto in _fotos)
+        {
+            var descripcion = _editedDescripciones[foto.Id];
+            if (descripcion == foto.Descripcion) continue;
+
+            var result = await CotizacionService.UpdateFotoDescripcionAsync(foto.Id, descripcion);
+            if (result.IsSuccess)
+            {
+                foto.Descripcion = descripcion;
+                savedAny = true;
+            }
+            else
+            {
+                allSucceeded = false;
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+
+        if (savedAny)
+            Snackbar.Add(L["Description saved successfully"], Severity.Success);
+
+        await OnStateChanged.InvokeAsync();
+
+        return allSucceeded;
+    }
+
+    // Purely a full-size preview here — description editing reuses the single shared textfield below
+    // the grid, so the viewer never needs to write back to the caller.
     private async Task OpenViewer(CotizacionFotoDto foto)
     {
         if (foto.PresignedUrl is null) return;
@@ -165,16 +259,11 @@ else
         var parameters = new DialogParameters<CotizacionFotoViewerDialog>
         {
             { x => x.ImageUrl, foto.PresignedUrl },
-            { x => x.FotoId, foto.Id },
-            { x => x.Descripcion, foto.Descripcion },
-            { x => x.ReadOnly, ReadOnly }
+            { x => x.Descripcion, foto.Descripcion }
         };
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
-        var dialog = await DialogService.ShowAsync<CotizacionFotoViewerDialog>(null, parameters, options);
-        var result = await dialog.Result;
-        if (result is { Canceled: false })
-            foto.Descripcion = result.Data as string;
+        await DialogService.ShowAsync<CotizacionFotoViewerDialog>(null, parameters, options);
     }
 
     private async Task DeleteFotoAsync(int fotoId)
@@ -184,6 +273,7 @@ else
         {
             Snackbar.Add(L["Photo deleted successfully"], Severity.Success);
             await LoadAsync();
+            await OnStateChanged.InvokeAsync();
         }
         else
         {
