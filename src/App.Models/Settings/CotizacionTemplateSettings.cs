@@ -19,8 +19,9 @@ public class CotizacionTemplateSettings : BaseEntity<int>, IAuditTracked
     [Column(TypeName = "longtext")]
     public string HtmlContent { get; set; } = null!;
 
-    /// <summary>CSS styles (stored separately for independent editing)</summary>
-    [Column(TypeName = "text")]
+    /// <summary>CSS styles (stored separately for independent editing). longtext, not text — the
+    /// default template embeds a base64 watermark image that alone exceeds text's 65,535-byte cap.</summary>
+    [Column(TypeName = "longtext")]
     public string CssContent { get; set; } = string.Empty;
 
     /// <summary>Shown on every Cotización PDF. Null/empty hides the "Términos de Pago" section.</summary>

@@ -1,10 +1,8 @@
     <!-- position:fixed repeats this on every printed page (Chromium paints fixed-position
-         elements once per page box) without reserving any margin — later content in the
-         normal flow (header, tables, etc.) simply paints on top of it in DOM order. -->
-    <div class="corner-decoration" aria-hidden="true">
-        <div class="shard shard-1"></div>
-        <div class="shard shard-2"></div>
-    </div>
+         elements once per page box) without reserving any margin. Positive z-index puts it
+         above the normal-flow content (header, tables, etc.); low opacity keeps it legible
+         as a watermark instead of an opaque overlay. -->
+    <div class="watermark" aria-hidden="true"></div>
 
     <div class="header">
         <div class="header-brand">
