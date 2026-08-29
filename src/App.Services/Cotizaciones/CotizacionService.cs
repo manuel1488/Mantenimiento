@@ -410,7 +410,7 @@ public class CotizacionService : ICotizacionService
         }
     }
 
-    public async Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto)
+    public async Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId)
     {
         try
         {
@@ -438,11 +438,12 @@ public class CotizacionService : ICotizacionService
 
                     var currentTime = _dateTimeService.Now;
                     var currentUser = await _currentUserService.GetUserIdAsync();
+                    var currentUserName = await _currentUserService.GetFullNameAsync() ?? currentUser;
 
                     cotizacion.Estado = CotizacionEstado.Aprobada;
                     cotizacion.FechaAprobacion = currentTime;
-                    cotizacion.AprobadaPor = dto.AprobadaPor;
-                    cotizacion.MedioAprobacion = dto.MedioAprobacion;
+                    cotizacion.AprobadaPor = currentUserName;
+                    cotizacion.MedioAprobacion = _localizer["Manual approval"].Value;
                     cotizacion.ModifiedBy = currentUser;
                     cotizacion.ModifiedAt = currentTime;
 

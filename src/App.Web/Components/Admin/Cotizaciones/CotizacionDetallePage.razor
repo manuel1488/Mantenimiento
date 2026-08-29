@@ -70,19 +70,21 @@
                                            Variant="Variant.Outlined"
                                            Href="@($"/api/cotizaciones/{Id}/pdf?inline=true")" Target="_blank"
                                            title="@L["View PDF"]" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Secondary"
-                                           Variant="Variant.Outlined"
-                                           Href="@($"/api/cotizaciones/{Id}/pdf")"
-                                           title="@L["Download PDF"]" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Email" Color="Color.Secondary"
-                                           Variant="Variant.Outlined" OnClick="OpenSendEmailDialog"
-                                           title="@L["Send by Email"]" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Secondary"
-                                           Variant="Variant.Outlined" OnClick="ShareByWhatsAppAsync" Disabled="@_sharing"
-                                           title="@L["Share by WhatsApp"]" />
-                            <MudIconButton Icon="@Icons.Material.Filled.History" Color="Color.Secondary"
-                                           Variant="Variant.Outlined" OnClick="OpenHistorialDialog"
-                                           title="@L["View History"]" />
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Secondary" Variant="Variant.Outlined"
+                                     AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" title="@L["More actions"]">
+                                <MudMenuItem Href="@($"/api/cotizaciones/{Id}/pdf")" Icon="@Icons.Material.Filled.Download">
+                                    @L["Download PDF"]
+                                </MudMenuItem>
+                                <MudMenuItem OnClick="OpenSendEmailDialog" Icon="@Icons.Material.Filled.Email">
+                                    @L["Send by Email"]
+                                </MudMenuItem>
+                                <MudMenuItem OnClick="ShareByWhatsAppAsync" Disabled="@_sharing" Icon="@Icons.Material.Filled.Share">
+                                    @L["Share by WhatsApp"]
+                                </MudMenuItem>
+                                <MudMenuItem OnClick="OpenHistorialDialog" Icon="@Icons.Material.Filled.History">
+                                    @L["View History"]
+                                </MudMenuItem>
+                            </MudMenu>
                             @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
                             {
                                 <AuthorizeView Policy="@ApplicationClaims.Shared.ManageCotizaciones">
@@ -211,15 +213,7 @@
                         <Authorized Context="authContext">
                             <MudPaper Class="da-card pa-4 mb-4" Elevation="2">
                                 <MudText Typo="Typo.subtitle1" Class="mb-3">@L["Approval"]</MudText>
-                                <MudGrid>
-                                    <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="_aprobadaPor" Label="@L["Approved By"]" MaxLength="150" />
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudTextField @bind-Value="_medioAprobacion" Label="@L["Approval Method"]" MaxLength="200" />
-                                    </MudItem>
-                                </MudGrid>
-                                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-3">
+                                <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
                                     <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="RechazarAsync" Class="da-button-rounded">
                                         @L["Reject"]
                                     </MudButton>
@@ -271,8 +265,6 @@
     private bool _sharing;
     private bool _puedeGestionarFotos;
     private CotizacionDto? _cotizacion;
-    private string _aprobadaPor = string.Empty;
-    private string _medioAprobacion = string.Empty;
     private string? _folioPrefijo;
     private int? _folioDigitos;
 
@@ -326,14 +318,7 @@
     {
         if (_cotizacion is null) return;
 
-        if (string.IsNullOrWhiteSpace(_aprobadaPor) || string.IsNullOrWhiteSpace(_medioAprobacion))
-        {
-            Snackbar.Add(L["Approved By and Approval Method are required"], Severity.Warning);
-            return;
-        }
-
-        var dto = new AprobarCotizacionDto { AprobadaPor = _aprobadaPor, MedioAprobacion = _medioAprobacion };
-        var result = await CotizacionService.AprobarAsync(_cotizacion.Id, dto);
+        var result = await CotizacionService.AprobarAsync(_cotizacion.Id);
         if (result.IsSuccess)
         {
             Snackbar.Add(L["Cotización approved successfully"], Severity.Success);
@@ -365,8 +350,12 @@
     {
         if (_cotizacion is null) return;
 
+        var parameters = new DialogParameters<FirmarCotizacionDialog>
+        {
+            { x => x.ClienteNombre, _cotizacion.ClienteNombre }
+        };
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var dialog = await DialogService.ShowAsync<FirmarCotizacionDialog>(L["Sign Cotización"], options);
+        var dialog = await DialogService.ShowAsync<FirmarCotizacionDialog>(L["Sign Cotización"], parameters, options);
         var result = await dialog.Result;
 
         if (result is null || result.Canceled || result.Data is not FirmarCotizacionDto dto) return;

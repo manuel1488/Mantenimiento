@@ -3,6 +3,9 @@
   <data name="Hand the device to the client so they can sign below." xml:space="preserve">
     <value>Hand the device to the client so they can sign below.</value>
   </data>
+  <data name="Signing will approve the Cotización and lock it — it can no longer be edited." xml:space="preserve">
+    <value>Signing will approve the Cotización and lock it — it can no longer be edited.</value>
+  </data>
   <data name="Client Name" xml:space="preserve">
     <value>Client Name</value>
   </data>

@@ -3,6 +3,9 @@
   <data name="Hand the device to the client so they can sign below." xml:space="preserve">
     <value>Entrega el dispositivo al cliente para que firme a continuación.</value>
   </data>
+  <data name="Signing will approve the Cotización and lock it — it can no longer be edited." xml:space="preserve">
+    <value>Al firmar, la Cotización quedará aprobada y bloqueada — ya no podrá editarse.</value>
+  </data>
   <data name="Client Name" xml:space="preserve">
     <value>Nombre del Cliente</value>
   </data>

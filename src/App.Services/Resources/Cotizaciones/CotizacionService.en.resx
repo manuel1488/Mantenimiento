@@ -138,6 +138,9 @@
   <data name="Signed by" xml:space="preserve">
     <value>Signed by</value>
   </data>
+  <data name="Manual approval" xml:space="preserve">
+    <value>Manual approval</value>
+  </data>
   <data name="Payment Terms" xml:space="preserve">
     <value>Payment Terms</value>
   </data>

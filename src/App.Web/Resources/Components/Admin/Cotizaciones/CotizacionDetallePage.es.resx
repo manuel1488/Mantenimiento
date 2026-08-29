@@ -45,12 +45,6 @@
   <data name="Approval" xml:space="preserve">
     <value>Aprobación</value>
   </data>
-  <data name="Approved By" xml:space="preserve">
-    <value>Aprobado Por</value>
-  </data>
-  <data name="Approval Method" xml:space="preserve">
-    <value>Medio de Aprobación</value>
-  </data>
   <data name="Reject" xml:space="preserve">
     <value>Rechazar</value>
   </data>
@@ -59,6 +53,9 @@
   </data>
   <data name="View PDF" xml:space="preserve">
     <value>Ver PDF</value>
+  </data>
+  <data name="More actions" xml:space="preserve">
+    <value>Más acciones</value>
   </data>
   <data name="Download PDF" xml:space="preserve">
     <value>Descargar PDF</value>
@@ -95,9 +92,6 @@
   </data>
   <data name="Rejected" xml:space="preserve">
     <value>Rechazada</value>
-  </data>
-  <data name="Approved By and Approval Method are required" xml:space="preserve">
-    <value>Aprobado Por y Medio de Aprobación son obligatorios</value>
   </data>
   <data name="Cotización approved successfully" xml:space="preserve">
     <value>Cotización aprobada exitosamente</value>

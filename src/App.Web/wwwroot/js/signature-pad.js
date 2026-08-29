@@ -5,6 +5,13 @@ window.signaturePad = (function () {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
 
+        // The canvas has no width/height attributes — sizing it here from its rendered CSS box
+        // (instead of a fixed HTML attribute like width="600") avoids the dialog widening past the
+        // viewport on narrow phones, since a fixed intrinsic canvas size fights the CSS width:100%.
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = Math.round(rect.width);
+        canvas.height = Math.round(rect.height);
+
         const ctx = canvas.getContext('2d');
         let drawing = false;
         _drawn[canvasId] = false;

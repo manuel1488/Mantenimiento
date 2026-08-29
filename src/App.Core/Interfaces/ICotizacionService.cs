@@ -12,7 +12,7 @@ public interface ICotizacionService
 
     /// <summary>Replaces the Cliente and líneas of a Cotización. Only allowed while Estado == Pendiente.</summary>
     Task<Result<CotizacionDto>> UpdateAsync(int cotizacionId, UpdateCotizacionDto dto);
-    Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId, AprobarCotizacionDto dto);
+    Task<Result<CotizacionDto>> AprobarAsync(int cotizacionId);
     Task<Result<CotizacionDto>> RechazarAsync(int cotizacionId);
 
     /// <summary>Captura la firma electrónica autógrafa del cliente y aprueba la Cotización en un solo
