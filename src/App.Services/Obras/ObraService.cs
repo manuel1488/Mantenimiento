@@ -184,6 +184,7 @@ public class ObraService : IObraService
                     var updated = await context.Obras
                         .AsNoTracking()
                         .Include(o => o.Cliente)
+                        .Include(o => o.Actividades)
                         .FirstAsync(o => o.Id == entity.Id);
 
                     return Result<ObraDto>.Success(_mapper.Map<ObraDto>(updated));
@@ -290,6 +291,7 @@ public class ObraService : IObraService
                     var updated = await context.Obras
                         .AsNoTracking()
                         .Include(o => o.Cliente)
+                        .Include(o => o.Actividades)
                         .FirstAsync(o => o.Id == entity.Id);
 
                     return Result<ObraDto>.Success(_mapper.Map<ObraDto>(updated));
@@ -343,6 +345,7 @@ public class ObraService : IObraService
                     var updated = await context.Obras
                         .AsNoTracking()
                         .Include(o => o.Cliente)
+                        .Include(o => o.Actividades)
                         .FirstAsync(o => o.Id == entity.Id);
 
                     return Result<ObraDto>.Success(_mapper.Map<ObraDto>(updated));

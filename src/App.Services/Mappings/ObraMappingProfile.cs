@@ -10,7 +10,9 @@ public class ObraMappingProfile : Profile
     public ObraMappingProfile()
     {
         CreateMap<Obra, ObraDto>()
-            .ForMember(dest => dest.ClienteNombre, opt => opt.MapFrom(src => src.Cliente.Nombre));
+            .ForMember(dest => dest.ClienteNombre, opt => opt.MapFrom(src => src.Cliente.Nombre))
+            .ForMember(dest => dest.PorcentajeAvance, opt => opt.MapFrom(src =>
+                src.Actividades.Any() ? (int)src.Actividades.Average(a => a.PorcentajeAvance) : 0));
 
         CreateMap<CreateObraDto, Obra>();
 

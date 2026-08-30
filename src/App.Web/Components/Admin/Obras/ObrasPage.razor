@@ -51,9 +51,19 @@
                         <PropertyColumn Property="x => x.Direccion" Title="@L["Address"]" />
                         <TemplateColumn Title="@L["Status"]" HeaderStyle="width: 130px;">
                             <CellTemplate>
-                                <MudChip T="string" Size="Size.Small" Color="@EstadoColor(context.Item.Estado)" Variant="Variant.Filled">
-                                    @EstadoLabel(context.Item.Estado)
-                                </MudChip>
+                                @if (context.Item.Estado is ObraEstado.EnProceso or ObraEstado.Finalizada or ObraEstado.Facturada)
+                                {
+                                    <MudProgressLinear Color="@EstadoColor(context.Item.Estado)" Value="@context.Item.PorcentajeAvance"
+                                                        Rounded="true" Style="height: 22px; width: 90px;" title="@EstadoLabel(context.Item.Estado)">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">@context.Item.PorcentajeAvance%</MudText>
+                                    </MudProgressLinear>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="@EstadoColor(context.Item.Estado)" Variant="Variant.Filled">
+                                        @EstadoLabel(context.Item.Estado)
+                                    </MudChip>
+                                }
                             </CellTemplate>
                         </TemplateColumn>
                         <TemplateColumn Title="@L["Urgent"]" HeaderStyle="width: 90px; text-align: center;" CellStyle="text-align: center;">

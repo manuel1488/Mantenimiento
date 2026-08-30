@@ -12,4 +12,5 @@ public class ObraDto
     public ObraEstado Estado { get; set; }
     public DateTime FechaSolicitud { get; set; }
     public int? CotizacionOrigenId { get; set; }
+    public int PorcentajeAvance { get; set; }
 }
