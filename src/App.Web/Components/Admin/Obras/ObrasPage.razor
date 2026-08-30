@@ -53,10 +53,12 @@
                             <CellTemplate>
                                 @if (context.Item.Estado is ObraEstado.EnProceso or ObraEstado.Finalizada or ObraEstado.Facturada)
                                 {
-                                    <MudProgressLinear Color="@EstadoColor(context.Item.Estado)" Value="@context.Item.PorcentajeAvance"
-                                                        Rounded="true" Style="height: 22px; width: 90px;" title="@EstadoLabel(context.Item.Estado)">
-                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">@context.Item.PorcentajeAvance%</MudText>
-                                    </MudProgressLinear>
+                                    <div style="width: 110px;">
+                                        <MudProgressLinear Color="@EstadoColor(context.Item.Estado)" Value="@context.Item.PorcentajeAvance" Rounded="true" Style="height: 22px;">
+                                            <MudText Typo="Typo.caption" Style="font-weight: 600;">@EstadoLabel(context.Item.Estado)</MudText>
+                                        </MudProgressLinear>
+                                        <MudText Typo="Typo.caption" Class="mud-text-secondary" Style="display: block; text-align: center;">@context.Item.PorcentajeAvance%</MudText>
+                                    </div>
                                 }
                                 else
                                 {
