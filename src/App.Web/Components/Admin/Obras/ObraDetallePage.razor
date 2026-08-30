@@ -2,6 +2,7 @@
 @attribute [Authorize(Policy = ApplicationClaims.Shared.ViewObras)]
 
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using App.Core.Constants
 @using App.Core.DTOs.Clientes
@@ -24,6 +25,8 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject ILogger<ObraDetallePage> Logger
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>@(_obra is null ? L["Obra Details"] : _obra.Direccion)</PageTitle>
 
@@ -93,6 +96,11 @@
 
                     <MudDivider Class="my-3" />
                     <CamposDetalleGrid Campos="@CamposObra()" />
+                </MudPaper>
+
+                @* ── Fotos Generales ─────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-3 pa-sm-4 mb-4" Elevation="2">
+                    <ObraFotosGeneralesSection ObraId="Id" ReadOnly="@(!(_puedeGestionarFotos && _obra.Estado is not (ObraEstado.Finalizada or ObraEstado.Facturada)))" />
                 </MudPaper>
 
                 @* ── Agregar Actividad ────────────────────────────────────── *@
@@ -292,6 +300,7 @@
     private bool _loading = true;
     private bool _loadingActividades;
     private bool _addingActividad;
+    private bool _puedeGestionarFotos;
     private ObraDto? _obra;
     private List<ActividadDto> _actividades = new();
 
@@ -313,6 +322,10 @@
         {
             _servicios = servicioResult.Value!;
         }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authResult = await AuthorizationService.AuthorizeAsync(authState.User, ApplicationClaims.Shared.ManageObras);
+        _puedeGestionarFotos = authResult.Succeeded;
 
         await LoadObraAsync();
         await LoadActividadesAsync();

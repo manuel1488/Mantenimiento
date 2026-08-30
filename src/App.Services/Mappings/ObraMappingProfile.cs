@@ -15,5 +15,7 @@ public class ObraMappingProfile : Profile
         CreateMap<CreateObraDto, Obra>();
 
         CreateMap<UpdateObraDto, Obra>();
+
+        CreateMap<ObraFotoGeneral, ObraFotoGeneralDto>();
     }
 }

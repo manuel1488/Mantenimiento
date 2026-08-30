@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="General Photos" xml:space="preserve">
+    <value>Fotos Generales</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="No photos" xml:space="preserve">
+    <value>Sin fotos</value>
+  </data>
+  <data name="Delete Photo" xml:space="preserve">
+    <value>Eliminar foto</value>
+  </data>
+  <data name="View full size" xml:space="preserve">
+    <value>Ver tamaño completo</value>
+  </data>
+  <data name="Error loading photos" xml:space="preserve">
+    <value>Error al cargar las fotos</value>
+  </data>
+  <data name="Photo deleted successfully" xml:space="preserve">
+    <value>Foto eliminada correctamente</value>
+  </data>
+  <data name="Upload Photo" xml:space="preserve">
+    <value>Subir foto</value>
+  </data>
+  <data name="Error processing photo file" xml:space="preserve">
+    <value>Error al procesar el archivo de la foto</value>
+  </data>
+  <data name="Photo uploaded successfully" xml:space="preserve">
+    <value>Foto subida correctamente</value>
+  </data>
+  <data name="Description saved successfully" xml:space="preserve">
+    <value>Descripción guardada correctamente</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+</root>

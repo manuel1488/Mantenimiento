@@ -40,5 +40,9 @@ public class Obra : BaseEntity<int>, IAuditTracked
     public DateTime FechaSolicitud { get; set; }
 
     public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();
+
+    /// <summary>Fotos generales de la Obra, no asociadas a ninguna Actividad en particular.</summary>
+    public ICollection<ObraFotoGeneral> FotosGenerales { get; set; } = new List<ObraFotoGeneral>();
+
     public Factura? Factura { get; set; }
 }
