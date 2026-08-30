@@ -78,6 +78,9 @@
   <data name="Finish" xml:space="preserve">
     <value>Finalizar</value>
   </data>
+  <data name="Start" xml:space="preserve">
+    <value>Iniciar</value>
+  </data>
   <data name="You don't have permission to view works." xml:space="preserve">
     <value>No tienes permiso para ver obras.</value>
   </data>
@@ -164,6 +167,9 @@
   </data>
   <data name="Obra finished successfully" xml:space="preserve">
     <value>Obra finalizada exitosamente</value>
+  </data>
+  <data name="Obra started successfully" xml:space="preserve">
+    <value>Obra iniciada exitosamente</value>
   </data>
   <data name="Evidence photos (before/after) can be added from the Actividades list once created." xml:space="preserve">
     <value>Las fotos de evidencia (antes/después) se agregan desde la lista de Actividades una vez creadas.</value>

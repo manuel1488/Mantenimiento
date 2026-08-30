@@ -275,6 +275,12 @@
                 <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                         <Authorized Context="authContext">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.PlayArrow"
+                                       Disabled="@(!CanIniciar)"
+                                       OnClick="IniciarAsync" Class="da-button-rounded">
+                                @L["Start"]
+                            </MudButton>
                             <MudButton Variant="Variant.Filled" Color="Color.Success"
                                        StartIcon="@Icons.Material.Filled.CheckCircle"
                                        Disabled="@(!CanFinalizar)"
@@ -314,6 +320,8 @@
 
     private bool CanFinalizar => _obra is not null &&
         (_obra.Estado == ObraEstado.Aprobada || _obra.Estado == ObraEstado.EnProceso);
+
+    private bool CanIniciar => _obra is not null && _obra.Estado == ObraEstado.Aprobada;
 
     protected override async Task OnInitializedAsync()
     {
@@ -572,6 +580,20 @@
         else
         {
             Snackbar.Add(deleteResult.Error, Severity.Error);
+        }
+    }
+
+    private async Task IniciarAsync()
+    {
+        var result = await ObraService.IniciarAsync(Id);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Obra started successfully"], Severity.Success);
+            await LoadObraAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
         }
     }
 

@@ -4,8 +4,11 @@ using AutoMapper.QueryableExtensions;
 using App.Core.Common;
 using App.Core.DTOs.Obras;
 using App.Core.Enums.Cotizaciones;
+using App.Core.Enums.Notifications;
 using App.Core.Enums.Obras;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Notifications;
+using App.Core.Models.Notifications;
 using App.Models.Cotizaciones;
 using App.Models.Data.Contexts;
 using App.Models.Obras;
@@ -27,6 +30,7 @@ public class ObraService : IObraService
     private readonly IDateTime _dateTimeService;
     private readonly IFileStorageService _fileStorageService;
     private readonly IImageService _imageService;
+    private readonly INotificationService _notificationService;
 
     public ObraService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -36,7 +40,8 @@ public class ObraService : IObraService
         ICurrentUserService currentUserService,
         IDateTime dateTimeService,
         IFileStorageService fileStorageService,
-        IImageService imageService)
+        IImageService imageService,
+        INotificationService notificationService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -46,6 +51,7 @@ public class ObraService : IObraService
         _dateTimeService = dateTimeService;
         _fileStorageService = fileStorageService;
         _imageService = imageService;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<List<ObraDto>>> GetAllAsync()
@@ -299,6 +305,98 @@ public class ObraService : IObraService
         {
             _logger.LogError(ex, "Error finalizing obra {Id}", id);
             return Result<ObraDto>.Failure(_localizer["Error finalizing obra"]);
+        }
+    }
+
+    public async Task<Result<ObraDto>> IniciarAsync(int id)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            var result = await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    var entity = await context.Obras.FindAsync(id);
+                    if (entity == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<ObraDto>.Failure(_localizer["Obra not found"]);
+                    }
+
+                    if (entity.Estado != ObraEstado.Aprobada)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<ObraDto>.Failure(_localizer["Only an Obra in Aprobada can be started"]);
+                    }
+
+                    entity.Estado = ObraEstado.EnProceso;
+                    entity.ModifiedBy = await _currentUserService.GetUserIdAsync();
+                    entity.ModifiedAt = _dateTimeService.Now;
+
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    var updated = await context.Obras
+                        .AsNoTracking()
+                        .Include(o => o.Cliente)
+                        .FirstAsync(o => o.Id == entity.Id);
+
+                    return Result<ObraDto>.Success(_mapper.Map<ObraDto>(updated));
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+
+            if (result.IsSuccess)
+                await NotifyObraIniciadaAsync(id);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error starting obra {Id}", id);
+            return Result<ObraDto>.Failure(_localizer["Error starting obra"]);
+        }
+    }
+
+    private async Task NotifyObraIniciadaAsync(int obraId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var obra = await context.Obras
+                .AsNoTracking()
+                .Include(o => o.Cliente)
+                .FirstOrDefaultAsync(o => o.Id == obraId);
+
+            if (obra?.Cliente.Correo is not { Length: > 0 } correo)
+                return;
+
+            var message = new NotificationMessage
+            {
+                EventType = "ObraIniciada",
+                RelatedEntityType = nameof(Obra),
+                RelatedEntityId = obraId,
+                Subject = _localizer["Your project has started"],
+                Body = _localizer["Work has started on your project at {0}.", obra.Direccion],
+                Recipients = new Dictionary<NotificationChannelType, string>
+                {
+                    [NotificationChannelType.Email] = correo
+                }
+            };
+
+            await _notificationService.NotifyAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying client that obra {Id} started", obraId);
         }
     }
 

@@ -24,6 +24,7 @@ Quick reference for Claude Code. Detailed documentation is in [`docs/`](docs/).
 - [ADR-005: Sistema de Autenticación](docs/01-Architecture/adr/0005-sistema-autenticacion.md)
 - [ADR-008: AutoMapper](docs/01-Architecture/adr/0008-dependencia-automapper.md) — Downgrade a v12.0.1 MIT, vulnerabilidad GHSA-rvv3-g6hj-g44x (riesgo bajo), migración pendiente a Mapperly
 - [ADR-010: Acceso al usuario actual en Blazor Server](docs/01-Architecture/adr/0010-acceso-async-usuario-actual.md) — prohibido sync-over-async sobre `ICurrentUserService`
+- [ADR-011: Notificaciones al cliente](docs/01-Architecture/adr/0011-notificaciones-canal-estrategia.md) — canales (`INotificationChannel`) como estrategias plug-in vía `INotificationService`, para agregar Telegram/WhatsApp sin tocar el core
 
 ## Project Overview
 Plantilla base .NET 9 Blazor Server con arquitectura N-Layer, MySQL y Entity Framework Core. Incluye Identity, roles/permisos granulares, soft delete, auditoría, branding white-label, email, generación de PDF y manejo de archivos — sin ningún módulo de dominio de negocio. Parte de este repo para construir tu propia aplicación.

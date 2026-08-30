@@ -5,6 +5,7 @@ using App.Models.Data.Extensions;
 using App.Models.Facturas;
 using App.Models.Fiscal;
 using App.Models.Identity;
+using App.Models.Notifications;
 using App.Models.Obras;
 using App.Models.Servicios;
 using App.Models.Settings;
@@ -58,6 +59,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<CotizacionFotoGeneral> CotizacionFotosGenerales { get; set; } = null!;
     public DbSet<CotizacionFirma> CotizacionFirmas { get; set; } = null!;
     public DbSet<Factura> Facturas { get; set; } = null!;
+    public DbSet<NotificationLog> NotificationLogs { get; set; } = null!;
     #endregion
 
     #region Fiscal Catalogs

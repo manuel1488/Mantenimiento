@@ -11,6 +11,9 @@ public interface IObraService
     Task<Result<ObraDto>> UpdateAsync(UpdateObraDto dto);
     Task<Result> DeleteAsync(int id);
     Task<Result<ObraDto>> FinalizarAsync(int id);
+
+    /// <summary>Transitions an Aprobada Obra to EnProceso and notifies the client (best-effort).</summary>
+    Task<Result<ObraDto>> IniciarAsync(int id);
     Task<Result<ObraDto>> CreateFromCotizacionAsync(int cotizacionId, ConvertirCotizacionAObraDto dto);
 
     /// <summary>Uploads and compresses a general photo for the given Obra (not tied to any

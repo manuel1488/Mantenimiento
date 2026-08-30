@@ -4,6 +4,7 @@ using App.Core.Constants;
 using App.Core.Identity.Interfaces;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Identity;
+using App.Core.Interfaces.Notifications;
 using App.Core.Options;
 using App.Core.Services;
 using App.Models.Data.Contexts;
@@ -18,6 +19,8 @@ using App.Services.Clientes;
 using App.Services.Cotizaciones;
 using App.Services.Data;
 using App.Services.Fiscal;
+using App.Services.Notifications;
+using App.Services.Notifications.Channels;
 using App.Services.Obras;
 using App.Services.Seeders;
 using App.Services.Servicios;
@@ -525,6 +528,9 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IEmailService, EmailService>();
     services.AddScoped<IEmailTemplateSettingsService, EmailTemplateSettingsService>();
     services.AddScoped<IEmailTemplateService, EmailTemplateService>();
+    services.AddScoped<INotificationChannel, EmailNotificationChannel>();
+    services.AddScoped<INotificationService, NotificationService>();
+
     services.AddScoped<IEmailTemplateSeeder>(sp => new EmailTemplateSeeder(
         sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
         sp.GetRequiredService<ILogger<EmailTemplateSeeder>>()));

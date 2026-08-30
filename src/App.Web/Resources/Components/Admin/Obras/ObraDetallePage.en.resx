@@ -78,6 +78,9 @@
   <data name="Finish" xml:space="preserve">
     <value>Finish</value>
   </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
   <data name="You don't have permission to view works." xml:space="preserve">
     <value>You don't have permission to view works.</value>
   </data>
@@ -164,6 +167,9 @@
   </data>
   <data name="Obra finished successfully" xml:space="preserve">
     <value>Obra finished successfully</value>
+  </data>
+  <data name="Obra started successfully" xml:space="preserve">
+    <value>Obra started successfully</value>
   </data>
   <data name="Evidence photos (before/after) can be added from the Actividades list once created." xml:space="preserve">
     <value>Evidence photos (before/after) can be added from the Actividades list once created.</value>
