@@ -680,6 +680,7 @@ public class CotizacionService : ICotizacionService
                 .AsNoTracking()
                 .Include(c => c.Lineas)
                     .ThenInclude(l => l.Fotos)
+                .Include(c => c.FotosGenerales)
                 .Include(c => c.Cliente)
                 .Include(c => c.Firma)
                 .FirstOrDefaultAsync(c => c.Id == cotizacionId, cancellationToken);
@@ -724,6 +725,16 @@ public class CotizacionService : ICotizacionService
 
                 if (fotosLinea.Count > 0)
                     lineasConFotos.Add((linea, fotosLinea));
+            }
+
+            // Fotos generales (no atadas a ninguna línea) se muestran en su propio anexo, antes del
+            // anexo por línea.
+            var fotosGenerales = new List<(string Url, string? Descripcion)>();
+            foreach (var foto in cotizacion.FotosGenerales.OrderBy(f => f.FechaCarga))
+            {
+                var presignedResult = await _fileStorageService.GetPresignedUrlAsync(foto.FileKey, cancellationToken);
+                if (presignedResult.IsSuccess)
+                    fotosGenerales.Add((presignedResult.Value!, foto.Descripcion));
             }
 
             var generadoPorNombre = await context.Users
@@ -868,6 +879,7 @@ public class CotizacionService : ICotizacionService
                     subtotal = l.Subtotal.ToString("C2")
                 }).ToList(),
                 label_photos_annex = _localizer["Photo Annex"].Value,
+                label_general_photos_annex = _localizer["General Photos"].Value,
                 label_photo = _localizer["Photo"].Value,
                 has_fotos = lineasConFotos.Count > 0,
                 lineas_con_fotos = lineasConFotos.Select(lf => new
@@ -880,6 +892,14 @@ public class CotizacionService : ICotizacionService
                         descripcion = f.Descripcion,
                         has_descripcion = !string.IsNullOrWhiteSpace(f.Descripcion)
                     }).ToList()
+                }).ToList(),
+                has_fotos_generales = fotosGenerales.Count > 0,
+                fotos_generales = fotosGenerales.Select((f, i) => new
+                {
+                    indice = i + 1,
+                    url = f.Url,
+                    descripcion = f.Descripcion,
+                    has_descripcion = !string.IsNullOrWhiteSpace(f.Descripcion)
                 }).ToList(),
                 label_page = _localizer["Page"].Value,
                 label_of = _localizer["of"].Value
@@ -1321,6 +1341,256 @@ public class CotizacionService : ICotizacionService
         {
             _logger.LogError(ex, "Error retrieving fotos for cotizacion linea {Id}", cotizacionLineaId);
             return Result<List<CotizacionFotoDto>>.Failure(_localizer["Error retrieving fotos"]);
+        }
+    }
+
+    public async Task<Result<CotizacionFotoGeneralDto>> UploadFotoGeneralAsync(
+        int cotizacionId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var cotizacionExists = await context.Cotizaciones.AnyAsync(c => c.Id == cotizacionId, cancellationToken);
+            if (!cotizacionExists)
+                return Result<CotizacionFotoGeneralDto>.Failure(_localizer["Cotizacion not found"]);
+
+            var currentFotoCount = await context.CotizacionFotosGenerales
+                .Where(f => f.CotizacionId == cotizacionId)
+                .CountAsync(cancellationToken);
+
+            if (currentFotoCount >= _fotoOptions.Value.MaxFotos)
+            {
+                return Result<CotizacionFotoGeneralDto>.Failure(
+                    _localizer["Maximum number of photos ({0}) reached for this cotizacion", _fotoOptions.Value.MaxFotos]);
+            }
+
+            byte[] processedData;
+            byte[] thumbnailData;
+            string processedContentType;
+            using (var stream = new MemoryStream(data))
+            {
+                (processedData, thumbnailData, processedContentType) = await _imageService.ProcessImageWithThumbnailAsync(
+                    stream, fileName, contentType, cancellationToken: cancellationToken);
+            }
+
+            var extension = processedContentType switch
+            {
+                "image/png" => "png",
+                "image/webp" => "webp",
+                _ => "jpg"
+            };
+
+            var keyPrefix = $"cotizaciones/cotizacion-{cotizacionId}/generales";
+
+            var uploadResult = await _fileStorageService.UploadAsync(
+                processedData, processedContentType, keyPrefix, extension, cancellationToken);
+
+            if (!uploadResult.IsSuccess)
+                return Result<CotizacionFotoGeneralDto>.Failure(uploadResult.Error!);
+
+            // The thumbnail is an optimization, not a hard requirement — if it fails to upload,
+            // log it and continue without one; the UI falls back to the full image for display.
+            var thumbnailUploadResult = await _fileStorageService.UploadAsync(
+                thumbnailData, processedContentType, $"{keyPrefix}/thumb", extension, cancellationToken);
+
+            if (!thumbnailUploadResult.IsSuccess)
+            {
+                _logger.LogWarning(
+                    "Failed to upload thumbnail for cotizacion {Id} general foto, continuing with full image only: {Error}",
+                    cotizacionId, thumbnailUploadResult.Error);
+            }
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    var entity = new CotizacionFotoGeneral
+                    {
+                        CotizacionId = cotizacionId,
+                        FileKey = uploadResult.Value!,
+                        ThumbnailFileKey = thumbnailUploadResult.IsSuccess ? thumbnailUploadResult.Value : null,
+                        MimeType = processedContentType,
+                        FileSize = processedData.LongLength,
+                        Descripcion = descripcion,
+                        FechaCarga = _dateTimeService.Now
+                    };
+
+                    var currentUser = await _currentUserService.GetUserIdAsync();
+                    var currentTime = _dateTimeService.Now;
+                    entity.CreatedBy = currentUser;
+                    entity.CreatedAt = currentTime;
+                    entity.ModifiedBy = currentUser;
+                    entity.ModifiedAt = currentTime;
+
+                    context.CotizacionFotosGenerales.Add(entity);
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+
+                    var presignedResult = await _fileStorageService.GetPresignedUrlAsync(entity.FileKey, cancellationToken);
+                    var thumbnailPresignedResult = entity.ThumbnailFileKey is not null
+                        ? await _fileStorageService.GetPresignedUrlAsync(entity.ThumbnailFileKey, cancellationToken)
+                        : null;
+
+                    var resultDto = _mapper.Map<CotizacionFotoGeneralDto>(entity);
+                    resultDto.PresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+                    resultDto.ThumbnailPresignedUrl = thumbnailPresignedResult?.IsSuccess == true
+                        ? thumbnailPresignedResult.Value
+                        : resultDto.PresignedUrl;
+
+                    return Result<CotizacionFotoGeneralDto>.Success(resultDto);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    // Best effort cleanup of the orphaned blob(s) since the DB write failed.
+                    await _fileStorageService.DeleteAsync(uploadResult.Value!, cancellationToken);
+                    if (thumbnailUploadResult.IsSuccess)
+                        await _fileStorageService.DeleteAsync(thumbnailUploadResult.Value!, cancellationToken);
+                    throw;
+                }
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            // Thrown by IImageService when the file fails validation (size/type) against
+            // the ImageOptions configured in appsettings — surface the specific reason to the user.
+            return Result<CotizacionFotoGeneralDto>.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading general foto for cotizacion {Id}", cotizacionId);
+            return Result<CotizacionFotoGeneralDto>.Failure(_localizer["Error uploading foto"]);
+        }
+    }
+
+    public async Task<Result> DeleteFotoGeneralAsync(int fotoId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var entity = await context.CotizacionFotosGenerales.FindAsync([fotoId], cancellationToken);
+            if (entity == null)
+                return Result.Failure(_localizer["Foto not found"]);
+
+            var key = entity.FileKey;
+            var thumbnailKey = entity.ThumbnailFileKey;
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            var deleteResult = await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    entity.DeletedBy = await _currentUserService.GetUserIdAsync();
+                    context.CotizacionFotosGenerales.Remove(entity);
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return Result.Success();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
+                }
+            });
+
+            if (!deleteResult.IsSuccess)
+                return deleteResult;
+
+            var storageDeleteResult = await _fileStorageService.DeleteAsync(key, cancellationToken);
+            if (!storageDeleteResult.IsSuccess)
+                _logger.LogWarning("Failed to delete general foto blob {Key} from storage: {Error}", key, storageDeleteResult.Error);
+
+            if (thumbnailKey is not null)
+            {
+                var thumbnailDeleteResult = await _fileStorageService.DeleteAsync(thumbnailKey, cancellationToken);
+                if (!thumbnailDeleteResult.IsSuccess)
+                    _logger.LogWarning("Failed to delete general foto thumbnail {Key} from storage: {Error}", thumbnailKey, thumbnailDeleteResult.Error);
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting general foto {Id}", fotoId);
+            return Result.Failure(_localizer["Error deleting foto"]);
+        }
+    }
+
+    public async Task<Result> UpdateFotoGeneralDescripcionAsync(int fotoId, string? descripcion, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var entity = await context.CotizacionFotosGenerales.FindAsync([fotoId], cancellationToken);
+            if (entity == null)
+                return Result.Failure(_localizer["Foto not found"]);
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    entity.Descripcion = descripcion;
+                    entity.ModifiedBy = await _currentUserService.GetUserIdAsync();
+                    entity.ModifiedAt = _dateTimeService.Now;
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return Result.Success();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating general foto {Id} descripcion", fotoId);
+            return Result.Failure(_localizer["Error updating foto"]);
+        }
+    }
+
+    public async Task<Result<List<CotizacionFotoGeneralDto>>> GetFotosGeneralesAsync(int cotizacionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var fotos = await context.CotizacionFotosGenerales
+                .AsNoTracking()
+                .Where(f => f.CotizacionId == cotizacionId)
+                .OrderBy(f => f.FechaCarga)
+                .ToListAsync(cancellationToken);
+
+            var dtos = new List<CotizacionFotoGeneralDto>();
+            foreach (var foto in fotos)
+            {
+                var dto = _mapper.Map<CotizacionFotoGeneralDto>(foto);
+                var presignedResult = await _fileStorageService.GetPresignedUrlAsync(foto.FileKey, cancellationToken);
+                dto.PresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+
+                var thumbnailResult = foto.ThumbnailFileKey is not null
+                    ? await _fileStorageService.GetPresignedUrlAsync(foto.ThumbnailFileKey, cancellationToken)
+                    : null;
+                dto.ThumbnailPresignedUrl = thumbnailResult?.IsSuccess == true ? thumbnailResult.Value : dto.PresignedUrl;
+
+                dtos.Add(dto);
+            }
+
+            return Result<List<CotizacionFotoGeneralDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving general fotos for cotizacion {Id}", cotizacionId);
+            return Result<List<CotizacionFotoGeneralDto>>.Failure(_localizer["Error retrieving fotos"]);
         }
     }
 }

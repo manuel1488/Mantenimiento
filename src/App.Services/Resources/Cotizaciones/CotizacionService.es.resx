@@ -105,6 +105,9 @@
   <data name="Maximum number of photos ({0}) reached for this línea" xml:space="preserve">
     <value>Se alcanzó el máximo de fotos ({0}) para esta línea</value>
   </data>
+  <data name="Maximum number of photos ({0}) reached for this cotizacion" xml:space="preserve">
+    <value>Se alcanzó el máximo de fotos ({0}) para esta cotización</value>
+  </data>
   <data name="One or more Servicios were not found" xml:space="preserve">
     <value>Uno o más Servicios no fueron encontrados</value>
   </data>
@@ -152,6 +155,9 @@
   </data>
   <data name="Photo Annex" xml:space="preserve">
     <value>Anexo — Fotografías</value>
+  </data>
+  <data name="General Photos" xml:space="preserve">
+    <value>Anexo — Fotos Generales</value>
   </data>
   <data name="Quantity" xml:space="preserve">
     <value>Cantidad</value>

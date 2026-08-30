@@ -1,0 +1,271 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Options
+@using App.Core.DTOs.Cotizaciones
+@using App.Core.Interfaces
+@using App.Core.Options
+@using MudBlazor
+
+@inject IStringLocalizer<CotizacionFotosGeneralesSection> L
+@inject ICotizacionService CotizacionService
+@inject IOptions<ImageOptions> ImageOptions
+@inject IOptions<CotizacionFotoOptions> CotizacionFotoOptions
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<CotizacionFotosGeneralesSection> Logger
+
+<MudText Typo="Typo.subtitle1" Class="mb-2">
+    @L["General Photos"]
+    @if (!ReadOnly)
+    {
+        <MudText Typo="Typo.caption" Class="mud-text-secondary" Style="display: inline;">(@_fotos.Count/@CotizacionFotoOptions.Value.MaxFotos)</MudText>
+    }
+</MudText>
+
+@if (_loading)
+{
+    <div class="d-flex justify-center pa-4">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else
+{
+    @if (_fotos.Count == 0)
+    {
+        <MudText Class="mud-text-secondary" Typo="Typo.body2">@L["No photos"]</MudText>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            @foreach (var foto in _fotos)
+            {
+                <div style="position: relative; width: 96px; height: 96px; flex-shrink: 0;">
+                    <img src="@(foto.ThumbnailPresignedUrl ?? foto.PresignedUrl)"
+                         style="width: 100%; height: 100%; border-radius: 8px; object-fit: cover; display: block; cursor: pointer;
+                                border: @(foto.Id == _selectedFotoId ? "3px solid var(--mud-palette-primary)" : "1px solid var(--mud-palette-lines-default)");"
+                         @onclick="@(() => SelectFoto(foto))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ZoomIn" Color="Color.Default" Size="Size.Small"
+                                   Class="pa-1" Style="position: absolute; bottom: -10px; left: -10px; background-color: var(--mud-palette-surface); box-shadow: 0 1px 3px rgba(0,0,0,.4);"
+                                   OnClick="@(() => OpenViewer(foto))" title="@L["View full size"]" />
+                    @if (!ReadOnly)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                       Class="pa-1" Style="position: absolute; top: -10px; right: -10px; background-color: var(--mud-palette-surface); box-shadow: 0 1px 3px rgba(0,0,0,.4);"
+                                       OnClick="@(() => DeleteFotoAsync(foto.Id))" title="@L["Delete Photo"]" />
+                    }
+                    @if (!string.IsNullOrWhiteSpace(foto.Descripcion))
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Notes" Size="Size.Small" Color="Color.Default"
+                                 Style="position: absolute; bottom: -10px; right: -10px; background-color: var(--mud-palette-surface); border-radius: 50%; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.4);" />
+                    }
+                </div>
+            }
+        </div>
+
+        @if (_selectedFoto is not null)
+        {
+            @if (ReadOnly)
+            {
+                @if (!string.IsNullOrWhiteSpace(_selectedFoto.Descripcion))
+                {
+                    <MudText Typo="Typo.body2" Class="mb-3">@_selectedFoto.Descripcion</MudText>
+                }
+            }
+            else
+            {
+                <MudTextField T="string" Value="@_editedDescripciones[_selectedFoto.Id]" ValueChanged="OnDescripcionInputChanged" Immediate="true" Label="@L["Description"]"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Lines="3" AutoGrow="true" MaxLines="10"
+                              MaxLength="3000" Counter="3000" Class="mb-3" />
+            }
+        }
+    }
+
+    @if (!ReadOnly)
+    {
+        <InputFile id="@_inputId" OnChange="UploadFotoAsync" accept="@_acceptedFileTypes" class="d-none" />
+        <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload" for="@_inputId"
+                   Disabled="@(_uploading || _fotos.Count >= CotizacionFotoOptions.Value.MaxFotos)" FullWidth="true">
+            @L["Upload Photo"]
+        </MudButton>
+
+        @if (HasPendingChanges)
+        {
+            <MudButton Color="Color.Primary" Variant="Variant.Text" FullWidth="true" Class="mt-2"
+                       OnClick="SaveDescripcionAsync">
+                @L["Save"]
+            </MudButton>
+        }
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public int CotizacionId { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private readonly string _inputId = $"cotizacionFotoGeneralUpload-{Guid.NewGuid():N}";
+    private bool _loading = true;
+    private bool _uploading;
+    private string _acceptedFileTypes => string.Join(",", ImageOptions.Value.AllowedExtensions);
+    private List<CotizacionFotoGeneralDto> _fotos = new();
+    private int? _selectedFotoId;
+    private CotizacionFotoGeneralDto? _selectedFoto => _fotos.FirstOrDefault(f => f.Id == _selectedFotoId);
+
+    // Keyed by foto.Id, seeded from each foto's saved Descripcion. Edits accumulate here across
+    // selections — switching to another photo must not discard an unsaved edit on the previous one,
+    // since "Save" persists every pending edit at once (not just the currently shown one).
+    private readonly Dictionary<int, string?> _editedDescripciones = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await CotizacionService.GetFotosGeneralesAsync(CotizacionId);
+            if (result.IsSuccess)
+            {
+                _fotos = result.Value!;
+
+                // Seed only newly-seen photos so a pending edit on one already tracked (e.g. while
+                // uploading/deleting another) survives this reload.
+                foreach (var foto in _fotos)
+                    _editedDescripciones.TryAdd(foto.Id, foto.Descripcion);
+
+                var currentIds = _fotos.Select(f => f.Id).ToHashSet();
+                foreach (var staleId in _editedDescripciones.Keys.Where(id => !currentIds.Contains(id)).ToList())
+                    _editedDescripciones.Remove(staleId);
+
+                if (!_fotos.Any(f => f.Id == _selectedFotoId))
+                    _selectedFotoId = null;
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading general fotos for cotizacion {Id}", CotizacionId);
+            Snackbar.Add(L["Error loading photos"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task UploadFotoAsync(InputFileChangeEventArgs e)
+    {
+        // File type/size validation is the responsibility of IImageService (App.Services/Images/ImageService.cs),
+        // enforced against ImageOptions from appsettings — not duplicated here. We only cap the raw
+        // read at that same configured max so a too-large file fails fast with the service's specific message
+        // instead of loading the whole stream into memory first.
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            _uploading = true;
+
+            using var stream = file.OpenReadStream(ImageOptions.Value.MaxFileSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var data = memoryStream.ToArray();
+
+            var uploadResult = await CotizacionService.UploadFotoGeneralAsync(
+                CotizacionId, data, file.ContentType, file.Name);
+
+            if (uploadResult.IsSuccess)
+            {
+                Snackbar.Add(L["Photo uploaded successfully"], Severity.Success);
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add(uploadResult.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error uploading general foto file for cotizacion {Id}", CotizacionId);
+            Snackbar.Add(L["Error processing photo file"], Severity.Error);
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+
+    private bool HasPendingChanges => _fotos.Any(f => _editedDescripciones[f.Id] != f.Descripcion);
+
+    private void SelectFoto(CotizacionFotoGeneralDto foto)
+    {
+        _selectedFotoId = foto.Id;
+    }
+
+    private void OnDescripcionInputChanged(string? value)
+    {
+        if (_selectedFotoId is int id)
+            _editedDescripciones[id] = value;
+    }
+
+    private async Task SaveDescripcionAsync()
+    {
+        var savedAny = false;
+
+        foreach (var foto in _fotos)
+        {
+            var descripcion = _editedDescripciones[foto.Id];
+            if (descripcion == foto.Descripcion) continue;
+
+            var result = await CotizacionService.UpdateFotoGeneralDescripcionAsync(foto.Id, descripcion);
+            if (result.IsSuccess)
+            {
+                foto.Descripcion = descripcion;
+                savedAny = true;
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+
+        if (savedAny)
+            Snackbar.Add(L["Description saved successfully"], Severity.Success);
+    }
+
+    // Purely a full-size preview here — description editing reuses the single shared textfield below
+    // the grid, so the viewer never needs to write back to the caller.
+    private async Task OpenViewer(CotizacionFotoGeneralDto foto)
+    {
+        if (foto.PresignedUrl is null) return;
+
+        var parameters = new DialogParameters<CotizacionFotoViewerDialog>
+        {
+            { x => x.ImageUrl, foto.PresignedUrl },
+            { x => x.Descripcion, foto.Descripcion }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<CotizacionFotoViewerDialog>(null, parameters, options);
+    }
+
+    private async Task DeleteFotoAsync(int fotoId)
+    {
+        var result = await CotizacionService.DeleteFotoGeneralAsync(fotoId);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(L["Photo deleted successfully"], Severity.Success);
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+}

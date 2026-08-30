@@ -206,6 +206,11 @@
                     </MudStack>
                 </MudPaper>
 
+                @* ── Fotos Generales ─────────────────────────────────────────── *@
+                <MudPaper Class="da-card pa-3 pa-sm-4 mb-4" Elevation="2">
+                    <CotizacionFotosGeneralesSection CotizacionId="Id" ReadOnly="@(!(_puedeGestionarFotos && _cotizacion.Estado == CotizacionEstado.Pendiente))" />
+                </MudPaper>
+
                 @* ── Aprobación ───────────────────────────────────────────── *@
                 @if (_cotizacion.Estado == CotizacionEstado.Pendiente)
                 {

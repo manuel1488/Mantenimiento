@@ -38,4 +38,16 @@ public interface ICotizacionService
     Task<Result> UpdateFotoDescripcionAsync(int fotoId, string? descripcion, CancellationToken cancellationToken = default);
 
     Task<Result<List<CotizacionFotoDto>>> GetFotosAsync(int cotizacionLineaId, CancellationToken cancellationToken = default);
+
+    /// <summary>Uploads and compresses a general photo for the given Cotización (not tied to any
+    /// línea). Fails if the Cotización already has CotizacionFotoOptions.MaxFotos general photos.</summary>
+    Task<Result<CotizacionFotoGeneralDto>> UploadFotoGeneralAsync(
+        int cotizacionId, byte[] data, string contentType, string fileName, string? descripcion = null, CancellationToken cancellationToken = default);
+
+    Task<Result> DeleteFotoGeneralAsync(int fotoId, CancellationToken cancellationToken = default);
+
+    /// <summary>Updates only the caption of an existing general photo.</summary>
+    Task<Result> UpdateFotoGeneralDescripcionAsync(int fotoId, string? descripcion, CancellationToken cancellationToken = default);
+
+    Task<Result<List<CotizacionFotoGeneralDto>>> GetFotosGeneralesAsync(int cotizacionId, CancellationToken cancellationToken = default);
 }

@@ -16,6 +16,7 @@ public class CotizacionMappingProfile : Profile
 
         CreateMap<CotizacionLinea, CotizacionLineaDto>();
         CreateMap<CotizacionFoto, CotizacionFotoDto>();
+        CreateMap<CotizacionFotoGeneral, CotizacionFotoGeneralDto>();
         CreateMap<CotizacionFirma, CotizacionFirmaDto>()
             .ForMember(d => d.PresignedUrl, opt => opt.Ignore());
     }

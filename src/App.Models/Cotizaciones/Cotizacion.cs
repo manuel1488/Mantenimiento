@@ -70,6 +70,9 @@ public class Cotizacion : BaseEntity<int>, IAuditTracked
 
     public ICollection<CotizacionLinea> Lineas { get; set; } = new List<CotizacionLinea>();
 
+    /// <summary>Fotos generales de la Cotización, no asociadas a ninguna línea en particular.</summary>
+    public ICollection<CotizacionFotoGeneral> FotosGenerales { get; set; } = new List<CotizacionFotoGeneral>();
+
     /// <summary>Obra generada al convertir esta Cotización, si ya fue convertida.</summary>
     public Obra? ObraGenerada { get; set; }
 

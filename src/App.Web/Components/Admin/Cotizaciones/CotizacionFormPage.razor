@@ -141,6 +141,12 @@
                         </NoRecordsContent>
                     </MudDataGrid>
 
+                    @if (!IsCreate)
+                    {
+                        <MudDivider Class="my-4" />
+                        <CotizacionFotosGeneralesSection CotizacionId="Id!.Value" ReadOnly="false" />
+                    }
+
                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mt-3">
                         <MudSwitch T="bool" @bind-Value="_incluirIva" Color="Color.Primary"
                                    Label="@($"{L["Include IVA"]} ({_ivaTasaPorDefecto:F2}%)")" />

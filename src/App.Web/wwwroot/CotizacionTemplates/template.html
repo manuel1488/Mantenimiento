@@ -220,6 +220,23 @@
         </div>
     </template>
 
+    {{ if has_fotos_generales }}
+    <div class="photo-annex">
+        <div class="annex-title">{{ label_general_photos_annex }}</div>
+        {{ for foto in fotos_generales }}
+        <div class="photo-row">
+            <div class="photo-frame"><img src="{{ foto.url }}" /></div>
+            <div class="photo-info">
+                <div class="photo-index">{{ label_photo }} {{ foto.indice }}</div>
+                {{ if foto.has_descripcion }}
+                <div class="photo-caption">{{ foto.descripcion }}</div>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+    </div>
+    {{ end }}
+
     {{ if has_fotos }}
     <div class="photo-annex">
         <div class="annex-title">{{ label_photos_annex }}</div>
