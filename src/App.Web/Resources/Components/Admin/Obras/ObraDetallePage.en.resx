@@ -15,6 +15,12 @@
   <data name="Delete Obra" xml:space="preserve">
     <value>Delete Obra</value>
   </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
   <data name="Client" xml:space="preserve">
     <value>Client</value>
   </data>

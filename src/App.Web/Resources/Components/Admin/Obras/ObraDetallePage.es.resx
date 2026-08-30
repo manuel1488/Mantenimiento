@@ -54,6 +54,12 @@
   <data name="Actions" xml:space="preserve">
     <value>Acciones</value>
   </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pendiente</value>
+  </data>
   <data name="View Evidence" xml:space="preserve">
     <value>Ver Evidencia</value>
   </data>
