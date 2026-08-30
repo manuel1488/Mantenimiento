@@ -9,4 +9,5 @@ public class ActividadEditDialogModel
     public decimal Cantidad { get; set; }
     public decimal? PrecioUnitarioOverride { get; set; }
     public decimal? RendimientoDiasPorUnidadOverride { get; set; }
+    public int PorcentajeAvance { get; set; }
 }

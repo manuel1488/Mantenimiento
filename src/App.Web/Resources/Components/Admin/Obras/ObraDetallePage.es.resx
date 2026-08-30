@@ -60,6 +60,18 @@
   <data name="Pending" xml:space="preserve">
     <value>Pendiente</value>
   </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Avance</value>
+  </data>
+  <data name="Overall Progress" xml:space="preserve">
+    <value>Avance General</value>
+  </data>
+  <data name="Update Progress" xml:space="preserve">
+    <value>Actualizar Avance</value>
+  </data>
+  <data name="Click to update" xml:space="preserve">
+    <value>Clic para actualizar</value>
+  </data>
   <data name="View Evidence" xml:space="preserve">
     <value>Ver Evidencia</value>
   </data>

@@ -186,8 +186,11 @@ public class ActividadService : IActividadService
                     entity.Costo = entity.Cantidad * entity.PrecioUnitario;
                     entity.TiempoEstimadoDias = entity.Cantidad * entity.RendimientoDiasPorUnidad;
 
+                    var currentTime = _dateTimeService.Now;
+                    ApplyPorcentajeAvance(entity, dto.PorcentajeAvance, currentTime);
+
                     entity.ModifiedBy = await _currentUserService.GetUserIdAsync();
-                    entity.ModifiedAt = _dateTimeService.Now;
+                    entity.ModifiedAt = currentTime;
 
                     await context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -211,6 +214,79 @@ public class ActividadService : IActividadService
             _logger.LogError(ex, "Error updating actividad {Id}", dto.Id);
             return Result<ActividadDto>.Failure(_localizer["Error updating actividad"]);
         }
+    }
+
+    public async Task<Result<ActividadDto>> ActualizarAvanceAsync(int id, int porcentajeAvance)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    var entity = await context.Actividades
+                        .Include(a => a.Obra)
+                        .FirstOrDefaultAsync(a => a.Id == id);
+
+                    if (entity == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<ActividadDto>.Failure(_localizer["Actividad not found"]);
+                    }
+
+                    if (entity.Obra.Estado is ObraEstado.Finalizada or ObraEstado.Facturada)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result<ActividadDto>.Failure(_localizer["Cannot modify Actividades of an Obra that is Finalizada or Facturada"]);
+                    }
+
+                    var currentTime = _dateTimeService.Now;
+                    ApplyPorcentajeAvance(entity, porcentajeAvance, currentTime);
+
+                    entity.ModifiedBy = await _currentUserService.GetUserIdAsync();
+                    entity.ModifiedAt = currentTime;
+
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    var updated = await context.Actividades
+                        .AsNoTracking()
+                        .Include(a => a.Servicio).ThenInclude(s => s.UnidadMedida)
+                        .FirstAsync(a => a.Id == entity.Id);
+
+                    return Result<ActividadDto>.Success(_mapper.Map<ActividadDto>(updated));
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating progress for actividad {Id}", id);
+            return Result<ActividadDto>.Failure(_localizer["Error updating actividad"]);
+        }
+    }
+
+    private static void ApplyPorcentajeAvance(Actividad entity, int porcentajeAvance, DateTime currentTime)
+    {
+        var clamped = Math.Clamp(porcentajeAvance, 0, 100);
+        entity.PorcentajeAvance = clamped;
+        entity.Estado = clamped switch
+        {
+            0 => ActividadEstado.Pendiente,
+            100 => ActividadEstado.Finalizada,
+            _ => ActividadEstado.EnProceso
+        };
+        if (entity.Estado != ActividadEstado.Pendiente && entity.FechaInicio is null)
+            entity.FechaInicio = currentTime;
+        entity.FechaFin = entity.Estado == ActividadEstado.Finalizada ? currentTime : null;
     }
 
     public async Task<Result> DeleteAsync(int id)

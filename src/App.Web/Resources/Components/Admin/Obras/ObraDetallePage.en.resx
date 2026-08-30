@@ -21,6 +21,18 @@
   <data name="Pending" xml:space="preserve">
     <value>Pending</value>
   </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="Overall Progress" xml:space="preserve">
+    <value>Overall Progress</value>
+  </data>
+  <data name="Update Progress" xml:space="preserve">
+    <value>Update Progress</value>
+  </data>
+  <data name="Click to update" xml:space="preserve">
+    <value>Click to update</value>
+  </data>
   <data name="Client" xml:space="preserve">
     <value>Client</value>
   </data>

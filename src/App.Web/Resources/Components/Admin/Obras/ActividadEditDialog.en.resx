@@ -27,6 +27,12 @@
   <data name="Leave empty to keep the Servicio's catalog yield" xml:space="preserve">
     <value>Leave empty to keep the Servicio's catalog yield</value>
   </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="Progress is required" xml:space="preserve">
+    <value>Progress is required</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>

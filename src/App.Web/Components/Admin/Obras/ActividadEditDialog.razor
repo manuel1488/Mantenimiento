@@ -35,6 +35,13 @@
                                       Format="F2" Min="0"
                                       HelperText="@L["Leave empty to keep the Servicio's catalog yield"]" />
                 </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField @bind-Value="Model.PorcentajeAvance"
+                                      Label="@L["Progress"]"
+                                      Min="0" Max="100" Step="5"
+                                      Adornment="Adornment.End" AdornmentText="%"
+                                      Required="true" RequiredError="@L["Progress is required"]" />
+                </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>

@@ -71,6 +71,11 @@
                                     </MudChip>
                                 }
                             </MudStack>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-3" Style="max-width: 320px;">
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary" Style="white-space: nowrap;">@L["Overall Progress"]</MudText>
+                                <MudProgressLinear Color="Color.Primary" Value="@AvanceGeneral" Rounded="true" Class="flex-grow-1" Style="min-width: 80px;" />
+                                <MudText Typo="Typo.body2" Style="white-space: nowrap;">@AvanceGeneral%</MudText>
+                            </MudStack>
                         </div>
 
                         <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="flex-shrink-0">
@@ -182,11 +187,26 @@
                             <TemplateColumn Title="@L["Cost"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
                                 <CellTemplate>@context.Item.Costo.ToString("C2")</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Status"]" HeaderStyle="width: 130px;">
+                            <TemplateColumn Title="@L["Progress"]" HeaderStyle="width: 160px;">
                                 <CellTemplate>
-                                    <MudChip T="string" Size="Size.Small" Color="@EstadoColor(context.Item.Estado)" Variant="Variant.Filled">
-                                        @EstadoLabel(context.Item.Estado)
-                                    </MudChip>
+                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras" Context="progressAuth">
+                                        <Authorized>
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="cursor: pointer;"
+                                                      title="@($"{EstadoLabel(context.Item.Estado)} — {L["Click to update"]}")"
+                                                      @onclick="@(() => OpenAvanceDialog(context.Item))">
+                                                <MudProgressLinear Color="@EstadoColor(context.Item.Estado)" Value="@context.Item.PorcentajeAvance"
+                                                                    Rounded="true" Size="Size.Small" Class="flex-grow-1" Style="min-width: 60px;" />
+                                                <MudText Typo="Typo.body2" Style="white-space: nowrap;">@context.Item.PorcentajeAvance%</MudText>
+                                            </MudStack>
+                                        </Authorized>
+                                        <NotAuthorized>
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" title="@EstadoLabel(context.Item.Estado)">
+                                                <MudProgressLinear Color="@EstadoColor(context.Item.Estado)" Value="@context.Item.PorcentajeAvance"
+                                                                    Rounded="true" Size="Size.Small" Class="flex-grow-1" Style="min-width: 60px;" />
+                                                <MudText Typo="Typo.body2" Style="white-space: nowrap;">@context.Item.PorcentajeAvance%</MudText>
+                                            </MudStack>
+                                        </NotAuthorized>
+                                    </AuthorizeView>
                                 </CellTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false">
@@ -238,10 +258,19 @@
                                 <MudPaper Class="pa-3 mb-2" Outlined="true">
                                     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-1">
                                         <MudText Typo="Typo.subtitle2">@actividad.ServicioNombre</MudText>
-                                        <MudChip T="string" Size="Size.Small" Color="@EstadoColor(actividad.Estado)" Variant="Variant.Filled">
-                                            @EstadoLabel(actividad.Estado)
-                                        </MudChip>
+                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras" Context="progressAuthMobile">
+                                            <Authorized>
+                                                <MudText Typo="Typo.body2" Style="cursor: pointer; text-decoration: underline;"
+                                                         title="@($"{EstadoLabel(actividad.Estado)} — {L["Click to update"]}")"
+                                                         @onclick="@(() => OpenAvanceDialog(actividad))">@actividad.PorcentajeAvance%</MudText>
+                                            </Authorized>
+                                            <NotAuthorized>
+                                                <MudText Typo="Typo.body2" title="@EstadoLabel(actividad.Estado)">@actividad.PorcentajeAvance%</MudText>
+                                            </NotAuthorized>
+                                        </AuthorizeView>
                                     </MudStack>
+                                    <MudProgressLinear Color="@EstadoColor(actividad.Estado)" Value="@actividad.PorcentajeAvance"
+                                                        Rounded="true" Size="Size.Small" Class="mb-2" />
                                     @if (!string.IsNullOrWhiteSpace(actividad.Descripcion))
                                     {
                                         <MudText Typo="Typo.body2" Class="mud-text-secondary mb-1">@actividad.Descripcion</MudText>
@@ -315,6 +344,10 @@
         (_obra.Estado == ObraEstado.Aprobada || _obra.Estado == ObraEstado.EnProceso);
 
     private bool CanIniciar => _obra is not null && _obra.Estado == ObraEstado.Aprobada;
+
+    private int AvanceGeneral => _actividades.Count == 0
+        ? 0
+        : (int)Math.Round(_actividades.Average(a => a.PorcentajeAvance));
 
     protected override async Task OnInitializedAsync()
     {
@@ -469,7 +502,8 @@
                     ServicioNombre = actividad.ServicioNombre,
                     Descripcion = actividad.Descripcion,
                     UnidadMedidaCodigo = actividad.UnidadMedidaCodigo,
-                    Cantidad = actividad.Cantidad
+                    Cantidad = actividad.Cantidad,
+                    PorcentajeAvance = actividad.PorcentajeAvance
                 }
             }
         };
@@ -485,7 +519,8 @@
                 Cantidad = model.Cantidad,
                 PrecioUnitarioOverride = model.PrecioUnitarioOverride,
                 RendimientoDiasPorUnidadOverride = model.RendimientoDiasPorUnidadOverride,
-                Descripcion = model.Descripcion
+                Descripcion = model.Descripcion,
+                PorcentajeAvance = model.PorcentajeAvance
             };
 
             var updateResult = await ActividadService.UpdateAsync(updateDto);
@@ -497,6 +532,37 @@
             else
             {
                 Snackbar.Add(updateResult.Error, Severity.Error);
+            }
+        }
+    }
+
+    private async Task OpenAvanceDialog(ActividadDto actividad)
+    {
+        var parameters = new DialogParameters<ActividadAvanceDialog>
+        {
+            { x => x.Model, new ActividadAvanceDialogModel
+                {
+                    Id = actividad.Id,
+                    ServicioNombre = actividad.ServicioNombre,
+                    PorcentajeAvance = actividad.PorcentajeAvance
+                }
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<ActividadAvanceDialog>(L["Update Progress"], parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ActividadAvanceDialogModel model)
+        {
+            var avanceResult = await ActividadService.ActualizarAvanceAsync(model.Id, model.PorcentajeAvance);
+            if (avanceResult.IsSuccess)
+            {
+                Snackbar.Add(L["Actividad updated successfully"], Severity.Success);
+                await LoadActividadesAsync();
+            }
+            else
+            {
+                Snackbar.Add(avanceResult.Error, Severity.Error);
             }
         }
     }

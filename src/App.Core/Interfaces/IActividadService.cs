@@ -9,6 +9,7 @@ public interface IActividadService
     Task<Result<List<ActividadDto>>> GetByObraIdAsync(int obraId);
     Task<Result<ActividadDto>> CreateAsync(CreateActividadDto dto);
     Task<Result<ActividadDto>> UpdateAsync(UpdateActividadDto dto);
+    Task<Result<ActividadDto>> ActualizarAvanceAsync(int id, int porcentajeAvance);
     Task<Result> DeleteAsync(int id);
 
     Task<Result<ActividadEvidenciaFotoDto>> UploadEvidenciaAsync(
