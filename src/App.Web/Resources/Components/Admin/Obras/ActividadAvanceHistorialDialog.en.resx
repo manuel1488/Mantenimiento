@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Progress History" xml:space="preserve">
+    <value>Progress History</value>
+  </data>
+  <data name="No history entries found" xml:space="preserve">
+    <value>No history entries found</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Error loading progress history" xml:space="preserve">
+    <value>Error loading progress history</value>
+  </data>
+</root>

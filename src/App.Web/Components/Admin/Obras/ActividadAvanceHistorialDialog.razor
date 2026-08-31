@@ -1,0 +1,120 @@
+@using App.Core.DTOs.Obras
+@using App.Core.Interfaces
+@using App.Shared.Services
+@using App.Web.Components.Shared
+@using MudBlazor
+
+@inject IActividadService ActividadService
+@inject ICompanySettingsService CompanySettingsService
+@inject IDateTime DateTimeService
+@inject IDialogService DialogService
+@inject IStringLocalizer<ActividadAvanceHistorialDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<ActividadAvanceHistorialDialog> Logger
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Progress History"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <div class="d-flex justify-center pa-6">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else if (_entries.Count == 0)
+        {
+            <MudText Class="pa-4">@L["No history entries found"]</MudText>
+        }
+        else
+        {
+            <MudTimeline TimelinePosition="TimelinePosition.Start">
+                @foreach (var entry in _entries)
+                {
+                    <MudTimelineItem Color="Color.Primary">
+                        <ItemContent>
+                            <MudStack Spacing="1">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">@entry.PorcentajeAvance%</MudChip>
+                                    <MudText Typo="Typo.body2">@FormatDateTime(entry.FechaRegistro)</MudText>
+                                </MudStack>
+
+                                @if (!string.IsNullOrWhiteSpace(entry.Observaciones))
+                                {
+                                    <MudText Typo="Typo.body2">@entry.Observaciones</MudText>
+                                }
+
+                                @if (entry.FotoPresignedUrl is not null)
+                                {
+                                    <img src="@(entry.FotoThumbnailPresignedUrl ?? entry.FotoPresignedUrl)"
+                                         style="width: 96px; height: 96px; border-radius: 8px; object-fit: cover; display: block; border: 1px solid var(--mud-palette-lines-default); cursor: pointer;"
+                                         @onclick="@(() => OpenLightbox(entry))" />
+                                }
+                            </MudStack>
+                        </ItemContent>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Class="da-button-rounded">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int ActividadId { get; set; }
+
+    private bool _loading = true;
+    private List<ActividadAvanceRegistroDto> _entries = [];
+    private TimeZoneInfo? _companyTimeZone;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _companyTimeZone = await CompanySettingsService.GetCurrentTimeZoneAsync();
+
+        try
+        {
+            var result = await ActividadService.GetAvanceHistorialAsync(ActividadId);
+            if (result.IsSuccess)
+            {
+                _entries = result.Value!;
+            }
+            else
+            {
+                Snackbar.Add(result.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading avance historial for actividad {Id}", ActividadId);
+            Snackbar.Add(L["Error loading progress history"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private string FormatDateTime(DateTime utcDate)
+        => _companyTimeZone is null
+            ? utcDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+            : DateTimeService.FormatToTimezone(utcDate, _companyTimeZone);
+
+    private async Task OpenLightbox(ActividadAvanceRegistroDto entry)
+    {
+        if (entry.FotoPresignedUrl is null) return;
+
+        var parameters = new DialogParameters<PhotoLightboxDialog>
+        {
+            { x => x.ImageUrl, entry.FotoPresignedUrl }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<PhotoLightboxDialog>(null, parameters, options);
+    }
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+}

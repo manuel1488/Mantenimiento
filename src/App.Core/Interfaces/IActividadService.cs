@@ -9,8 +9,18 @@ public interface IActividadService
     Task<Result<List<ActividadDto>>> GetByObraIdAsync(int obraId);
     Task<Result<ActividadDto>> CreateAsync(CreateActividadDto dto);
     Task<Result<ActividadDto>> UpdateAsync(UpdateActividadDto dto);
-    Task<Result<ActividadDto>> ActualizarAvanceAsync(int id, int porcentajeAvance);
+    Task<Result<ActividadDto>> ActualizarAvanceAsync(
+        int id,
+        int porcentajeAvance,
+        string? observaciones = null,
+        byte[]? fotoData = null,
+        string? fotoContentType = null,
+        string? fotoFileName = null,
+        CancellationToken cancellationToken = default);
+
     Task<Result> DeleteAsync(int id);
+
+    Task<Result<List<ActividadAvanceRegistroDto>>> GetAvanceHistorialAsync(int actividadId);
 
     Task<Result<ActividadEvidenciaFotoDto>> UploadEvidenciaAsync(
         int actividadId,

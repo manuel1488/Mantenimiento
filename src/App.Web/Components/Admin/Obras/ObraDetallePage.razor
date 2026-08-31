@@ -214,6 +214,9 @@
                                     <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Medium"
                                                    OnClick="@(() => OpenEvidenciasDialog(context.Item.Id))"
                                                    title="@L["Evidence Photos (view/upload)"]" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.History" Size="Size.Medium"
+                                                   OnClick="@(() => OpenHistorialAvanceDialog(context.Item.Id))"
+                                                   title="@L["Progress History"]" />
                                     <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                         <Authorized Context="authContext">
                                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Medium"
@@ -291,6 +294,9 @@
                                         <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Medium"
                                                        OnClick="@(() => OpenEvidenciasDialog(actividad.Id))"
                                                        title="@L["Evidence Photos (view/upload)"]" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.History" Size="Size.Medium"
+                                                       OnClick="@(() => OpenHistorialAvanceDialog(actividad.Id))"
+                                                       title="@L["Progress History"]" />
                                         <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                             <Authorized Context="authContext">
                                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Medium"
@@ -554,7 +560,9 @@
 
         if (result != null && !result.Canceled && result.Data is ActividadAvanceDialogModel model)
         {
-            var avanceResult = await ActividadService.ActualizarAvanceAsync(model.Id, model.PorcentajeAvance);
+            var avanceResult = await ActividadService.ActualizarAvanceAsync(
+                model.Id, model.PorcentajeAvance, model.Observaciones,
+                model.FotoData, model.FotoContentType, model.FotoFileName);
             if (avanceResult.IsSuccess)
             {
                 Snackbar.Add(L["Actividad updated successfully"], Severity.Success);
@@ -607,6 +615,17 @@
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
         await DialogService.ShowAsync<EvidenciaFotosDialog>(L["Evidence Photos"], parameters, options);
+    }
+
+    private async Task OpenHistorialAvanceDialog(int actividadId)
+    {
+        var parameters = new DialogParameters<ActividadAvanceHistorialDialog>
+        {
+            { x => x.ActividadId, actividadId }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<ActividadAvanceHistorialDialog>(L["Progress History"], parameters, options);
     }
 
     private async Task OpenDeleteDialog()

@@ -15,5 +15,6 @@ public class ActividadMappingProfile : Profile
             .ForMember(dest => dest.UnidadMedidaNombre, opt => opt.MapFrom(src => src.Servicio.UnidadMedida.Nombre));
 
         CreateMap<ActividadEvidenciaFoto, ActividadEvidenciaFotoDto>();
+        CreateMap<ActividadAvanceRegistro, ActividadAvanceRegistroDto>();
     }
 }

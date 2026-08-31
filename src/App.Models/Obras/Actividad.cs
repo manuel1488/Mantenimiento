@@ -73,4 +73,5 @@ public class Actividad : BaseEntity<int>, IAuditTracked
 
     public ICollection<ActividadEvidenciaFoto> Evidencias { get; set; } = new List<ActividadEvidenciaFoto>();
     public ICollection<ActividadReasignacion> Reasignaciones { get; set; } = new List<ActividadReasignacion>();
+    public ICollection<ActividadAvanceRegistro> AvanceRegistros { get; set; } = new List<ActividadAvanceRegistro>();
 }

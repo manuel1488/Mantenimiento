@@ -3,8 +3,11 @@ using AutoMapper.QueryableExtensions;
 
 using App.Core.Common;
 using App.Core.DTOs.Obras;
+using App.Core.Enums.Notifications;
 using App.Core.Enums.Obras;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Notifications;
+using App.Core.Models.Notifications;
 using App.Models.Data.Contexts;
 using App.Models.Obras;
 using App.Shared.Services;
@@ -25,6 +28,7 @@ public class ActividadService : IActividadService
     private readonly IDateTime _dateTimeService;
     private readonly IImageService _imageService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly INotificationService _notificationService;
 
     public ActividadService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -34,7 +38,8 @@ public class ActividadService : IActividadService
         ICurrentUserService currentUserService,
         IDateTime dateTimeService,
         IImageService imageService,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        INotificationService notificationService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -44,6 +49,7 @@ public class ActividadService : IActividadService
         _dateTimeService = dateTimeService;
         _imageService = imageService;
         _fileStorageService = fileStorageService;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<List<ActividadDto>>> GetByObraIdAsync(int obraId)
@@ -216,61 +222,207 @@ public class ActividadService : IActividadService
         }
     }
 
-    public async Task<Result<ActividadDto>> ActualizarAvanceAsync(int id, int porcentajeAvance)
+    public async Task<Result<ActividadDto>> ActualizarAvanceAsync(
+        int id,
+        int porcentajeAvance,
+        string? observaciones = null,
+        byte[]? fotoData = null,
+        string? fotoContentType = null,
+        string? fotoFileName = null,
+        CancellationToken cancellationToken = default)
     {
+        string? fotoKey = null;
+        string? fotoThumbnailKey = null;
+        byte[]? processedFotoData = null;
+        string? processedFotoContentType = null;
+
         try
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            if (fotoData is { Length: > 0 })
+            {
+                byte[] thumbnailData;
+                using (var stream = new MemoryStream(fotoData))
+                {
+                    (processedFotoData, thumbnailData, processedFotoContentType) = await _imageService.ProcessImageWithThumbnailAsync(
+                        stream, fotoFileName ?? "avance.jpg", fotoContentType ?? "image/jpeg", cancellationToken: cancellationToken);
+                }
+
+                var extension = processedFotoContentType switch
+                {
+                    "image/png" => "png",
+                    "image/webp" => "webp",
+                    _ => "jpg"
+                };
+
+                var keyPrefix = $"avance/actividad-{id}";
+
+                var uploadResult = await _fileStorageService.UploadAsync(
+                    processedFotoData, processedFotoContentType, keyPrefix, extension, cancellationToken);
+
+                if (!uploadResult.IsSuccess)
+                    return Result<ActividadDto>.Failure(uploadResult.Error!);
+                fotoKey = uploadResult.Value!;
+
+                // The thumbnail is an optimization, not a hard requirement — if it fails to upload,
+                // log it and continue without one; the UI falls back to the full image for display.
+                var thumbnailUploadResult = await _fileStorageService.UploadAsync(
+                    thumbnailData, processedFotoContentType, $"{keyPrefix}/thumb", extension, cancellationToken);
+
+                if (thumbnailUploadResult.IsSuccess)
+                {
+                    fotoThumbnailKey = thumbnailUploadResult.Value;
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Failed to upload thumbnail for avance photo on actividad {Id}, continuing with full image only: {Error}",
+                        id, thumbnailUploadResult.Error);
+                }
+            }
 
             var strategy = context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+            var result = await strategy.ExecuteAsync(async () =>
             {
-                await using var transaction = await context.Database.BeginTransactionAsync();
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
                     var entity = await context.Actividades
                         .Include(a => a.Obra)
-                        .FirstOrDefaultAsync(a => a.Id == id);
+                        .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
                     if (entity == null)
                     {
-                        await transaction.RollbackAsync();
+                        await transaction.RollbackAsync(cancellationToken);
                         return Result<ActividadDto>.Failure(_localizer["Actividad not found"]);
                     }
 
                     if (entity.Obra.Estado is ObraEstado.Finalizada or ObraEstado.Facturada)
                     {
-                        await transaction.RollbackAsync();
+                        await transaction.RollbackAsync(cancellationToken);
                         return Result<ActividadDto>.Failure(_localizer["Cannot modify Actividades of an Obra that is Finalizada or Facturada"]);
                     }
 
                     var currentTime = _dateTimeService.Now;
                     ApplyPorcentajeAvance(entity, porcentajeAvance, currentTime);
 
-                    entity.ModifiedBy = await _currentUserService.GetUserIdAsync();
+                    var currentUser = await _currentUserService.GetUserIdAsync();
+                    entity.ModifiedBy = currentUser;
                     entity.ModifiedAt = currentTime;
 
-                    await context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    var registro = new ActividadAvanceRegistro
+                    {
+                        ActividadId = id,
+                        PorcentajeAvance = entity.PorcentajeAvance,
+                        Observaciones = observaciones,
+                        RutaArchivoFoto = fotoKey,
+                        RutaArchivoFotoThumbnail = fotoThumbnailKey,
+                        FechaRegistro = currentTime,
+                        CreatedBy = currentUser,
+                        CreatedAt = currentTime,
+                        ModifiedBy = currentUser,
+                        ModifiedAt = currentTime
+                    };
+                    context.ActividadAvanceRegistros.Add(registro);
+
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
 
                     var updated = await context.Actividades
                         .AsNoTracking()
                         .Include(a => a.Servicio).ThenInclude(s => s.UnidadMedida)
-                        .FirstAsync(a => a.Id == entity.Id);
+                        .FirstAsync(a => a.Id == entity.Id, cancellationToken);
 
                     return Result<ActividadDto>.Success(_mapper.Map<ActividadDto>(updated));
                 }
                 catch
                 {
-                    await transaction.RollbackAsync();
+                    await transaction.RollbackAsync(cancellationToken);
                     throw;
                 }
             });
+
+            if (!result.IsSuccess)
+            {
+                // Best effort cleanup of the orphaned blob(s) since the DB write failed.
+                if (fotoKey is not null)
+                    await _fileStorageService.DeleteAsync(fotoKey, cancellationToken);
+                if (fotoThumbnailKey is not null)
+                    await _fileStorageService.DeleteAsync(fotoThumbnailKey, cancellationToken);
+                return result;
+            }
+
+            await NotifyActividadAvanceAsync(id, result.Value!.PorcentajeAvance, observaciones, processedFotoData, processedFotoContentType, fotoFileName);
+
+            return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating progress for actividad {Id}", id);
+            if (fotoKey is not null)
+                await _fileStorageService.DeleteAsync(fotoKey, cancellationToken);
+            if (fotoThumbnailKey is not null)
+                await _fileStorageService.DeleteAsync(fotoThumbnailKey, cancellationToken);
             return Result<ActividadDto>.Failure(_localizer["Error updating actividad"]);
+        }
+    }
+
+    private async Task NotifyActividadAvanceAsync(
+        int actividadId,
+        int porcentajeAvance,
+        string? observaciones,
+        byte[]? fotoData,
+        string? fotoContentType,
+        string? fotoFileName)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var actividad = await context.Actividades
+                .AsNoTracking()
+                .Include(a => a.Servicio)
+                .Include(a => a.Obra).ThenInclude(o => o.Cliente)
+                .FirstOrDefaultAsync(a => a.Id == actividadId);
+
+            if (actividad?.Obra.Cliente.Correo is not { Length: > 0 } correo)
+                return;
+
+            var body = string.IsNullOrWhiteSpace(observaciones)
+                ? _localizer["Progress on {0} has been updated to {1}%.", actividad.Servicio.Nombre, porcentajeAvance]
+                : _localizer["Progress on {0} has been updated to {1}%. Note: {2}", actividad.Servicio.Nombre, porcentajeAvance, observaciones];
+
+            var message = new NotificationMessage
+            {
+                EventType = "ActividadAvanceActualizado",
+                RelatedEntityType = nameof(Actividad),
+                RelatedEntityId = actividadId,
+                Subject = _localizer["Progress update on your project"],
+                Body = body,
+                Recipients = new Dictionary<NotificationChannelType, string>
+                {
+                    [NotificationChannelType.Email] = correo
+                }
+            };
+
+            if (fotoData is { Length: > 0 })
+            {
+                message.Attachments = new List<NotificationAttachment>
+                {
+                    new()
+                    {
+                        FileName = fotoFileName ?? "avance.jpg",
+                        Content = fotoData,
+                        ContentType = fotoContentType ?? "image/jpeg"
+                    }
+                };
+            }
+
+            await _notificationService.NotifyAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying client about actividad {Id} progress update", actividadId);
         }
     }
 
@@ -533,6 +685,46 @@ public class ActividadService : IActividadService
         {
             _logger.LogError(ex, "Error retrieving evidencias for actividad {Id}", actividadId);
             return Result<List<ActividadEvidenciaFotoDto>>.Failure(_localizer["Error retrieving evidencias"]);
+        }
+    }
+
+    public async Task<Result<List<ActividadAvanceRegistroDto>>> GetAvanceHistorialAsync(int actividadId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var registros = await context.ActividadAvanceRegistros
+                .AsNoTracking()
+                .Where(r => r.ActividadId == actividadId)
+                .OrderByDescending(r => r.FechaRegistro)
+                .ToListAsync();
+
+            var dtos = new List<ActividadAvanceRegistroDto>();
+            foreach (var registro in registros)
+            {
+                var dto = _mapper.Map<ActividadAvanceRegistroDto>(registro);
+
+                if (registro.RutaArchivoFoto is not null)
+                {
+                    var presignedResult = await _fileStorageService.GetPresignedUrlAsync(registro.RutaArchivoFoto);
+                    dto.FotoPresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+
+                    var thumbnailResult = registro.RutaArchivoFotoThumbnail is not null
+                        ? await _fileStorageService.GetPresignedUrlAsync(registro.RutaArchivoFotoThumbnail)
+                        : null;
+                    dto.FotoThumbnailPresignedUrl = thumbnailResult?.IsSuccess == true ? thumbnailResult.Value : dto.FotoPresignedUrl;
+                }
+
+                dtos.Add(dto);
+            }
+
+            return Result<List<ActividadAvanceRegistroDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving avance historial for actividad {Id}", actividadId);
+            return Result<List<ActividadAvanceRegistroDto>>.Failure(_localizer["Error retrieving avance historial"]);
         }
     }
 }

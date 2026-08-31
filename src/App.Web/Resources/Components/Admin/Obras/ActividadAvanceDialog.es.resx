@@ -9,4 +9,19 @@
   <data name="Save" xml:space="preserve">
     <value>Guardar</value>
   </data>
+  <data name="Observation (optional)" xml:space="preserve">
+    <value>Observación (opcional)</value>
+  </data>
+  <data name="Photo (optional)" xml:space="preserve">
+    <value>Foto (opcional)</value>
+  </data>
+  <data name="Attach Photo" xml:space="preserve">
+    <value>Adjuntar Foto</value>
+  </data>
+  <data name="Remove Photo" xml:space="preserve">
+    <value>Quitar Foto</value>
+  </data>
+  <data name="Error processing photo file" xml:space="preserve">
+    <value>Error al procesar el archivo de foto</value>
+  </data>
 </root>

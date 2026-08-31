@@ -192,4 +192,7 @@
   <data name="Evidence photos (before/after) can be added from the Actividades list once created." xml:space="preserve">
     <value>Evidence photos (before/after) can be added from the Actividades list once created.</value>
   </data>
+  <data name="Progress History" xml:space="preserve">
+    <value>Progress History</value>
+  </data>
 </root>

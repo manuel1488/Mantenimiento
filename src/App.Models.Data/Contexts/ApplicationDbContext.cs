@@ -51,6 +51,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<Obra> Obras { get; set; } = null!;
     public DbSet<Actividad> Actividades { get; set; } = null!;
     public DbSet<ActividadEvidenciaFoto> ActividadEvidenciaFotos { get; set; } = null!;
+    public DbSet<ActividadAvanceRegistro> ActividadAvanceRegistros { get; set; } = null!;
     public DbSet<ObraFotoGeneral> ObraFotosGenerales { get; set; } = null!;
     public DbSet<ActividadReasignacion> ActividadReasignaciones { get; set; } = null!;
     public DbSet<Cotizacion> Cotizaciones { get; set; } = null!;
