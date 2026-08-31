@@ -195,4 +195,7 @@
   <data name="Progress History" xml:space="preserve">
     <value>Historial de Avance</value>
   </data>
+  <data name="Start Date" xml:space="preserve">
+    <value>Fecha de Inicio</value>
+  </data>
 </root>

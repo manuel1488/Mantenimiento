@@ -178,14 +178,17 @@
                                     }
                                 </CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Quantity"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                            <TemplateColumn Title="@L["Quantity"]">
                                 <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedidaCodigo</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Estimated Time (days)"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                            <TemplateColumn Title="@L["Estimated Time (days)"]">
                                 <CellTemplate>@context.Item.TiempoEstimadoDias.ToString("F2")</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Cost"]" HeaderStyle="text-align: right;" CellStyle="text-align: right;">
+                            <TemplateColumn Title="@L["Cost"]">
                                 <CellTemplate>@context.Item.Costo.ToString("C2")</CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="@L["Start Date"]">
+                                <CellTemplate>@(context.Item.FechaInicio?.ToString("dd/MM/yyyy") ?? "-")</CellTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Progress"]" HeaderStyle="width: 160px;">
                                 <CellTemplate>
@@ -211,26 +214,25 @@
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Actions"]" Sortable="false" Filterable="false">
                                 <CellTemplate>
-                                    <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Medium"
-                                                   OnClick="@(() => OpenEvidenciasDialog(context.Item.Id))"
-                                                   title="@L["Evidence Photos (view/upload)"]" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.History" Size="Size.Medium"
-                                                   OnClick="@(() => OpenHistorialAvanceDialog(context.Item.Id))"
-                                                   title="@L["Progress History"]" />
-                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
-                                        <Authorized Context="authContext">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Medium"
-                                                           OnClick="@(() => OpenEditActividadDialog(context.Item))"
-                                                           title="@L["Edit Actividad"]" />
-                                        </Authorized>
-                                    </AuthorizeView>
-                                    <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
-                                        <Authorized Context="authContext">
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Medium" Color="Color.Error"
-                                                           OnClick="@(() => DeleteActividadAsync(context.Item))"
-                                                           title="@L["Delete Actividad"]" />
-                                        </Authorized>
-                                    </AuthorizeView>
+                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Medium" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                        <MudMenuItem Icon="@Icons.Material.Filled.PhotoCamera" OnClick="@(() => OpenEvidenciasDialog(context.Item.Id))">
+                                            @L["Evidence Photos (view/upload)"]
+                                        </MudMenuItem>
+                                        <MudMenuItem Icon="@Icons.Material.Filled.History" OnClick="@(() => OpenHistorialAvanceDialog(context.Item.Id))">
+                                            @L["Progress History"]
+                                        </MudMenuItem>
+                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                            <Authorized Context="authContext">
+                                                <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditActividadDialog(context.Item))">
+                                                    @L["Edit Actividad"]
+                                                </MudMenuItem>
+                                                <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error"
+                                                             OnClick="@(() => DeleteActividadAsync(context.Item))">
+                                                    @L["Delete Actividad"]
+                                                </MudMenuItem>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </MudMenu>
                                 </CellTemplate>
                             </TemplateColumn>
                         </Columns>
@@ -290,27 +292,30 @@
                                         <MudText Typo="Typo.body2" Class="mud-text-secondary" Style="font-weight: 600;">@L["Cost"]</MudText>
                                         <MudText Typo="Typo.body2" Style="font-weight: 600;">@actividad.Costo.ToString("C2")</MudText>
                                     </MudStack>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Start Date"]</MudText>
+                                        <MudText Typo="Typo.body2">@(actividad.FechaInicio?.ToString("dd/MM/yyyy") ?? "-")</MudText>
+                                    </MudStack>
                                     <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-2">
-                                        <MudIconButton Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Medium"
-                                                       OnClick="@(() => OpenEvidenciasDialog(actividad.Id))"
-                                                       title="@L["Evidence Photos (view/upload)"]" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.History" Size="Size.Medium"
-                                                       OnClick="@(() => OpenHistorialAvanceDialog(actividad.Id))"
-                                                       title="@L["Progress History"]" />
-                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
-                                            <Authorized Context="authContext">
-                                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Medium"
-                                                               OnClick="@(() => OpenEditActividadDialog(actividad))"
-                                                               title="@L["Edit Actividad"]" />
-                                            </Authorized>
-                                        </AuthorizeView>
-                                        <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
-                                            <Authorized Context="authContext">
-                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Medium" Color="Color.Error"
-                                                               OnClick="@(() => DeleteActividadAsync(actividad))"
-                                                               title="@L["Delete Actividad"]" />
-                                            </Authorized>
-                                        </AuthorizeView>
+                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Medium" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                            <MudMenuItem Icon="@Icons.Material.Filled.PhotoCamera" OnClick="@(() => OpenEvidenciasDialog(actividad.Id))">
+                                                @L["Evidence Photos (view/upload)"]
+                                            </MudMenuItem>
+                                            <MudMenuItem Icon="@Icons.Material.Filled.History" OnClick="@(() => OpenHistorialAvanceDialog(actividad.Id))">
+                                                @L["Progress History"]
+                                            </MudMenuItem>
+                                            <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                                <Authorized Context="authContext">
+                                                    <MudMenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditActividadDialog(actividad))">
+                                                        @L["Edit Actividad"]
+                                                    </MudMenuItem>
+                                                    <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error"
+                                                                 OnClick="@(() => DeleteActividadAsync(actividad))">
+                                                        @L["Delete Actividad"]
+                                                    </MudMenuItem>
+                                                </Authorized>
+                                            </AuthorizeView>
+                                        </MudMenu>
                                     </MudStack>
                                 </MudPaper>
                             }
@@ -555,7 +560,8 @@
             }
         };
 
-        var dialog = await DialogService.ShowAsync<ActividadAvanceDialog>(L["Update Progress"], parameters);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+        var dialog = await DialogService.ShowAsync<ActividadAvanceDialog>(L["Update Progress"], parameters, options);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled && result.Data is ActividadAvanceDialogModel model)
