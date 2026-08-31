@@ -1,0 +1,118 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Options
+@using App.Core.Enums.Obras
+@using App.Core.Options
+@using App.Web.Components.Admin.Obras.Models
+@using MudBlazor
+
+@inject IStringLocalizer<ObraEnviarMensajeDialog> L
+@inject IOptions<ImageOptions> ImageOptions
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudStack Row="true" Spacing="2" Class="mb-3">
+                <MudButton Variant="@(_tipo == TipoObraMensaje.Mensaje ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Chat"
+                           OnClick="@(() => SetTipo(TipoObraMensaje.Mensaje))">
+                    @L["Message"]
+                </MudButton>
+                <MudButton Variant="@(_tipo == TipoObraMensaje.Alerta ? Variant.Filled : Variant.Outlined)"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Warning"
+                           OnClick="@(() => SetTipo(TipoObraMensaje.Alerta))">
+                    @L["Alert"]
+                </MudButton>
+            </MudStack>
+
+            <MudTextField T="string" @bind-Value="_asunto" Label="@L["Subject"]"
+                          Variant="Variant.Outlined" FullWidth="true" Required="true"
+                          RequiredError="@L["Subject is required"]"
+                          MaxLength="200" Counter="200" Class="mb-3" />
+
+            <MudTextField T="string" @bind-Value="_cuerpo" Label="@L["Message"]"
+                          Variant="Variant.Outlined" FullWidth="true" Required="true"
+                          RequiredError="@L["Message is required"]"
+                          Lines="4" AutoGrow="true" MaxLines="12"
+                          MaxLength="3000" Counter="3000" Class="mb-3" />
+
+            <InputFile id="@_inputId" OnChange="OnFileSelectedAsync" accept="@_acceptedFileTypes" class="d-none" />
+            @if (_fotoPreviewUrl is null)
+            {
+                <MudButton HtmlTag="label" Variant="Variant.Outlined" Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.CloudUpload" for="@_inputId" FullWidth="true">
+                    @L["Attach Photo (optional)"]
+                </MudButton>
+            }
+            else
+            {
+                <div class="d-flex align-center gap-3">
+                    <img src="@_fotoPreviewUrl" style="width: 72px; height: 72px; border-radius: 8px; object-fit: cover;" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveFoto" title="@L["Remove Photo"]" />
+                </div>
+            }
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="Send" Disabled="@(!_isValid || _sending)">
+            @L["Send"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private readonly string _inputId = $"obraMensajeFotoUpload-{Guid.NewGuid():N}";
+    private string _acceptedFileTypes => string.Join(",", ImageOptions.Value.AllowedExtensions);
+
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _sending;
+    private TipoObraMensaje _tipo = TipoObraMensaje.Mensaje;
+    private string? _asunto;
+    private string? _cuerpo;
+    private byte[]? _fotoData;
+    private string? _fotoContentType;
+    private string? _fotoFileName;
+    private string? _fotoPreviewUrl;
+
+    private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        using var stream = file.OpenReadStream(ImageOptions.Value.MaxFileSize);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        _fotoData = memoryStream.ToArray();
+        _fotoContentType = file.ContentType;
+        _fotoFileName = file.Name;
+        _fotoPreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(_fotoData)}";
+    }
+
+    private void SetTipo(TipoObraMensaje tipo) => _tipo = tipo;
+
+    private void RemoveFoto()
+    {
+        _fotoData = null;
+        _fotoContentType = null;
+        _fotoFileName = null;
+        _fotoPreviewUrl = null;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Send()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _sending = true;
+        var result = new ObraEnviarMensajeResult(_tipo, _asunto!, _cuerpo!, _fotoData, _fotoContentType, _fotoFileName);
+        MudDialog.Close(DialogResult.Ok(result));
+    }
+}

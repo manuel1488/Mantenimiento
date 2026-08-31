@@ -9,9 +9,11 @@ using App.Core.Enums.Obras;
 using App.Core.Interfaces;
 using App.Core.Interfaces.Notifications;
 using App.Core.Models.Notifications;
+using App.Models.Clientes;
 using App.Models.Cotizaciones;
 using App.Models.Data.Contexts;
 using App.Models.Obras;
+using App.Services.Notifications;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -869,6 +871,213 @@ public class ObraService : IObraService
         {
             _logger.LogError(ex, "Error retrieving general fotos for obra {Id}", obraId);
             return Result<List<ObraFotoGeneralDto>>.Failure(_localizer["Error retrieving fotos"]);
+        }
+    }
+
+    public async Task<Result<ObraMensajeDto>> SendMensajeAsync(
+        int obraId, TipoObraMensaje tipo, string asunto, string cuerpo,
+        byte[]? fotoData = null, string? fotoContentType = null, string? fotoFileName = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            var obra = await context.Obras
+                .Include(o => o.Cliente)
+                .FirstOrDefaultAsync(o => o.Id == obraId, cancellationToken);
+            if (obra == null)
+                return Result<ObraMensajeDto>.Failure(_localizer["Obra not found"]);
+
+            var recipients = ClienteNotificationRecipients.Build(obra.Cliente);
+            if (recipients.Count == 0)
+                return Result<ObraMensajeDto>.Failure(_localizer["Client has no contact information on file"]);
+
+            string? fotoKey = null;
+            string? fotoThumbnailKey = null;
+            byte[]? fotoProcessedData = null;
+            string? fotoProcessedContentType = null;
+
+            if (fotoData is { Length: > 0 })
+            {
+                byte[] thumbnailData;
+                using (var stream = new MemoryStream(fotoData))
+                {
+                    (fotoProcessedData, thumbnailData, fotoProcessedContentType) = await _imageService.ProcessImageWithThumbnailAsync(
+                        stream, fotoFileName ?? string.Empty, fotoContentType ?? string.Empty, cancellationToken: cancellationToken);
+                }
+
+                var extension = fotoProcessedContentType switch
+                {
+                    "image/png" => "png",
+                    "image/webp" => "webp",
+                    _ => "jpg"
+                };
+
+                var keyPrefix = $"evidencias/obra-{obraId}/mensajes";
+
+                var uploadResult = await _fileStorageService.UploadAsync(
+                    fotoProcessedData, fotoProcessedContentType, keyPrefix, extension, cancellationToken);
+                if (!uploadResult.IsSuccess)
+                    return Result<ObraMensajeDto>.Failure(uploadResult.Error!);
+
+                fotoKey = uploadResult.Value!;
+
+                var thumbnailUploadResult = await _fileStorageService.UploadAsync(
+                    thumbnailData, fotoProcessedContentType, $"{keyPrefix}/thumb", extension, cancellationToken);
+                if (thumbnailUploadResult.IsSuccess)
+                    fotoThumbnailKey = thumbnailUploadResult.Value;
+                else
+                    _logger.LogWarning(
+                        "Failed to upload thumbnail for obra {Id} mensaje foto, continuing with full image only: {Error}",
+                        obraId, thumbnailUploadResult.Error);
+            }
+
+            var entity = new ObraMensaje
+            {
+                ObraId = obraId,
+                Tipo = tipo,
+                Asunto = asunto,
+                Cuerpo = cuerpo,
+                FotoRutaArchivo = fotoKey,
+                FotoRutaArchivoThumbnail = fotoThumbnailKey,
+                Destinatarios = ClienteNotificationRecipients.Describe(recipients),
+                FechaEnvio = _dateTimeService.Now
+            };
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            var saveResult = await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    var currentUser = await _currentUserService.GetUserIdAsync();
+                    var currentTime = _dateTimeService.Now;
+                    entity.CreatedBy = currentUser;
+                    entity.CreatedAt = currentTime;
+                    entity.ModifiedBy = currentUser;
+                    entity.ModifiedAt = currentTime;
+
+                    context.ObraMensajes.Add(entity);
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return Result<ObraMensaje>.Success(entity);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
+                }
+            });
+
+            if (!saveResult.IsSuccess)
+            {
+                if (fotoKey is not null)
+                    await _fileStorageService.DeleteAsync(fotoKey, cancellationToken);
+                if (fotoThumbnailKey is not null)
+                    await _fileStorageService.DeleteAsync(fotoThumbnailKey, cancellationToken);
+                return Result<ObraMensajeDto>.Failure(saveResult.Error!);
+            }
+
+            var attachments = new List<NotificationAttachment>();
+            if (fotoProcessedData is not null)
+            {
+                attachments.Add(new NotificationAttachment
+                {
+                    FileName = fotoFileName ?? $"foto.{ExtensionFromKey(fotoKey!)}",
+                    Content = fotoProcessedData,
+                    ContentType = fotoProcessedContentType!
+                });
+            }
+
+            var message = new NotificationMessage
+            {
+                EventType = tipo == TipoObraMensaje.Alerta ? "ObraAlerta" : "ObraMensaje",
+                RelatedEntityType = nameof(Obra),
+                RelatedEntityId = obraId,
+                Subject = tipo == TipoObraMensaje.Alerta ? _localizer["Alert: {0}", asunto] : asunto,
+                Body = cuerpo,
+                Recipients = recipients,
+                Attachments = attachments
+            };
+
+            try
+            {
+                await _notificationService.NotifyAsync(message, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Delivery is best-effort — the message is already saved to the Obra's history, so a
+                // notification failure here must not surface as a failure of the overall operation.
+                _logger.LogError(ex, "Error notifying obra {Id} mensaje", obraId);
+            }
+
+            var dto = _mapper.Map<ObraMensajeDto>(entity);
+            if (fotoKey is not null)
+            {
+                var presignedResult = await _fileStorageService.GetPresignedUrlAsync(fotoKey, cancellationToken);
+                dto.FotoPresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+
+                var thumbnailPresignedResult = fotoThumbnailKey is not null
+                    ? await _fileStorageService.GetPresignedUrlAsync(fotoThumbnailKey, cancellationToken)
+                    : null;
+                dto.FotoThumbnailPresignedUrl = thumbnailPresignedResult?.IsSuccess == true
+                    ? thumbnailPresignedResult.Value
+                    : dto.FotoPresignedUrl;
+            }
+
+            return Result<ObraMensajeDto>.Success(dto);
+        }
+        catch (ArgumentException ex)
+        {
+            // Thrown by IImageService when the file fails validation (size/type) against
+            // the ImageOptions configured in appsettings — surface the specific reason to the user.
+            return Result<ObraMensajeDto>.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending mensaje for obra {Id}", obraId);
+            return Result<ObraMensajeDto>.Failure(_localizer["Error sending mensaje"]);
+        }
+    }
+
+    public async Task<Result<List<ObraMensajeDto>>> GetMensajesAsync(int obraId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+
+            var mensajes = await context.ObraMensajes
+                .AsNoTracking()
+                .Where(m => m.ObraId == obraId)
+                .OrderByDescending(m => m.FechaEnvio)
+                .ToListAsync(cancellationToken);
+
+            var dtos = new List<ObraMensajeDto>();
+            foreach (var mensaje in mensajes)
+            {
+                var dto = _mapper.Map<ObraMensajeDto>(mensaje);
+
+                if (mensaje.FotoRutaArchivo is not null)
+                {
+                    var presignedResult = await _fileStorageService.GetPresignedUrlAsync(mensaje.FotoRutaArchivo, cancellationToken);
+                    dto.FotoPresignedUrl = presignedResult.IsSuccess ? presignedResult.Value : null;
+
+                    var thumbnailResult = mensaje.FotoRutaArchivoThumbnail is not null
+                        ? await _fileStorageService.GetPresignedUrlAsync(mensaje.FotoRutaArchivoThumbnail, cancellationToken)
+                        : null;
+                    dto.FotoThumbnailPresignedUrl = thumbnailResult?.IsSuccess == true ? thumbnailResult.Value : dto.FotoPresignedUrl;
+                }
+
+                dtos.Add(dto);
+            }
+
+            return Result<List<ObraMensajeDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving mensajes for obra {Id}", obraId);
+            return Result<List<ObraMensajeDto>>.Failure(_localizer["Error retrieving mensajes"]);
         }
     }
 }

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving obras" xml:space="preserve">
+    <value>Error retrieving obras</value>
+  </data>
+  <data name="Obra not found" xml:space="preserve">
+    <value>Obra not found</value>
+  </data>
+  <data name="Error retrieving obra" xml:space="preserve">
+    <value>Error retrieving obra</value>
+  </data>
+  <data name="Error creating obra" xml:space="preserve">
+    <value>Error creating obra</value>
+  </data>
+  <data name="Cannot modify an Obra that is Finalizada or Facturada" xml:space="preserve">
+    <value>Cannot modify an Obra that is Finalizada or Facturada</value>
+  </data>
+  <data name="Error updating obra" xml:space="preserve">
+    <value>Error updating obra</value>
+  </data>
+  <data name="Cannot delete an Obra with existing Actividades" xml:space="preserve">
+    <value>Cannot delete an Obra with existing Actividades</value>
+  </data>
+  <data name="Cannot delete an Obra with an existing Factura" xml:space="preserve">
+    <value>Cannot delete an Obra with an existing Factura</value>
+  </data>
+  <data name="Error deleting obra" xml:space="preserve">
+    <value>Error deleting obra</value>
+  </data>
+  <data name="Only an Obra in Aprobada or EnProceso can be Finalizada" xml:space="preserve">
+    <value>Only an Obra in Aprobada or EnProceso can be Finalizada</value>
+  </data>
+  <data name="Error finalizing obra" xml:space="preserve">
+    <value>Error finalizing obra</value>
+  </data>
+  <data name="Only an Obra in Aprobada can be started" xml:space="preserve">
+    <value>Only an Obra in Aprobada can be started</value>
+  </data>
+  <data name="Error starting obra" xml:space="preserve">
+    <value>Error starting obra</value>
+  </data>
+  <data name="Your project has started" xml:space="preserve">
+    <value>Your project has started</value>
+  </data>
+  <data name="Work has started on your project at {0}." xml:space="preserve">
+    <value>Work has started on your project at {0}.</value>
+  </data>
+  <data name="Cotizacion not found" xml:space="preserve">
+    <value>Cotizacion not found</value>
+  </data>
+  <data name="Only an Aprobada Cotizacion can be converted to an Obra" xml:space="preserve">
+    <value>Only an Aprobada Cotizacion can be converted to an Obra</value>
+  </data>
+  <data name="This Cotizacion was already converted to an Obra" xml:space="preserve">
+    <value>This Cotizacion was already converted to an Obra</value>
+  </data>
+  <data name="Error converting cotizacion to obra" xml:space="preserve">
+    <value>Error converting cotizacion to obra</value>
+  </data>
+  <data name="Error uploading foto" xml:space="preserve">
+    <value>Error uploading foto</value>
+  </data>
+  <data name="Foto not found" xml:space="preserve">
+    <value>Foto not found</value>
+  </data>
+  <data name="Error deleting foto" xml:space="preserve">
+    <value>Error deleting foto</value>
+  </data>
+  <data name="Error updating foto" xml:space="preserve">
+    <value>Error updating foto</value>
+  </data>
+  <data name="Error retrieving fotos" xml:space="preserve">
+    <value>Error retrieving fotos</value>
+  </data>
+  <data name="Client has no contact information on file" xml:space="preserve">
+    <value>Client has no contact information on file</value>
+  </data>
+  <data name="Alert: {0}" xml:space="preserve">
+    <value>Alert: {0}</value>
+  </data>
+  <data name="Error sending mensaje" xml:space="preserve">
+    <value>Error sending message</value>
+  </data>
+  <data name="Error retrieving mensajes" xml:space="preserve">
+    <value>Error retrieving messages</value>
+  </data>
+</root>

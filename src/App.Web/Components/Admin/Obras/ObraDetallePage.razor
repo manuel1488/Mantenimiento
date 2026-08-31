@@ -78,7 +78,7 @@
                             </MudStack>
                         </div>
 
-                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="flex-shrink-0">
+                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Style="min-width: 0; max-width: 100%;">
                             <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                 <Authorized Context="authContext">
                                     <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -101,6 +101,12 @@
                                     </MudButton>
                                 </Authorized>
                             </AuthorizeView>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Forum"
+                                       Class="da-button-rounded"
+                                       OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{Id}/mensajes"))">
+                                @L["View Messages"]
+                            </MudButton>
                             <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteObras">
                                 <Authorized Context="authContext">
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"

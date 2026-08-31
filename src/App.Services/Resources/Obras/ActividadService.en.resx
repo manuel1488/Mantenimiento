@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving actividades" xml:space="preserve">
+    <value>Error retrieving actividades</value>
+  </data>
+  <data name="Obra not found" xml:space="preserve">
+    <value>Obra not found</value>
+  </data>
+  <data name="Cannot add Actividades to an Obra that is Finalizada or Facturada" xml:space="preserve">
+    <value>Cannot add Actividades to an Obra that is Finalizada or Facturada</value>
+  </data>
+  <data name="Servicio not found" xml:space="preserve">
+    <value>Servicio not found</value>
+  </data>
+  <data name="Error creating actividad" xml:space="preserve">
+    <value>Error creating actividad</value>
+  </data>
+  <data name="Actividad not found" xml:space="preserve">
+    <value>Actividad not found</value>
+  </data>
+  <data name="Cannot modify Actividades of an Obra that is Finalizada or Facturada" xml:space="preserve">
+    <value>Cannot modify Actividades of an Obra that is Finalizada or Facturada</value>
+  </data>
+  <data name="Error updating actividad" xml:space="preserve">
+    <value>Error updating actividad</value>
+  </data>
+  <data name="Progress update on your project" xml:space="preserve">
+    <value>Progress update on your project</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%." xml:space="preserve">
+    <value>Progress on {0} has been updated to {1}%.</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%. Note: {2}" xml:space="preserve">
+    <value>Progress on {0} has been updated to {1}%. Note: {2}</value>
+  </data>
+  <data name="Error deleting actividad" xml:space="preserve">
+    <value>Error deleting actividad</value>
+  </data>
+  <data name="Error uploading evidencia" xml:space="preserve">
+    <value>Error uploading evidencia</value>
+  </data>
+  <data name="Evidencia not found" xml:space="preserve">
+    <value>Evidencia not found</value>
+  </data>
+  <data name="Error deleting evidencia" xml:space="preserve">
+    <value>Error deleting evidencia</value>
+  </data>
+  <data name="Error retrieving evidencias" xml:space="preserve">
+    <value>Error retrieving evidencias</value>
+  </data>
+  <data name="Error retrieving avance historial" xml:space="preserve">
+    <value>Error retrieving avance historial</value>
+  </data>
+</root>

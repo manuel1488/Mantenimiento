@@ -1,0 +1,77 @@
+@page "/gestion/obras/{Id:int}/mensajes"
+@attribute [Authorize(Policy = ApplicationClaims.Shared.ViewObras)]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using App.Core.Constants
+@using App.Core.DTOs.Obras
+@using App.Core.Interfaces
+@using MudBlazor
+
+@inject IStringLocalizer<ObraMensajesPage> L
+@inject IObraService ObraService
+@inject NavigationManager NavigationManager
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>@L["Messages"]</PageTitle>
+
+<AuthorizeView Policy="@ApplicationClaims.Shared.ViewObras">
+    <Authorized Context="pageAuth">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4 mb-8">
+            @if (_loading)
+            {
+                <div class="d-flex justify-center pa-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (_obra is null)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Class="mb-2"
+                               OnClick="@(() => NavigationManager.NavigateTo("/gestion/obras"))" />
+                <MudAlert Severity="Severity.Warning">@L["Obra not found"]</MudAlert>
+            }
+            else
+            {
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small"
+                                   OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{Id}"))" />
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.h5" Style="font-weight: 600;">@L["Messages"]</MudText>
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@_obra.ClienteNombre &middot; @_obra.Direccion</MudText>
+                    </MudStack>
+                </MudStack>
+
+                <MudPaper Class="da-card pa-3 pa-sm-4" Elevation="2">
+                    <ObraMensajesSection ObraId="Id" ReadOnly="@(!_puedeGestionarMensajes)" />
+                </MudPaper>
+            }
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view works."]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private bool _puedeGestionarMensajes;
+    private ObraDto? _obra;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authResult = await AuthorizationService.AuthorizeAsync(authState.User, ApplicationClaims.Shared.ManageObras);
+        _puedeGestionarMensajes = authResult.Succeeded;
+
+        var result = await ObraService.GetByIdAsync(Id);
+        if (result.IsSuccess)
+            _obra = result.Value;
+
+        _loading = false;
+    }
+}

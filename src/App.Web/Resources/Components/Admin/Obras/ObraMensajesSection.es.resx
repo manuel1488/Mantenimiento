@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Messages" xml:space="preserve">
+    <value>Mensajes</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Mensaje</value>
+  </data>
+  <data name="Alert" xml:space="preserve">
+    <value>Alerta</value>
+  </data>
+  <data name="Progress Update" xml:space="preserve">
+    <value>Avance</value>
+  </data>
+  <data name="Progress update on your project" xml:space="preserve">
+    <value>Avance de tu proyecto</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%." xml:space="preserve">
+    <value>El avance de {0} se actualizó a {1}%.</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%. Note: {2}" xml:space="preserve">
+    <value>El avance de {0} se actualizó a {1}%. Nota: {2}</value>
+  </data>
+  <data name="Send Message" xml:space="preserve">
+    <value>Enviar mensaje</value>
+  </data>
+  <data name="No messages sent" xml:space="preserve">
+    <value>No se han enviado mensajes</value>
+  </data>
+  <data name="Error loading messages" xml:space="preserve">
+    <value>Error al cargar los mensajes</value>
+  </data>
+  <data name="Message sent successfully" xml:space="preserve">
+    <value>Mensaje enviado correctamente</value>
+  </data>
+  <data name="Error sending message" xml:space="preserve">
+    <value>Error al enviar el mensaje</value>
+  </data>
+</root>

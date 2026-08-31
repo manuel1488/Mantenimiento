@@ -6,6 +6,12 @@
   <data name="Obra not found" xml:space="preserve">
     <value>Obra not found</value>
   </data>
+  <data name="Messages" xml:space="preserve">
+    <value>Messages</value>
+  </data>
+  <data name="View Messages" xml:space="preserve">
+    <value>View Messages</value>
+  </data>
   <data name="Works" xml:space="preserve">
     <value>Works</value>
   </data>

@@ -1,5 +1,6 @@
 using App.Core.Common;
 using App.Core.DTOs.Obras;
+using App.Core.Enums.Obras;
 
 namespace App.Core.Interfaces;
 
@@ -27,4 +28,16 @@ public interface IObraService
     Task<Result> UpdateFotoGeneralDescripcionAsync(int fotoId, string? descripcion, CancellationToken cancellationToken = default);
 
     Task<Result<List<ObraFotoGeneralDto>>> GetFotosGeneralesAsync(int obraId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a message/alert to the Obra's Cliente through every notification channel the Cliente has
+    /// contact data for (best-effort, channel-agnostic — see <see cref="Interfaces.Notifications.INotificationService"/>),
+    /// optionally with a photo attached, and records it in the Obra's message history.
+    /// </summary>
+    Task<Result<ObraMensajeDto>> SendMensajeAsync(
+        int obraId, TipoObraMensaje tipo, string asunto, string cuerpo,
+        byte[]? fotoData = null, string? fotoContentType = null, string? fotoFileName = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<List<ObraMensajeDto>>> GetMensajesAsync(int obraId, CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Subject" xml:space="preserve">
+    <value>Subject</value>
+  </data>
+  <data name="Subject is required" xml:space="preserve">
+    <value>Subject is required</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Alert" xml:space="preserve">
+    <value>Alert</value>
+  </data>
+  <data name="Message is required" xml:space="preserve">
+    <value>Message is required</value>
+  </data>
+  <data name="Attach Photo (optional)" xml:space="preserve">
+    <value>Attach Photo (optional)</value>
+  </data>
+  <data name="Remove Photo" xml:space="preserve">
+    <value>Remove Photo</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Send</value>
+  </data>
+</root>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving obras" xml:space="preserve">
+    <value>Error al obtener las obras</value>
+  </data>
+  <data name="Obra not found" xml:space="preserve">
+    <value>Obra no encontrada</value>
+  </data>
+  <data name="Error retrieving obra" xml:space="preserve">
+    <value>Error al obtener la obra</value>
+  </data>
+  <data name="Error creating obra" xml:space="preserve">
+    <value>Error al crear la obra</value>
+  </data>
+  <data name="Cannot modify an Obra that is Finalizada or Facturada" xml:space="preserve">
+    <value>No se puede modificar una Obra Finalizada o Facturada</value>
+  </data>
+  <data name="Error updating obra" xml:space="preserve">
+    <value>Error al actualizar la obra</value>
+  </data>
+  <data name="Cannot delete an Obra with existing Actividades" xml:space="preserve">
+    <value>No se puede eliminar una Obra con Actividades existentes</value>
+  </data>
+  <data name="Cannot delete an Obra with an existing Factura" xml:space="preserve">
+    <value>No se puede eliminar una Obra con una Factura existente</value>
+  </data>
+  <data name="Error deleting obra" xml:space="preserve">
+    <value>Error al eliminar la obra</value>
+  </data>
+  <data name="Only an Obra in Aprobada or EnProceso can be Finalizada" xml:space="preserve">
+    <value>Solo una Obra Aprobada o En Proceso puede Finalizarse</value>
+  </data>
+  <data name="Error finalizing obra" xml:space="preserve">
+    <value>Error al finalizar la obra</value>
+  </data>
+  <data name="Only an Obra in Aprobada can be started" xml:space="preserve">
+    <value>Solo una Obra Aprobada puede iniciarse</value>
+  </data>
+  <data name="Error starting obra" xml:space="preserve">
+    <value>Error al iniciar la obra</value>
+  </data>
+  <data name="Your project has started" xml:space="preserve">
+    <value>Tu proyecto ha iniciado</value>
+  </data>
+  <data name="Work has started on your project at {0}." xml:space="preserve">
+    <value>Se ha iniciado el trabajo en tu proyecto en {0}.</value>
+  </data>
+  <data name="Cotizacion not found" xml:space="preserve">
+    <value>Cotización no encontrada</value>
+  </data>
+  <data name="Only an Aprobada Cotizacion can be converted to an Obra" xml:space="preserve">
+    <value>Solo una Cotización Aprobada puede convertirse en Obra</value>
+  </data>
+  <data name="This Cotizacion was already converted to an Obra" xml:space="preserve">
+    <value>Esta Cotización ya fue convertida en Obra</value>
+  </data>
+  <data name="Error converting cotizacion to obra" xml:space="preserve">
+    <value>Error al convertir la cotización en obra</value>
+  </data>
+  <data name="Error uploading foto" xml:space="preserve">
+    <value>Error al subir la foto</value>
+  </data>
+  <data name="Foto not found" xml:space="preserve">
+    <value>Foto no encontrada</value>
+  </data>
+  <data name="Error deleting foto" xml:space="preserve">
+    <value>Error al eliminar la foto</value>
+  </data>
+  <data name="Error updating foto" xml:space="preserve">
+    <value>Error al actualizar la foto</value>
+  </data>
+  <data name="Error retrieving fotos" xml:space="preserve">
+    <value>Error al obtener las fotos</value>
+  </data>
+  <data name="Client has no contact information on file" xml:space="preserve">
+    <value>El cliente no tiene datos de contacto registrados</value>
+  </data>
+  <data name="Alert: {0}" xml:space="preserve">
+    <value>Alerta: {0}</value>
+  </data>
+  <data name="Error sending mensaje" xml:space="preserve">
+    <value>Error al enviar el mensaje</value>
+  </data>
+  <data name="Error retrieving mensajes" xml:space="preserve">
+    <value>Error al obtener los mensajes</value>
+  </data>
+</root>

@@ -1,0 +1,192 @@
+@using App.Core.DTOs.Obras
+@using App.Core.Enums.Obras
+@using App.Core.Interfaces
+@using App.Web.Components.Admin.Obras.Models
+@using App.Web.Components.Admin.Cotizaciones
+@using MudBlazor
+
+@inject IStringLocalizer<ObraMensajesSection> L
+@inject IObraService ObraService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject ILogger<ObraMensajesSection> Logger
+
+@if (!ReadOnly)
+{
+    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mb-3">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Send" OnClick="OpenSendDialogAsync" Disabled="@_sending">
+            @L["Send Message"]
+        </MudButton>
+    </MudStack>
+}
+
+@if (_loading)
+{
+    <div class="d-flex justify-center pa-4">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (_mensajes.Count == 0)
+{
+    <MudText Class="mud-text-secondary" Typo="Typo.body2">@L["No messages sent"]</MudText>
+}
+else
+{
+    <MudStack Spacing="2">
+        @foreach (var mensaje in _mensajes)
+        {
+            <MudPaper Class="pa-3" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 8px;">
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                    <MudStack Spacing="0">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudChip T="string" Size="Size.Small"
+                                     Color="@TipoColor(mensaje.Tipo)"
+                                     Variant="Variant.Filled"
+                                     Icon="@TipoIcon(mensaje.Tipo)">
+                                @TipoLabel(mensaje.Tipo)
+                            </MudChip>
+                            <MudText Typo="Typo.subtitle2">@AsuntoDisplay(mensaje)</MudText>
+                        </MudStack>
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                            @mensaje.FechaEnvio.ToLocalTime().ToString("g") &middot; @ChannelsOnly(mensaje.Destinatarios)
+                        </MudText>
+                    </MudStack>
+                    @if (mensaje.FotoPresignedUrl is not null)
+                    {
+                        <img src="@(mensaje.FotoThumbnailPresignedUrl ?? mensaje.FotoPresignedUrl)"
+                             style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; cursor: pointer; flex-shrink: 0;"
+                             @onclick="@(() => OpenViewer(mensaje))" />
+                    }
+                </MudStack>
+                <MudText Typo="Typo.body2" Class="mt-2" Style="white-space: pre-wrap;">@CuerpoDisplay(mensaje)</MudText>
+            </MudPaper>
+        }
+    </MudStack>
+}
+
+@code {
+    [Parameter, EditorRequired] public int ObraId { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private bool _loading = true;
+    private bool _sending;
+    private List<ObraMensajeDto> _mensajes = new();
+
+    private string TipoLabel(TipoObraMensaje tipo) => tipo switch
+    {
+        TipoObraMensaje.Alerta => L["Alert"],
+        TipoObraMensaje.Avance => L["Progress Update"],
+        _ => L["Message"]
+    };
+
+    private static Color TipoColor(TipoObraMensaje tipo) => tipo switch
+    {
+        TipoObraMensaje.Alerta => Color.Error,
+        TipoObraMensaje.Avance => Color.Info,
+        _ => Color.Default
+    };
+
+    private static string TipoIcon(TipoObraMensaje tipo) => tipo switch
+    {
+        TipoObraMensaje.Alerta => Icons.Material.Filled.Warning,
+        TipoObraMensaje.Avance => Icons.Material.Filled.TrendingUp,
+        _ => Icons.Material.Filled.Chat
+    };
+
+    // Mensaje/Alerta are free text the sender typed — shown as-is. Avance is system-generated, so
+    // Asunto/Cuerpo hold raw data (Servicio name, note, %) instead of a frozen sentence; rebuilding
+    // it here means it always renders in the viewer's current UI language, not whatever language was
+    // active on the server when the avance was registered.
+    private string AsuntoDisplay(ObraMensajeDto mensaje) => mensaje.Tipo == TipoObraMensaje.Avance
+        ? L["Progress update on your project"]
+        : mensaje.Asunto;
+
+    // Destinatarios stores "Email: cliente@correo.com; WhatsApp: 555-1234" for the audit trail — the
+    // actual address isn't shown here, only the channel name, to avoid exposing contact details on
+    // every message card (the full value still lives in the DB and in NotificationLog).
+    private static string ChannelsOnly(string destinatarios) => string.Join(", ",
+        destinatarios.Split("; ", StringSplitOptions.RemoveEmptyEntries).Select(part => part.Split(':')[0].Trim()));
+
+    private string CuerpoDisplay(ObraMensajeDto mensaje) => mensaje.Tipo == TipoObraMensaje.Avance
+        ? (string.IsNullOrWhiteSpace(mensaje.Cuerpo)
+            ? L["Progress on {0} has been updated to {1}%.", mensaje.Asunto, mensaje.PorcentajeAvance]
+            : L["Progress on {0} has been updated to {1}%. Note: {2}", mensaje.Asunto, mensaje.PorcentajeAvance, mensaje.Cuerpo])
+        : mensaje.Cuerpo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var result = await ObraService.GetMensajesAsync(ObraId);
+            if (result.IsSuccess)
+                _mensajes = result.Value!;
+            else
+                Snackbar.Add(result.Error, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading mensajes for obra {Id}", ObraId);
+            Snackbar.Add(L["Error loading messages"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenSendDialogAsync()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+        var dialogResult = await DialogService.ShowAsync<ObraEnviarMensajeDialog>(L["Send Message"], options);
+        var result = await dialogResult.Result;
+
+        if (result is null || result.Canceled || result.Data is not ObraEnviarMensajeResult data) return;
+
+        _sending = true;
+        try
+        {
+            var sendResult = await ObraService.SendMensajeAsync(
+                ObraId, data.Tipo, data.Asunto, data.Cuerpo, data.FotoData, data.FotoContentType, data.FotoFileName);
+
+            if (sendResult.IsSuccess)
+            {
+                Snackbar.Add(L["Message sent successfully"], Severity.Success);
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add(sendResult.Error, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error sending mensaje for obra {Id}", ObraId);
+            Snackbar.Add(L["Error sending message"], Severity.Error);
+        }
+        finally
+        {
+            _sending = false;
+        }
+    }
+
+    private async Task OpenViewer(ObraMensajeDto mensaje)
+    {
+        if (mensaje.FotoPresignedUrl is null) return;
+
+        var parameters = new DialogParameters<CotizacionFotoViewerDialog>
+        {
+            { x => x.ImageUrl, mensaje.FotoPresignedUrl },
+            { x => x.Descripcion, mensaje.Asunto }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<CotizacionFotoViewerDialog>(null, parameters, options);
+    }
+}

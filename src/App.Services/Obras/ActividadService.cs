@@ -10,6 +10,7 @@ using App.Core.Interfaces.Notifications;
 using App.Core.Models.Notifications;
 using App.Models.Data.Contexts;
 using App.Models.Obras;
+using App.Services.Notifications;
 using App.Shared.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -353,7 +354,9 @@ public class ActividadService : IActividadService
                 return result;
             }
 
-            await NotifyActividadAvanceAsync(id, result.Value!.PorcentajeAvance, observaciones, processedFotoData, processedFotoContentType, fotoFileName);
+            await NotifyActividadAvanceAsync(
+                id, result.Value!.PorcentajeAvance, observaciones,
+                processedFotoData, processedFotoContentType, fotoFileName, fotoKey, fotoThumbnailKey);
 
             return result;
         }
@@ -374,7 +377,9 @@ public class ActividadService : IActividadService
         string? observaciones,
         byte[]? fotoData,
         string? fotoContentType,
-        string? fotoFileName)
+        string? fotoFileName,
+        string? fotoKey,
+        string? fotoThumbnailKey)
     {
         try
         {
@@ -385,9 +390,14 @@ public class ActividadService : IActividadService
                 .Include(a => a.Obra).ThenInclude(o => o.Cliente)
                 .FirstOrDefaultAsync(a => a.Id == actividadId);
 
-            if (actividad?.Obra.Cliente.Correo is not { Length: > 0 } correo)
+            if (actividad is null)
                 return;
 
+            var recipients = ClienteNotificationRecipients.Build(actividad.Obra.Cliente);
+            if (recipients.Count == 0)
+                return;
+
+            var subject = _localizer["Progress update on your project"];
             var body = string.IsNullOrWhiteSpace(observaciones)
                 ? _localizer["Progress on {0} has been updated to {1}%.", actividad.Servicio.Nombre, porcentajeAvance]
                 : _localizer["Progress on {0} has been updated to {1}%. Note: {2}", actividad.Servicio.Nombre, porcentajeAvance, observaciones];
@@ -397,12 +407,9 @@ public class ActividadService : IActividadService
                 EventType = "ActividadAvanceActualizado",
                 RelatedEntityType = nameof(Actividad),
                 RelatedEntityId = actividadId,
-                Subject = _localizer["Progress update on your project"],
+                Subject = subject,
                 Body = body,
-                Recipients = new Dictionary<NotificationChannelType, string>
-                {
-                    [NotificationChannelType.Email] = correo
-                }
+                Recipients = recipients
             };
 
             if (fotoData is { Length: > 0 })
@@ -419,6 +426,48 @@ public class ActividadService : IActividadService
             }
 
             await _notificationService.NotifyAsync(message);
+
+            // Also leaves a record in the Obra's unified message history (App.Web/.../ObraMensajesSection),
+            // reusing the blob(s) already uploaded for the avance registro — no re-upload needed.
+            // Asunto/Cuerpo/PorcentajeAvance are kept as raw data (Servicio name, note, %) rather than
+            // the already-localized `subject`/`body` above — the history view re-renders the sentence
+            // in the viewer's current UI language instead of freezing whatever language was active here.
+            var registro = new ObraMensaje
+            {
+                ObraId = actividad.ObraId,
+                Tipo = TipoObraMensaje.Avance,
+                Asunto = actividad.Servicio.Nombre,
+                Cuerpo = observaciones ?? string.Empty,
+                PorcentajeAvance = porcentajeAvance,
+                FotoRutaArchivo = fotoKey,
+                FotoRutaArchivoThumbnail = fotoThumbnailKey,
+                Destinatarios = ClienteNotificationRecipients.Describe(recipients),
+                FechaEnvio = _dateTimeService.Now
+            };
+
+            var currentUser = await _currentUserService.GetUserIdAsync();
+            var currentTime = _dateTimeService.Now;
+            registro.CreatedBy = currentUser;
+            registro.CreatedAt = currentTime;
+            registro.ModifiedBy = currentUser;
+            registro.ModifiedAt = currentTime;
+
+            var strategy = context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    context.ObraMensajes.Add(registro);
+                    await context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
         catch (Exception ex)
         {

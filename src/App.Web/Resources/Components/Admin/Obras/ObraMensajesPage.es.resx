@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Messages" xml:space="preserve">
+    <value>Mensajes</value>
+  </data>
+  <data name="Obra not found" xml:space="preserve">
+    <value>Obra no encontrada</value>
+  </data>
+  <data name="You don't have permission to view works." xml:space="preserve">
+    <value>No tienes permiso para ver obras.</value>
+  </data>
+</root>

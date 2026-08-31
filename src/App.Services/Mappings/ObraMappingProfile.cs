@@ -19,5 +19,9 @@ public class ObraMappingProfile : Profile
         CreateMap<UpdateObraDto, Obra>();
 
         CreateMap<ObraFotoGeneral, ObraFotoGeneralDto>();
+
+        CreateMap<ObraMensaje, ObraMensajeDto>()
+            .ForMember(dest => dest.FotoPresignedUrl, opt => opt.Ignore())
+            .ForMember(dest => dest.FotoThumbnailPresignedUrl, opt => opt.Ignore());
     }
 }

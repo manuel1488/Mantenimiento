@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error retrieving actividades" xml:space="preserve">
+    <value>Error al obtener las actividades</value>
+  </data>
+  <data name="Obra not found" xml:space="preserve">
+    <value>Obra no encontrada</value>
+  </data>
+  <data name="Cannot add Actividades to an Obra that is Finalizada or Facturada" xml:space="preserve">
+    <value>No se pueden agregar Actividades a una Obra Finalizada o Facturada</value>
+  </data>
+  <data name="Servicio not found" xml:space="preserve">
+    <value>Servicio no encontrado</value>
+  </data>
+  <data name="Error creating actividad" xml:space="preserve">
+    <value>Error al crear la actividad</value>
+  </data>
+  <data name="Actividad not found" xml:space="preserve">
+    <value>Actividad no encontrada</value>
+  </data>
+  <data name="Cannot modify Actividades of an Obra that is Finalizada or Facturada" xml:space="preserve">
+    <value>No se pueden modificar Actividades de una Obra Finalizada o Facturada</value>
+  </data>
+  <data name="Error updating actividad" xml:space="preserve">
+    <value>Error al actualizar la actividad</value>
+  </data>
+  <data name="Progress update on your project" xml:space="preserve">
+    <value>Avance de tu proyecto</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%." xml:space="preserve">
+    <value>El avance de {0} se actualizó a {1}%.</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%. Note: {2}" xml:space="preserve">
+    <value>El avance de {0} se actualizó a {1}%. Nota: {2}</value>
+  </data>
+  <data name="Error deleting actividad" xml:space="preserve">
+    <value>Error al eliminar la actividad</value>
+  </data>
+  <data name="Error uploading evidencia" xml:space="preserve">
+    <value>Error al subir la evidencia</value>
+  </data>
+  <data name="Evidencia not found" xml:space="preserve">
+    <value>Evidencia no encontrada</value>
+  </data>
+  <data name="Error deleting evidencia" xml:space="preserve">
+    <value>Error al eliminar la evidencia</value>
+  </data>
+  <data name="Error retrieving evidencias" xml:space="preserve">
+    <value>Error al obtener las evidencias</value>
+  </data>
+  <data name="Error retrieving avance historial" xml:space="preserve">
+    <value>Error al obtener el historial de avance</value>
+  </data>
+</root>
