@@ -258,3 +258,11 @@
         {{ end }}
     </div>
     {{ end }}
+
+    {{ if has_firma }}
+    <div class="extra-section signature-section">
+        <div class="box-title">{{ label_signature }}</div>
+        <img class="signature-image" src="{{ firma_url }}" alt="{{ label_signature }}" />
+        <div class="signature-caption">{{ label_signed_by }}: {{ firma_nombre }} — {{ firma_fecha }}</div>
+    </div>
+    {{ end }}

@@ -245,6 +245,26 @@ table.lineas .linea-descripcion {
     white-space: pre-line;
 }
 
+.signature-section {
+    text-align: center;
+}
+
+.signature-image {
+    max-width: 220px;
+    max-height: 90px;
+    display: block;
+    margin: 0 auto 6px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.signature-caption {
+    font-size: 10px;
+    color: #424242;
+}
+
 .photo-annex {
     page-break-before: always;
     padding-top: 8px;
