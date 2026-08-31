@@ -36,6 +36,9 @@
   <data name="Unit Price" xml:space="preserve">
     <value>Unit Price</value>
   </data>
+  <data name="Estimated Time (days)" xml:space="preserve">
+    <value>Estimated Time (days)</value>
+  </data>
   <data name="Subtotal" xml:space="preserve">
     <value>Subtotal</value>
   </data>

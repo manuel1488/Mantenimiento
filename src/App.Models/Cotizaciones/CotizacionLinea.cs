@@ -51,5 +51,17 @@ public class CotizacionLinea : BaseEntity<int>, IAuditTracked
     [Column(TypeName = "decimal(18,2)")]
     public decimal Subtotal { get; set; }
 
+    /// <summary>
+    /// Copiado del catálogo de Servicio al agregar la línea; ajustable manualmente por el Coordinador
+    /// — igual que PrecioUnitario, es un snapshot que preserva lo cotizado aunque el Servicio cambie después.
+    /// </summary>
+    [Required]
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal RendimientoDiasPorUnidad { get; set; }
+
+    [Required]
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal TiempoEstimadoDias { get; set; }
+
     public ICollection<CotizacionFoto> Fotos { get; set; } = new List<CotizacionFoto>();
 }

@@ -211,6 +211,7 @@ public class CotizacionService : ICotizacionService
                         var precioUnitario = linea.PrecioUnitarioOverride ?? servicio.PrecioUnitario;
                         var subtotal = linea.Cantidad * precioUnitario;
                         subtotalTotal += subtotal;
+                        var rendimiento = linea.RendimientoDiasPorUnidadOverride ?? servicio.RendimientoDiasPorUnidad;
 
                         cotizacion.Lineas.Add(new CotizacionLinea
                         {
@@ -221,6 +222,8 @@ public class CotizacionService : ICotizacionService
                             Cantidad = linea.Cantidad,
                             PrecioUnitario = precioUnitario,
                             Subtotal = subtotal,
+                            RendimientoDiasPorUnidad = rendimiento,
+                            TiempoEstimadoDias = linea.Cantidad * rendimiento,
                             CreatedBy = currentUser,
                             CreatedAt = currentTime,
                             ModifiedBy = currentUser,
@@ -327,6 +330,8 @@ public class CotizacionService : ICotizacionService
                         var precioUnitario = linea.PrecioUnitarioOverride ?? servicio.PrecioUnitario;
                         var subtotal = linea.Cantidad * precioUnitario;
                         subtotalTotal += subtotal;
+                        var rendimiento = linea.RendimientoDiasPorUnidadOverride ?? servicio.RendimientoDiasPorUnidad;
+                        var tiempoEstimado = linea.Cantidad * rendimiento;
 
                         var existente = lineasRestantes.FirstOrDefault(l => l.ServicioId == linea.ServicioId);
                         if (existente is not null)
@@ -338,7 +343,9 @@ public class CotizacionService : ICotizacionService
                                 || existente.UnidadMedida != servicio.UnidadMedida.Codigo
                                 || existente.Cantidad != linea.Cantidad
                                 || existente.PrecioUnitario != precioUnitario
-                                || existente.Subtotal != subtotal;
+                                || existente.Subtotal != subtotal
+                                || existente.RendimientoDiasPorUnidad != rendimiento
+                                || existente.TiempoEstimadoDias != tiempoEstimado;
 
                             existente.ServicioNombre = servicio.Nombre;
                             existente.Descripcion = linea.Descripcion;
@@ -346,6 +353,8 @@ public class CotizacionService : ICotizacionService
                             existente.Cantidad = linea.Cantidad;
                             existente.PrecioUnitario = precioUnitario;
                             existente.Subtotal = subtotal;
+                            existente.RendimientoDiasPorUnidad = rendimiento;
+                            existente.TiempoEstimadoDias = tiempoEstimado;
 
                             if (cambio)
                             {
@@ -364,6 +373,8 @@ public class CotizacionService : ICotizacionService
                                 Cantidad = linea.Cantidad,
                                 PrecioUnitario = precioUnitario,
                                 Subtotal = subtotal,
+                                RendimientoDiasPorUnidad = rendimiento,
+                                TiempoEstimadoDias = tiempoEstimado,
                                 CreatedBy = currentUser,
                                 CreatedAt = currentTime,
                                 ModifiedBy = currentUser,

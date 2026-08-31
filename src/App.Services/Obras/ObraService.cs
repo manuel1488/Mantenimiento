@@ -440,17 +440,6 @@ public class ObraService : IObraService
                         return Result<ObraDto>.Failure(_localizer["This Cotizacion was already converted to an Obra"]);
                     }
 
-                    // The Cotización's líneas already snapshot the Servicio name/unidad/precio at
-                    // quoting time (money figures below come from that snapshot, never from the live
-                    // catalog). The catalog Servicio may since have changed or been soft-deleted, so
-                    // its current rendimiento is looked up tolerantly here — it only feeds a
-                    // best-effort TiempoEstimadoDias, never blocks the conversion.
-                    var servicioIds = cotizacion.Lineas.Select(l => l.ServicioId).Distinct().ToList();
-                    var rendimientos = await context.Servicios
-                        .IgnoreQueryFilters()
-                        .Where(s => servicioIds.Contains(s.Id))
-                        .ToDictionaryAsync(s => s.Id, s => s.RendimientoDiasPorUnidad);
-
                     var currentUser = await _currentUserService.GetUserIdAsync();
                     var currentTime = _dateTimeService.Now;
 
@@ -475,8 +464,6 @@ public class ObraService : IObraService
 
                     foreach (var linea in cotizacion.Lineas)
                     {
-                        var rendimiento = rendimientos.GetValueOrDefault(linea.ServicioId);
-
                         var actividad = new Actividad
                         {
                             ServicioId = linea.ServicioId,
@@ -484,8 +471,8 @@ public class ObraService : IObraService
                             Cantidad = linea.Cantidad,
                             PrecioUnitario = linea.PrecioUnitario,
                             Costo = linea.Subtotal,
-                            RendimientoDiasPorUnidad = rendimiento,
-                            TiempoEstimadoDias = linea.Cantidad * rendimiento,
+                            RendimientoDiasPorUnidad = linea.RendimientoDiasPorUnidad,
+                            TiempoEstimadoDias = linea.TiempoEstimadoDias,
                             Estado = ActividadEstado.Pendiente,
                             CreatedBy = currentUser,
                             CreatedAt = currentTime,
