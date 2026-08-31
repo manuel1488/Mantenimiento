@@ -181,7 +181,7 @@
                             <TemplateColumn Title="@L["Quantity"]">
                                 <CellTemplate>@context.Item.Cantidad.ToString("F2") @context.Item.UnidadMedidaCodigo</CellTemplate>
                             </TemplateColumn>
-                            <TemplateColumn Title="@L["Estimated Time (days)"]">
+                            <TemplateColumn Title="@L["Estimated Time (days)"]" HeaderStyle="width: 90px;">
                                 <CellTemplate>@context.Item.TiempoEstimadoDias.ToString("F2")</CellTemplate>
                             </TemplateColumn>
                             <TemplateColumn Title="@L["Cost"]">
