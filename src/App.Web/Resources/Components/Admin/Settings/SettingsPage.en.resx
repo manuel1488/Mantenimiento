@@ -40,6 +40,10 @@
     <value>Email</value>
     <comment>Email settings tab</comment>
   </data>
+  <data name="Telegram" xml:space="preserve">
+    <value>Telegram</value>
+    <comment>Telegram settings tab</comment>
+  </data>
   <data name="Tax Rates" xml:space="preserve">
     <value>Tax Rates</value>
     <comment>Tax rates settings tab</comment>

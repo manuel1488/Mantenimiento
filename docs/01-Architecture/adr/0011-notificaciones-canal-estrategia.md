@@ -32,6 +32,24 @@ Se introduce una capa de notificación desacoplada del canal de entrega, con Str
   - `Recipients` es `string`-typed por canal; si un canal necesita más de un dato (p. ej. Telegram podría necesitar chat id + tema/thread), su implementación deberá empaquetar esa información en el string (ej. JSON o un separador) o el contrato deberá revisarse — no se previó una estructura más rica para no sobre-diseñar antes de tener un segundo canal real.
   - No hay UI de administración para consultar `not_notificaciones_log` todavía — solo se persiste. Si se necesita revisar fallos de entrega desde la UI, se debe agregar como trabajo aparte.
 
+**Actualización 2026-08-31 — Telegram descartado como canal de notificación push a clientes:**
+
+Se evaluó implementar `TelegramNotificationChannel` (el `NotificationChannelType.Telegram` ya existía en el enum previendo esto) y se descartó. El Bot API de Telegram no permite que un bot le escriba primero a un usuario que nunca lo contactó — ni por teléfono ni por username; solo puede responder dentro de chats que el usuario inició (deep-link `/start`, modo inline, etc.), confirmado en la documentación oficial (`core.telegram.org/bots/features`) y consistente con cómo operan todos los proveedores del mercado (Manychat, SendPulse, UChat, MessageWhiz — todos automatizan sobre chats ya iniciados por el usuario, ninguno hace push en frío). "Telegram Business" tampoco lo resuelve: automatiza respuestas sobre chats que el cliente ya inició con la cuenta de negocio, no permite iniciar contacto.
+
+Esto es lo opuesto al modelo de WhatsApp Business API, que sí está diseñado para mensajes salientes a números que nunca escribieron primero (vía plantillas pre-aprobadas + opt-in). Por eso Telegram no es viable como canal de notificación transaccional a clientes (ej. "tu Obra inició"), a menos que se acepte un flujo manual donde el cliente le dé `/start` al bot y capture su `chat_id` a mano — considerado pero no implementado por ahora.
+
+`NotificationChannelType.Telegram` se deja en el enum sin implementación de canal, por si en el futuro se usa para un caso distinto (ej. broadcast a un canal/grupo interno, que sí es soportado sin restricción de "quién contacta primero").
+
+**Actualización 2026-09-01 — Telegram adoptado para alertas internas al staff (no a clientes):**
+
+La restricción de "el usuario debe contactar primero" descrita arriba solo bloquea el caso cliente-en-frío. Para **staff interno** sí es viable: cada usuario le da `/start` al bot una sola vez (no es contacto en frío, es gente de la propia organización), y desde ahí el bot puede escribirle. Se implementó `TelegramNotificationChannel : INotificationChannel` (el mismo Strategy de este ADR, sin modificarlo) más una capa de suscripción por usuario y evento encima:
+
+- `NotificationEventType` (`App.Core/Enums/Notifications`) es el catálogo de eventos de negocio suscribibles: `ObraIniciada`, `ObraFinalizada`, `ObraVencida`, `CotizacionAprobada`, `CotizacionRechazada`, `ActividadVencida`. Los dos últimos "Vencida" son placeholders — el sistema no tiene campo de fecha límite ni job de vencidos todavía, así que no se disparan aún.
+- `UserNotificationSubscription` (`App.Models/Notifications`) guarda, por usuario, qué eventos quiere recibir en qué canal. `IInternalNotificationDispatcher.DispatchAsync(...)` resuelve los suscriptores de un evento y llama a `INotificationService.NotifyAsync` una vez por usuario — así el fan-out/log de este ADR no se toca, solo se le agrega "a quién avisar" por encima.
+- Vinculación de cuenta vía PIN: el usuario genera un código de 6 dígitos en su perfil (`Profile.razor` → tab "Telegram" → `TelegramLinkTab.razor`), se lo escribe al bot, y `TelegramWebhookController` (`api/telegram/webhook`, autenticado por el `X-Telegram-Bot-Api-Secret-Token` que Telegram reenvía, no por sesión de usuario) lo valida y guarda el `chat_id` en `ApplicationUser.TelegramChatId`. Ese webhook es también el punto de extensión pensado para una futura respuesta con IA (hoy cualquier mensaje que no sea un PIN válido recibe una respuesta genérica fija).
+- El bot token y la URL pública del webhook (configurable, no hardcodeada — se re-registra con `setWebhook` cada vez que el admin la guarda) viven en `TelegramSettings`, editable en Admin → Settings → tab "Telegram".
+- Los 4 eventos con disparador real se conectan en `ObraService` (`NotifyObraIniciadaAsync`, `NotifyObraFinalizadaAsync`) y `CotizacionService` (`NotifyCotizacionAprobadaAsync`, `NotifyCotizacionRechazadaAsync`), siguiendo la misma regla de este ADR: siempre después del commit, en su propio try/catch, sin afectar el `Result` devuelto al llamador.
+
 **Referencias:**
 - [`INotificationChannel`](../../../src/App.Core/Interfaces/Notifications/INotificationChannel.cs)
 - [`INotificationService`](../../../src/App.Core/Interfaces/Notifications/INotificationService.cs)

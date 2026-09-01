@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Your Telegram account is linked." xml:space="preserve">
+    <value>Your Telegram account is linked.</value>
+  </data>
+  <data name="Unlink" xml:space="preserve">
+    <value>Unlink</value>
+  </data>
+  <data name="Open the bot and send it this code:" xml:space="preserve">
+    <value>Open the bot and send it this code:</value>
+  </data>
+  <data name="Expires at {0}" xml:space="preserve">
+    <value>Expires at {0}</value>
+  </data>
+  <data name="Open bot in Telegram" xml:space="preserve">
+    <value>Open bot in Telegram</value>
+  </data>
+  <data name="The bot isn't configured yet — ask an administrator." xml:space="preserve">
+    <value>The bot isn't configured yet — ask an administrator.</value>
+  </data>
+  <data name="Link your Telegram account to receive internal alerts here." xml:space="preserve">
+    <value>Link your Telegram account to receive internal alerts here.</value>
+  </data>
+  <data name="Generate code" xml:space="preserve">
+    <value>Generate code</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>Alerts</value>
+  </data>
+  <data name="Not triggered automatically yet" xml:space="preserve">
+    <value>Not triggered automatically yet</value>
+  </data>
+  <data name="Error loading Telegram status" xml:space="preserve">
+    <value>Error loading Telegram status</value>
+  </data>
+  <data name="Telegram account unlinked" xml:space="preserve">
+    <value>Telegram account unlinked</value>
+  </data>
+  <data name="ObraIniciada" xml:space="preserve">
+    <value>Obra started</value>
+  </data>
+  <data name="ObraFinalizada" xml:space="preserve">
+    <value>Obra finished</value>
+  </data>
+  <data name="ObraVencida" xml:space="preserve">
+    <value>Obra overdue</value>
+  </data>
+  <data name="CotizacionAprobada" xml:space="preserve">
+    <value>Cotización approved</value>
+  </data>
+  <data name="CotizacionRechazada" xml:space="preserve">
+    <value>Cotización rejected</value>
+  </data>
+  <data name="ActividadVencida" xml:space="preserve">
+    <value>Actividad overdue</value>
+  </data>
+</root>

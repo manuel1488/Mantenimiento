@@ -238,6 +238,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AddPolicy(ApplicationClaims.Admin.ViewEmailSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewEmailSettings));
         options.AddPolicy(ApplicationClaims.Admin.ManageEmailSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageEmailSettings));
 
+        options.AddPolicy(ApplicationClaims.Admin.ViewTelegramSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewTelegramSettings));
+        options.AddPolicy(ApplicationClaims.Admin.ManageTelegramSettings, policy => policy.RequireClaim(ApplicationClaims.Admin.ManageTelegramSettings));
+
         options.AddPolicy(ApplicationClaims.Admin.ViewAudit, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewAudit));
 
         options.AddPolicy(ApplicationClaims.Admin.ViewPermissions, policy => policy.RequireClaim(ApplicationClaims.Admin.ViewPermissions));
@@ -530,6 +533,17 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IEmailTemplateService, EmailTemplateService>();
     services.AddScoped<INotificationChannel, EmailNotificationChannel>();
     services.AddScoped<INotificationService, NotificationService>();
+
+    services.AddHttpClient(TelegramApiClient.HttpClientName, client =>
+    {
+        client.BaseAddress = new Uri("https://api.telegram.org/");
+    });
+    services.AddScoped<ITelegramApiClient, TelegramApiClient>();
+    services.AddScoped<ITelegramSettingsService, TelegramSettingsService>();
+    services.AddScoped<ITelegramLinkService, TelegramLinkService>();
+    services.AddScoped<IUserNotificationSubscriptionService, UserNotificationSubscriptionService>();
+    services.AddScoped<IInternalNotificationDispatcher, InternalNotificationDispatcher>();
+    services.AddScoped<INotificationChannel, TelegramNotificationChannel>();
 
     services.AddScoped<IEmailTemplateSeeder>(sp => new EmailTemplateSeeder(
         sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),

@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.Localization
 @using App.Web.Components.Admin.Settings.General
 @using App.Web.Components.Admin.Settings.Email
+@using App.Web.Components.Admin.Settings.Telegram
 @using App.Web.Components.Admin.Settings.Minio
 @using App.Web.Components.Admin.Settings.Cotizacion
 
@@ -32,6 +33,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewEmailSettings">
                     <MudTabPanel Text="@L["Email"]" Icon="@Icons.Material.Filled.Email">
                         <EmailSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewTelegramSettings">
+                    <MudTabPanel Text="@L["Telegram"]" Icon="@Icons.Material.Filled.Send">
+                        <TelegramSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">

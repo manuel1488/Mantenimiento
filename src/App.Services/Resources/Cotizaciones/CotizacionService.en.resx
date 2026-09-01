@@ -6,6 +6,18 @@
   <data name="Account Number" xml:space="preserve">
     <value>Account Number</value>
   </data>
+  <data name="Cotización approved" xml:space="preserve">
+    <value>Cotización approved</value>
+  </data>
+  <data name="Cotización #{0} was approved (client: {1})." xml:space="preserve">
+    <value>Cotización #{0} was approved (client: {1}).</value>
+  </data>
+  <data name="Cotización rejected" xml:space="preserve">
+    <value>Cotización rejected</value>
+  </data>
+  <data name="Cotización #{0} was rejected (client: {1})." xml:space="preserve">
+    <value>Cotización #{0} was rejected (client: {1}).</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Address</value>
   </data>

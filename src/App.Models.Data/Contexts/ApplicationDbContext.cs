@@ -37,6 +37,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<EmailSettings> EmailSettings { get; set; } = null!;
     public DbSet<EmailTemplateSettings> EmailTemplateSettings { get; set; } = null!;
     public DbSet<CotizacionTemplateSettings> CotizacionTemplateSettings { get; set; } = null!;
+    public DbSet<TelegramSettings> TelegramSettings { get; set; } = null!;
     #endregion
 
     #region Shared
@@ -62,6 +63,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<CotizacionFirma> CotizacionFirmas { get; set; } = null!;
     public DbSet<Factura> Facturas { get; set; } = null!;
     public DbSet<NotificationLog> NotificationLogs { get; set; } = null!;
+    public DbSet<UserTelegramLinkCode> UserTelegramLinkCodes { get; set; } = null!;
+    public DbSet<UserNotificationSubscription> UserNotificationSubscriptions { get; set; } = null!;
     #endregion
 
     #region Fiscal Catalogs

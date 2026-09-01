@@ -4,7 +4,9 @@ using AutoMapper.QueryableExtensions;
 using App.Core.Common;
 using App.Core.DTOs.Cotizaciones;
 using App.Core.Enums.Cotizaciones;
+using App.Core.Enums.Notifications;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Notifications;
 using App.Core.Options;
 using App.Models.Cotizaciones;
 using App.Models.Data.Contexts;
@@ -38,6 +40,7 @@ public class CotizacionService : ICotizacionService
     private readonly IImageService _imageService;
     private readonly IFileStorageService _fileStorageService;
     private readonly IOptions<CotizacionFotoOptions> _fotoOptions;
+    private readonly IInternalNotificationDispatcher _internalNotificationDispatcher;
 
     public CotizacionService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -58,7 +61,8 @@ public class CotizacionService : ICotizacionService
         IOptions<BrandingOptions> brandingOptions,
         IImageService imageService,
         IFileStorageService fileStorageService,
-        IOptions<CotizacionFotoOptions> fotoOptions)
+        IOptions<CotizacionFotoOptions> fotoOptions,
+        IInternalNotificationDispatcher internalNotificationDispatcher)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -79,6 +83,7 @@ public class CotizacionService : ICotizacionService
         _imageService = imageService;
         _fileStorageService = fileStorageService;
         _fotoOptions = fotoOptions;
+        _internalNotificationDispatcher = internalNotificationDispatcher;
     }
 
     public async Task<Result<List<CotizacionDto>>> GetAllAsync()
@@ -428,7 +433,7 @@ public class CotizacionService : ICotizacionService
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             var strategy = context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+            var result = await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
@@ -475,6 +480,11 @@ public class CotizacionService : ICotizacionService
                     throw;
                 }
             });
+
+            if (result.IsSuccess)
+                await NotifyCotizacionAprobadaAsync(cotizacionId);
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -490,7 +500,7 @@ public class CotizacionService : ICotizacionService
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             var strategy = context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+            var result = await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
@@ -533,6 +543,11 @@ public class CotizacionService : ICotizacionService
                     throw;
                 }
             });
+
+            if (result.IsSuccess)
+                await NotifyCotizacionRechazadaAsync(cotizacionId);
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -552,7 +567,7 @@ public class CotizacionService : ICotizacionService
             await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
             var strategy = context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+            var result = await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
                 try
@@ -625,11 +640,68 @@ public class CotizacionService : ICotizacionService
                     throw;
                 }
             });
+
+            if (result.IsSuccess)
+                await NotifyCotizacionAprobadaAsync(cotizacionId);
+
+            return result;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error signing cotizacion {Id}", cotizacionId);
             return Result<CotizacionDto>.Failure(_localizer["Error signing cotizacion"]);
+        }
+    }
+
+    private async Task NotifyCotizacionAprobadaAsync(int cotizacionId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var cotizacion = await context.Cotizaciones
+                .AsNoTracking()
+                .Include(c => c.Cliente)
+                .FirstOrDefaultAsync(c => c.Id == cotizacionId);
+
+            if (cotizacion == null)
+                return;
+
+            await _internalNotificationDispatcher.DispatchAsync(
+                NotificationEventType.CotizacionAprobada,
+                nameof(Cotizacion),
+                cotizacionId,
+                _localizer["Cotización approved"],
+                _localizer["Cotización #{0} was approved (client: {1}).", cotizacionId, cotizacion.Cliente.Nombre]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying that cotizacion {Id} was approved", cotizacionId);
+        }
+    }
+
+    private async Task NotifyCotizacionRechazadaAsync(int cotizacionId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var cotizacion = await context.Cotizaciones
+                .AsNoTracking()
+                .Include(c => c.Cliente)
+                .FirstOrDefaultAsync(c => c.Id == cotizacionId);
+
+            if (cotizacion == null)
+                return;
+
+            await _internalNotificationDispatcher.DispatchAsync(
+                NotificationEventType.CotizacionRechazada,
+                nameof(Cotizacion),
+                cotizacionId,
+                _localizer["Cotización rejected"],
+                _localizer["Cotización #{0} was rejected (client: {1}).", cotizacionId, cotizacion.Cliente.Nombre]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying that cotizacion {Id} was rejected", cotizacionId);
         }
     }
 

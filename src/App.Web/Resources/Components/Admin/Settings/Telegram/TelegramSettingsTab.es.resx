@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="This bot is for internal staff alerts only. Each user links their own Telegram account from their profile." xml:space="preserve">
+    <value>Este bot es solo para alertas internas al staff. Cada usuario vincula su propia cuenta de Telegram desde su perfil.</value>
+  </data>
+  <data name="Bot Token" xml:space="preserve">
+    <value>Token del Bot</value>
+  </data>
+  <data name="Token given by @BotFather when you create the bot" xml:space="preserve">
+    <value>Token que da @BotFather al crear el bot</value>
+  </data>
+  <data name="Public Webhook Base URL" xml:space="preserve">
+    <value>URL Base Pública del Webhook</value>
+  </data>
+  <data name="e.g. https://mantenimiento.tworockets.com.mx (no trailing slash)" xml:space="preserve">
+    <value>ej. https://mantenimiento.tworockets.com.mx (sin diagonal final)</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Habilitado</value>
+  </data>
+  <data name="Bot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Guardar Cambios</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Guardando</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error al cargar la configuración</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error al guardar la configuración</value>
+  </data>
+  <data name="Settings updated successfully" xml:space="preserve">
+    <value>Configuración actualizada correctamente</value>
+  </data>
+  <data name="Settings saved, but the webhook could not be registered: {0}" xml:space="preserve">
+    <value>Configuración guardada, pero no se pudo registrar el webhook: {0}</value>
+  </data>
+  <data name="Test Connection" xml:space="preserve">
+    <value>Probar Conexión</value>
+  </data>
+  <data name="Connection successful. Bot: @{0}" xml:space="preserve">
+    <value>Conexión exitosa. Bot: @{0}</value>
+  </data>
+  <data name="Connection test failed" xml:space="preserve">
+    <value>Falló la prueba de conexión</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>No tienes permiso para ver esta página</value>
+  </data>
+</root>

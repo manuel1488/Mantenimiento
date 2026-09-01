@@ -12,6 +12,18 @@
   <data name="Error creating obra" xml:space="preserve">
     <value>Error al crear la obra</value>
   </data>
+  <data name="Obra started" xml:space="preserve">
+    <value>Obra iniciada</value>
+  </data>
+  <data name="Obra at {0} has started (client: {1})." xml:space="preserve">
+    <value>La obra en {0} ha iniciado (cliente: {1}).</value>
+  </data>
+  <data name="Obra finished" xml:space="preserve">
+    <value>Obra finalizada</value>
+  </data>
+  <data name="Obra at {0} has finished (client: {1})." xml:space="preserve">
+    <value>La obra en {0} ha finalizado (cliente: {1}).</value>
+  </data>
   <data name="Cannot modify an Obra that is Finalizada or Facturada" xml:space="preserve">
     <value>No se puede modificar una Obra Finalizada o Facturada</value>
   </data>

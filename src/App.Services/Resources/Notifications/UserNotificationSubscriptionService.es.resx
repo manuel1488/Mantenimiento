@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error getting notification subscriptions" xml:space="preserve">
+    <value>Error al obtener las suscripciones de notificación</value>
+  </data>
+  <data name="Error updating notification subscriptions" xml:space="preserve">
+    <value>Error al actualizar las suscripciones de notificación</value>
+  </data>
+</root>

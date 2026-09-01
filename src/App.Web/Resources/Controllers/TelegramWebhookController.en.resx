@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Your account has been linked. You'll now receive alerts here." xml:space="preserve">
+    <value>Your account has been linked. You'll now receive alerts here.</value>
+  </data>
+  <data name="That code is invalid or expired. Generate a new one from your profile." xml:space="preserve">
+    <value>That code is invalid or expired. Generate a new one from your profile.</value>
+  </data>
+  <data name="I don't recognize that message. To link your account, generate a code from your profile and send it here." xml:space="preserve">
+    <value>I don't recognize that message. To link your account, generate a code from your profile and send it here.</value>
+  </data>
+</root>

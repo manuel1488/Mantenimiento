@@ -1,0 +1,224 @@
+@using System.Security.Claims
+@using App.Core.DTOs.Notifications
+@using App.Core.Enums.Notifications
+@using App.Core.Interfaces.Notifications
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject IStringLocalizer<TelegramLinkTab> L
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITelegramLinkService TelegramLinkService
+@inject IUserNotificationSubscriptionService SubscriptionService
+@inject ISnackbar Snackbar
+@inject ILogger<TelegramLinkTab> Logger
+
+<MudCard Elevation="0">
+    <MudCardContent>
+        @if (_loading)
+        {
+            <MudGrid>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    @if (_isLinked)
+                    {
+                        <MudAlert Severity="Severity.Success" Class="mb-4">@L["Your Telegram account is linked."]</MudAlert>
+                        <MudButton Variant="Variant.Outlined"
+                                Color="Color.Error"
+                                StartIcon="@Icons.Material.Filled.LinkOff"
+                                Disabled="@_processing"
+                                OnClick="UnlinkAsync"
+                                Class="da-button-rounded">
+                            @L["Unlink"]
+                        </MudButton>
+                    }
+                    else if (_linkCode is not null)
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mb-2">
+                            @L["Open the bot and send it this code:"]
+                        </MudAlert>
+                        <MudText Typo="Typo.h4" Class="mb-2" Align="Align.Center">@_linkCode.Code</MudText>
+                        <MudText Typo="Typo.body2" Class="mb-4" Align="Align.Center">
+                            @L["Expires at {0}", _linkCode.ExpiresAt.ToLocalTime().ToString("t")]
+                        </MudText>
+                        @if (_linkCode.BotUsername is { Length: > 0 } botUsername)
+                        {
+                            <div class="d-flex justify-center mb-4">
+                                <MudButton Variant="Variant.Filled"
+                                        Color="Color.Primary"
+                                        StartIcon="@Icons.Material.Filled.Send"
+                                        Href="@($"https://t.me/{botUsername}")"
+                                        Target="_blank"
+                                        Class="da-button-rounded">
+                                    @L["Open bot in Telegram"]
+                                </MudButton>
+                            </div>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Warning" Class="mb-4">@L["The bot isn't configured yet — ask an administrator."]</MudAlert>
+                        }
+                    }
+                    else
+                    {
+                        <MudText Class="mb-4">@L["Link your Telegram account to receive internal alerts here."]</MudText>
+                        <MudButton Variant="Variant.Filled"
+                                Color="Color.Primary"
+                                StartIcon="@Icons.Material.Filled.Link"
+                                Disabled="@_processing"
+                                OnClick="GenerateCodeAsync"
+                                Class="da-button-rounded">
+                            @L["Generate code"]
+                        </MudButton>
+                    }
+                </MudItem>
+
+                @if (_isLinked)
+                {
+                    <MudItem xs="12" Class="mt-4">
+                        <MudText Typo="Typo.h6" Class="mb-2">@L["Alerts"]</MudText>
+                        @foreach (var pref in _preferences)
+                        {
+                            <MudSwitch T="bool"
+                                    Value="@pref.Enabled"
+                                    ValueChanged="@(v => OnPreferenceChanged(pref, v))"
+                                    Color="Color.Primary"
+                                    Label="@L[pref.EventType.ToString()]" />
+                            @if (pref.EventType is NotificationEventType.ObraVencida or NotificationEventType.ActividadVencida)
+                            {
+                                <MudText Typo="Typo.caption" Class="d-block mb-2 ms-10" Color="Color.Secondary">
+                                    @L["Not triggered automatically yet"]
+                                </MudText>
+                            }
+                        }
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private string? _userId;
+    private bool _loading = true;
+    private bool _processing;
+    private bool _isLinked;
+    private TelegramLinkCodeDto? _linkCode;
+    private List<UserNotificationSubscriptionDto> _preferences = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (_userId is null) return;
+
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _isLinked = await TelegramLinkService.IsLinkedAsync(_userId);
+
+            if (_isLinked)
+            {
+                var result = await SubscriptionService.GetForUserAsync(_userId);
+                if (result.IsSuccess)
+                    _preferences = result.Value!;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading Telegram link status for user {UserId}", _userId);
+            Snackbar.Add(L["Error loading Telegram status"], Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateCodeAsync()
+    {
+        if (_userId is null || _processing) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            var result = await TelegramLinkService.GenerateLinkCodeAsync(_userId);
+            if (result.IsSuccess)
+            {
+                _linkCode = result.Value;
+            }
+            else
+            {
+                Snackbar.Add(result.Error!, Severity.Error);
+            }
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UnlinkAsync()
+    {
+        if (_userId is null || _processing) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            var result = await TelegramLinkService.UnlinkAsync(_userId);
+            if (result.IsSuccess)
+            {
+                _linkCode = null;
+                Snackbar.Add(L["Telegram account unlinked"], Severity.Success);
+                await LoadAsync();
+            }
+            else
+            {
+                Snackbar.Add(result.Error!, Severity.Error);
+            }
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnPreferenceChanged(UserNotificationSubscriptionDto pref, bool value)
+    {
+        if (_userId is null) return;
+
+        pref.Enabled = value;
+        StateHasChanged();
+
+        var update = new UpdateUserNotificationSubscriptionDto
+        {
+            EventType = pref.EventType,
+            ChannelType = pref.ChannelType,
+            Enabled = value
+        };
+
+        var result = await SubscriptionService.UpdateAsync(_userId, new List<UpdateUserNotificationSubscriptionDto> { update });
+        if (!result.IsSuccess)
+            Snackbar.Add(result.Error!, Severity.Error);
+    }
+}

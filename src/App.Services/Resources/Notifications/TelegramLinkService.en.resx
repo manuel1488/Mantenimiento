@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error generating link code" xml:space="preserve">
+    <value>Error generating link code</value>
+  </data>
+  <data name="Invalid or expired code" xml:space="preserve">
+    <value>Invalid or expired code</value>
+  </data>
+  <data name="User not found" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="Error linking Telegram account" xml:space="preserve">
+    <value>Error linking Telegram account</value>
+  </data>
+  <data name="Error unlinking Telegram account" xml:space="preserve">
+    <value>Error unlinking Telegram account</value>
+  </data>
+</root>

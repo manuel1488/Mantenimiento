@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error generating link code" xml:space="preserve">
+    <value>Error al generar el código de vinculación</value>
+  </data>
+  <data name="Invalid or expired code" xml:space="preserve">
+    <value>Código inválido o expirado</value>
+  </data>
+  <data name="User not found" xml:space="preserve">
+    <value>Usuario no encontrado</value>
+  </data>
+  <data name="Error linking Telegram account" xml:space="preserve">
+    <value>Error al vincular la cuenta de Telegram</value>
+  </data>
+  <data name="Error unlinking Telegram account" xml:space="preserve">
+    <value>Error al desvincular la cuenta de Telegram</value>
+  </data>
+</root>

@@ -24,6 +24,10 @@ public static class ApplicationClaims
         public const string ViewEmailSettings = "Admin.EmailSettings.View";
         public const string ManageEmailSettings = "Admin.EmailSettings.Manage";
 
+        // Configuración de Telegram
+        public const string ViewTelegramSettings = "Admin.TelegramSettings.View";
+        public const string ManageTelegramSettings = "Admin.TelegramSettings.Manage";
+
         // Auditoría
         public const string ViewAudit = "Admin.Audit.View";
 

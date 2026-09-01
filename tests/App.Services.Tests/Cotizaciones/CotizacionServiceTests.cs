@@ -2,6 +2,7 @@ using App.Core.Common;
 using App.Core.DTOs.Cotizaciones;
 using App.Core.Enums.Cotizaciones;
 using App.Core.Interfaces;
+using App.Core.Interfaces.Notifications;
 using App.Core.Options;
 using App.Models.Clientes;
 using App.Models.Cotizaciones;
@@ -101,7 +102,8 @@ public class CotizacionServiceTests
             Options.Create(new BrandingOptions()),
             Mock.Of<IImageService>(),
             Mock.Of<IFileStorageService>(),
-            Options.Create(new CotizacionFotoOptions()));
+            Options.Create(new CotizacionFotoOptions()),
+            Mock.Of<IInternalNotificationDispatcher>());
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────

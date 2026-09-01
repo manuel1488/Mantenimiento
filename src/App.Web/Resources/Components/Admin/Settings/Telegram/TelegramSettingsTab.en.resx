@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="This bot is for internal staff alerts only. Each user links their own Telegram account from their profile." xml:space="preserve">
+    <value>This bot is for internal staff alerts only. Each user links their own Telegram account from their profile.</value>
+  </data>
+  <data name="Bot Token" xml:space="preserve">
+    <value>Bot Token</value>
+  </data>
+  <data name="Token given by @BotFather when you create the bot" xml:space="preserve">
+    <value>Token given by @BotFather when you create the bot</value>
+  </data>
+  <data name="Public Webhook Base URL" xml:space="preserve">
+    <value>Public Webhook Base URL</value>
+  </data>
+  <data name="e.g. https://mantenimiento.tworockets.com.mx (no trailing slash)" xml:space="preserve">
+    <value>e.g. https://mantenimiento.tworockets.com.mx (no trailing slash)</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Bot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="Save Changes" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving</value>
+  </data>
+  <data name="Error loading settings" xml:space="preserve">
+    <value>Error loading settings</value>
+  </data>
+  <data name="Error saving settings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+  <data name="Settings updated successfully" xml:space="preserve">
+    <value>Settings updated successfully</value>
+  </data>
+  <data name="Settings saved, but the webhook could not be registered: {0}" xml:space="preserve">
+    <value>Settings saved, but the webhook could not be registered: {0}</value>
+  </data>
+  <data name="Test Connection" xml:space="preserve">
+    <value>Test Connection</value>
+  </data>
+  <data name="Connection successful. Bot: @{0}" xml:space="preserve">
+    <value>Connection successful. Bot: @{0}</value>
+  </data>
+  <data name="Connection test failed" xml:space="preserve">
+    <value>Connection test failed</value>
+  </data>
+  <data name="You don't have permission to view this page" xml:space="preserve">
+    <value>You don't have permission to view this page</value>
+  </data>
+</root>

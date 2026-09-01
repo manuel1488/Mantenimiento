@@ -33,6 +33,7 @@ public class ObraService : IObraService
     private readonly IFileStorageService _fileStorageService;
     private readonly IImageService _imageService;
     private readonly INotificationService _notificationService;
+    private readonly IInternalNotificationDispatcher _internalNotificationDispatcher;
 
     public ObraService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -43,7 +44,8 @@ public class ObraService : IObraService
         IDateTime dateTimeService,
         IFileStorageService fileStorageService,
         IImageService imageService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IInternalNotificationDispatcher internalNotificationDispatcher)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -54,6 +56,7 @@ public class ObraService : IObraService
         _fileStorageService = fileStorageService;
         _imageService = imageService;
         _notificationService = notificationService;
+        _internalNotificationDispatcher = internalNotificationDispatcher;
     }
 
     public async Task<Result<List<ObraDto>>> GetAllAsync()
@@ -265,7 +268,7 @@ public class ObraService : IObraService
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             var strategy = context.Database.CreateExecutionStrategy();
-            return await strategy.ExecuteAsync(async () =>
+            var result = await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await context.Database.BeginTransactionAsync();
                 try
@@ -304,6 +307,11 @@ public class ObraService : IObraService
                     throw;
                 }
             });
+
+            if (result.IsSuccess)
+                await NotifyObraFinalizadaAsync(id);
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -381,27 +389,63 @@ public class ObraService : IObraService
                 .Include(o => o.Cliente)
                 .FirstOrDefaultAsync(o => o.Id == obraId);
 
-            if (obra?.Cliente.Correo is not { Length: > 0 } correo)
+            if (obra == null)
                 return;
 
-            var message = new NotificationMessage
+            if (obra.Cliente.Correo is { Length: > 0 } correo)
             {
-                EventType = "ObraIniciada",
-                RelatedEntityType = nameof(Obra),
-                RelatedEntityId = obraId,
-                Subject = _localizer["Your project has started"],
-                Body = _localizer["Work has started on your project at {0}.", obra.Direccion],
-                Recipients = new Dictionary<NotificationChannelType, string>
+                var message = new NotificationMessage
                 {
-                    [NotificationChannelType.Email] = correo
-                }
-            };
+                    EventType = "ObraIniciada",
+                    RelatedEntityType = nameof(Obra),
+                    RelatedEntityId = obraId,
+                    Subject = _localizer["Your project has started"],
+                    Body = _localizer["Work has started on your project at {0}.", obra.Direccion],
+                    Recipients = new Dictionary<NotificationChannelType, string>
+                    {
+                        [NotificationChannelType.Email] = correo
+                    }
+                };
 
-            await _notificationService.NotifyAsync(message);
+                await _notificationService.NotifyAsync(message);
+            }
+
+            await _internalNotificationDispatcher.DispatchAsync(
+                NotificationEventType.ObraIniciada,
+                nameof(Obra),
+                obraId,
+                _localizer["Obra started"],
+                _localizer["Obra at {0} has started (client: {1}).", obra.Direccion, obra.Cliente.Nombre]);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error notifying client that obra {Id} started", obraId);
+        }
+    }
+
+    private async Task NotifyObraFinalizadaAsync(int obraId)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var obra = await context.Obras
+                .AsNoTracking()
+                .Include(o => o.Cliente)
+                .FirstOrDefaultAsync(o => o.Id == obraId);
+
+            if (obra == null)
+                return;
+
+            await _internalNotificationDispatcher.DispatchAsync(
+                NotificationEventType.ObraFinalizada,
+                nameof(Obra),
+                obraId,
+                _localizer["Obra finished"],
+                _localizer["Obra at {0} has finished (client: {1}).", obra.Direccion, obra.Cliente.Nombre]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notifying that obra {Id} finished", obraId);
         }
     }
 

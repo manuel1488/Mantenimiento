@@ -4,6 +4,10 @@
     <value>Perfil de Usuario</value>
     <comment>Título para la página de perfil de usuario</comment>
   </data>
+  <data name="Telegram" xml:space="preserve">
+    <value>Telegram</value>
+    <comment>Título de pestaña para la sección de vinculación de Telegram</comment>
+  </data>
   <data name="PersonalInfo" xml:space="preserve">
     <value>Información Personal</value>
     <comment>Título de pestaña para la sección de información personal</comment>

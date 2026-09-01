@@ -1,0 +1,192 @@
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+@using App.Web.Services
+
+@inject ITelegramSettingsService TelegramSettingsService
+@inject IStringLocalizer<TelegramSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<TelegramSettingsTab> Logger
+@inject IPermissionCheckService PermissionService
+
+<AuthorizeView Policy="@ApplicationClaims.Admin.ViewTelegramSettings">
+    <Authorized>
+        <MudForm Model="@_model" @ref="@_form">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Class="mb-4">
+                        @L["This bot is for internal staff alerts only. Each user links their own Telegram account from their profile."]
+                    </MudAlert>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_model.BotToken"
+                                ReadOnly="@(!_hasWriteAccess)"
+                                Label="@L["Bot Token"]"
+                                HelperText="@L["Token given by @BotFather when you create the bot"]"
+                                InputType="@(_showToken ? InputType.Text : InputType.Password)"
+                                Adornment="Adornment.End"
+                                AdornmentIcon="@(_showToken ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                                OnAdornmentClick="() => _showToken = !_showToken"/>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_model.WebhookBaseUrl"
+                                ReadOnly="@(!_hasWriteAccess)"
+                                Label="@L["Public Webhook Base URL"]"
+                                HelperText="@L["e.g. https://mantenimiento.tworockets.com.mx (no trailing slash)"]"/>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudCheckBox @bind-Value="_model.Enabled"
+                            ReadOnly="@(!_hasWriteAccess)"
+                            Label="@L["Enabled"]"
+                            Color="Color.Primary"/>
+                </MudItem>
+
+                @if ((_testedBotUsername ?? _settings?.BotUsername) is { Length: > 0 } botUsername)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.body2">@L["Bot"]: <MudLink Href="@($"https://t.me/{botUsername}")" Target="_blank">@@@botUsername</MudLink></MudText>
+                    </MudItem>
+                }
+
+                <MudItem xs="12" Class="d-flex justify-end gap-4">
+                    <MudButton OnClick="TestConnectionAsync"
+                            Variant="Variant.Outlined"
+                            Color="Color.Primary"
+                            StartIcon="@Icons.Material.Filled.NetworkCheck"
+                            Disabled="@(_processing || !_hasWriteAccess || string.IsNullOrWhiteSpace(_model.BotToken))"
+                            Class="da-button-rounded">
+                        @L["Test Connection"]
+                    </MudButton>
+
+                    <AuthorizeView Context="authActions" Policy="@ApplicationClaims.Admin.ManageTelegramSettings">
+                        <MudButton OnClick="SaveChangesAsync"
+                                Variant="Variant.Filled"
+                                Color="Color.Primary"
+                                StartIcon="@Icons.Material.Filled.Save"
+                                Disabled="@_processing"
+                                Class="da-button-rounded">
+                            @if (_processing)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                                <MudText Class="ms-2">@L["Saving"]</MudText>
+                            }
+                            else
+                            {
+                                @L["Save Changes"]
+                            }
+                        </MudButton>
+                    </AuthorizeView>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Warning" Class="my-4">
+            @L["You don't have permission to view this page"]
+        </MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private MudForm _form = null!;
+    private bool _processing;
+    private bool _showToken;
+    private bool _hasWriteAccess;
+    private UpdateTelegramSettingsDto _model = new();
+    private TelegramSettingsDto? _settings;
+    private string? _testedBotUsername;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hasWriteAccess = await PermissionService.HasWriteAccessAsync(ApplicationClaims.Admin.ManageTelegramSettings);
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            _settings = await TelegramSettingsService.GetSettingsAsync();
+            if (_settings != null)
+            {
+                _model = new UpdateTelegramSettingsDto
+                {
+                    BotToken = _settings.BotToken,
+                    WebhookBaseUrl = _settings.WebhookBaseUrl,
+                    Enabled = _settings.Enabled
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading Telegram settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            var updated = await TelegramSettingsService.UpdateSettingsAsync(_model);
+
+            if (updated.WebhookRegistrationError is { Length: > 0 } webhookError)
+                Snackbar.Add(L["Settings saved, but the webhook could not be registered: {0}", webhookError], Severity.Warning);
+            else
+                Snackbar.Add(L["Settings updated successfully"], Severity.Success);
+
+            await LoadSettings();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving Telegram settings");
+            Snackbar.Add(L["Error saving settings"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TestConnectionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.BotToken)) return;
+
+        try
+        {
+            _processing = true;
+            _testedBotUsername = null;
+            StateHasChanged();
+
+            var result = await TelegramSettingsService.TestBotTokenAsync(_model.BotToken);
+            if (result.IsSuccess)
+            {
+                _testedBotUsername = result.Value;
+                Snackbar.Add(L["Connection successful. Bot: @{0}", result.Value!], Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(result.Error ?? L["Connection test failed"], Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error testing Telegram bot token");
+            Snackbar.Add(L["Connection test failed"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+}
