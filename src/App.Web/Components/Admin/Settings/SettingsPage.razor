@@ -6,6 +6,7 @@
 @using App.Web.Components.Admin.Settings.Telegram
 @using App.Web.Components.Admin.Settings.Minio
 @using App.Web.Components.Admin.Settings.Cotizacion
+@using App.Web.Components.Admin.Settings.Obra
 
 @inject IStringLocalizer<SettingsPage> L
 @attribute [Authorize(Policy = ApplicationClaims.Admin.ViewSettings)]
@@ -48,6 +49,11 @@
                 <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
                     <MudTabPanel Text="@L["Cotización"]" Icon="@Icons.Material.Filled.RequestQuote">
                         <CotizacionSettingsTab />
+                    </MudTabPanel>
+                </AuthorizeView>
+                <AuthorizeView Policy="@ApplicationClaims.Admin.ViewSettings">
+                    <MudTabPanel Text="@L["Obras"]" Icon="@Icons.Material.Filled.Construction">
+                        <ObraSettingsTab />
                     </MudTabPanel>
                 </AuthorizeView>
             </MudTabs>

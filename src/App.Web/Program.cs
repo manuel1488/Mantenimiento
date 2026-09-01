@@ -520,6 +520,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();
     services.AddScoped<IClienteService, ClienteService>();
     services.AddScoped<IObraService, ObraService>();
+    services.AddScoped<IObraFolioService, ObraFolioService>();
+    services.AddScoped<IObraFolioSettingsService, ObraFolioSettingsService>();
     services.AddScoped<IActividadService, ActividadService>();
     services.AddScoped<ICotizacionService, CotizacionService>();
     services.AddScoped<ICotizacionFolioService, CotizacionFolioService>();

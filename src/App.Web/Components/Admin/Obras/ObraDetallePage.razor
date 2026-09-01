@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
+@using App.Core.Common
 @using App.Core.Constants
 @using App.Core.DTOs.Clientes
 @using App.Core.DTOs.Obras
@@ -18,6 +19,7 @@
 
 @inject IStringLocalizer<ObraDetallePage> L
 @inject IObraService ObraService
+@inject IObraFolioSettingsService ObraFolioSettingsService
 @inject IActividadService ActividadService
 @inject IClienteService ClienteService
 @inject IServicioService ServicioService
@@ -57,6 +59,7 @@
 
                     <MudStack Row="true" Wrap="Wrap.Wrap" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="4">
                         <div style="min-width: 0;">
+                            <MudText Typo="Typo.caption" Class="mud-text-secondary">@Folio()</MudText>
                             <MudText Typo="Typo.h5" Style="font-weight: 600;">@_obra.ClienteNombre</MudText>
                             <MudText Typo="Typo.body2" Class="mud-text-secondary">@_obra.Direccion</MudText>
                             <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-2">
@@ -347,6 +350,8 @@
     private bool _addingActividad;
     private bool _puedeGestionarFotos;
     private ObraDto? _obra;
+    private string? _folioPrefijo;
+    private int? _folioDigitos;
     private List<ActividadDto> _actividades = new();
 
     private List<ServicioDto> _servicios = new();
@@ -378,9 +383,17 @@
         var authResult = await AuthorizationService.AuthorizeAsync(authState.User, ApplicationClaims.Shared.ManageObras);
         _puedeGestionarFotos = authResult.Succeeded;
 
+        var folioSettings = await ObraFolioSettingsService.GetSettingsAsync();
+        _folioPrefijo = folioSettings.FolioPrefijo;
+        _folioDigitos = folioSettings.FolioDigitos;
+
         await LoadObraAsync();
         await LoadActividadesAsync();
     }
+
+    private string Folio() => _obra is null
+        ? string.Empty
+        : CotizacionFolioFormatter.Format(_obra.Id, _obra.FolioAnio, _obra.FolioNumero, _folioPrefijo, _folioDigitos);
 
     private async Task LoadObraAsync()
     {

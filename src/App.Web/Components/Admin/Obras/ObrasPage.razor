@@ -2,6 +2,7 @@
 @attribute [Authorize(Policy = ApplicationClaims.Shared.ViewObras)]
 
 @using Microsoft.AspNetCore.Authorization
+@using App.Core.Common
 @using App.Core.Constants
 @using App.Core.DTOs.Obras
 @using App.Core.Enums.Obras
@@ -12,6 +13,7 @@
 
 @inject IStringLocalizer<ObrasPage> L
 @inject IObraService ObraService
+@inject IObraFolioSettingsService ObraFolioSettingsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject ILogger<ObrasPage> Logger
@@ -47,6 +49,11 @@
                              SortMode="SortMode.Multiple" Filterable="false"
                              Dense="true" Hover="true" RowsPerPage="10">
                     <Columns>
+                        <TemplateColumn Title="@L["Folio"]" HeaderStyle="width: 150px;">
+                            <CellTemplate>
+                                <MudLink Href="@($"/gestion/obras/{context.Item.Id}")">@Folio(context.Item)</MudLink>
+                            </CellTemplate>
+                        </TemplateColumn>
                         <PropertyColumn Property="x => x.ClienteNombre" Title="@L["Client"]" />
                         <PropertyColumn Property="x => x.Direccion" Title="@L["Address"]" />
                         <TemplateColumn Title="@L["Status"]" HeaderStyle="width: 130px;">
@@ -126,11 +133,20 @@
     private List<ObraDto> _obras = new();
     private List<ObraDto> _filteredObras = new();
     private string _searchString = "";
+    private string? _folioPrefijo;
+    private int? _folioDigitos;
 
     protected override async Task OnInitializedAsync()
     {
+        var folioSettings = await ObraFolioSettingsService.GetSettingsAsync();
+        _folioPrefijo = folioSettings.FolioPrefijo;
+        _folioDigitos = folioSettings.FolioDigitos;
+
         await LoadDataAsync();
     }
+
+    private string Folio(ObraDto obra) => CotizacionFolioFormatter.Format(
+        obra.Id, obra.FolioAnio, obra.FolioNumero, _folioPrefijo, _folioDigitos);
 
     private async Task LoadDataAsync()
     {

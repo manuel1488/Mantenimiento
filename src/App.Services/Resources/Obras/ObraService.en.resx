@@ -30,17 +30,17 @@
   <data name="Only an Obra in Aprobada or EnProceso can be Finalizada" xml:space="preserve">
     <value>Only an Obra in Aprobada or EnProceso can be Finalizada</value>
   </data>
-  <data name="Obra started" xml:space="preserve">
-    <value>Obra started</value>
+  <data name="Obra {0} started" xml:space="preserve">
+    <value>Obra {0} started</value>
   </data>
-  <data name="Obra at {0} has started (client: {1})." xml:space="preserve">
-    <value>Obra at {0} has started (client: {1}).</value>
+  <data name="Obra {0} at {1} has started (client: {2})." xml:space="preserve">
+    <value>Obra {0} at {1} has started (client: {2}).</value>
   </data>
-  <data name="Obra finished" xml:space="preserve">
-    <value>Obra finished</value>
+  <data name="Obra {0} finished" xml:space="preserve">
+    <value>Obra {0} finished</value>
   </data>
-  <data name="Obra at {0} has finished (client: {1})." xml:space="preserve">
-    <value>Obra at {0} has finished (client: {1}).</value>
+  <data name="Obra {0} at {1} has finished (client: {2})." xml:space="preserve">
+    <value>Obra {0} at {1} has finished (client: {2}).</value>
   </data>
   <data name="Error finalizing obra" xml:space="preserve">
     <value>Error finalizing obra</value>

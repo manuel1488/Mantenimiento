@@ -1,0 +1,116 @@
+@using App.Core.Common
+@using App.Core.DTOs.Settings
+@using App.Core.Interfaces
+
+@inject IObraFolioSettingsService ObraFolioSettingsService
+@inject IStringLocalizer<ObraSettingsTab> L
+@inject ISnackbar Snackbar
+@inject ILogger<ObraSettingsTab> Logger
+
+<MudForm @ref="_form" @bind-IsValid="_isValid">
+    <MudGrid Spacing="3">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-1">@L["Folio Numbering"]</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                @L["The consecutive number resets every year and never changes once assigned; only the prefix/padding shown here are applied retroactively to existing folios."]
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudTextField @bind-Value="_model.FolioPrefijo"
+                          Label="@L["Folio Prefix"]"
+                          Required="true"
+                          RequiredError="@L["Folio prefix is required"]"
+                          Variant="Variant.Outlined"
+                          MaxLength="20" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudNumericField @bind-Value="_model.FolioDigitos"
+                             Label="@L["Folio Digits"]"
+                             Min="1" Max="10"
+                             Variant="Variant.Outlined" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                @L["Preview"]: @FolioPreview
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" Class="d-flex justify-end">
+            <MudButton OnClick="SaveChangesAsync"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       Disabled="@(_processing || !_isValid)"
+                       Class="da-button-rounded">
+                @if (_processing)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">@L["Saving"]</MudText>
+                }
+                else
+                {
+                    @L["Save Changes"]
+                }
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+</MudForm>
+
+@code {
+    private MudForm _form = null!;
+    private bool _isValid;
+    private bool _processing;
+    private UpdateObraFolioSettingsDto _model = new();
+
+    private string FolioPreview => CotizacionFolioFormatter.Format(
+        1, DateTime.Now.Year, 1, _model.FolioPrefijo, _model.FolioDigitos);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            var settings = await ObraFolioSettingsService.GetSettingsAsync();
+            _model = new UpdateObraFolioSettingsDto
+            {
+                FolioPrefijo = settings.FolioPrefijo,
+                FolioDigitos = settings.FolioDigitos
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading Obra folio settings");
+            Snackbar.Add(L["Error loading settings"], Severity.Error);
+        }
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        await _form.Validate();
+        if (!_isValid) return;
+
+        try
+        {
+            _processing = true;
+            StateHasChanged();
+
+            await ObraFolioSettingsService.UpdateSettingsAsync(_model);
+            Snackbar.Add(L["Settings updated successfully"], Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error saving Obra folio settings");
+            Snackbar.Add(L["Error saving settings"], Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+}

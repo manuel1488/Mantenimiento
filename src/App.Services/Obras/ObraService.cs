@@ -34,6 +34,8 @@ public class ObraService : IObraService
     private readonly IImageService _imageService;
     private readonly INotificationService _notificationService;
     private readonly IInternalNotificationDispatcher _internalNotificationDispatcher;
+    private readonly IObraFolioService _obraFolioService;
+    private readonly IObraFolioSettingsService _obraFolioSettingsService;
 
     public ObraService(
         IDbContextFactory<ApplicationDbContext> contextFactory,
@@ -45,7 +47,9 @@ public class ObraService : IObraService
         IFileStorageService fileStorageService,
         IImageService imageService,
         INotificationService notificationService,
-        IInternalNotificationDispatcher internalNotificationDispatcher)
+        IInternalNotificationDispatcher internalNotificationDispatcher,
+        IObraFolioService obraFolioService,
+        IObraFolioSettingsService obraFolioSettingsService)
     {
         _contextFactory = contextFactory;
         _mapper = mapper;
@@ -57,6 +61,8 @@ public class ObraService : IObraService
         _imageService = imageService;
         _notificationService = notificationService;
         _internalNotificationDispatcher = internalNotificationDispatcher;
+        _obraFolioService = obraFolioService;
+        _obraFolioSettingsService = obraFolioSettingsService;
     }
 
     public async Task<Result<List<ObraDto>>> GetAllAsync()
@@ -119,6 +125,10 @@ public class ObraService : IObraService
                 {
                     var entity = _mapper.Map<Obra>(dto);
                     entity.Estado = ObraEstado.Solicitada;
+
+                    var (folioAnio, folioNumero) = await _obraFolioService.GenerarSiguienteFolioAsync();
+                    entity.FolioAnio = folioAnio;
+                    entity.FolioNumero = folioNumero;
 
                     var currentUser = await _currentUserService.GetUserIdAsync();
                     var currentTime = _dateTimeService.Now;
@@ -410,17 +420,25 @@ public class ObraService : IObraService
                 await _notificationService.NotifyAsync(message);
             }
 
+            var folio = await FormatFolioAsync(obra);
+
             await _internalNotificationDispatcher.DispatchAsync(
                 NotificationEventType.ObraIniciada,
                 nameof(Obra),
                 obraId,
-                _localizer["Obra started"],
-                _localizer["Obra at {0} has started (client: {1}).", obra.Direccion, obra.Cliente.Nombre]);
+                _localizer["Obra {0} started", folio],
+                _localizer["Obra {0} at {1} has started (client: {2}).", folio, obra.Direccion, obra.Cliente.Nombre]);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error notifying client that obra {Id} started", obraId);
         }
+    }
+
+    private async Task<string> FormatFolioAsync(Obra obra)
+    {
+        var folioSettings = await _obraFolioSettingsService.GetSettingsAsync();
+        return CotizacionFolioFormatter.Format(obra.Id, obra.FolioAnio, obra.FolioNumero, folioSettings.FolioPrefijo, folioSettings.FolioDigitos);
     }
 
     private async Task NotifyObraFinalizadaAsync(int obraId)
@@ -436,12 +454,14 @@ public class ObraService : IObraService
             if (obra == null)
                 return;
 
+            var folio = await FormatFolioAsync(obra);
+
             await _internalNotificationDispatcher.DispatchAsync(
                 NotificationEventType.ObraFinalizada,
                 nameof(Obra),
                 obraId,
-                _localizer["Obra finished"],
-                _localizer["Obra at {0} has finished (client: {1}).", obra.Direccion, obra.Cliente.Nombre]);
+                _localizer["Obra {0} finished", folio],
+                _localizer["Obra {0} at {1} has finished (client: {2}).", folio, obra.Direccion, obra.Cliente.Nombre]);
         }
         catch (Exception ex)
         {
@@ -488,9 +508,12 @@ public class ObraService : IObraService
 
                     var currentUser = await _currentUserService.GetUserIdAsync();
                     var currentTime = _dateTimeService.Now;
+                    var (folioAnio, folioNumero) = await _obraFolioService.GenerarSiguienteFolioAsync();
 
                     var obra = new Obra
                     {
+                        FolioAnio = folioAnio,
+                        FolioNumero = folioNumero,
                         ClienteId = cotizacion.ClienteId,
                         Direccion = dto.Direccion,
                         Urgente = dto.Urgente,

@@ -13,6 +13,15 @@ namespace App.Models.Obras;
 [Table("obr_obras")]
 public class Obra : BaseEntity<int>, IAuditTracked
 {
+    /// <summary>
+    /// Año y consecutivo del folio (ej. Año=2026, Numero=42 → "OBR-2026-0042"), asignados al crear la
+    /// Obra; el consecutivo se reinicia cada año. El prefijo/padding se aplican en tiempo de
+    /// visualización desde ObraFolioSettings (mismo esquema que Cotizacion.FolioAnio/FolioNumero).
+    /// Nulos en Obras creadas antes de que existiera este folio.
+    /// </summary>
+    public int? FolioAnio { get; set; }
+    public int? FolioNumero { get; set; }
+
     [Required]
     public int ClienteId { get; set; }
     public Cliente Cliente { get; set; } = null!;

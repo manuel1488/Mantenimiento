@@ -32,5 +32,8 @@ public class ObraConfiguration : IEntityTypeConfiguration<Obra>
             .WithOne(c => c.ObraGenerada)
             .HasForeignKey<Obra>(e => e.CotizacionOrigenId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => new { e.FolioAnio, e.FolioNumero })
+            .IsUnique();
     }
 }

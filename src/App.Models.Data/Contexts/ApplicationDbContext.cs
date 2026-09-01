@@ -38,6 +38,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<EmailTemplateSettings> EmailTemplateSettings { get; set; } = null!;
     public DbSet<CotizacionTemplateSettings> CotizacionTemplateSettings { get; set; } = null!;
     public DbSet<TelegramSettings> TelegramSettings { get; set; } = null!;
+    public DbSet<ObraFolioSettings> ObraFolioSettings { get; set; } = null!;
     #endregion
 
     #region Shared
