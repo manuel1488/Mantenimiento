@@ -13,4 +13,10 @@ public interface IWhatsAppShareService
     /// false if the fallback text-only wa.me link was used instead.
     /// </summary>
     Task<bool> ShareFileAsync(byte[] fileBytes, string fileName, string contentType, string text);
+
+    /// <summary>
+    /// Same native-share-then-wa.me-fallback behavior as <see cref="ShareFileAsync"/>, for plain
+    /// text content (e.g. a link) that has no file to attach.
+    /// </summary>
+    Task<bool> ShareTextAsync(string text);
 }

@@ -427,12 +427,12 @@
 
     private async Task OpenSendEmailDialog()
     {
-        var parameters = new DialogParameters<SendCotizacionEmailDialog>
+        var parameters = new DialogParameters<SendEmailDialog>
         {
             { x => x.DefaultEmail, _cotizacion?.ClienteCorreo }
         };
 
-        var dialog = await DialogService.ShowAsync<SendCotizacionEmailDialog>(L["Send by Email"], parameters);
+        var dialog = await DialogService.ShowAsync<SendEmailDialog>(L["Send by Email"], parameters);
         var result = await dialog.Result;
 
         if (result is null || result.Canceled || result.Data is not string email) return;

@@ -140,6 +140,10 @@ public class ObraService : IObraService
 
                     context.Obras.Add(entity);
                     await context.SaveChangesAsync();
+
+                    context.ObraClienteAccesos.Add(NuevoClienteAcceso(entity.Id, currentUser, currentTime));
+                    await context.SaveChangesAsync();
+
                     await transaction.CommitAsync();
 
                     var created = await context.Obras
@@ -162,6 +166,21 @@ public class ObraService : IObraService
             return Result<ObraDto>.Failure(_localizer["Error creating obra"]);
         }
     }
+
+    /// <summary>Builds the 1:1 <see cref="ObraClienteAcceso"/> row every Obra gets at creation time,
+    /// whether captured directly (<see cref="CreateAsync"/>) or converted from a Cotización
+    /// (<see cref="CreateFromCotizacionAsync"/>).</summary>
+    private static ObraClienteAcceso NuevoClienteAcceso(int obraId, string currentUser, DateTime currentTime) => new()
+    {
+        ObraId = obraId,
+        Token = ObraClienteAccesoTokenGenerator.Generate(),
+        Habilitado = true,
+        TokenGeneradoEn = currentTime,
+        CreatedBy = currentUser,
+        CreatedAt = currentTime,
+        ModifiedBy = currentUser,
+        ModifiedAt = currentTime
+    };
 
     public async Task<Result<ObraDto>> UpdateAsync(UpdateObraDto dto)
     {
@@ -297,6 +316,7 @@ public class ObraService : IObraService
                     }
 
                     entity.Estado = ObraEstado.Finalizada;
+                    entity.FechaFinalizacion = _dateTimeService.Now;
                     entity.ModifiedBy = await _currentUserService.GetUserIdAsync();
                     entity.ModifiedAt = _dateTimeService.Now;
 
@@ -555,6 +575,10 @@ public class ObraService : IObraService
 
                     context.Obras.Add(obra);
                     await context.SaveChangesAsync();
+
+                    context.ObraClienteAccesos.Add(NuevoClienteAcceso(obra.Id, currentUser, currentTime));
+                    await context.SaveChangesAsync();
+
                     await transaction.CommitAsync();
 
                     var created = await context.Obras

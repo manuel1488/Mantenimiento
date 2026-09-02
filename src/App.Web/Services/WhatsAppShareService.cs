@@ -16,4 +16,7 @@ public class WhatsAppShareService : IWhatsAppShareService
         var base64 = Convert.ToBase64String(fileBytes);
         return await _js.InvokeAsync<bool>("shareFile", fileName, base64, contentType, text);
     }
+
+    public async Task<bool> ShareTextAsync(string text) =>
+        await _js.InvokeAsync<bool>("shareText", text);
 }

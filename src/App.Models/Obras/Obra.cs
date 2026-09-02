@@ -48,6 +48,12 @@ public class Obra : BaseEntity<int>, IAuditTracked
     [Required]
     public DateTime FechaSolicitud { get; set; }
 
+    /// <summary>
+    /// Fecha en que la Obra pasó a Finalizada. Ancla la vigencia del enlace público de seguimiento
+    /// del Cliente (ver <see cref="ObraClienteAcceso"/>) — null mientras la Obra sigue activa.
+    /// </summary>
+    public DateTime? FechaFinalizacion { get; set; }
+
     public ICollection<Actividad> Actividades { get; set; } = new List<Actividad>();
 
     /// <summary>Fotos generales de la Obra, no asociadas a ninguna Actividad en particular.</summary>

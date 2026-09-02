@@ -33,4 +33,13 @@
   <data name="Settings updated successfully" xml:space="preserve">
     <value>Settings updated successfully</value>
   </data>
+  <data name="Client Tracking Link Validity" xml:space="preserve">
+    <value>Client Tracking Link Validity</value>
+  </data>
+  <data name="The public read-only link stays active while the Obra is not yet Finalizada. Once it is, it keeps working for this many days before expiring." xml:space="preserve">
+    <value>The public read-only link stays active while the Obra is not yet Finalizada. Once it is, it keeps working for this many days before expiring.</value>
+  </data>
+  <data name="Days Valid After Finished" xml:space="preserve">
+    <value>Days Valid After Finished</value>
+  </data>
 </root>

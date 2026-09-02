@@ -1,0 +1,186 @@
+@using App.Core.DTOs.Obras
+@using App.Core.Interfaces
+@using App.Web.Components.Shared.Dialogs
+@using App.Web.Services
+@using MudBlazor
+
+@inject IObraClienteAccesoService ObraClienteAccesoService
+@inject IObraService ObraService
+@inject IWhatsAppShareService WhatsAppShareService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject IStringLocalizer<ObraClienteAccesoDialog> L
+@inject ISnackbar Snackbar
+@inject ILogger<ObraClienteAccesoDialog> Logger
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@L["Client Tracking Link"]</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_clienteAcceso is null)
+        {
+            <div class="d-flex justify-center pa-6">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                <MudTextField T="string" Value="@ClienteAccesoUrl" ReadOnly="true" Variant="Variant.Outlined"
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                              OnAdornmentClick="CopyClienteAccesoUrlAsync" AdornmentAriaLabel="@L["Copy link"]" />
+                <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudSwitch T="bool" Value="_clienteAcceso.Habilitado" ValueChanged="ToggleClienteAccesoAsync"
+                               Color="Color.Success" Label="@(_clienteAcceso.Habilitado ? L["Enabled"] : L["Disabled"])" />
+                    <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Refresh" OnClick="RegenerarClienteAccesoAsync">
+                        @L["Regenerate Link"]
+                    </MudButton>
+                </MudStack>
+                @if (_clienteAcceso.ExpiraEn is { } expiraEn)
+                {
+                    <MudText Typo="Typo.body2" Color="@(_clienteAcceso.Vigente ? Color.Default : Color.Error)">
+                        @(_clienteAcceso.Vigente
+                            ? L["Expires on {0}", expiraEn.ToString("dd/MM/yyyy")]
+                            : L["Expired on {0}", expiraEn.ToString("dd/MM/yyyy")])
+                    </MudText>
+                }
+
+                <MudDivider />
+                <MudText Typo="Typo.subtitle2">@L["Share Link"]</MudText>
+                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Email" OnClick="OpenSendEmailDialog">
+                        @L["Send by Email"]
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Share" Disabled="@_sharing" OnClick="ShareByWhatsAppAsync">
+                        @L["Share by WhatsApp"]
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Class="da-button-rounded">@L["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int ObraId { get; set; }
+
+    private ObraClienteAccesoDto? _clienteAcceso;
+    private ObraDto? _obra;
+    private bool _sharing;
+
+    private string ClienteAccesoUrl => _clienteAcceso is null
+        ? string.Empty
+        : $"{NavigationManager.BaseUri.TrimEnd('/')}/seguimiento/{_clienteAcceso.Token}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var obraResult = await ObraService.GetByIdAsync(ObraId);
+        if (obraResult.IsSuccess)
+            _obra = obraResult.Value;
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var result = await ObraClienteAccesoService.GetByObraIdAsync(ObraId);
+        if (result.IsSuccess)
+            _clienteAcceso = result.Value;
+        else
+            Snackbar.Add(result.Error, Severity.Error);
+    }
+
+    private async Task CopyClienteAccesoUrlAsync()
+    {
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", ClienteAccesoUrl);
+        Snackbar.Add(L["Link copied to clipboard"], Severity.Success);
+    }
+
+    private async Task ToggleClienteAccesoAsync(bool habilitado)
+    {
+        var result = await ObraClienteAccesoService.SetHabilitadoAsync(ObraId, habilitado);
+        if (result.IsSuccess)
+        {
+            _clienteAcceso = result.Value;
+            Snackbar.Add(habilitado ? L["Client link enabled"] : L["Client link disabled"], Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
+        }
+    }
+
+    private async Task RegenerarClienteAccesoAsync()
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.Title), L["Regenerate Link Confirmation"].ToString() },
+            { nameof(ConfirmDialog.ContentText), L["The current link will stop working immediately and cannot be recovered. Continue?"].ToString() },
+            { nameof(ConfirmDialog.ConfirmText), L["Regenerate"].ToString() },
+            { nameof(ConfirmDialog.CancelText), L["Cancel"].ToString() },
+            { nameof(ConfirmDialog.Type), ConfirmDialog.DialogType.Warning },
+            { nameof(ConfirmDialog.Color), Color.Warning }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(L["Regenerate Link"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled) return;
+
+        var regenerateResult = await ObraClienteAccesoService.RegenerarTokenAsync(ObraId);
+        if (regenerateResult.IsSuccess)
+        {
+            _clienteAcceso = regenerateResult.Value;
+            Snackbar.Add(L["Link regenerated successfully"], Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(regenerateResult.Error, Severity.Error);
+        }
+    }
+
+    private async Task OpenSendEmailDialog()
+    {
+        var parameters = new DialogParameters<SendEmailDialog>
+        {
+            { x => x.DefaultEmail, _obra?.ClienteCorreo },
+            { x => x.Title, L["Send Tracking Link by Email"].ToString() }
+        };
+
+        var dialog = await DialogService.ShowAsync<SendEmailDialog>(L["Send Tracking Link by Email"], parameters);
+        var result = await dialog.Result;
+
+        if (result is null || result.Canceled || result.Data is not string email) return;
+
+        var sendResult = await ObraClienteAccesoService.SendLinkByEmailAsync(ObraId, ClienteAccesoUrl, email);
+        Snackbar.Add(
+            sendResult.IsSuccess ? L["Link sent by email successfully"] : sendResult.Error,
+            sendResult.IsSuccess ? Severity.Success : Severity.Error);
+    }
+
+    private async Task ShareByWhatsAppAsync()
+    {
+        _sharing = true;
+        try
+        {
+            var text = L["Track your project at {0}: {1}", _obra?.Direccion, ClienteAccesoUrl].ToString();
+            var shared = await WhatsAppShareService.ShareTextAsync(text);
+            if (!shared)
+                Snackbar.Add(L["Opened WhatsApp with the link ready to send"], Severity.Info);
+        }
+        finally
+        {
+            _sharing = false;
+        }
+    }
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+}

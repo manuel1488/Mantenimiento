@@ -81,7 +81,8 @@
                             </MudStack>
                         </div>
 
-                        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Style="min-width: 0; max-width: 100%;">
+                        @* Desktop/tablet: every action as its own button. *@
+                        <div class="d-none d-sm-flex flex-wrap gap-2" style="min-width: 0; max-width: 100%;">
                             <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
                                 <Authorized Context="authContext">
                                     <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -110,6 +111,16 @@
                                        OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{Id}/mensajes"))">
                                 @L["View Messages"]
                             </MudButton>
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                <Authorized Context="clienteAccesoAuth">
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.Link"
+                                               Class="da-button-rounded"
+                                               OnClick="OpenClienteAccesoDialog">
+                                        @L["Client Link"]
+                                    </MudButton>
+                                </Authorized>
+                            </AuthorizeView>
                             <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteObras">
                                 <Authorized Context="authContext">
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
@@ -117,7 +128,56 @@
                                                    title="@L["Delete Obra"]" />
                                 </Authorized>
                             </AuthorizeView>
-                        </MudStack>
+                        </div>
+
+                        @* Mobile: Start/Finish stay as direct buttons — everything else collapses into one overflow menu. *@
+                        <div class="d-flex d-sm-none align-center gap-2" style="min-width: 0; max-width: 100%;">
+                            <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                <Authorized Context="authContext">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.PlayArrow"
+                                               Disabled="@(!CanIniciar)"
+                                               OnClick="IniciarAsync" Class="da-button-rounded">
+                                        @L["Start"]
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                               StartIcon="@Icons.Material.Filled.CheckCircle"
+                                               Disabled="@(!CanFinalizar)"
+                                               OnClick="FinalizarAsync" Class="da-button-rounded">
+                                        @L["Finish"]
+                                    </MudButton>
+                                </Authorized>
+                            </AuthorizeView>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Medium"
+                                     AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                    <Authorized Context="authContext">
+                                        <MudMenuItem Icon="@Icons.Material.Filled.Edit"
+                                                     OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{Id}/editar"))">
+                                            @L["Edit Obra"]
+                                        </MudMenuItem>
+                                    </Authorized>
+                                </AuthorizeView>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Forum"
+                                             OnClick="@(() => NavigationManager.NavigateTo($"/gestion/obras/{Id}/mensajes"))">
+                                    @L["View Messages"]
+                                </MudMenuItem>
+                                <AuthorizeView Policy="@ApplicationClaims.Shared.ManageObras">
+                                    <Authorized Context="clienteAccesoAuth">
+                                        <MudMenuItem Icon="@Icons.Material.Filled.Link" OnClick="OpenClienteAccesoDialog">
+                                            @L["Client Link"]
+                                        </MudMenuItem>
+                                    </Authorized>
+                                </AuthorizeView>
+                                <AuthorizeView Policy="@ApplicationClaims.Shared.DeleteObras">
+                                    <Authorized Context="authContext">
+                                        <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="OpenDeleteDialog">
+                                            @L["Delete Obra"]
+                                        </MudMenuItem>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </MudMenu>
+                        </div>
                     </MudStack>
 
                     <MudDivider Class="my-3" />
@@ -389,6 +449,17 @@
 
         await LoadObraAsync();
         await LoadActividadesAsync();
+    }
+
+    private async Task OpenClienteAccesoDialog()
+    {
+        var parameters = new DialogParameters<ObraClienteAccesoDialog>
+        {
+            { x => x.ObraId, Id }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true };
+
+        await DialogService.ShowAsync<ObraClienteAccesoDialog>(null, parameters, options);
     }
 
     private string Folio() => _obra is null

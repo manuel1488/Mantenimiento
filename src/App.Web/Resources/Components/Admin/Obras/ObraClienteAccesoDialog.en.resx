@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Client Tracking Link" xml:space="preserve">
+    <value>Client Tracking Link</value>
+  </data>
+  <data name="Copy link" xml:space="preserve">
+    <value>Copy link</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Regenerate Link" xml:space="preserve">
+    <value>Regenerate Link</value>
+  </data>
+  <data name="Expires on {0}" xml:space="preserve">
+    <value>Expires on {0}</value>
+  </data>
+  <data name="Expired on {0}" xml:space="preserve">
+    <value>Expired on {0}</value>
+  </data>
+  <data name="Link copied to clipboard" xml:space="preserve">
+    <value>Link copied to clipboard</value>
+  </data>
+  <data name="Client link enabled" xml:space="preserve">
+    <value>Client link enabled</value>
+  </data>
+  <data name="Client link disabled" xml:space="preserve">
+    <value>Client link disabled</value>
+  </data>
+  <data name="Regenerate Link Confirmation" xml:space="preserve">
+    <value>Regenerate Link Confirmation</value>
+  </data>
+  <data name="The current link will stop working immediately and cannot be recovered. Continue?" xml:space="preserve">
+    <value>The current link will stop working immediately and cannot be recovered. Continue?</value>
+  </data>
+  <data name="Regenerate" xml:space="preserve">
+    <value>Regenerate</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Link regenerated successfully" xml:space="preserve">
+    <value>Link regenerated successfully</value>
+  </data>
+  <data name="Share Link" xml:space="preserve">
+    <value>Share Link</value>
+  </data>
+  <data name="Send by Email" xml:space="preserve">
+    <value>Send by Email</value>
+  </data>
+  <data name="Send Tracking Link by Email" xml:space="preserve">
+    <value>Send Tracking Link by Email</value>
+  </data>
+  <data name="Link sent by email successfully" xml:space="preserve">
+    <value>Link sent by email successfully</value>
+  </data>
+  <data name="Share by WhatsApp" xml:space="preserve">
+    <value>Share by WhatsApp</value>
+  </data>
+  <data name="Track your project at {0}: {1}" xml:space="preserve">
+    <value>Track your project at {0}: {1}</value>
+  </data>
+  <data name="Opened WhatsApp with the link ready to send" xml:space="preserve">
+    <value>Opened WhatsApp with the link ready to send</value>
+  </data>
+</root>

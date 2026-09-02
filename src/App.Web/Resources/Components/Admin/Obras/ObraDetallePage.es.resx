@@ -204,4 +204,7 @@
   <data name="Start Date" xml:space="preserve">
     <value>Fecha de Inicio</value>
   </data>
+  <data name="Client Link" xml:space="preserve">
+    <value>Enlace de Cliente</value>
+  </data>
 </root>

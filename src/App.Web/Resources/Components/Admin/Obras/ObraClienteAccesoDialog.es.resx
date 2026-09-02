@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Client Tracking Link" xml:space="preserve">
+    <value>Enlace de Seguimiento del Cliente</value>
+  </data>
+  <data name="Copy link" xml:space="preserve">
+    <value>Copiar enlace</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Habilitado</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Deshabilitado</value>
+  </data>
+  <data name="Regenerate Link" xml:space="preserve">
+    <value>Regenerar Enlace</value>
+  </data>
+  <data name="Expires on {0}" xml:space="preserve">
+    <value>Vence el {0}</value>
+  </data>
+  <data name="Expired on {0}" xml:space="preserve">
+    <value>Venció el {0}</value>
+  </data>
+  <data name="Link copied to clipboard" xml:space="preserve">
+    <value>Enlace copiado al portapapeles</value>
+  </data>
+  <data name="Client link enabled" xml:space="preserve">
+    <value>Enlace de cliente habilitado</value>
+  </data>
+  <data name="Client link disabled" xml:space="preserve">
+    <value>Enlace de cliente deshabilitado</value>
+  </data>
+  <data name="Regenerate Link Confirmation" xml:space="preserve">
+    <value>Confirmar Regeneración de Enlace</value>
+  </data>
+  <data name="The current link will stop working immediately and cannot be recovered. Continue?" xml:space="preserve">
+    <value>El enlace actual dejará de funcionar de inmediato y no se puede recuperar. ¿Continuar?</value>
+  </data>
+  <data name="Regenerate" xml:space="preserve">
+    <value>Regenerar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Link regenerated successfully" xml:space="preserve">
+    <value>Enlace regenerado exitosamente</value>
+  </data>
+  <data name="Share Link" xml:space="preserve">
+    <value>Compartir Enlace</value>
+  </data>
+  <data name="Send by Email" xml:space="preserve">
+    <value>Enviar por Correo</value>
+  </data>
+  <data name="Send Tracking Link by Email" xml:space="preserve">
+    <value>Enviar Enlace de Seguimiento por Correo</value>
+  </data>
+  <data name="Link sent by email successfully" xml:space="preserve">
+    <value>Enlace enviado por correo exitosamente</value>
+  </data>
+  <data name="Share by WhatsApp" xml:space="preserve">
+    <value>Compartir por WhatsApp</value>
+  </data>
+  <data name="Track your project at {0}: {1}" xml:space="preserve">
+    <value>Sigue el avance de tu obra en {0}: {1}</value>
+  </data>
+  <data name="Opened WhatsApp with the link ready to send" xml:space="preserve">
+    <value>Se abrió WhatsApp con el enlace listo para enviar</value>
+  </data>
+</root>

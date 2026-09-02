@@ -33,4 +33,13 @@
   <data name="Settings updated successfully" xml:space="preserve">
     <value>Configuración actualizada correctamente</value>
   </data>
+  <data name="Client Tracking Link Validity" xml:space="preserve">
+    <value>Vigencia del Enlace de Seguimiento del Cliente</value>
+  </data>
+  <data name="The public read-only link stays active while the Obra is not yet Finalizada. Once it is, it keeps working for this many days before expiring." xml:space="preserve">
+    <value>El enlace público de solo lectura se mantiene activo mientras la Obra no esté Finalizada. Una vez que lo está, sigue funcionando este número de días antes de expirar.</value>
+  </data>
+  <data name="Days Valid After Finished" xml:space="preserve">
+    <value>Días de vigencia tras finalizar</value>
+  </data>
 </root>

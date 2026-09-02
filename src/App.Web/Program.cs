@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Threading.RateLimiting;
 
 using App.Core.Constants;
 using App.Core.Identity.Interfaces;
@@ -280,6 +281,27 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
                 context.User.HasClaim(c => c.Type.StartsWith("Shared."))));
     });
 
+    // Rate limit the public, unauthenticated Cliente seguimiento pages by IP — protects against
+    // token brute-forcing and traffic spikes without affecting the rest of the site (every other
+    // path gets RateLimitPartition.GetNoLimiter, i.e. no limiting at all).
+    services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        {
+            if (!httpContext.Request.Path.StartsWithSegments("/seguimiento"))
+                return RateLimitPartition.GetNoLimiter("none");
+
+            var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+        });
+    });
+
     // Agregar Health Checks
     services.AddHealthChecks()
         .AddDbContextCheck<ApplicationDbContext>()
@@ -468,6 +490,7 @@ void ConfigurePipeline(WebApplication app)
     app.UseSerilogRequestLogging();
     app.UseCookiePolicy();
     app.UseRouting();
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseAntiforgery();
@@ -522,6 +545,8 @@ void ConfigureApplicationServices(IServiceCollection services, IConfiguration co
     services.AddScoped<IObraService, ObraService>();
     services.AddScoped<IObraFolioService, ObraFolioService>();
     services.AddScoped<IObraFolioSettingsService, ObraFolioSettingsService>();
+    services.AddScoped<IObraClienteAccesoService, ObraClienteAccesoService>();
+    services.AddScoped<IObraSeguimientoClienteSettingsService, ObraSeguimientoClienteSettingsService>();
     services.AddScoped<IActividadService, ActividadService>();
     services.AddScoped<ICotizacionService, CotizacionService>();
     services.AddScoped<ICotizacionFolioService, CotizacionFolioService>();

@@ -3,6 +3,7 @@
 @using App.Core.Interfaces
 
 @inject IObraFolioSettingsService ObraFolioSettingsService
+@inject IObraSeguimientoClienteSettingsService ObraSeguimientoClienteSettingsService
 @inject IStringLocalizer<ObraSettingsTab> L
 @inject ISnackbar Snackbar
 @inject ILogger<ObraSettingsTab> Logger
@@ -36,6 +37,21 @@
             </MudText>
         </MudItem>
 
+        <MudItem xs="12">
+            <MudDivider Class="my-2" />
+            <MudText Typo="Typo.h6" Class="mb-1">@L["Client Tracking Link Validity"]</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3" Style="display:block;">
+                @L["The public read-only link stays active while the Obra is not yet Finalizada. Once it is, it keeps working for this many days before expiring."]
+            </MudText>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudNumericField @bind-Value="_seguimientoModel.DiasVigenciaPostFinalizacion"
+                             Label="@L["Days Valid After Finished"]"
+                             Min="1" Max="3650"
+                             Variant="Variant.Outlined" />
+        </MudItem>
+
         <MudItem xs="12" Class="d-flex justify-end">
             <MudButton OnClick="SaveChangesAsync"
                        Variant="Variant.Filled"
@@ -62,6 +78,7 @@
     private bool _isValid;
     private bool _processing;
     private UpdateObraFolioSettingsDto _model = new();
+    private UpdateObraSeguimientoClienteSettingsDto _seguimientoModel = new();
 
     private string FolioPreview => CotizacionFolioFormatter.Format(
         1, DateTime.Now.Year, 1, _model.FolioPrefijo, _model.FolioDigitos);
@@ -80,6 +97,12 @@
             {
                 FolioPrefijo = settings.FolioPrefijo,
                 FolioDigitos = settings.FolioDigitos
+            };
+
+            var seguimientoSettings = await ObraSeguimientoClienteSettingsService.GetSettingsAsync();
+            _seguimientoModel = new UpdateObraSeguimientoClienteSettingsDto
+            {
+                DiasVigenciaPostFinalizacion = seguimientoSettings.DiasVigenciaPostFinalizacion
             };
         }
         catch (Exception ex)
@@ -100,6 +123,7 @@
             StateHasChanged();
 
             await ObraFolioSettingsService.UpdateSettingsAsync(_model);
+            await ObraSeguimientoClienteSettingsService.UpdateSettingsAsync(_seguimientoModel);
             Snackbar.Add(L["Settings updated successfully"], Severity.Success);
         }
         catch (Exception ex)

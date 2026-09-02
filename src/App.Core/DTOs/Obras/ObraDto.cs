@@ -9,6 +9,7 @@ public class ObraDto
     public int? FolioNumero { get; set; }
     public int ClienteId { get; set; }
     public string ClienteNombre { get; set; } = null!;
+    public string? ClienteCorreo { get; set; }
     public string Direccion { get; set; } = null!;
     public bool Urgente { get; set; }
     public ObraEstado Estado { get; set; }

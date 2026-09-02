@@ -39,6 +39,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<CotizacionTemplateSettings> CotizacionTemplateSettings { get; set; } = null!;
     public DbSet<TelegramSettings> TelegramSettings { get; set; } = null!;
     public DbSet<ObraFolioSettings> ObraFolioSettings { get; set; } = null!;
+    public DbSet<ObraSeguimientoClienteSettings> ObraSeguimientoClienteSettings { get; set; } = null!;
     #endregion
 
     #region Shared
@@ -56,6 +57,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
     public DbSet<ActividadAvanceRegistro> ActividadAvanceRegistros { get; set; } = null!;
     public DbSet<ObraFotoGeneral> ObraFotosGenerales { get; set; } = null!;
     public DbSet<ObraMensaje> ObraMensajes { get; set; } = null!;
+    public DbSet<ObraClienteAcceso> ObraClienteAccesos { get; set; } = null!;
     public DbSet<ActividadReasignacion> ActividadReasignaciones { get; set; } = null!;
     public DbSet<Cotizacion> Cotizaciones { get; set; } = null!;
     public DbSet<CotizacionLinea> CotizacionLineas { get; set; } = null!;

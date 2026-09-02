@@ -1,0 +1,35 @@
+@using App.Core.Interfaces
+@using App.Core.Options
+@using App.Web.Services
+@using Microsoft.Extensions.Options
+@inherits LayoutComponentBase
+
+@inject CurrentThemeService ThemeService
+@inject IOptions<BrandingOptions> BrandingOptions
+@inject IOptions<ApplicationOptions> ApplicationOptions
+@inject ICompanySettingsService CompanySettingsService
+@inject IStringLocalizer<PublicMinimalLayout> L
+
+<MudThemeProvider Theme="ThemeService.Theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Surface">
+        <MudImage Src="@_logoSrc" Alt="@L["LogoAlt"]" Height="36" ObjectFit="ObjectFit.Contain" Class="mr-3" />
+        <MudText Typo="Typo.h6">@ApplicationOptions.Value.Name</MudText>
+    </MudAppBar>
+    <MudMainContent Class="pt-4">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private string? _logoSrc;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _logoSrc = await CompanySettingsService.GetLogoDataUriAsync() ?? BrandingOptions.Value.LogoPath;
+    }
+}

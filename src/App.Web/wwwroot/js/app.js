@@ -149,6 +149,26 @@ window.shareFile = async function (fileName, base64Data, contentType, text) {
     return false;
 };
 
+// Share plain text (e.g. a link) via the OS-level share sheet — same fallback strategy as
+// shareFile above, minus the file-attachment branch, for content that isn't a file (a URL, a
+// short message). Returns true if the native share sheet handled it, false if it fell back to a
+// wa.me link.
+window.shareText = async function (text) {
+    try {
+        if (navigator.share) {
+            await navigator.share({ text: text || '' });
+            return true;
+        }
+    } catch (err) {
+        if (err && err.name === 'AbortError') return true;
+        console.error('shareText failed', err);
+    }
+
+    const waText = encodeURIComponent(text || '');
+    window.open(`https://wa.me/?text=${waText}`, '_blank', 'noopener,noreferrer');
+    return false;
+};
+
 // File download helper — called from Blazor via JS interop
 window.downloadFile = (fileName, contentType, base64Data) => {
     const link = document.createElement('a');

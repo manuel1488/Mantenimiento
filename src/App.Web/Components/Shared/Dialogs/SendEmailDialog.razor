@@ -2,7 +2,7 @@
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">@L["Send by Email"]</MudText>
+        <MudText Typo="Typo.h6">@(Title ?? L["Send by Email"])</MudText>
     </TitleContent>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_isValid">
@@ -23,7 +23,11 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     [Parameter] public string? DefaultEmail { get; set; }
-    [Inject] private IStringLocalizer<SendCotizacionEmailDialog> L { get; set; } = null!;
+
+    /// <summary>Optional dialog title override — defaults to the generic "Send by Email".</summary>
+    [Parameter] public string? Title { get; set; }
+
+    [Inject] private IStringLocalizer<SendEmailDialog> L { get; set; } = null!;
 
     private MudForm _form = null!;
     private bool _isValid;

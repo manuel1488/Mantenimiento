@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Project Tracking" xml:space="preserve">
+    <value>Seguimiento de Obra</value>
+  </data>
+  <data name="This link is invalid or has expired" xml:space="preserve">
+    <value>Este enlace no es válido o ya expiró.</value>
+  </data>
+  <data name="Overall Progress" xml:space="preserve">
+    <value>Avance General</value>
+  </data>
+  <data name="Actividades" xml:space="preserve">
+    <value>Actividades</value>
+  </data>
+  <data name="No actividades yet" xml:space="preserve">
+    <value>Aún no hay actividades</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Novedades</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Solicitada</value>
+  </data>
+  <data name="Quoted" xml:space="preserve">
+    <value>Cotizada</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rechazada</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Aprobada</value>
+  </data>
+  <data name="In Progress" xml:space="preserve">
+    <value>En Proceso</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finalizada</value>
+  </data>
+  <data name="Invoiced" xml:space="preserve">
+    <value>Facturada</value>
+  </data>
+</root>
