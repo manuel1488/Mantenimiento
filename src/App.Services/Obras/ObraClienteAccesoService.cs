@@ -69,28 +69,32 @@ public class ObraClienteAccesoService : IObraClienteAccesoService
                 var currentUser = await _currentUserService.GetUserIdAsync();
                 var currentTime = _dateTimeService.Now;
 
-                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-                try
+                var strategy = context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(async () =>
                 {
-                    context.ObraClienteAccesos.Add(new ObraClienteAcceso
+                    await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                    try
                     {
-                        ObraId = obraId,
-                        Token = ObraClienteAccesoTokenGenerator.Generate(),
-                        Habilitado = true,
-                        TokenGeneradoEn = currentTime,
-                        CreatedBy = currentUser,
-                        CreatedAt = currentTime,
-                        ModifiedBy = currentUser,
-                        ModifiedAt = currentTime
-                    });
-                    await context.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                    _logger.LogWarning("Backfilled missing client access link for obra {Id} (created before this feature existed)", obraId);
-                }
-                catch (DbUpdateException)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-                }
+                        context.ObraClienteAccesos.Add(new ObraClienteAcceso
+                        {
+                            ObraId = obraId,
+                            Token = ObraClienteAccesoTokenGenerator.Generate(),
+                            Habilitado = true,
+                            TokenGeneradoEn = currentTime,
+                            CreatedBy = currentUser,
+                            CreatedAt = currentTime,
+                            ModifiedBy = currentUser,
+                            ModifiedAt = currentTime
+                        });
+                        await context.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+                        _logger.LogWarning("Backfilled missing client access link for obra {Id} (created before this feature existed)", obraId);
+                    }
+                    catch (DbUpdateException)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                    }
+                });
 
                 entity = await context.ObraClienteAccesos
                     .AsNoTracking()
