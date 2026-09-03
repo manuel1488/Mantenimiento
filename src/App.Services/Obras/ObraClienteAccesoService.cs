@@ -57,7 +57,49 @@ public class ObraClienteAccesoService : IObraClienteAccesoService
                 .FirstOrDefaultAsync(a => a.ObraId == obraId, cancellationToken);
 
             if (entity == null)
-                return Result<ObraClienteAccesoDto>.Failure(_localizer["Client access link not found"]);
+            {
+                // Obras created before this feature shipped (see migration AddObraClienteAcceso)
+                // never got their 1:1 access row — backfill it lazily on first access instead of
+                // failing forever. ObraId has a unique index, so a request racing to create the
+                // same row concurrently just falls through to re-reading it below.
+                var obraExists = await context.Obras.AnyAsync(o => o.Id == obraId, cancellationToken);
+                if (!obraExists)
+                    return Result<ObraClienteAccesoDto>.Failure(_localizer["Client access link not found"]);
+
+                var currentUser = await _currentUserService.GetUserIdAsync();
+                var currentTime = _dateTimeService.Now;
+
+                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    context.ObraClienteAccesos.Add(new ObraClienteAcceso
+                    {
+                        ObraId = obraId,
+                        Token = ObraClienteAccesoTokenGenerator.Generate(),
+                        Habilitado = true,
+                        TokenGeneradoEn = currentTime,
+                        CreatedBy = currentUser,
+                        CreatedAt = currentTime,
+                        ModifiedBy = currentUser,
+                        ModifiedAt = currentTime
+                    });
+                    await context.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    _logger.LogWarning("Backfilled missing client access link for obra {Id} (created before this feature existed)", obraId);
+                }
+                catch (DbUpdateException)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                entity = await context.ObraClienteAccesos
+                    .AsNoTracking()
+                    .Include(a => a.Obra)
+                    .FirstOrDefaultAsync(a => a.ObraId == obraId, cancellationToken);
+
+                if (entity == null)
+                    return Result<ObraClienteAccesoDto>.Failure(_localizer["Client access link not found"]);
+            }
 
             var settings = await _settingsService.GetSettingsAsync();
             return Result<ObraClienteAccesoDto>.Success(BuildDto(entity, settings.DiasVigenciaPostFinalizacion));
