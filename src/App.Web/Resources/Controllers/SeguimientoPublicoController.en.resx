@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error loading tracking information" xml:space="preserve">
+    <value>Error loading tracking information</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Requested</value>
+  </data>
+  <data name="Quoted" xml:space="preserve">
+    <value>Quoted</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="In Progress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="Finished" xml:space="preserve">
+    <value>Finished</value>
+  </data>
+  <data name="Invoiced" xml:space="preserve">
+    <value>Invoiced</value>
+  </data>
+  <data name="Alert" xml:space="preserve">
+    <value>Alert</value>
+  </data>
+  <data name="Progress Update" xml:space="preserve">
+    <value>Progress Update</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Progress update on your project" xml:space="preserve">
+    <value>Progress update on your project</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%." xml:space="preserve">
+    <value>Progress on {0} has been updated to {1}%.</value>
+  </data>
+  <data name="Progress on {0} has been updated to {1}%. Note: {2}" xml:space="preserve">
+    <value>Progress on {0} has been updated to {1}%. Note: {2}</value>
+  </data>
+</root>

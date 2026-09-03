@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seguimiento de Obra</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<script src="/js/vendor/tailwind.js?v=3.4.16"
+        integrity="sha384-mS5Uq7sE90lgbBDN8xgf34ibEgbZo4gB3tfLY40ZRle+M188BQw8onzNHg6GUZaA"></script>
+<script>tailwind.config = { corePlugins: { preflight: false } };</script>
+<style>
+  body { background: #F5F9F9; font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif; margin: 0; color: #1a1a1a; }
+  .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .chip { display: inline-flex; align-items: center; border-radius: 9999px; padding: 2px 10px; font-size: 12px; font-weight: 600; color: #fff; }
+  .bar-track { background: rgba(0,0,0,.08); border-radius: 9999px; overflow: hidden; }
+  .bar-fill { border-radius: 9999px; transition: width .6s ease-out; }
+  [x-cloak] { display: none !important; }
+</style>
+</head>
+<body x-data="seguimiento()" x-init="load()" x-cloak>
+
+  <div class="text-white px-4 py-3 flex items-center gap-3" :style="{ background: data ? data.primaryColor : '#1A6868' }">
+    <img :src="data ? data.logoUrl : ''" alt="" class="h-9 w-9 object-contain rounded bg-white/90 p-0.5" x-show="data" />
+    <span class="text-lg font-medium" x-text="data ? data.appName : 'Seguimiento de Obra'"></span>
+  </div>
+
+  <div class="max-w-2xl mx-auto p-4">
+
+    <div x-show="loading" class="flex justify-center py-16">
+      <span class="material-icons animate-spin text-4xl" :style="{ color: data ? data.primaryColor : '#1A6868' }">progress_activity</span>
+    </div>
+
+    <div x-show="!loading && error" class="card p-4 mt-4" style="border-left: 4px solid #FF9800;">
+      <p x-text="error"></p>
+    </div>
+
+    <template x-if="!loading && !error && data">
+      <div>
+        <div class="card p-4 sm:p-6 mb-4">
+          <p class="text-xs text-gray-500" x-text="data.folio"></p>
+          <p class="text-xl font-semibold mt-1" x-text="data.direccion"></p>
+          <span class="chip mt-2" :style="{ background: estadoColor(data.estado) }" x-text="data.estadoLabel"></span>
+          <div class="flex items-center gap-2 mt-3">
+            <span class="text-sm text-gray-500 whitespace-nowrap">Avance General</span>
+            <div class="bar-track flex-1 h-2">
+              <div class="bar-fill h-full" :style="{ width: data.porcentajeAvance + '%', background: data.primaryColor }"></div>
+            </div>
+            <span class="text-sm whitespace-nowrap" x-text="data.porcentajeAvance + '%'"></span>
+          </div>
+        </div>
+
+        <div class="card p-3 sm:p-4 mb-4">
+          <p class="px-2 py-1 text-sm font-medium text-gray-600">Actividades</p>
+          <p class="px-2 text-sm text-gray-500" x-show="data.actividades.length === 0">Aún no hay actividades</p>
+          <template x-for="actividad in data.actividades" :key="actividad.servicioNombre">
+            <div class="border border-gray-200 rounded p-3 mb-2">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-semibold" x-text="actividad.servicioNombre"></span>
+                <span class="text-sm" x-text="actividad.porcentajeAvance + '%'"></span>
+              </div>
+              <div class="bar-track h-1.5">
+                <div class="bar-fill h-full" :style="{ width: actividad.porcentajeAvance + '%', background: actividadColor(actividad.estado) }"></div>
+              </div>
+              <p class="text-sm text-gray-500 mt-1" x-show="actividad.descripcion" x-text="actividad.descripcion"></p>
+            </div>
+          </template>
+        </div>
+
+        <div class="card p-3 sm:p-4 mb-4">
+          <p class="px-2 py-1 text-sm font-medium text-gray-600 mb-2">Novedades</p>
+          <p class="px-2 text-sm text-gray-500" x-show="data.mensajes.length === 0">No se han enviado mensajes</p>
+          <div class="space-y-2">
+            <template x-for="mensaje in data.mensajes" :key="mensaje.fechaEnvio + mensaje.asunto">
+              <div class="border border-gray-200 rounded p-3">
+                <div class="flex justify-between items-start gap-2">
+                  <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <span class="chip" :style="{ background: tipoColor(mensaje.tipo) }" x-text="mensaje.tipoLabel"></span>
+                      <span class="text-sm font-semibold" x-text="mensaje.asunto"></span>
+                    </div>
+                    <p class="text-xs text-gray-500" x-text="formatFecha(mensaje.fechaEnvio) + ' · ' + mensaje.canales"></p>
+                  </div>
+                  <a :href="mensaje.fotoUrl" target="_blank" rel="noopener" x-show="mensaje.fotoUrl">
+                    <img :src="mensaje.fotoThumbnailUrl || mensaje.fotoUrl" class="w-14 h-14 rounded object-cover" />
+                  </a>
+                </div>
+                <p class="text-sm mt-2" style="white-space: pre-wrap;" x-text="mensaje.cuerpo"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="card p-3 sm:p-4 mb-4">
+          <p class="px-2 py-1 text-sm font-medium text-gray-600 mb-2">Fotos Generales</p>
+          <p class="px-2 text-sm text-gray-500" x-show="data.fotos.length === 0">Sin fotos</p>
+          <div class="flex flex-wrap gap-3">
+            <template x-for="foto in data.fotos" :key="foto.url">
+              <div style="width: 120px;">
+                <a :href="foto.url" target="_blank" rel="noopener" class="block" style="width:120px;height:120px;">
+                  <img :src="foto.thumbnailUrl || foto.url" class="w-full h-full rounded object-cover border border-gray-200" />
+                </a>
+                <p class="text-xs text-gray-500 mt-1" x-show="foto.descripcion" x-text="foto.descripcion"></p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+<script defer src="/js/vendor/alpine.js?v=3.14.9"
+        integrity="sha384-9Ax3MmS9AClxJyd5/zafcXXjxmwFhZCdsT6HJoJjarvCaAkJlk5QDzjLJm+Wdx5F"></script>
+<script>
+  function seguimiento() {
+    return {
+      loading: true,
+      error: null,
+      data: null,
+
+      async load() {
+        const segments = location.pathname.split('/').filter(Boolean);
+        const token = segments[segments.length - 1];
+
+        try {
+          const res = await fetch(`/api/seguimiento/${encodeURIComponent(token)}`);
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            this.error = body.error || 'Este enlace no es válido o ya expiró.';
+          } else {
+            this.data = await res.json();
+          }
+        } catch (e) {
+          this.error = 'No se pudo cargar la información. Intenta de nuevo más tarde.';
+        }
+
+        this.loading = false;
+      },
+
+      formatFecha(iso) {
+        return new Date(iso).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
+      },
+
+      estadoColor(estado) {
+        const map = {
+          Solicitada: '#757575',
+          Cotizada: '#2196F3',
+          Rechazada: '#D32F2F',
+          Aprobada: '#4CAF50',
+          EnProceso: this.data.primaryColor,
+          Finalizada: '#4CAF50',
+          Facturada: this.data.secondaryColor
+        };
+        return map[estado] || '#757575';
+      },
+
+      actividadColor(estado) {
+        const map = { Pendiente: '#FF9800', EnProceso: '#2196F3', Finalizada: '#4CAF50' };
+        return map[estado] || '#9E9E9E';
+      },
+
+      tipoColor(tipo) {
+        const map = { Alerta: '#D32F2F', Avance: '#2196F3', Mensaje: '#757575' };
+        return map[tipo] || '#757575';
+      }
+    };
+  }
+</script>
+</body>
+</html>

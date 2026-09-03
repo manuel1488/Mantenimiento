@@ -289,10 +289,21 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         {
-            if (!httpContext.Request.Path.StartsWithSegments("/seguimiento"))
+            if (!httpContext.Request.Path.StartsWithSegments("/seguimiento")
+                && !httpContext.Request.Path.StartsWithSegments("/api/seguimiento"))
                 return RateLimitPartition.GetNoLimiter("none");
 
-            var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            // Behind Cloudflare + nginx, httpContext.Connection.RemoteIpAddress is the docker
+            // bridge gateway for every request (nginx runs on the VDS host, one hop outside the
+            // container) — trusting X-Forwarded-For here would mean configuring ForwardedHeaders
+            // with the docker network's IP range, which drifts across environments/restarts.
+            // CF-Connecting-IP sidesteps that: Cloudflare sets it at the edge to the real visitor
+            // IP regardless of how many internal hops follow, so nothing here needs to know the
+            // proxy topology. This assumes the origin only accepts traffic from Cloudflare (the
+            // usual "orange-cloud" setup) — otherwise a direct request could forge this header.
+            var ip = httpContext.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+                ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown";
             return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 20,
@@ -501,6 +512,11 @@ void ConfigurePipeline(WebApplication app)
     app.MapRazorComponents<AppRoot>().AddInteractiveServerRenderMode();
     app.MapAdditionalIdentityEndpoints();
     app.MapControllers();
+
+    // Public obra-tracking link: static HTML + Alpine.js (wwwroot/seguimiento.html) fetching from
+    // SeguimientoPublicoController, deliberately outside Blazor/SignalR — see that controller's
+    // XML doc for why an anonymous, read-only page shouldn't hold a per-visitor circuit open.
+    app.MapFallbackToFile("/seguimiento/{token}", "seguimiento.html");
 
     // Mapear endpoint de health check
     app.MapHealthChecks("/health", new HealthCheckOptions
